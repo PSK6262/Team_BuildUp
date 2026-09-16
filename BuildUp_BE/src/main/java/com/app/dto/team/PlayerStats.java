@@ -13,4 +13,13 @@ public class PlayerStats {
     private String isInjured;      // 부상 여부 (Y/N)
     private String injuryNote;     // 부상 상세 메모 및 결장 사유
     private String isSuspended;    // 출장 정지 징계 여부 (Y/N)
+
+    // 화면 표시 조인용 필드 (득점 랭킹 조회용)
+    private String playerName;     // 선수명
+    private Long backNumber;       // 등번호
+    private String mainPosition;   // 주 포지션
+    private String nationality;    // 국적
+    private Long teamId;           // 소속 구단 ID
+    private String teamName;       // 소속 구단명
+    private String emblemUrl;      // 구단 엠블럼 URL
 }
