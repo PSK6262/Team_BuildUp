@@ -52,19 +52,6 @@ public class TeamDAOImpl implements TeamDAO {
 	}
 
 	@Override
-	public List<Players> findPlayersWithNullBackNumber(Long teamId) {
-		return sqlSession.selectList("TeamMapper.selectPlayersWithNullBackNumber", teamId);
-	}
-
-	@Override
-	public void updatePlayerBackNumber(Long playerId, Long backNumber) {
-		Map<String, Object> params = new HashMap<>();
-		params.put("playerId", playerId);
-		params.put("backNumber", backNumber);
-		sqlSession.update("TeamMapper.updatePlayerBackNumber", params);
-	}
-
-	@Override
 	public void mergeStaff(Staffs staff) {
 		sqlSession.insert("TeamMapper.mergeStaff", staff);
 	}

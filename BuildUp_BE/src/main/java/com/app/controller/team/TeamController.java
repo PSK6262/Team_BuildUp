@@ -184,46 +184,4 @@ public class TeamController {
 	public List<TeamStats> getTeamStatsHistory(@PathVariable("teamId") Long teamId) {
 		return teamService.getTeamStatsHistory(teamId);
 	}
-
-	// 6. 특정 구단 선수 등번호(Back Number) 비동기 수집 시작 (6.5초 간격)
-	// 예: GET /api/teams/57/fill-backnumbers (아스널)
-	@GetMapping("/{teamId}/fill-backnumbers")
-	public Map<String, Object> fillTeamBackNumbers(@PathVariable("teamId") Long teamId) {
-		int targetCount = footballApiService.fillBackNumbersAsync(teamId);
-		if (targetCount == 0) {
-			return Map.of(
-				"teamId", teamId,
-				"status", "COMPLETED",
-				"message", "해당 구단에 등번호가 누락된 선수가 없습니다."
-			);
-		}
-
-		return Map.of(
-			"teamId", teamId,
-			"status", "STARTED",
-			"targetPlayerCount", targetCount,
-			"estimatedMinutes", (int) Math.ceil(targetCount * 6.5 / 60.0),
-			"message", "등번호 비동기 수집이 백그라운드에서 시작되었습니다. (Rate Limit 준수를 위해 6.5초 간격으로 처리되며 진행 상황은 서버 콘솔에서 확인 가능합니다)"
-		);
-	}
-
-	// 7. 전체 구단 중 등번호가 없는 선수 전체 비동기 수집 시작 (6.5초 간격)
-	// 예: GET /api/teams/fill-backnumbers
-	@GetMapping("/fill-backnumbers")
-	public Map<String, Object> fillAllBackNumbers() {
-		int targetCount = footballApiService.fillBackNumbersAsync(null);
-		if (targetCount == 0) {
-			return Map.of(
-				"status", "COMPLETED",
-				"message", "전체 구단에 등번호가 누락된 선수가 없습니다."
-			);
-		}
-
-		return Map.of(
-			"status", "STARTED",
-			"targetPlayerCount", targetCount,
-			"estimatedMinutes", (int) Math.ceil(targetCount * 6.5 / 60.0),
-			"message", "전체 선수 등번호 비동기 수집이 백그라운드에서 시작되었습니다. (진행 상황은 서버 콘솔에서 확인 가능합니다)"
-		);
-	}
 }

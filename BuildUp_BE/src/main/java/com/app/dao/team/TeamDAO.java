@@ -14,8 +14,6 @@ public interface TeamDAO {
 	List<Players> findPlayersByTeamId(Long teamId);
 	Teams findTeamById(Long teamId);
 	List<Teams> findAllTeams();
-	List<Players> findPlayersWithNullBackNumber(Long teamId);
-	void updatePlayerBackNumber(Long playerId, Long backNumber);
 	void mergeStaff(Staffs staff);
 	List<Staffs> findStaffsByTeamId(Long teamId);
 	void ensureStaffRoleExists(Long staffRoleId, String roleName);

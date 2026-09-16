@@ -208,81 +208,6 @@ public class FootballApiServiceImpl implements FootballApiService {
         }
     }
 
-    @Override
-    public int fillBackNumbersAsync(Long teamId) {
-        // 1. BACK_NUMBER가 NULL인 대상 선수들 조회
-        List<Players> targetPlayers = teamDAO.findPlayersWithNullBackNumber(teamId);
-        int totalTargets = targetPlayers.size();
-        if (totalTargets == 0) {
-            System.out.println("======================================================================");
-            System.out.println("[BuildUp] 선수 등번호 비동기 순차 수집");
-            System.out.println("----------------------------------------------------------------------");
-            System.out.println("  - 처리 결과: 등번호가 누락된 선수가 없습니다.");
-            System.out.println("======================================================================");
-            return 0;
-        }
-
-        System.out.println("======================================================================");
-        System.out.println("[BuildUp] 선수 등번호 비동기 순차 수집 시작");
-        System.out.println("----------------------------------------------------------------------");
-        System.out.println("  - 수집 대상: 총 " + totalTargets + "명 (Rate Limit 준수를 위해 6.5초 간격 순차 처리)");
-        System.out.println("  - 예상 소요: 약 " + (int) Math.ceil(totalTargets * 6.5 / 60.0) + "분");
-        System.out.println("======================================================================");
-
-        // 2. 백그라운드 스레드에서 비동기 순차 처리 (호출 즉시 클라이언트에 리턴)
-        Thread backNumberThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                int current = 0;
-                int updatedCount = 0;
-
-                for (Players p : targetPlayers) {
-                    current++;
-                    try {
-                        String url = "https://api.football-data.org/v4/persons/" + p.getPlayerId();
-                        String json = sendGetRequest(url);
-
-                        Long shirtNumber = 0L; // API에서도 없으면 0(미배정)으로 설정하여 다음번 무한 재조회 방지
-                        if (json != null && !json.isBlank()) {
-                            JsonNode personNode = objectMapper.readTree(json);
-                            if (personNode.hasNonNull("shirtNumber")) {
-                                shirtNumber = personNode.get("shirtNumber").asLong();
-                            }
-                        }
-
-                        teamDAO.updatePlayerBackNumber(p.getPlayerId(), shirtNumber);
-                        updatedCount++;
-
-                        String numberDisplay = (shirtNumber > 0) ? "#" + shirtNumber : "미배정(0)";
-                        System.out.println(String.format("    ▶ [등번호 수집 (%d/%d)] [%-2s] %-22s -> %s (대기 6.5초...)",
-                                current, totalTargets, p.getMainPosition(), p.getName(), numberDisplay));
-
-                        // 분당 10회 한도 준수를 위한 6.5초 대기
-                        if (current < totalTargets) {
-                            Thread.sleep(6500);
-                        }
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        System.out.println("  [BuildUp] 등번호 수집 작업이 중단(인터럽트)되었습니다.");
-                        break;
-                    } catch (Exception e) {
-                        System.err.println("  [BuildUp] 선수 (" + p.getName() + ") 등번호 수집 중 오류: " + e.getMessage());
-                    }
-                }
-
-                System.out.println("======================================================================");
-                System.out.println("[BuildUp] 선수 등번호 비동기 순차 수집 완료");
-                System.out.println("----------------------------------------------------------------------");
-                System.out.println("  - 처리 결과: 총 " + updatedCount + "명의 등번호가 DB에 업데이트되었습니다.");
-                System.out.println("======================================================================");
-            }
-        });
-        backNumberThread.setName("BuildUp-BackNumber-Thread");
-        backNumberThread.start();
-
-        return totalTargets;
-    }
-
     private boolean parseAndSaveMatch(JsonNode matchNode) {
         if (matchNode == null || !matchNode.hasNonNull("id")) {
             return false;
@@ -415,14 +340,12 @@ public class FootballApiServiceImpl implements FootballApiService {
                 String name = playerNode.path("name").asText("알 수 없음");
                 String positionRaw = playerNode.hasNonNull("position") ? playerNode.get("position").asText() : null;
                 String nationality = playerNode.hasNonNull("nationality") ? playerNode.get("nationality").asText() : null;
-                Long backNumber = playerNode.hasNonNull("shirtNumber") ? playerNode.get("shirtNumber").asLong() : null;
 
                 Players player = new Players();
                 player.setPlayerId(playerId);
                 player.setName(name);
                 player.setMainPosition(convertPosition(positionRaw));
                 player.setNationality(nationality);
-                player.setBackNumber(backNumber);
                 player.setTeamId(teamId);
 
                 // 선수 정보 UPSERT
@@ -693,7 +616,6 @@ public class FootballApiServiceImpl implements FootballApiService {
                     ? playerNode.get("section").asText()
                     : (playerNode.hasNonNull("position") ? playerNode.get("position").asText() : null);
             String nationality = playerNode.hasNonNull("nationality") ? playerNode.get("nationality").asText() : null;
-            Long backNumber = playerNode.hasNonNull("shirtNumber") ? playerNode.get("shirtNumber").asLong() : null;
             Long teamId = (teamNode != null && teamNode.hasNonNull("id")) ? teamNode.get("id").asLong() : null;
 
             if (teamId == null) {
@@ -705,7 +627,6 @@ public class FootballApiServiceImpl implements FootballApiService {
             player.setName(name);
             player.setMainPosition(convertPosition(positionRaw));
             player.setNationality(nationality);
-            player.setBackNumber(backNumber);
             player.setTeamId(teamId);
 
             teamDAO.mergePlayer(player);
