@@ -1,0 +1,187 @@
+/* ========================================================
+   TEAMS DIRECTORY PAGE - 4x5 GRID LAYOUT (White Theme)
+   ======================================================== */
+
+.teams-page-container {
+  min-height: calc(100vh - 72px);
+  background-color: #f8fafc;
+  padding: 48px 36px 80px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: #0f172a;
+}
+
+.teams-page-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* --------------------------------------------------------
+   Page Header
+   -------------------------------------------------------- */
+.teams-page-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.teams-page-eyebrow {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  color: #38003c;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.teams-page-title {
+  font-size: 42px;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0 0 14px;
+  letter-spacing: -1px;
+}
+
+.teams-page-desc {
+  font-size: 17px;
+  color: #64748b;
+  margin: 0 auto;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+/* --------------------------------------------------------
+   4x5 Teams Grid
+   -------------------------------------------------------- */
+.teams-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+/* --------------------------------------------------------
+   Single Team Card
+   -------------------------------------------------------- */
+.team-grid-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 40px 24px 32px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.team-grid-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 18px 36px -8px rgba(0, 0, 0, 0.09), 0 4px 12px rgba(0, 0, 0, 0.03);
+  border-color: #cbd5e1;
+}
+
+/* 카드 상단 은은한 호버 포인트 라인 */
+.team-grid-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #38003c 0%, #00ff87 100%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.team-grid-card:hover::before {
+  opacity: 1;
+}
+
+/* 엠블럼 래퍼 및 이미지 */
+.team-grid-card__emblem-wrap {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 22px;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.team-grid-card:hover .team-grid-card__emblem-wrap {
+  transform: scale(1.1);
+}
+
+.team-grid-card__emblem {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.08));
+}
+
+/* 구단명 */
+.team-grid-card__info {
+  text-align: center;
+}
+
+.team-grid-card__name {
+  font-size: 19px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.4px;
+  line-height: 1.25;
+  transition: color 0.2s ease;
+}
+
+.team-grid-card:hover .team-grid-card__name {
+  color: #38003c;
+}
+
+/* --------------------------------------------------------
+   반응형 브레이크포인트
+   -------------------------------------------------------- */
+@media (max-width: 1200px) {
+  .teams-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .teams-page-container {
+    padding: 36px 20px 60px;
+  }
+
+  .teams-page-title {
+    font-size: 32px;
+  }
+
+  .teams-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .team-grid-card {
+    padding: 32px 18px 24px;
+  }
+
+  .team-grid-card__emblem-wrap {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 16px;
+  }
+
+  .team-grid-card__name {
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 480px) {
+  .teams-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
