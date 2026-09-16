@@ -89,10 +89,9 @@ CREATE TABLE USER_PREDICTS (
 -- [3. 구단 상세 / 스태프 / 선수 / 경기]
 -- --------------------------------------------------------------------
 
--- 8. TEAM_STATS (구단 시즌 성적 및 순위 통계 - 시즌별 다건 관리)
+-- 8. TEAM_STATS (구단 시즌 성적 및 순위 통계 - 1:1)
 CREATE TABLE TEAM_STATS (
     TEAM_ID            NUMBER        NOT NULL, -- 구단 식별자
-    SEASON             NUMBER        NOT NULL, -- 시즌 연도 (2024, 2025, 2026 등)
     CURRENT_RANK       NUMBER,                 -- 시즌 현재 순위
     MATCHES_PLAYED     NUMBER DEFAULT 0 NOT NULL, -- 치른 경기 수
     WINS               NUMBER DEFAULT 0 NOT NULL, -- 승리 횟수
@@ -105,7 +104,7 @@ CREATE TABLE TEAM_STATS (
     YELLOW_CARDS       NUMBER DEFAULT 0 NOT NULL, -- 경고 누적 수
     RED_CARDS          NUMBER DEFAULT 0 NOT NULL, -- 퇴장 누적 수
     UPDATED_AT         TIMESTAMP,              -- 기록 갱신 일시
-    CONSTRAINT PK_TEAM_STATS PRIMARY KEY (TEAM_ID, SEASON),
+    CONSTRAINT PK_TEAM_STATS PRIMARY KEY (TEAM_ID),
     CONSTRAINT FK_TEAM_STATS_TEAM_ID FOREIGN KEY (TEAM_ID) REFERENCES TEAMS(TEAM_ID)
 );
 
@@ -138,6 +137,7 @@ CREATE TABLE PLAYER_STATS (
     PLAYER_ID          NUMBER        NOT NULL, -- 선수 식별자
     GOALS              NUMBER DEFAULT 0 NOT NULL, -- 시즌 득점 수
     ASSISTS            NUMBER DEFAULT 0 NOT NULL, -- 시즌 도움 수
+    MOM_COUNT          NUMBER DEFAULT 0 NOT NULL, -- 경기 최우수선수(MOM) 선정 횟수
     YELLOW_CARDS       NUMBER DEFAULT 0 NOT NULL, -- 경고 누적 수
     RED_CARDS          NUMBER DEFAULT 0 NOT NULL, -- 퇴장 누적 수
     IS_INJURED         VARCHAR2(1) DEFAULT 'N' NOT NULL, -- 부상 여부 (Y/N)

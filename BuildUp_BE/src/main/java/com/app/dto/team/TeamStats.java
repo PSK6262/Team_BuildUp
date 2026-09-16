@@ -8,7 +8,6 @@ import lombok.Data;
 @Data
 public class TeamStats {
 	private Long teamId;
-	private Integer season;
 	private Long currentRank;
 	private Long matchesPlayed;
 	private Long wins;
@@ -21,10 +20,6 @@ public class TeamStats {
 	private Long yellowCards; // 경고수
 	private Long redCards; // 퇴장수
 	private LocalDateTime updatedAt;
-	
-	// 조인용 (TEAMS)
-	private String teamName;
-	private String emblemUrl;
 	
     public String getUpdatedAt() {
         if (this.updatedAt == null) return null;
