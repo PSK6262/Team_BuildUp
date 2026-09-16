@@ -7,9 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.app.dto.team.PlayerStats;
 import com.app.dto.team.Players;
+import com.app.dto.team.Staffs;
+import com.app.dto.team.TeamStats;
 import com.app.dto.team.Teams;
 import com.app.service.api.FootballApiService;
 import com.app.service.team.TeamService;
@@ -71,6 +75,76 @@ public class TeamController {
 		return teamService.getAllTeams();
 	}
 
+	// 3-1. 프리미어리그 20개 구단 공식 감독 일괄 적재
+	// 예: GET /api/teams/init-staffs
+	@GetMapping("/init-staffs")
+	public Map<String, Object> initStaffs() {
+		int count = footballApiService.initPremierLeagueStaffs();
+		return Map.of(
+			"status", "SUCCESS",
+			"message", "프리미어리그 20개 구단 공식 감독 데이터가 성공적으로 적재되었습니다.",
+			"totalStaffs", count
+		);
+	}
+
+	// 3-2. 특정 시즌 순위표 동기화 (기본값: 2026)
+	// 예: GET /api/teams/sync-standings?season=2026
+	@GetMapping("/sync-standings")
+	public Map<String, Object> syncStandings(@RequestParam(value = "season", required = false) Integer season) {
+		int count = footballApiService.syncPremierLeagueStandings(season);
+		return Map.of(
+			"status", "SUCCESS",
+			"season", (season != null ? season : 2026),
+			"savedTeams", count,
+			"message", "프리미어리그 " + (season != null ? season : 2026) + " 시즌 순위표가 성공적으로 DB에 저장되었습니다."
+		);
+	}
+
+	// 3-3. 최근 3개 시즌(2024, 2025, 2026) 순위표 일괄 동기화
+	// 예: GET /api/teams/sync-recent-standings
+	@GetMapping("/sync-recent-standings")
+	public Map<String, Object> syncRecentStandings() {
+		int count = footballApiService.syncRecentThreeSeasonsStandings();
+		return Map.of(
+			"status", "SUCCESS",
+			"totalRecords", count,
+			"message", "최근 3개 시즌(2024~2026) 리그 순위표가 성공적으로 DB에 저장되었습니다."
+		);
+	}
+
+	// 3-4. 리그 순위표 조회 (기본값: 2026 시즌)
+	// 예: GET /api/teams/standings?season=2026
+	@GetMapping("/standings")
+	public List<TeamStats> getStandings(@RequestParam(value = "season", required = false, defaultValue = "2026") Integer season) {
+		return teamService.getTeamStandings(season);
+	}
+
+	// 3-5. 프리미어리그 득점자 스탯 일괄 동기화 (기본: 상위 100명)
+	// 예: GET /api/teams/sync-scorers?limit=100
+	@GetMapping("/sync-scorers")
+	public Map<String, Object> syncScorers(@RequestParam(value = "limit", required = false, defaultValue = "100") Integer limit) {
+		int count = footballApiService.syncPremierLeagueScorers(limit);
+		return Map.of(
+			"status", "SUCCESS",
+			"updatedScorers", count,
+			"message", "프리미어리그 득점자 " + count + "명의 기록이 성공적으로 DB에 동기화되었습니다."
+		);
+	}
+
+	// 3-6. 프리미어리그 득점 랭킹 조회 (기본: 상위 20명)
+	// 예: GET /api/teams/top-scorers?limit=20
+	@GetMapping("/top-scorers")
+	public List<PlayerStats> getTopScorers(@RequestParam(value = "limit", required = false, defaultValue = "20") Integer limit) {
+		return teamService.getTopScorers(limit);
+	}
+
+	// 3-7. 특정 선수 개인 상세 스탯 조회
+	// 예: GET /api/teams/players/{playerId}/stats
+	@GetMapping("/players/{playerId}/stats")
+	public PlayerStats getPlayerStats(@PathVariable("playerId") Long playerId) {
+		return teamService.getPlayerStats(playerId);
+	}
+
 	// 4. 특정 구단 상세 조회
 	// 예: GET /api/teams/{teamId}
 	@GetMapping("/{teamId}")
@@ -83,6 +157,29 @@ public class TeamController {
 	@GetMapping("/{teamId}/players")
 	public List<Players> getTeamPlayers(@PathVariable("teamId") Long teamId) {
 		return teamService.getPlayersByTeamId(teamId);
+	}
+
+	// 5-1. 특정 구단 소속 스태프(감독 등) 목록 조회 (DB 데이터)
+	// 예: GET /api/teams/{teamId}/staffs
+	@GetMapping("/{teamId}/staffs")
+	public List<Staffs> getTeamStaffs(@PathVariable("teamId") Long teamId) {
+		return teamService.getStaffsByTeamId(teamId);
+	}
+
+	// 5-2. 특정 구단 시즌 통계/성적 조회 (시즌 미지정 시 최신 시즌)
+	// 예: GET /api/teams/{teamId}/stats?season=2026
+	@GetMapping("/{teamId}/stats")
+	public TeamStats getTeamStats(
+			@PathVariable("teamId") Long teamId,
+			@RequestParam(value = "season", required = false) Integer season) {
+		return teamService.getTeamStats(teamId, season);
+	}
+
+	// 5-3. 특정 구단 최근 3개년 성적 추이 전체 조회 (2024, 2025, 2026 등)
+	// 예: GET /api/teams/{teamId}/stats/history
+	@GetMapping("/{teamId}/stats/history")
+	public List<TeamStats> getTeamStatsHistory(@PathVariable("teamId") Long teamId) {
+		return teamService.getTeamStatsHistory(teamId);
 	}
 
 	// 6. 특정 구단 선수 등번호(Back Number) 비동기 수집 시작 (6.5초 간격)
