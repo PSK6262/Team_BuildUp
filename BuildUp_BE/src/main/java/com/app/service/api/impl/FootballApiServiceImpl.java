@@ -33,22 +33,22 @@ import com.app.service.api.FootballApiService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class FootballApiServiceImpl implements FootballApiService {
 
     @Value("${football.api.key}")
     private String apiKey;
 
-    private final TeamDAO teamDAO;
-    private final MatchDAO matchDAO;
-    private final ObjectMapper objectMapper;
+    @Autowired
+    private TeamDAO teamDAO;
 
     @Autowired
-    public FootballApiServiceImpl(TeamDAO teamDAO, MatchDAO matchDAO) {
-        this.teamDAO = teamDAO;
-        this.matchDAO = matchDAO;
-        this.objectMapper = new ObjectMapper();
-    }
+    private MatchDAO matchDAO;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     private HttpClient createInsecureHttpClient() throws Exception {
         TrustManager[] trustAllCerts = new TrustManager[]{
@@ -214,58 +214,71 @@ public class FootballApiServiceImpl implements FootballApiService {
         List<Players> targetPlayers = teamDAO.findPlayersWithNullBackNumber(teamId);
         int totalTargets = targetPlayers.size();
         if (totalTargets == 0) {
-            System.out.println("등번호가 누락된 선수가 없습니다.");
+            System.out.println("======================================================================");
+            System.out.println("[BuildUp] 선수 등번호 비동기 순차 수집");
+            System.out.println("----------------------------------------------------------------------");
+            System.out.println("  - 처리 결과: 등번호가 누락된 선수가 없습니다.");
+            System.out.println("======================================================================");
             return 0;
         }
 
-        System.out.println("========== [등번호 비동기 수집 작업 예약] ==========");
-        System.out.println("수집 대상 선수 수: " + totalTargets + "명 (Rate limit 준수를 위해 6.5초 간격으로 순차 처리)");
-        System.out.println("예상 소요 시간: 약 " + (int) Math.ceil(totalTargets * 6.5 / 60.0) + "분");
-        System.out.println("==================================================");
+        System.out.println("======================================================================");
+        System.out.println("[BuildUp] 선수 등번호 비동기 순차 수집 시작");
+        System.out.println("----------------------------------------------------------------------");
+        System.out.println("  - 수집 대상: 총 " + totalTargets + "명 (Rate Limit 준수를 위해 6.5초 간격 순차 처리)");
+        System.out.println("  - 예상 소요: 약 " + (int) Math.ceil(totalTargets * 6.5 / 60.0) + "분");
+        System.out.println("======================================================================");
 
-        // 2. 백그라운드 쓰레드에서 비동기 순차 처리 (호출 즉시 클라이언트에 리턴)
-        java.util.concurrent.CompletableFuture.runAsync(() -> {
-            int current = 0;
-            int updatedCount = 0;
+        // 2. 백그라운드 스레드에서 비동기 순차 처리 (호출 즉시 클라이언트에 리턴)
+        Thread backNumberThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int current = 0;
+                int updatedCount = 0;
 
-            for (Players p : targetPlayers) {
-                current++;
-                try {
-                    String url = "https://api.football-data.org/v4/persons/" + p.getPlayerId();
-                    String json = sendGetRequest(url);
+                for (Players p : targetPlayers) {
+                    current++;
+                    try {
+                        String url = "https://api.football-data.org/v4/persons/" + p.getPlayerId();
+                        String json = sendGetRequest(url);
 
-                    Long shirtNumber = 0L; // API에서도 없으면 0(미배정)으로 설정하여 다음번 무한 재조회 방지
-                    if (json != null && !json.isBlank()) {
-                        JsonNode personNode = objectMapper.readTree(json);
-                        if (personNode.hasNonNull("shirtNumber")) {
-                            shirtNumber = personNode.get("shirtNumber").asLong();
+                        Long shirtNumber = 0L; // API에서도 없으면 0(미배정)으로 설정하여 다음번 무한 재조회 방지
+                        if (json != null && !json.isBlank()) {
+                            JsonNode personNode = objectMapper.readTree(json);
+                            if (personNode.hasNonNull("shirtNumber")) {
+                                shirtNumber = personNode.get("shirtNumber").asLong();
+                            }
                         }
+
+                        teamDAO.updatePlayerBackNumber(p.getPlayerId(), shirtNumber);
+                        updatedCount++;
+
+                        String numberDisplay = (shirtNumber > 0) ? "#" + shirtNumber : "미배정(0)";
+                        System.out.println(String.format("    ▶ [등번호 수집 (%d/%d)] [%-2s] %-22s -> %s (대기 6.5초...)",
+                                current, totalTargets, p.getMainPosition(), p.getName(), numberDisplay));
+
+                        // 분당 10회 한도 준수를 위한 6.5초 대기
+                        if (current < totalTargets) {
+                            Thread.sleep(6500);
+                        }
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        System.out.println("  [BuildUp] 등번호 수집 작업이 중단(인터럽트)되었습니다.");
+                        break;
+                    } catch (Exception e) {
+                        System.err.println("  [BuildUp] 선수 (" + p.getName() + ") 등번호 수집 중 오류: " + e.getMessage());
                     }
-
-                    teamDAO.updatePlayerBackNumber(p.getPlayerId(), shirtNumber);
-                    updatedCount++;
-
-                    String numberDisplay = (shirtNumber > 0) ? "#" + shirtNumber : "미배정(0)";
-                    System.out.println(String.format(" - [등번호 수집 (%d/%d)] [%s] %s -> %s (대기 6.5초...)",
-                            current, totalTargets, p.getMainPosition(), p.getName(), numberDisplay));
-
-                    // 분당 10회 한도 준수를 위한 6.5초 대기
-                    if (current < totalTargets) {
-                        Thread.sleep(6500);
-                    }
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    System.out.println("등번호 수집 작업이 인터럽트되었습니다.");
-                    break;
-                } catch (Exception e) {
-                    System.err.println("선수 (" + p.getName() + ") 등번호 수집 중 오류: " + e.getMessage());
                 }
-            }
 
-            System.out.println("========== [등번호 비동기 수집 완료] ==========");
-            System.out.println("총 " + updatedCount + "명의 등번호가 DB에 성공적으로 업데이트되었습니다.");
-            System.out.println("==============================================");
+                System.out.println("======================================================================");
+                System.out.println("[BuildUp] 선수 등번호 비동기 순차 수집 완료");
+                System.out.println("----------------------------------------------------------------------");
+                System.out.println("  - 처리 결과: 총 " + updatedCount + "명의 등번호가 DB에 업데이트되었습니다.");
+                System.out.println("======================================================================");
+            }
         });
+        backNumberThread.setName("BuildUp-BackNumber-Thread");
+        backNumberThread.start();
 
         return totalTargets;
     }
@@ -342,7 +355,7 @@ public class FootballApiServiceImpl implements FootballApiService {
 
     private List<Players> parseAndSaveTeamWithSquad(JsonNode teamNode) {
         if (teamNode == null || !teamNode.hasNonNull("id")) {
-            return List.of();
+            return new ArrayList<>();
         }
 
         Long teamId = teamNode.get("id").asLong();
@@ -363,7 +376,13 @@ public class FootballApiServiceImpl implements FootballApiService {
 
         teamDAO.mergeTeam(team);
 
-        // 2. 코칭 스태프(감독) 정보 저장 (API coach 객체 파싱)
+        /*
+         * =========================================================================
+         * [유료 API 연동 대비 틀 - Coach Parsing Skeleton]
+         * 현재 football-data.org 무료 플랜에서는 coach 객체의 필드가 모두 null로 반환되어 무효화 처리했습니다.
+         * 추후 유료 API 플랜(Standard/Pro) 또는 타 유료 축구 API 도입 시,
+         * 아래 주석을 해제하면 구단 동기화 시 감독 정보가 자동으로 STAFFS 테이블에 연동됩니다.
+         * =========================================================================
         JsonNode coachNode = teamNode.path("coach");
         if (!coachNode.isMissingNode() && !coachNode.isNull() && coachNode.hasNonNull("name")) {
             String coachName = coachNode.get("name").asText().trim();
@@ -382,6 +401,7 @@ public class FootballApiServiceImpl implements FootballApiService {
                 teamDAO.mergeStaff(coach);
             }
         }
+        */
 
         // 3. 선수 목록 저장
         JsonNode squadNode = teamNode.path("squad");
@@ -438,50 +458,78 @@ public class FootballApiServiceImpl implements FootballApiService {
         if (status == null || status.isBlank()) {
             return "SCHEDULED";
         }
-        return switch (status.trim().toUpperCase()) {
-            case "TIMED", "SCHEDULED" -> "SCHEDULED";
-            case "IN_PLAY", "PAUSED", "LIVE" -> "LIVE";
-            case "FINISHED", "AWARDED" -> "FINISHED";
-            case "POSTPONED", "SUSPENDED" -> "SUSPENDED";
-            case "CANCELLED" -> "CANCELLED";
-            default -> "SCHEDULED";
-        };
+        String upperStatus = status.trim().toUpperCase();
+        switch (upperStatus) {
+            case "TIMED":
+            case "SCHEDULED":
+                return "SCHEDULED";
+            case "IN_PLAY":
+            case "PAUSED":
+            case "LIVE":
+                return "LIVE";
+            case "FINISHED":
+            case "AWARDED":
+                return "FINISHED";
+            case "POSTPONED":
+            case "SUSPENDED":
+                return "SUSPENDED";
+            case "CANCELLED":
+                return "CANCELLED";
+            default:
+                return "SCHEDULED";
+        }
     }
 
     @Override
     @Transactional
     public int initPremierLeagueStaffs() {
+        /*
+         * =========================================================================
+         * [유료 API 도입 전 임시 수동 등록 / 유료 API 도입 대비 틀]
+         * 현재 football-data.org 무료 API에서는 감독 정보가 제공되지 않아 준비해 둔 기본 틀입니다.
+         * 무료 API 환경에서 임의/과거 데이터로 덮어쓰여지는 것을 방지하기 위해 무효화(/*) 처리해 두었습니다.
+         * 추후 유료 API 연동 후 실시간 호출 방식으로 전환하거나, 필요 시 주석을 해제하여 수동 적재할 수 있습니다.
+         * =========================================================================
         teamDAO.ensureStaffRoleExists(1L, "감독");
 
         List<Staffs> defaultManagers = List.of(
             createStaff(57L, "Mikel Arteta", "Spain", 1L),
             createStaff(58L, "Unai Emery", "Spain", 1L),
             createStaff(61L, "Enzo Maresca", "Italy", 1L),
-            createStaff(62L, "Sean Dyche", "England", 1L),
+            createStaff(62L, "David Moyes", "Scotland", 1L),
             createStaff(63L, "Marco Silva", "Portugal", 1L),
             createStaff(64L, "Arne Slot", "Netherlands", 1L),
             createStaff(65L, "Pep Guardiola", "Spain", 1L),
-            createStaff(66L, "Rúben Amorim", "Portugal", 1L),
+            createStaff(66L, "Ruben Amorim", "Portugal", 1L),
             createStaff(67L, "Eddie Howe", "England", 1L),
-            createStaff(71L, "Régis Le Bris", "France", 1L),
-            createStaff(73L, "Ange Postecoglou", "Australia", 1L),
-            createStaff(322L, "Tim Walter", "Germany", 1L),
+            createStaff(71L, "Regis Le Bris", "France", 1L),
+            createStaff(73L, "Roberto De Zerbi", "Italy", 1L),
+            createStaff(76L, "Cesar Peixoto", "Portugal", 1L),
+            createStaff(322L, "Sergej Jakirovic", "Bosnia and Herzegovina", 1L),
+            createStaff(328L, "Nicky Hayen", "Belgium", 1L),
+            createStaff(338L, "Russell Martin", "Scotland", 1L),
+            createStaff(340L, "Tonda Eckert", "Germany", 1L),
             createStaff(341L, "Daniel Farke", "Germany", 1L),
-            createStaff(349L, "Kieran McKenna", "Northern Ireland", 1L),
-            createStaff(351L, "Nuno Espírito Santo", "Portugal", 1L),
-            createStaff(354L, "Oliver Glasner", "Austria", 1L),
-            createStaff(397L, "Fabian Hürzeler", "Germany", 1L),
-            createStaff(402L, "Thomas Frank", "Denmark", 1L),
+            createStaff(349L, "Gary O'Neil", "England", 1L),
+            createStaff(351L, "Oliver Glasner", "Austria", 1L),
+            createStaff(354L, "Pierre Sage", "France", 1L),
+            createStaff(397L, "Fabian Hurzeler", "Germany", 1L),
+            createStaff(402L, "Keith Andrews", "Ireland", 1L),
+            createStaff(563L, "Nuno Espirito Santo", "Portugal", 1L),
             createStaff(1044L, "Andoni Iraola", "Spain", 1L),
-            createStaff(1076L, "Mark Robins", "England", 1L)
+            createStaff(1076L, "Frank Lampard", "England", 1L)
         );
 
         for (Staffs s : defaultManagers) {
             teamDAO.mergeStaff(s);
         }
         return defaultManagers.size();
+        */
+        log.info("[FootballApi] 현재 무료 API 환경이므로 감독 자동/기본 설정이 비활성화(Dormant) 상태입니다.");
+        return 0;
     }
 
+    @SuppressWarnings("unused")
     private Staffs createStaff(Long teamId, String name, String nationality, Long staffRoleId) {
         Staffs s = new Staffs();
         s.setTeamId(teamId);
@@ -548,7 +596,11 @@ public class FootballApiServiceImpl implements FootballApiService {
                 count++;
             }
 
-            System.out.println(String.format(" - [%d 시즌 순위표 동기화 완료] 총 %d개 구단 성적 적재", targetSeason, count));
+            System.out.println("======================================================================");
+            System.out.println("[BuildUp] 리그 순위표 동기화 완료 (" + targetSeason + " 시즌)");
+            System.out.println("----------------------------------------------------------------------");
+            System.out.println("  - 처리 결과: 총 " + count + "개 구단 성적 데이터가 DB에 저장되었습니다.");
+            System.out.println("======================================================================");
             return count;
         } catch (Exception e) {
             e.printStackTrace();
@@ -561,7 +613,9 @@ public class FootballApiServiceImpl implements FootballApiService {
         int[] seasons = {2024, 2025, 2026};
         int totalUpdated = 0;
 
-        System.out.println("========== [최근 3개년(2024~2026) 리그 순위표 일괄 동기화 시작] ==========");
+        System.out.println("======================================================================");
+        System.out.println("[BuildUp] 최근 3개년(2024~2026) 리그 순위표 일괄 동기화 시작");
+        System.out.println("----------------------------------------------------------------------");
         for (int season : seasons) {
             try {
                 int count = syncPremierLeagueStandings(season);
@@ -572,10 +626,14 @@ public class FootballApiServiceImpl implements FootballApiService {
                 Thread.currentThread().interrupt();
                 break;
             } catch (Exception e) {
-                System.err.println(season + " 시즌 동기화 중 오류: " + e.getMessage());
+                System.err.println("  [BuildUp] " + season + " 시즌 동기화 중 오류: " + e.getMessage());
             }
         }
-        System.out.println("========== [최근 3개년 순위표 동기화 완료: 총 " + totalUpdated + "건 적재] ==========");
+        System.out.println("======================================================================");
+        System.out.println("[BuildUp] 최근 3개년 리그 순위표 일괄 동기화 완료");
+        System.out.println("----------------------------------------------------------------------");
+        System.out.println("  - 처리 결과: 총 " + totalUpdated + "건의 시즌 순위 데이터가 DB에 저장되었습니다.");
+        System.out.println("======================================================================");
         return totalUpdated;
     }
 
@@ -615,7 +673,11 @@ public class FootballApiServiceImpl implements FootballApiService {
                 count++;
             }
 
-            System.out.println(String.format("========== [득점자 스탯 동기화 완료: 총 %d명 갱신] ==========", count));
+            System.out.println("======================================================================");
+            System.out.println("[BuildUp] 프리미어리그 개인 득점 순위(Top " + targetLimit + ") 동기화 완료");
+            System.out.println("----------------------------------------------------------------------");
+            System.out.println("  - 처리 결과: 총 " + count + "명의 득점/도움 통계가 DB에 저장되었습니다.");
+            System.out.println("======================================================================");
             return count;
         } catch (Exception e) {
             e.printStackTrace();
