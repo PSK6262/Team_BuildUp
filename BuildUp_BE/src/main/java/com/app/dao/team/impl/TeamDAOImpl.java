@@ -1,9 +1,5 @@
 package com.app.dao.team.impl;
 
-import java.util.List;
-
-import org.mybatis.spring.SqlSessionTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.app.dao.team.TeamDAO;
