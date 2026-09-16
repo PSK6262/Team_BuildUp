@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="MatchMapper">
+
+	<!-- 경기 정보 UPSERT (MERGE) -->
+	<insert id="mergeMatch" parameterType="Matches">
+		MERGE INTO MATCHES m
+		USING (SELECT #{matchId} AS MATCH_ID FROM DUAL) s
+		ON (m.MATCH_ID = s.MATCH_ID)
+		WHEN MATCHED THEN
+			UPDATE SET 
+				m.MATCH_DATE = #{matchDate},
+				m.HOME_SCORE = #{homeScore, jdbcType=NUMERIC},
+				m.AWAY_SCORE = #{awayScore, jdbcType=NUMERIC},
+				m.STATUS = #{status},
+				m.ENDED_AT = #{endedAt, jdbcType=TIMESTAMP}
+		WHEN NOT MATCHED THEN
+			INSERT (MATCH_ID, MATCH_DATE, HOME_TEAM_ID, AWAY_TEAM_ID, HOME_SCORE, AWAY_SCORE, STATUS, NOTICE, ENDED_AT)
+			VALUES (
+				#{matchId},
+				#{matchDate},
+				#{homeTeamId},
+				#{awayTeamId},
+				#{homeScore, jdbcType=NUMERIC},
+				#{awayScore, jdbcType=NUMERIC},
+				#{status},
+				#{notice, jdbcType=CLOB},
+				#{endedAt, jdbcType=TIMESTAMP}
+			)
+	</insert>
+
+	<!-- 전체 경기 목록 조회 -->
+	<select id="selectAllMatches" resultType="Matches">
+		SELECT 
+			MATCH_ID,
+			MATCH_DATE,
+			HOME_TEAM_ID,
+			AWAY_TEAM_ID,
+			HOME_SCORE,
+			AWAY_SCORE,
+			STATUS,
+			NOTICE,
+			ENDED_AT
+		FROM MATCHES
+		ORDER BY MATCH_DATE ASC
+	</select>
+
+	<!-- 특정 날짜 범위 경기 조회 -->
+	<select id="selectMatchesByDateRange" parameterType="map" resultType="Matches">
+		SELECT 
+			MATCH_ID,
+			MATCH_DATE,
+			HOME_TEAM_ID,
+			AWAY_TEAM_ID,
+			HOME_SCORE,
+			AWAY_SCORE,
+			STATUS,
+			NOTICE,
+			ENDED_AT
+		FROM MATCHES
+		WHERE MATCH_DATE &gt;= #{startDate} AND MATCH_DATE &lt;= #{endDate}
+		ORDER BY MATCH_DATE ASC
+	</select>
+
+	<!-- 단건 경기 상세 조회 -->
+	<select id="selectMatchById" parameterType="long" resultType="Matches">
+		SELECT 
+			MATCH_ID,
+			MATCH_DATE,
+			HOME_TEAM_ID,
+			AWAY_TEAM_ID,
+			HOME_SCORE,
+			AWAY_SCORE,
+			STATUS,
+			NOTICE,
+			ENDED_AT
+		FROM MATCHES
+		WHERE MATCH_ID = #{matchId}
+	</select>
+
+</mapper>

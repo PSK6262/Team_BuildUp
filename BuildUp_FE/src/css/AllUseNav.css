@@ -30,3 +30,5 @@
   .user-nav__account { gap: 10px; }
   .user-nav__logo { font-size: 22px; }
 }
+
+.user-nav [aria-current='location'] { color: #16744b; }
