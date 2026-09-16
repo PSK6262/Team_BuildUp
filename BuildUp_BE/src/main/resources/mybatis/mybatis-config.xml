@@ -12,7 +12,12 @@
 	<typeAliases>
 		<typeAlias type="com.app.dto.community.Posts" alias="Posts"/>
 		<typeAlias type="com.app.dto.community.Comments" alias="Comments"/>
-		
+		<typeAlias type="com.app.dto.team.Teams" alias="Teams"/>
+		<typeAlias type="com.app.dto.team.Players" alias="Players"/>
+		<typeAlias type="com.app.dto.team.PlayerStats" alias="PlayerStats"/>
+		<typeAlias type="com.app.dto.team.Staffs" alias="Staffs"/>
+		<typeAlias type="com.app.dto.team.TeamStats" alias="TeamStats"/>
+		<typeAlias type="com.app.dto.match.Matches" alias="Matches"/>
 	</typeAliases>
 	
 </configuration>
