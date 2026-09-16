@@ -306,6 +306,8 @@
   cursor: pointer;
   position: relative;
   outline: none;
+  text-decoration: none;
+  color: inherit;
   transform-origin: center center;
   transition:
     border-color 0.25s ease,

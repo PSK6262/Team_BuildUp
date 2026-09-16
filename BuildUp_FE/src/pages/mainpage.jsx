@@ -274,15 +274,15 @@ export default function MainPage() {
                     style={{ '--angle': `${angle}deg` }}
                   >
                     <div className="emblem-rotator">
-                      <button
-                        type="button"
+                      <a
+                        href={`/plug/team/${team.teamId}`}
                         className={`emblem-card ${isHovered ? 'is-hovered' : ''}`}
                         onMouseEnter={() => setHoveredTeam(team)}
                         onMouseLeave={() => setHoveredTeam(null)}
                         onFocus={() => setHoveredTeam(team)}
                         onBlur={() => setHoveredTeam(null)}
-                        aria-label={`${team.teamName} 엠블럼`}
-                        title={team.teamName}
+                        aria-label={`${team.teamName} 상세 소개 페이지로 이동`}
+                        title={`${team.teamName} 상세 보기`}
                       >
                         <img
                           src={team.emblemUrl}
@@ -290,7 +290,7 @@ export default function MainPage() {
                           className="emblem-img"
                           loading="eager"
                         />
-                      </button>
+                      </a>
                     </div>
                   </div>
                 );
