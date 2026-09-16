@@ -19,4 +19,12 @@ public interface FootballApiService {
 	public int syncMatchesByDate(java.time.LocalDate date);
 
 	public int fillBackNumbersAsync(Long teamId);
+	
+	public int initPremierLeagueStaffs();
+
+	public int syncPremierLeagueStandings(Integer season);
+
+	public int syncRecentThreeSeasonsStandings();
+
+	public int syncPremierLeagueScorers(Integer limit);
 }
