@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { logout } from '../store/authSlice.js'
 import '../css/AllUseNav.css'
 
-const links = [['팀소개', 'teams'], ['경기 일정', 'match'], ['경기결과', 'matchresult'], ['커뮤니티', 'community'], ['랭킹', 'rankpage'], ['예측', 'prediction']]
+const links = [['팀소개', 'teams'], ['경기 일정', 'match'], ['경기결과', 'matchresult'], ['커뮤니티', 'community/teams'], ['랭킹', 'rankpage'], ['예측', 'prediction']]
 
 export default function AllUseNav() {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn)
@@ -30,7 +30,19 @@ export default function AllUseNav() {
   }, [])
 
   const renderLink = ([label, path]) => (
-    <a key={path} href={`/plug/${path}`} aria-current={pathname === `/plug/${path}` ? 'page' : undefined}>{label}</a>
+    <a
+      key={path}
+      href={`/plug/${path}`}
+      aria-current={
+        pathname === `/plug/${path}`
+          ? 'page'
+          : path.startsWith('community') && (pathname === '/plug/community' || pathname.startsWith('/plug/community/'))
+          ? 'location'
+          : undefined
+      }
+    >
+      {label}
+    </a>
   )
   const handleLogout = () => {
     // 인증 API 연동 시 서버 세션/토큰 해제도 이 흐름에 연결합니다.

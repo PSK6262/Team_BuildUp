@@ -1,5 +1,9 @@
 package com.app.controller.team;
 
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +19,7 @@ import com.app.service.api.FootballApiService;
 import com.app.service.team.TeamService;
 
 @RestController
+@RequestMapping({"/api/teams", "/teams"})
 public class TeamController {
 
 	private final TeamService teamService;
