@@ -2,6 +2,10 @@ import AllUseNav from './pages/AllUseNav.jsx'
 import MainPage from './pages/mainpage.jsx'
 import TeamsPage from './pages/teams.jsx'
 import Team from './pages/team.jsx'
+import Community from './pages/Community.jsx'
+import FreeBoard from './pages/FreeBoard.jsx'
+import TeamBoards from './pages/TeamBoards.jsx'
+import { communityTeams } from './data/communityTeams.js'
 import './App.css'
 
 function App() {
@@ -10,12 +14,28 @@ function App() {
   const isTeamsPage = pathname === '/plug/teams'
   const teamMatch = pathname.match(/^\/plug\/team\/(\d+)$/)
 
+  // 커뮤니티 구단별 게시판 라우팅
+  const commuTeam = communityTeams.find((item) => pathname === `/plug/community/teams/${item.slug}`)
+
   return (
     <>
       <AllUseNav />
+      {/* 메인 및 구단 소개 */}
       {isMainPage && <MainPage />}
       {isTeamsPage && <TeamsPage />}
       {teamMatch && <Team teamId={teamMatch[1]} />}
+
+      {/* 커뮤니티 */}
+      {pathname === '/plug/community' && <Community />}
+      {pathname === '/plug/community/free' && <FreeBoard />}
+      {pathname === '/plug/community/teams' && <TeamBoards />}
+      {commuTeam && <Community key={commuTeam.slug} selectedTeam={commuTeam.name} />}
+      {pathname.startsWith('/plug/community/teams/') && !commuTeam && (
+        <main className="community">
+          <h1>팀을 찾을 수 없습니다.</h1>
+          <a href="/plug/community/teams">팀 선택으로 돌아가기</a>
+        </main>
+      )}
     </>
   )
 }
