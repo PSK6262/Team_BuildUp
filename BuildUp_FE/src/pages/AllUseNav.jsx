@@ -35,13 +35,13 @@ export default function AllUseNav() {
   const handleLogout = () => {
     // 인증 API 연동 시 서버 세션/토큰 해제도 이 흐름에 연결합니다.
     dispatch(logout())
-    window.location.assign('/plug/')
+    window.location.assign('/plug/mainpage')
   }
 
   return (
     <header className="user-nav">
       <nav className="user-nav__inner" aria-label="공통 네비게이션">
-        <a className="user-nav__logo" href="/plug/" aria-label="BuildUp 메인페이지">BUILD<span>UP</span></a>
+        <a className="user-nav__logo" href="/plug/mainpage" aria-label="BuildUp 메인페이지">BUILD<span>UP</span></a>
         <div className="user-nav__links">
           {links.slice(0, 3).map(renderLink)}
           <details className="user-nav__team" ref={teamMenu} onBlur={(event) => {
