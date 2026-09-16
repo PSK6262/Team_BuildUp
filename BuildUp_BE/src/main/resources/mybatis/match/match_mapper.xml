@@ -80,4 +80,44 @@
 		WHERE MATCH_ID = #{matchId}
 	</select>
 
+	<!-- 경기 이벤트 등록 -->
+	<insert id="insertMatchEvent" parameterType="MatchEvents">
+		INSERT INTO MATCH_EVENTS (
+			MATCH_ID,
+			TEAM_ID,
+			EVENT_TIME,
+			EVENT_TYPE,
+			PLAYER_ID,
+			ASSIST_PLAYER_ID
+		) VALUES (
+			#{matchId},
+			#{teamId},
+			#{eventTime},
+			#{eventType},
+			#{playerId},
+			#{assistPlayerId, jdbcType=NUMERIC}
+		)
+	</insert>
+
+	<!-- 경기별 이벤트 목록 조회 (시간순) -->
+	<select id="selectEventsByMatchId" parameterType="long" resultType="MatchEvents">
+		SELECT 
+			EVENT_ID,
+			MATCH_ID,
+			TEAM_ID,
+			EVENT_TIME,
+			EVENT_TYPE,
+			PLAYER_ID,
+			ASSIST_PLAYER_ID
+		FROM MATCH_EVENTS
+		WHERE MATCH_ID = #{matchId}
+		ORDER BY EVENT_TIME ASC, EVENT_ID ASC
+	</select>
+
+	<!-- 경기별 이벤트 전체 삭제 (재동기화/갱신용) -->
+	<delete id="deleteEventsByMatchId" parameterType="long">
+		DELETE FROM MATCH_EVENTS
+		WHERE MATCH_ID = #{matchId}
+	</delete>
+
 </mapper>

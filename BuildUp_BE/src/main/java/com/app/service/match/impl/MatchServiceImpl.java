@@ -13,12 +13,8 @@ import com.app.service.match.MatchService;
 @Service
 public class MatchServiceImpl implements MatchService {
 
-	private final MatchDAO matchDAO;
-
 	@Autowired
-	public MatchServiceImpl(MatchDAO matchDAO) {
-		this.matchDAO = matchDAO;
-	}
+	private MatchDAO matchDAO;
 
 	@Override
 	public List<Matches> getAllMatches() {
