@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import TeamNav from './TeamNav.jsx';
+import TeamSquadSection from './TeamSquadSection.jsx';
 
-export default function TeamInfoPanel({ team, prevTeam, nextTeam }) {
+const TeamInfoPanel = forwardRef(function TeamInfoPanel(
+  { team, prevTeam, nextTeam },
+  ref
+) {
   return (
-    <main className="team-right">
+    <main ref={ref} className="team-right">
       <div className="team-right-inner">
         {/* 상단 내비게이션 바 */}
         <TeamNav prevTeam={prevTeam} nextTeam={nextTeam} />
@@ -25,8 +29,15 @@ export default function TeamInfoPanel({ team, prevTeam, nextTeam }) {
             <p className="team-history-text">{team.history}</p>
           </div>
         </section>
+
+        <div className="team-section-divider" />
+
+        {/* 3. 구단 감독 및 포지션별 선수단 (스쿼드) 섹션 */}
+        <TeamSquadSection teamId={team.teamId} />
       </div>
     </main>
   );
-}
+});
+
+export default TeamInfoPanel;
 
