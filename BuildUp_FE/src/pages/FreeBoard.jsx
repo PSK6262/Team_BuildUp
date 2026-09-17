@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import useBoardState from './useBoardState.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
 import { freeBoardPosts } from '../data/freeBoardPosts.js'
 import '../css/Community.css'
@@ -6,9 +6,9 @@ import '../css/Community.css'
 const PAGE_SIZE = 10
 
 export default function FreeBoard() {
-  const [input, setInput] = useState('')
-  const [keyword, setKeyword] = useState('')
-  const [page, setPage] = useState(1)
+  const [input, setInput] = useBoardState('input', '')
+  const [keyword, setKeyword] = useBoardState('keyword', '')
+  const [page, setPage] = useBoardState('page', 1)
   const filtered = freeBoardPosts.filter((post) => post.title.toLocaleLowerCase().includes(keyword.toLocaleLowerCase()))
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const posts = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -25,7 +25,7 @@ export default function FreeBoard() {
       <p className="community__eyebrow">FREE BOARD</p>
       <h1>자유게시판</h1>
       <p className="community__intro">축구부터 일상까지, 함께 나누고 싶은 이야기를 들려주세요.</p>
-      <p className="community__notice">현재는 화면 확인용 예시 게시글입니다. 글 상세 보기와 글쓰기는 다음 단계에서 연결됩니다.</p>
+      <p className="community__notice">현재는 화면 확인용 예시 게시글입니다. 제목을 누르면 상세 내용을 볼 수 있습니다. 글쓰기는 준비 중입니다.</p>
 
       <div className="community__toolbar">
         <p role="status">{keyword ? '검색 결과' : '전체 글'} <strong>{filtered.length}</strong>개</p>
@@ -43,7 +43,7 @@ export default function FreeBoard() {
           <thead><tr><th scope="col">번호</th><th scope="col">제목</th><th scope="col">작성자</th><th scope="col">작성일</th><th scope="col">조회수</th></tr></thead>
           <tbody>
             {posts.map((post) => <tr key={post.postId}>
-              <td>{post.postId}</td><td className="community__title">{post.title}</td><td>{post.nickname}</td>
+              <td>{post.postId}</td><td className="community__title"><a className="community__post-link" href={`/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.pathname)}`}>{post.title}</a></td><td>{post.nickname}</td>
               <td><time dateTime={post.createdAt}>{post.createdAt.slice(0, 10).replaceAll('-', '.')}</time></td><td>{post.viewCount}</td>
             </tr>)}
             {posts.length === 0 && <tr><td colSpan={5} className="community__empty">검색 결과가 없습니다. 다른 제목으로 검색해 보세요.</td></tr>}

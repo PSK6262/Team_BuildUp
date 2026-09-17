@@ -5,6 +5,7 @@ import Team from './pages/team.jsx'
 import Community from './pages/Community.jsx'
 import FreeBoard from './pages/FreeBoard.jsx'
 import TeamBoards from './pages/TeamBoards.jsx'
+import PostDetail from './pages/PostDetail.jsx'
 import { communityTeams } from './data/communityTeams.js'
 import './App.css'
 
@@ -13,6 +14,7 @@ function App() {
   const isMainPage = !pathname || pathname === '' || pathname === '/plug' || pathname === '/plug/mainpage'
   const isTeamsPage = pathname === '/plug/teams'
   const teamMatch = pathname.match(/^\/plug\/team\/(\d+)$/)
+  const postMatch = pathname.match(/^\/plug\/community\/posts\/([^/]+)$/)
 
   // 커뮤니티 구단별 게시판 라우팅
   const commuTeam = communityTeams.find((item) => pathname === `/plug/community/teams/${item.slug}`)
@@ -29,6 +31,7 @@ function App() {
       {pathname === '/plug/community' && <Community />}
       {pathname === '/plug/community/free' && <FreeBoard />}
       {pathname === '/plug/community/teams' && <TeamBoards />}
+      {postMatch && <PostDetail postId={postMatch[1]} />}
       {commuTeam && <Community key={commuTeam.slug} selectedTeam={commuTeam.name} />}
       {pathname.startsWith('/plug/community/teams/') && !commuTeam && (
         <main className="community">
