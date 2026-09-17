@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import teamSquadData from '../../data/teamSquadData.js';
+import { getFlagUrl } from '../../utils/flagUtils.js';
 
 const POSITION_CONFIG = {
   FW: {
@@ -57,19 +58,20 @@ export default function TeamSquadSection({ teamId }) {
         </div>
 
         <div className="team-manager-card">
-          <div className="team-manager-avatar">
-            <span className="team-manager-icon" aria-hidden="true">👔</span>
-          </div>
-
           <div className="team-manager-info">
-            <div className="team-manager-role-tag">HEAD COACH</div>
             <h3 className="team-manager-name">{manager.name}</h3>
-            <div className="team-manager-meta">
-              <span className="team-manager-nat-badge">
-                <span className="team-nat-text">{manager.koreanNation}</span>
-              </span>
-            </div>
+            <span className="team-manager-nat-badge">
+              <span className="team-nat-text">{manager.koreanNation}</span>
+            </span>
           </div>
+          {getFlagUrl(manager.nationality, manager.koreanNation) && (
+            <img
+              src={getFlagUrl(manager.nationality, manager.koreanNation, 80)}
+              alt={manager.koreanNation}
+              className="team-manager-flag-icon"
+              loading="lazy"
+            />
+          )}
         </div>
       </section>
 
@@ -121,13 +123,10 @@ export default function TeamSquadSection({ teamId }) {
             return (
               <div key={pos} className="team-squad-group">
                 <div className="team-group-header">
-                  <div className="team-group-title-wrap">
-                    <span className="team-group-icon">{config.icon}</span>
-                    <h3 className="team-group-title">
-                      {config.label}
-                      <span className="team-group-code">({pos})</span>
-                    </h3>
-                  </div>
+                  <h3 className="team-group-title">
+                    {config.label}
+                    <span className="team-group-code">({pos})</span>
+                  </h3>
                   <span className="team-group-count">{players.length}명</span>
                 </div>
 
@@ -145,8 +144,18 @@ export default function TeamSquadSection({ teamId }) {
                         </div>
                       </div>
 
-                      <div className="team-player-name" title={player.name}>
-                        {player.name}
+                      <div className="team-player-card-bottom">
+                        <div className="team-player-name" title={player.name}>
+                          {player.name}
+                        </div>
+                        {getFlagUrl(player.nationality, player.koreanNation) && (
+                          <img
+                            src={getFlagUrl(player.nationality, player.koreanNation, 40)}
+                            alt={player.koreanNation}
+                            className="team-player-flag-icon"
+                            loading="lazy"
+                          />
+                        )}
                       </div>
                     </div>
                   ))}
