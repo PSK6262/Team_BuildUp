@@ -31,7 +31,12 @@ const POSITION_CONFIG = {
 
 export default function TeamSquadSection({ teamId }) {
   const numericId = parseInt(teamId, 10);
-  const clubData = teamSquadData[numericId];
+  const clubData =
+    teamSquadData[numericId] ||
+    teamSquadData[String(numericId)] ||
+    Object.values(teamSquadData).find(
+      (c) => c.apiTeamId === numericId || c.teamId === numericId
+    );
   const [selectedTab, setSelectedTab] = useState('ALL');
 
   if (!clubData) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import teamsData from '../../Assets/data/teamsData.js';
+import { getTeams } from '../api/teamApi.js';
 import '../css/mainpage.css';
 
 const INTRO_SENTENCES = [
@@ -10,10 +10,15 @@ const INTRO_SENTENCES = [
 ];
 
 export default function MainPage() {
+  const [teams, setTeams] = useState([]);
   const [hoveredTeam, setHoveredTeam] = useState(null);
   const [introIndex, setIntroIndex] = useState(0);
   const [isTextVisible, setIsTextVisible] = useState(true);
   const [isIntroFinished, setIsIntroFinished] = useState(false);
+
+  useEffect(() => {
+    getTeams().then((data) => setTeams(data));
+  }, []);
 
   useEffect(() => {
     if (isIntroFinished || introIndex >= INTRO_SENTENCES.length) return;
@@ -263,8 +268,8 @@ export default function MainPage() {
 
             {/* 20개 엠블럼 원형 회전 링 */}
             <div className={`mainpage-orbit-ring ${hoveredTeam ? 'is-paused has-hover' : ''}`}>
-              {teamsData.map((team, index) => {
-                const angle = (index / teamsData.length) * 360;
+              {teams.map((team, index) => {
+                const angle = (index / (teams.length || 20)) * 360;
                 const isHovered = hoveredTeam?.teamId === team.teamId;
 
                 return (

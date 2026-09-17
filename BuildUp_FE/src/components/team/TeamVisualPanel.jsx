@@ -53,7 +53,7 @@ export default function TeamVisualPanel({ team, onWheel }) {
         </div>
 
         {/* 하단: 순수 오디오 플레이어 바 (유튜브 링크 없음) */}
-        <TeamAudioPlayer anthemUrl={team.anithemUrl} teamName={team.teamName} />
+        <TeamAudioPlayer anthemUrl={team.anthemUrl || team.anithemUrl} teamName={team.teamName} />
       </div>
     </aside>
   );
