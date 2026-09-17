@@ -1,6 +1,8 @@
 package com.app.dao.team.impl;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +18,8 @@ import com.app.dto.team.Teams;
 @Repository
 public class TeamDAOImpl implements TeamDAO {
 
-	private final SqlSessionTemplate sqlSession;
-
 	@Autowired
-	public TeamDAOImpl(SqlSessionTemplate sqlSession) {
-		this.sqlSession = sqlSession;
-	}
+	private SqlSessionTemplate sqlSession;
 
 	@Override
 	public void mergeTeam(Teams team) {
@@ -54,19 +52,6 @@ public class TeamDAOImpl implements TeamDAO {
 	}
 
 	@Override
-	public List<Players> findPlayersWithNullBackNumber(Long teamId) {
-		return sqlSession.selectList("TeamMapper.selectPlayersWithNullBackNumber", teamId);
-	}
-
-	@Override
-	public void updatePlayerBackNumber(Long playerId, Long backNumber) {
-		sqlSession.update("TeamMapper.updatePlayerBackNumber", java.util.Map.of(
-			"playerId", playerId,
-			"backNumber", backNumber
-		));
-	}
-
-	@Override
 	public void mergeStaff(Staffs staff) {
 		sqlSession.insert("TeamMapper.mergeStaff", staff);
 	}
@@ -78,10 +63,10 @@ public class TeamDAOImpl implements TeamDAO {
 
 	@Override
 	public void ensureStaffRoleExists(Long staffRoleId, String roleName) {
-		sqlSession.insert("TeamMapper.ensureStaffRoleExists", java.util.Map.of(
-			"staffRoleId", staffRoleId,
-			"roleName", roleName
-		));
+		Map<String, Object> params = new HashMap<>();
+		params.put("staffRoleId", staffRoleId);
+		params.put("roleName", roleName);
+		sqlSession.insert("TeamMapper.ensureStaffRoleExists", params);
 	}
 
 	@Override

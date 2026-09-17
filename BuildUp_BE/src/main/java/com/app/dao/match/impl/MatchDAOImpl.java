@@ -1,6 +1,7 @@
 package com.app.dao.match.impl;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -10,16 +11,13 @@ import org.springframework.stereotype.Repository;
 
 import com.app.dao.match.MatchDAO;
 import com.app.dto.match.Matches;
+import com.app.dto.match.MatchEvents;
 
 @Repository
 public class MatchDAOImpl implements MatchDAO {
 
-	private final SqlSessionTemplate sqlSession;
-
 	@Autowired
-	public MatchDAOImpl(SqlSessionTemplate sqlSession) {
-		this.sqlSession = sqlSession;
-	}
+	private SqlSessionTemplate sqlSession;
 
 	@Override
 	public void mergeMatch(Matches match) {
@@ -38,9 +36,25 @@ public class MatchDAOImpl implements MatchDAO {
 
 	@Override
 	public List<Matches> findMatchesByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
-		return sqlSession.selectList("MatchMapper.selectMatchesByDateRange", Map.of(
-			"startDate", startDate,
-			"endDate", endDate
-		));
+		Map<String, Object> paramMap = new HashMap<>();
+		paramMap.put("startDate", startDate);
+		paramMap.put("endDate", endDate);
+		return sqlSession.selectList("MatchMapper.selectMatchesByDateRange", paramMap);
+	}
+
+	@Override
+	public void insertMatchEvent(MatchEvents event) {
+		sqlSession.insert("MatchMapper.insertMatchEvent", event);
+	}
+
+	@Override
+	public List<MatchEvents> findEventsByMatchId(Long matchId) {
+		return sqlSession.selectList("MatchMapper.selectEventsByMatchId", matchId);
+	}
+
+	@Override
+	public void deleteEventsByMatchId(Long matchId) {
+		sqlSession.delete("MatchMapper.deleteEventsByMatchId", matchId);
 	}
 }
+

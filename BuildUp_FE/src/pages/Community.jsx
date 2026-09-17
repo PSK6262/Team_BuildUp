@@ -1,29 +1,20 @@
-import { useState } from 'react'
+import useBoardState from './useBoardState.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
 import { communityTeams } from '../data/communityTeams.js'
-import { freeBoardPosts } from '../data/freeBoardPosts.js'
+import { communityPosts as posts } from '../data/communityPosts.js'
 import '../css/Community.css'
 
 // 팀 목록과 글은 화면 확인용 예시이며, 실제 팀 목록은 추후 API로 받습니다.
 const sampleTeams = communityTeams.map((team) => team.name)
-const posts = [
-  ...freeBoardPosts.map((post, index) => ({ ...post, board: 'free', team: '', likeCount: index * 3 })),
-  ...sampleTeams.map((team, index) => ({
-    postId: 35 - index, board: 'team', team,
-    title: `${team}의 중원 구성, 여러분은 어떻게 생각하시나요?`,
-    createdAt: `2026-09-16T${String(23 - index).padStart(2, '0')}:00:00`,
-    viewCount: 82 + index * 19, likeCount: 7 + index * 4,
-  })),
-]
 const PAGE_SIZE = 10
 
 export default function Community({ selectedTeam = '' }) {
-  const [input, setInput] = useState('')
-  const [keyword, setKeyword] = useState('')
-  const [board, setBoard] = useState('all')
-  const [team, setTeam] = useState('')
-  const [sort, setSort] = useState('latest')
-  const [page, setPage] = useState(1)
+  const [input, setInput] = useBoardState('input', '')
+  const [keyword, setKeyword] = useBoardState('keyword', '')
+  const [board, setBoard] = useBoardState('board', 'all')
+  const [team, setTeam] = useBoardState('team', '')
+  const [sort, setSort] = useBoardState('sort', 'latest')
+  const [page, setPage] = useBoardState('page', 1)
   const filtered = posts.filter((post) =>
     (!selectedTeam || post.team === selectedTeam) &&
     (board === 'all' || post.board === board) && (!team || post.team === team) &&
@@ -76,7 +67,7 @@ export default function Community({ selectedTeam = '' }) {
             {visible.map((post) => <tr key={post.postId}>
               <td className="community__number">{post.postId}</td>
               <td><span className={`community__badge ${post.board === 'team' ? 'community__badge--team' : ''}`}>{post.team || '자유'}</span></td>
-              <td className="community__title">{post.title}</td><td>{post.viewCount}</td><td>{post.likeCount}</td>
+              <td className="community__title"><a className="community__post-link" href={`/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.pathname)}`}>{post.title}</a></td><td>{post.viewCount}</td><td>{post.likeCount}</td>
             </tr>)}
             {!visible.length && <tr><td colSpan={5} className="community__empty">조건에 맞는 게시글이 없습니다. 검색어나 필터를 바꿔보세요.</td></tr>}
           </tbody>
@@ -89,7 +80,7 @@ export default function Community({ selectedTeam = '' }) {
           <button type="button" disabled={page === pageCount} onClick={() => setPage(page + 1)}>다음</button>
         </nav>
       </div>
-      <p className="community__notice">2026/27 시즌 20개 팀으로 구성한 화면입니다. 게시글은 예시이며 실제 데이터와 상세 기능은 추후 연결됩니다.</p>
+      <p className="community__notice">2026/27 시즌 20개 팀으로 구성한 화면입니다. 게시글은 예시이며 실제 데이터는 추후 연결됩니다.</p>
       {!selectedTeam && <section className="community__showcase" aria-labelledby="showcase-title">
         <div className="community__showcase-heading"><h2 id="showcase-title">내 팀 자랑 인기글</h2><span className="community__tag">준비 중</span></div>
         <p className="community__intro">나만의 전술, 나만의 베스트 11. 멋진 팀들을 이곳에서 만나보세요.</p>
