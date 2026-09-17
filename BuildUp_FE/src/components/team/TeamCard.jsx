@@ -24,7 +24,7 @@ export default function TeamCard({ team }) {
         />
       </div>
       <div className="team-grid-card__info">
-        <span className="team-grid-card__name">{team.teamName}</span>
+        <span className="team-grid-card__name">{team.teamNameKor || team.teamName}</span>
       </div>
     </a>
   );

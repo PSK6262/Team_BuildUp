@@ -14,6 +14,14 @@ public interface TeamDAO {
 	List<Players> findPlayersByTeamId(Long teamId);
 	Teams findTeamById(Long teamId);
 	List<Teams> findAllTeams();
+	// Gemini AI 한글 및 역사 동기화 관련
+	void updateTeamKoreanAndHistory(Teams team);
+	void updateTeamAnthem(Teams team);
+	List<Players> findAllPlayers();
+	void updatePlayerKorean(Players player);
+	List<Staffs> findAllStaffs();
+	void updateStaffKorean(Staffs staff);
+
 	void mergeStaff(Staffs staff);
 	List<Staffs> findStaffsByTeamId(Long teamId);
 	void ensureStaffRoleExists(Long staffRoleId, String roleName);

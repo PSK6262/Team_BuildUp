@@ -52,6 +52,36 @@ public class TeamDAOImpl implements TeamDAO {
 	}
 
 	@Override
+	public void updateTeamKoreanAndHistory(Teams team) {
+		sqlSession.update("TeamMapper.updateTeamKoreanAndHistory", team);
+	}
+
+	@Override
+	public void updateTeamAnthem(Teams team) {
+		sqlSession.update("TeamMapper.updateTeamAnthem", team);
+	}
+
+	@Override
+	public List<Players> findAllPlayers() {
+		return sqlSession.selectList("TeamMapper.selectAllPlayers");
+	}
+
+	@Override
+	public void updatePlayerKorean(Players player) {
+		sqlSession.update("TeamMapper.updatePlayerKorean", player);
+	}
+
+	@Override
+	public List<Staffs> findAllStaffs() {
+		return sqlSession.selectList("TeamMapper.selectAllStaffs");
+	}
+
+	@Override
+	public void updateStaffKorean(Staffs staff) {
+		sqlSession.update("TeamMapper.updateStaffKorean", staff);
+	}
+
+	@Override
 	public void mergeStaff(Staffs staff) {
 		sqlSession.insert("TeamMapper.mergeStaff", staff);
 	}
