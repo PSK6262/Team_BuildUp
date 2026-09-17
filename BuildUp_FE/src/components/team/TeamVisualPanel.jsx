@@ -7,11 +7,11 @@ function getHighResEmblemUrl(url) {
   return url.replace('/50/', '/100/');
 }
 
-export default function TeamVisualPanel({ team }) {
+export default function TeamVisualPanel({ team, onWheel }) {
   const highResEmblem = getHighResEmblemUrl(team.emblemUrl);
 
   return (
-    <aside className="team-left">
+    <aside className="team-left" onWheel={onWheel}>
       {/* 엠블럼으로 좌측 배경 전체를 꽉 채움 (초미세 블러 1.5px) */}
       <div
         className="team-emblem-full-bg"
