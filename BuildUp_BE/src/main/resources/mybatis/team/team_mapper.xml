@@ -24,8 +24,8 @@
 				#{emblemUrl, jdbcType=VARCHAR},
 				#{anthemUrl, jdbcType=VARCHAR},
 				CASE 
-					WHEN #{foundedYear, jdbcType=NUMERIC} IS NOT NULL 
-					THEN TO_DATE(TO_CHAR(#{foundedYear, jdbcType=NUMERIC}), 'YYYY') 
+					WHEN #{foundedYear, jdbcType=VARCHAR} IS NOT NULL 
+					THEN TO_DATE(SUBSTR(#{foundedYear, jdbcType=VARCHAR}, 1, 4), 'YYYY') 
 					ELSE TO_DATE('1900', 'YYYY') 
 				END,
 				NVL(#{homeGround, jdbcType=VARCHAR}, '홈 경기장'),
@@ -84,8 +84,10 @@
 		SELECT 
 			PLAYER_ID,
 			NAME,
+			NAME_KOR,
 			MAIN_POSITION,
 			NATIONALITY,
+			NATIONALITY_KOR,
 			TEAM_ID
 		FROM PLAYERS
 		WHERE TEAM_ID = #{teamId}
@@ -105,11 +107,13 @@
 		SELECT 
 			TEAM_ID,
 			TEAM_NAME,
+			TEAM_NAME_KOR,
 			HISTORY,
 			EMBLEM_URL,
 			ANTHEM_URL,
-			TO_CHAR(FOUNDED_YEAR, 'YYYY') AS FOUNDED_YEAR,
+			TO_CHAR(FOUNDED_YEAR, 'YYYY/MM/DD') AS FOUNDED_YEAR,
 			HOME_GROUND,
+			HOME_GROUND_KOR,
 			UPDATED_AT
 		FROM TEAMS
 		WHERE TEAM_ID = #{teamId}
@@ -120,15 +124,66 @@
 		SELECT 
 			TEAM_ID,
 			TEAM_NAME,
+			TEAM_NAME_KOR,
 			HISTORY,
 			EMBLEM_URL,
 			ANTHEM_URL,
-			TO_CHAR(FOUNDED_YEAR, 'YYYY') AS FOUNDED_YEAR,
+			TO_CHAR(FOUNDED_YEAR, 'YYYY/MM/DD') AS FOUNDED_YEAR,
 			HOME_GROUND,
+			HOME_GROUND_KOR,
 			UPDATED_AT
 		FROM TEAMS
 		ORDER BY TEAM_NAME ASC
 	</select>
+
+	<!-- [Gemini AI용] 구단 한글명, 홈구장 영문/한글명, 역사 및 응원가 일괄 업데이트 -->
+	<update id="updateTeamKoreanAndHistory" parameterType="Teams">
+		UPDATE TEAMS
+		SET 
+			TEAM_NAME_KOR = #{teamNameKor, jdbcType=VARCHAR},
+			HOME_GROUND = CASE 
+				WHEN (HOME_GROUND IS NULL OR HOME_GROUND = '홈 경기장') AND #{homeGround, jdbcType=VARCHAR} IS NOT NULL 
+				THEN #{homeGround, jdbcType=VARCHAR}
+				ELSE HOME_GROUND 
+			END,
+			HOME_GROUND_KOR = #{homeGroundKor, jdbcType=VARCHAR},
+			HISTORY = #{history, jdbcType=CLOB},
+			ANTHEM_URL = NVL(#{anthemUrl, jdbcType=VARCHAR}, ANTHEM_URL),
+			UPDATED_AT = SYSTIMESTAMP
+		WHERE TEAM_ID = #{teamId}
+	</update>
+
+	<!-- [응원가 자동화] 구단 공식 응원가(Anthem) URL 단독 업데이트 -->
+	<update id="updateTeamAnthem" parameterType="Teams">
+		UPDATE TEAMS
+		SET 
+			ANTHEM_URL = #{anthemUrl, jdbcType=VARCHAR},
+			UPDATED_AT = SYSTIMESTAMP
+		WHERE TEAM_ID = #{teamId}
+	</update>
+
+	<!-- 전체 선수 목록 조회 (AI 번역/배치용) -->
+	<select id="selectAllPlayers" resultType="Players">
+		SELECT 
+			PLAYER_ID,
+			NAME,
+			NAME_KOR,
+			MAIN_POSITION,
+			NATIONALITY,
+			NATIONALITY_KOR,
+			TEAM_ID
+		FROM PLAYERS
+		ORDER BY TEAM_ID ASC, PLAYER_ID ASC
+	</select>
+
+	<!-- [Gemini AI용] 선수 한글 이름 및 한글 국적 업데이트 -->
+	<update id="updatePlayerKorean" parameterType="Players">
+		UPDATE PLAYERS
+		SET 
+			NAME_KOR = #{nameKor, jdbcType=VARCHAR},
+			NATIONALITY_KOR = #{nationalityKor, jdbcType=VARCHAR}
+		WHERE PLAYER_ID = #{playerId}
+	</update>
 
 	<!-- 구단 스태프(감독 등) UPSERT (MERGE) -->
 	<insert id="mergeStaff" parameterType="Staffs">
@@ -151,12 +206,39 @@
 			)
 	</insert>
 
+	<!-- 전체 스태프 목록 조회 (AI 번역/배치용) -->
+	<select id="selectAllStaffs" resultType="Staffs">
+		SELECT 
+			s.STAFF_ID,
+			s.NAME,
+			s.NAME_KOR,
+			s.NATIONALITY,
+			s.NATIONALITY_KOR,
+			s.TEAM_ID,
+			s.STAFF_ROLE_ID,
+			sr.ROLE_NAME
+		FROM STAFFS s
+		LEFT JOIN STAFF_ROLES sr ON s.STAFF_ROLE_ID = sr.STAFF_ROLE_ID
+		ORDER BY s.TEAM_ID ASC, s.STAFF_ID ASC
+	</select>
+
+	<!-- [Gemini AI용] 스태프 한글 이름 및 한글 국적 업데이트 -->
+	<update id="updateStaffKorean" parameterType="Staffs">
+		UPDATE STAFFS
+		SET 
+			NAME_KOR = #{nameKor, jdbcType=VARCHAR},
+			NATIONALITY_KOR = #{nationalityKor, jdbcType=VARCHAR}
+		WHERE STAFF_ID = #{staffId}
+	</update>
+
 	<!-- 특정 구단 소속 스태프 목록 조회 (STAFF_ROLES 조인) -->
 	<select id="selectStaffsByTeamId" parameterType="long" resultType="Staffs">
 		SELECT 
 			s.STAFF_ID,
 			s.NAME,
+			s.NAME_KOR,
 			s.NATIONALITY,
+			s.NATIONALITY_KOR,
 			s.TEAM_ID,
 			s.STAFF_ROLE_ID,
 			sr.ROLE_NAME
@@ -290,6 +372,7 @@
 			ts.RED_CARDS,
 			ts.UPDATED_AT,
 			t.TEAM_NAME,
+			t.TEAM_NAME_KOR,
 			t.EMBLEM_URL
 		FROM TEAM_STATS ts
 		JOIN TEAMS t ON ts.TEAM_ID = t.TEAM_ID
@@ -302,10 +385,13 @@
 		SELECT 
 			ps.PLAYER_ID,
 			p.NAME AS PLAYER_NAME,
+			p.NAME_KOR AS PLAYER_NAME_KOR,
 			p.MAIN_POSITION,
 			p.NATIONALITY,
+			p.NATIONALITY_KOR,
 			t.TEAM_ID,
 			t.TEAM_NAME,
+			t.TEAM_NAME_KOR,
 			t.EMBLEM_URL,
 			ps.GOALS,
 			ps.ASSISTS,
@@ -326,10 +412,13 @@
 		SELECT 
 			ps.PLAYER_ID,
 			p.NAME AS PLAYER_NAME,
+			p.NAME_KOR AS PLAYER_NAME_KOR,
 			p.MAIN_POSITION,
 			p.NATIONALITY,
+			p.NATIONALITY_KOR,
 			t.TEAM_ID,
 			t.TEAM_NAME,
+			t.TEAM_NAME_KOR,
 			t.EMBLEM_URL,
 			ps.GOALS,
 			ps.ASSISTS,

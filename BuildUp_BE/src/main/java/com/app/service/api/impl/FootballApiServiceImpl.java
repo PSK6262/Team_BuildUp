@@ -207,7 +207,6 @@ public class FootballApiServiceImpl implements FootballApiService {
             throw new RuntimeException("일자별 경기 데이터 동기화 중 오류 발생: " + e.getMessage(), e);
         }
     }
-
     private boolean parseAndSaveMatch(JsonNode matchNode) {
         if (matchNode == null || !matchNode.hasNonNull("id")) {
             return false;

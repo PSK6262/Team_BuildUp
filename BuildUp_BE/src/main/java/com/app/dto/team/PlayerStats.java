@@ -21,4 +21,6 @@ public class PlayerStats {
     private Long teamId;           // 소속 구단 ID
     private String teamName;       // 소속 구단명
     private String emblemUrl;      // 구단 엠블럼 URL
+    private String playerNameKor;  // 선수 한글명
+    private String nationalityKor; // 선수 한글 국적
 }

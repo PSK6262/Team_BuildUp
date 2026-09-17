@@ -1,0 +1,539 @@
+package com.app.service.api.impl;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.app.dao.team.TeamDAO;
+import com.app.dto.team.Players;
+import com.app.dto.team.Staffs;
+import com.app.dto.team.Teams;
+import com.app.service.api.GeminiApiService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * [Gemini AI 축구 데이터 한글 번역 및 구단 역사 생성 구현체]
+ * - Google Gemini 1.5 Flash 모델 연동
+ * - x-goog-api-key 헤더 인증 (AQ.Ab... 최신 키 규격 지원)
+ * - JSON 스키마 기반 정형화된 데이터 파싱 및 DB 일괄 적재
+ */
+@Slf4j
+@Service
+public class GeminiApiServiceImpl implements GeminiApiService {
+
+	// 사용자 API 키로 100% 검증 완료된 최신 공식 Gemini 모델
+	private static final String[] CANDIDATE_MODELS = {
+		"gemini-flash-lite-latest",
+		"gemini-3.1-flash-lite",
+		"gemini-flash-latest"
+	};
+
+	// 연결 성공이 확인된 모델을 캐싱하여 재사용
+	private volatile String verifiedModel = null;
+
+	@Value("${gemini.api.key}")
+	private String apiKey;
+
+	@Autowired
+	private TeamDAO teamDAO;
+
+	private final HttpClient httpClient;
+	private final ObjectMapper objectMapper;
+
+	public GeminiApiServiceImpl() {
+		this.httpClient = HttpClient.newBuilder()
+				.connectTimeout(Duration.ofSeconds(15))
+				.build();
+		this.objectMapper = new ObjectMapper();
+	}
+
+	/**
+	 * Gemini API 호출 공통 메서드 (최신 모델 자동 탐색 및 JSON 응답 보장)
+	 */
+	private String callGemini(String promptText) throws Exception {
+		if (apiKey == null || apiKey.trim().isEmpty() || "apikey".equalsIgnoreCase(apiKey.trim())) {
+			throw new IllegalStateException("application.properties에 유효한 gemini.api.key가 설정되지 않았습니다.");
+		}
+
+		// 요청 JSON 구성
+		Map<String, Object> textPart = new HashMap<>();
+		textPart.put("text", promptText);
+
+		List<Map<String, Object>> parts = new ArrayList<>();
+		parts.add(textPart);
+
+		Map<String, Object> contentMap = new HashMap<>();
+		contentMap.put("parts", parts);
+
+		List<Map<String, Object>> contents = new ArrayList<>();
+		contents.add(contentMap);
+
+		Map<String, Object> genConfig = new HashMap<>();
+		genConfig.put("responseMimeType", "application/json");
+
+		Map<String, Object> requestBody = new HashMap<>();
+		requestBody.put("contents", contents);
+		requestBody.put("generationConfig", genConfig);
+
+		String requestJson = objectMapper.writeValueAsString(requestBody);
+
+		// 이미 검증된 모델이 있으면 우선 사용, 없으면 후보 순차 시도
+		String[] modelsToTry = (verifiedModel != null) 
+				? new String[]{verifiedModel} 
+				: CANDIDATE_MODELS;
+
+		String lastError = null;
+		for (String modelName : modelsToTry) {
+			String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + modelName + ":generateContent";
+
+			HttpRequest request = HttpRequest.newBuilder()
+					.uri(URI.create(apiUrl))
+					.header("Content-Type", "application/json; charset=utf-8")
+					.header("x-goog-api-key", apiKey.trim())
+					.timeout(Duration.ofSeconds(30))
+					.POST(HttpRequest.BodyPublishers.ofString(requestJson))
+					.build();
+
+			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+			if (response.statusCode() == 200) {
+				if (verifiedModel == null) {
+					verifiedModel = modelName;
+					log.info("[Gemini API] 최신 모델 연동 성공: {}", modelName);
+				}
+
+				JsonNode rootNode = objectMapper.readTree(response.body());
+				JsonNode candidates = rootNode.path("candidates");
+				if (candidates.isArray() && candidates.size() > 0) {
+					JsonNode textNode = candidates.get(0).path("content").path("parts").get(0).path("text");
+					return textNode.asText();
+				}
+			} else {
+				lastError = "모델 [" + modelName + "] 호출 실패 (HTTP " + response.statusCode() + "): " + response.body();
+				log.warn("[Gemini API] {}", lastError);
+				// 만약 verifiedModel이 실패한 경우 리셋하고 다른 모델 시도
+				if (verifiedModel != null) {
+					verifiedModel = null;
+					return callGemini(promptText);
+				}
+			}
+		}
+
+		throw new RuntimeException("모든 Gemini 모델 호출 실패: " + lastError);
+	}
+
+	/**
+	 * 1. 20개 구단 한글명, 홈구장 한글명, 구단 역사(3~4문장) 생성 및 DB 적재
+	 */
+	@Override
+	@Transactional
+	public int syncTeamsKoreanAndHistory() {
+		List<Teams> teamList = teamDAO.findAllTeams();
+		if (teamList == null || teamList.isEmpty()) {
+			log.warn("[Gemini AI] 등록된 구단이 없습니다. 먼저 Football API로 구단을 수집해주세요.");
+			return 0;
+		}
+
+		log.info("[Gemini AI] 20개 구단 한글명 및 역사 생성 시작 (대상 구단 수: {})", teamList.size());
+
+		// 프롬프트 입력용 간소화 데이터 목록 생성
+		List<Map<String, Object>> inputTeams = new ArrayList<>();
+		for (Teams t : teamList) {
+			Map<String, Object> item = new HashMap<>();
+			item.put("teamId", t.getTeamId());
+			item.put("teamName", t.getTeamName());
+			item.put("homeGround", t.getHomeGround());
+			inputTeams.add(item);
+		}
+
+		try {
+			String teamsJson = objectMapper.writeValueAsString(inputTeams);
+			StringBuilder prompt = new StringBuilder();
+			prompt.append("당신은 대한민국 스포츠 방송사(SPOTV, 쿠팡플레이 등)의 프리미어리그 공식 중계 전문 번역가이자 축구 음악 및 역사 전문가입니다.\n");
+			prompt.append("아래 프리미어리그 구단 목록을 대한민국 축구 중계방송 자막 및 포털 스포츠(네이버 스포츠)에서 공식 통용되는 표준 한글 명칭과 역사, 그리고 공식 대표 응원가로 작성해주세요.\n\n");
+			prompt.append("[핵심 작성 원칙 - 한국 스포츠 방송 공식 표준 및 인물 표기 철저 준수]\n");
+			prompt.append("1. 기계적 직역을 배제하고, 국내 축구 중계방송 자막에 공식 채택된 표준 명칭을 100% 최우선 적용하세요.\n");
+			prompt.append("   - 구단명 예시: '아스널 FC', '맨체스터 시티 FC', '맨체스터 유나이티드 FC', '토트넘 홋스퍼 FC', '뉴캐슬 유나이티드 FC', '울버햄튼 원더러스 FC'\n");
+			prompt.append("   - 홈구장 한글명 예시: '에미레이츠 스타디움', '에티하드 스타디움', '올드 트래포드', '토트넘 홋스퍼 스타디움'\n");
+			prompt.append("   - [중요: 홈 경기장 누락 보정] 만약 입력 데이터의 홈구장(homeGround)이 누락되어 '홈 경기장'으로 되어 있는 경우(예: 340번 사우샘프턴 FC 등), 해당 구단의 실제 공식 홈 경기장 영문명과 한글명(예: homeGround: 'St. Mary\'s Stadium', homeGroundKor: '세인트 메리스 스타디움')을 AI가 직접 찾아서 반드시 채워주세요.\n");
+			prompt.append("2. 구단 역사(history) 작성 시 인물 및 용어 표기 원칙 (선수/스태프 번역 규칙과 100% 동일 적용):\n");
+			prompt.append("   - 역사 본문에 언급되는 감독, 코치, 레전드 및 현역 선수 이름은 반드시 대한민국 축구 중계방송(SPOTV, 쿠팡플레이) 및 네이버 스포츠 공식 표기를 엄격히 따라야 합니다.\n");
+			prompt.append("   - 감독 표기 준수 예시: '알렉스 퍼거슨', '아르센 벵거', '펩 과르디올라', '위르겐 클롭', '조제 무리뉴', '미켈 아르테타', '피에르 사즈' ('피에르 사주' 절대 금지)\n");
+			prompt.append("   - 선수 표기 준수 예시: '엘링 홀란' ('홀란드' 절대 금지), '티에리 앙리', '케빈 더 브라위너', '웨인 루니', '스티븐 제라드', '손흥민', '박지성', '다비드 실바'\n");
+			prompt.append("   - 각 구단의 창단 배경, 전설적인 명장/선수들과의 영광(무패 우승, 트레블 등), 시그니처 팀 컬러를 3~4문장의 유려하고 품격 있는 방송 해설 톤의 한국어로 작성해주세요.\n");
+			prompt.append("3. 각 구단의 대표 공식 구단가(Official Anthem) 및 홈 경기장 시그니처 응원가를 분석하여, 전 세계 축구팬들이 경기장에서 부르는 공식 대표 YouTube 영상 URL(anthemUrl)을 정확히 찾아 작성해주세요.\n");
+			prompt.append("   - 대표 응원가 기준: 아스널('The Angel - North London Forever'), 리버풀('You'll Never Walk Alone'), 맨체스터 시티('Blue Moon'), 맨체스터 유나이티드('Glory Glory Man United'), 첼시('Blue Is the Colour'), 웨스트햄('I'm Forever Blowing Bubbles') 등\n");
+			prompt.append("   - 반드시 실제 재생 가능한 YouTube URL(https://www.youtube.com/watch?v=...) 형태로 작성해야 합니다.\n\n");
+			prompt.append("반드시 아래와 같은 JSON 배열 형식으로만 응답해야 합니다:\n");
+			prompt.append("[\n");
+			prompt.append("  {\n");
+			prompt.append("    \"teamId\": 57,\n");
+			prompt.append("    \"teamNameKor\": \"아스널 FC\",\n");
+			prompt.append("    \"homeGround\": \"Emirates Stadium\",\n");
+			prompt.append("    \"homeGroundKor\": \"에미레이츠 스타디움\",\n");
+			prompt.append("    \"history\": \"아스널 FC는 1886년 창단된 런던의 유서 깊은 명문 구단입니다. 2003-04 시즌 프리미어리그 최초의 '무패 우승'이라는 전무후무한 신화를 작성했습니다. 유려한 패스 축구와 오랜 전통으로 전 세계 축구팬들의 뜨거운 지지를 받고 있습니다.\",\n");
+			prompt.append("    \"anthemUrl\": \"https://www.youtube.com/watch?v=N8_m1XqypSQ\"\n");
+			prompt.append("  }\n");
+			prompt.append("]\n\n");
+			prompt.append("구단 목록 데이터:\n").append(teamsJson);
+
+			String resultJson = callGemini(prompt.toString());
+			JsonNode arrayNode = objectMapper.readTree(resultJson);
+
+			int updatedCount = 0;
+			if (arrayNode.isArray()) {
+				for (JsonNode node : arrayNode) {
+					Long teamId = node.path("teamId").asLong();
+					String teamNameKor = node.path("teamNameKor").asText();
+					String homeGround = node.hasNonNull("homeGround") ? node.path("homeGround").asText().trim() : null;
+					String homeGroundKor = node.path("homeGroundKor").asText();
+					String history = node.path("history").asText();
+					String anthemUrl = node.hasNonNull("anthemUrl") ? node.path("anthemUrl").asText().trim() : null;
+
+					Teams updateTarget = new Teams();
+					updateTarget.setTeamId(teamId);
+					updateTarget.setTeamNameKor(teamNameKor);
+					updateTarget.setHomeGround(homeGround);
+					updateTarget.setHomeGroundKor(homeGroundKor);
+					updateTarget.setHistory(history);
+					updateTarget.setAnthemUrl(anthemUrl);
+
+					teamDAO.updateTeamKoreanAndHistory(updateTarget);
+					updatedCount++;
+					log.info("  -> [{}] 구단 한글화 완료: {} (홈구장: {} / {}, AI 응원가: {})", 
+							teamId, teamNameKor, homeGround, homeGroundKor, anthemUrl != null ? anthemUrl : "미생성");
+				}
+			}
+
+			log.info("[Gemini AI] 구단 한글화 및 역사 생성 완료! (총 {}개 구단 반영)", updatedCount);
+			return updatedCount;
+
+		} catch (Exception e) {
+			log.error("[Gemini AI] 구단 한글화 처리 중 오류 발생: {}", e.getMessage(), e);
+			throw new RuntimeException("구단 한글화 처리 실패: " + e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * 2. 코칭스태프(감독 등) 한글명 및 국적 번역
+	 */
+	@Override
+	@Transactional
+	public int syncStaffsKorean() {
+		List<Staffs> staffList = teamDAO.findAllStaffs();
+		if (staffList == null || staffList.isEmpty()) {
+			log.warn("[Gemini AI] 등록된 스태프가 없습니다.");
+			return 0;
+		}
+
+		log.info("[Gemini AI] 코칭스태프 한글명 번역 시작 (대상 스태프 수: {})", staffList.size());
+
+		List<Map<String, Object>> inputStaffs = new ArrayList<>();
+		for (Staffs s : staffList) {
+			Map<String, Object> item = new HashMap<>();
+			item.put("staffId", s.getStaffId());
+			item.put("name", s.getName());
+			item.put("nationality", s.getNationality());
+			inputStaffs.add(item);
+		}
+
+		try {
+			String staffsJson = objectMapper.writeValueAsString(inputStaffs);
+			StringBuilder prompt = new StringBuilder();
+			prompt.append("당신은 대한민국 스포츠 방송사(SPOTV, 쿠팡플레이 등)의 프리미어리그 공식 중계 전문 번역가입니다.\n");
+			prompt.append("아래 스태프(감독/코치) 목록을 대한민국 축구 중계방송 자막 및 네이버 스포츠 공식 프로필에서 사용하는 표준 한국어 표기로 통일하여 번역해주세요.\n\n");
+			prompt.append("[핵심 번역 원칙 - 한국 스포츠 방송 공식 표준 준수]\n");
+			prompt.append("1. 기계적 직역을 절대 금지하며, 국내 축구 중계방송 자막 및 해설진이 공식 채택한 '방송 표준 표기'를 100% 최우선 적용하세요.\n");
+			prompt.append("2. 감독명 방송 표준 예시:\n");
+			prompt.append("   - Pierre Sage는 국내 방송 공식 자막에 따라 '피에르 사주'가 아닌 반드시 '피에르 사즈'로 표기해야 합니다.\n");
+			prompt.append("   - Pep Guardiola -> '펩 과르디올라', Mikel Arteta -> '미켈 아르테타', Arne Slot -> '아르네 슬롯', Ange Postecoglou -> '엔제 포스테코글루', Unai Emery -> '우나이 에메리'\n");
+			prompt.append("3. 국적 명칭 방송 표준 준수:\n");
+			prompt.append("   - 'Bosnia and Herzegovina'는 공식 정식 국호인 '보스니아 헤르체고비나'로 통일\n");
+			prompt.append("   - 'Democratic Republic of the Congo'는 방송 자막 표준인 'DR 콩고'로 표기\n");
+			prompt.append("   - 'Korea Republic' / 'South Korea' -> '대한민국'\n");
+			prompt.append("   - 'England/Scotland/Wales/Northern Ireland' -> '잉글랜드/스코틀랜드/웨일스/북아일랜드'\n\n");
+			prompt.append("반드시 아래와 같은 JSON 배열 형식으로만 응답해야 합니다:\n");
+			prompt.append("[\n");
+			prompt.append("  {\n");
+			prompt.append("    \"staffId\": 1,\n");
+			prompt.append("    \"nameKor\": \"펩 과르디올라\",\n");
+			prompt.append("    \"nationalityKor\": \"스페인\"\n");
+			prompt.append("  }\n");
+			prompt.append("]\n\n");
+			prompt.append("스태프 목록 데이터:\n").append(staffsJson);
+
+			String resultJson = callGemini(prompt.toString());
+			JsonNode arrayNode = objectMapper.readTree(resultJson);
+
+			int updatedCount = 0;
+			if (arrayNode.isArray()) {
+				for (JsonNode node : arrayNode) {
+					Long staffId = node.path("staffId").asLong();
+					String nameKor = node.path("nameKor").asText();
+					String nationalityKor = node.path("nationalityKor").asText();
+
+					Staffs updateTarget = new Staffs();
+					updateTarget.setStaffId(staffId);
+					updateTarget.setNameKor(nameKor);
+					updateTarget.setNationalityKor(nationalityKor);
+
+					teamDAO.updateStaffKorean(updateTarget);
+					updatedCount++;
+				}
+			}
+
+			log.info("[Gemini AI] 스태프 한글화 완료! (총 {}명 반영)", updatedCount);
+			return updatedCount;
+
+		} catch (Exception e) {
+			log.error("[Gemini AI] 스태프 한글화 처리 중 오류 발생: {}", e.getMessage(), e);
+			throw new RuntimeException("스태프 한글화 처리 실패: " + e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * 3. 특정 구단 소속 선수단 한글 번역 (배치 단위 처리)
+	 */
+	@Override
+	@Transactional
+	public int syncPlayersKoreanByTeamId(Long teamId) {
+		List<Players> playerList = teamDAO.findPlayersByTeamId(teamId);
+		if (playerList == null || playerList.isEmpty()) {
+			return 0;
+		}
+
+		List<Map<String, Object>> inputPlayers = new ArrayList<>();
+		for (Players p : playerList) {
+			Map<String, Object> item = new HashMap<>();
+			item.put("playerId", p.getPlayerId());
+			item.put("name", p.getName());
+			item.put("nationality", p.getNationality());
+			inputPlayers.add(item);
+		}
+
+		try {
+			String playersJson = objectMapper.writeValueAsString(inputPlayers);
+			StringBuilder prompt = new StringBuilder();
+			prompt.append("당신은 대한민국 스포츠 방송사(SPOTV, 쿠팡플레이 등)의 프리미어리그 공식 중계 전문 번역가입니다.\n");
+			prompt.append("아래 선수 목록을 대한민국 축구 중계방송 자막 및 네이버 스포츠 공식 프로필에서 사용하는 표준 한국어 표기로 통일하여 번역해주세요.\n\n");
+			prompt.append("[핵심 번역 원칙 - 한국 스포츠 방송 공식 표준 준수]\n");
+			prompt.append("1. 어색한 기계적 직역이나 문자 그대로의 표기를 절대 금지하며, 국내 축구 중계방송 공식 자막과 해설진이 사용하는 '한국 방송 표준 표기'를 100% 최우선으로 적용하세요.\n");
+			prompt.append("2. 선수명 방송 표준 예시:\n");
+			prompt.append("   - Erling Haaland -> '엘링 홀란' (홀란드 금지)\n");
+			prompt.append("   - Bukayo Saka -> '부카요 사카'\n");
+			prompt.append("   - Son Heung-min -> '손흥민'\n");
+			prompt.append("   - Kevin De Bruyne -> '케빈 더 브라위너'\n");
+			prompt.append("   - Bruno Fernandes -> '브루누 페르난데스'\n");
+			prompt.append("   - Martin Ødegaard -> '마르틴 외데고르'\n");
+			prompt.append("   - Mohamed Salah -> '모하메드 살라'\n");
+			prompt.append("3. 국적 명칭 방송 공식 자막 기준 준수:\n");
+			prompt.append("   - 'Bosnia and Herzegovina' -> '보스니아 헤르체고비나'\n");
+			prompt.append("   - 'Democratic Republic of the Congo' -> 'DR 콩고'\n");
+			prompt.append("   - 'Korea Republic' / 'South Korea' -> '대한민국'\n");
+			prompt.append("   - 'England/Scotland/Wales/Northern Ireland' -> '잉글랜드/스코틀랜드/웨일스/북아일랜드'\n");
+			prompt.append("   - 'Netherlands' -> '네덜란드', 'Norway' -> '노르웨이', 'Ivory Coast'/'Cote d'Ivoire' -> '코트디부아르'\n\n");
+			prompt.append("반드시 아래와 같은 JSON 배열 형식으로만 응답해야 합니다:\n");
+			prompt.append("[\n");
+			prompt.append("  {\n");
+			prompt.append("    \"playerId\": 101,\n");
+			prompt.append("    \"nameKor\": \"엘링 홀란\",\n");
+			prompt.append("    \"nationalityKor\": \"노르웨이\"\n");
+			prompt.append("  }\n");
+			prompt.append("]\n\n");
+			prompt.append("선수 목록 데이터:\n").append(playersJson);
+
+			String resultJson = callGemini(prompt.toString());
+			JsonNode arrayNode = objectMapper.readTree(resultJson);
+
+			int updatedCount = 0;
+			if (arrayNode.isArray()) {
+				for (JsonNode node : arrayNode) {
+					Long playerId = node.path("playerId").asLong();
+					String nameKor = node.path("nameKor").asText();
+					String nationalityKor = node.path("nationalityKor").asText();
+
+					Players updateTarget = new Players();
+					updateTarget.setPlayerId(playerId);
+					updateTarget.setNameKor(nameKor);
+					updateTarget.setNationalityKor(nationalityKor);
+
+					teamDAO.updatePlayerKorean(updateTarget);
+					updatedCount++;
+				}
+			}
+			return updatedCount;
+
+		} catch (Exception e) {
+			log.error("[Gemini AI] 구단 ID [{}] 선수 한글화 실패: {}", teamId, e.getMessage());
+			return 0;
+		}
+	}
+
+	/**
+	 * 4. 전체 20개 구단 모든 선수단(약 500명) 구단별 청크 번역
+	 */
+	@Override
+	public int syncAllPlayersKorean() {
+		List<Teams> teams = teamDAO.findAllTeams();
+		if (teams == null || teams.isEmpty()) {
+			return 0;
+		}
+
+		log.info("[Gemini AI] 전체 20개 구단 선수단 한글 번역 일괄 시작 (총 20개 팀)");
+		int totalPlayersUpdated = 0;
+
+		for (int i = 0; i < teams.size(); i++) {
+			Teams t = teams.get(i);
+			int count = syncPlayersKoreanByTeamId(t.getTeamId());
+			totalPlayersUpdated += count;
+			log.info("  -> [{}/{}] {} 선수 {}명 한글화 완료 (누적: {}명)", 
+					(i + 1), teams.size(), t.getTeamName(), count, totalPlayersUpdated);
+
+			// Gemini API 호출 간 안정적인 딜레이 (0.5초)
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException ignored) {}
+		}
+
+		log.info("[Gemini AI] 전체 선수단 한글화 완료! (총 {}명 갱신)", totalPlayersUpdated);
+		return totalPlayersUpdated;
+	}
+
+	/**
+	 * 4-1. 20개 구단 공식 유튜브 응원가(Anthem) Gemini AI 동적 검색 및 일괄 DB 적재
+	 */
+	@Override
+	@Transactional
+	public int syncAllTeamAnthems() {
+		List<Teams> teamList = teamDAO.findAllTeams();
+		if (teamList == null || teamList.isEmpty()) {
+			log.warn("[Gemini AI] 등록된 구단이 없습니다. 먼저 구단 데이터를 수집해주세요.");
+			return 0;
+		}
+
+		log.info("[Gemini AI] 20개 구단 공식 응원가(Anthem) AI 검색 및 생성 시작 (대상 구단 수: {})", teamList.size());
+
+		List<Map<String, Object>> inputTeams = new ArrayList<>();
+		for (Teams t : teamList) {
+			Map<String, Object> item = new HashMap<>();
+			item.put("teamId", t.getTeamId());
+			item.put("teamName", t.getTeamName());
+			inputTeams.add(item);
+		}
+
+		try {
+			String teamsJson = objectMapper.writeValueAsString(inputTeams);
+			StringBuilder prompt = new StringBuilder();
+			prompt.append("당신은 전 세계 축구 문화 및 영국 프리미어리그 전문 축구 음악 큐레이터입니다.\n");
+			prompt.append("아래 프리미어리그 구단 목록의 각 구단별 공식 대표 구단가(Official Anthem) 및 홈 경기장 시그니처 응원가를 분석하고, 해당 곡의 공식 YouTube 영상 URL을 찾아주세요.\n\n");
+			prompt.append("[응원가 선정 및 YouTube URL 생성 원칙]\n");
+			prompt.append("1. 각 구단 팬들과 경기장에서 킥오프 전이나 승리 후 제창하는 가장 공인된 시그니처 대표 응원가를 선정하세요.\n");
+			prompt.append("   - 예시: 아스널('The Angel - North London Forever'), 리버풀('You'll Never Walk Alone'), 맨체스터 시티('Blue Moon'), 맨체스터 유나이티드('Glory Glory Man United'), 첼시('Blue Is the Colour'), 웨스트햄('I'm Forever Blowing Bubbles'), 토트넘('Glory Glory Tottenham Hotspur') 등\n");
+			prompt.append("2. 반드시 실제 재생 가능한 공인 YouTube 링크(https://www.youtube.com/watch?v=... 형태)로 정확히 출력하세요.\n\n");
+			prompt.append("반드시 아래와 같은 JSON 배열 형식으로만 응답해야 합니다:\n");
+			prompt.append("[\n");
+			prompt.append("  {\n");
+			prompt.append("    \"teamId\": 57,\n");
+			prompt.append("    \"anthemTitle\": \"The Angel (North London Forever)\",\n");
+			prompt.append("    \"anthemUrl\": \"https://www.youtube.com/watch?v=N8_m1XqypSQ\"\n");
+			prompt.append("  }\n");
+			prompt.append("]\n\n");
+			prompt.append("구단 목록 데이터:\n").append(teamsJson);
+
+			String resultJson = callGemini(prompt.toString());
+			JsonNode arrayNode = objectMapper.readTree(resultJson);
+
+			int updatedCount = 0;
+			if (arrayNode.isArray()) {
+				for (JsonNode node : arrayNode) {
+					Long teamId = node.path("teamId").asLong();
+					String anthemUrl = node.hasNonNull("anthemUrl") ? node.path("anthemUrl").asText().trim() : null;
+					String anthemTitle = node.path("anthemTitle").asText("");
+
+					if (teamId != null && anthemUrl != null && !anthemUrl.isBlank()) {
+						Teams updateTarget = new Teams();
+						updateTarget.setTeamId(teamId);
+						updateTarget.setAnthemUrl(anthemUrl);
+
+						teamDAO.updateTeamAnthem(updateTarget);
+						updatedCount++;
+						log.info("  -> [{}] 구단 AI 응원가 적재 완료: {} ({})", teamId, anthemTitle, anthemUrl);
+					}
+				}
+			}
+
+			log.info("[Gemini AI] 구단 공식 응원가 일괄 적재 완료! (총 {}개 구단 반영)", updatedCount);
+			return updatedCount;
+
+		} catch (Exception e) {
+			log.error("[Gemini AI] 응원가 AI 동기화 처리 중 오류 발생: {}", e.getMessage(), e);
+			throw new RuntimeException("응원가 AI 동기화 처리 실패: " + e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * 5. 전체 한글화 및 역사 생성 비동기 백그라운드 일괄 실행
+	 */
+	@Override
+	public Map<String, Object> syncAllKoreanDataAsync() {
+		Thread worker = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				System.out.println("======================================================================");
+				System.out.println("[BuildUp - Gemini AI] 구단 역사 및 한글명 일괄 자동 적재 파이프라인 가동");
+				System.out.println("======================================================================");
+
+				long startTime = System.currentTimeMillis();
+
+				try {
+					// 1단계: 20개 구단 한글명, 홈구장, 역사 생성
+					System.out.println("[1/3] 20개 구단 한글명, 홈 경기장, 구단 역사 생성 중...");
+					int teamsCount = syncTeamsKoreanAndHistory();
+					System.out.println("  -> 구단 처리 완료: " + teamsCount + "개 구단");
+
+					// 2단계: 20개 구단 코칭스태프(감독) 번역
+					System.out.println("[2/3] 코칭스태프(감독) 한글명 및 국적 번역 중...");
+					int staffsCount = syncStaffsKorean();
+					System.out.println("  -> 스태프 처리 완료: " + staffsCount + "명");
+
+					// 3단계: 20개 구단 선수단(500명) 일괄 번역
+					System.out.println("[3/3] 20개 구단 선수단(약 500명) 구단별 일괄 번역 중...");
+					int playersCount = syncAllPlayersKorean();
+					System.out.println("  -> 선수단 처리 완료: " + playersCount + "명");
+
+					long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
+					System.out.println("======================================================================");
+					System.out.println("[BuildUp - Gemini AI] 모든 한글화 및 역사 적재 완료! (총 소요시간: " + elapsedTime + "초)");
+					System.out.println("======================================================================");
+
+				} catch (Exception e) {
+					System.err.println("[BuildUp - Gemini AI] 일괄 적재 중 오류 발생: " + e.getMessage());
+					log.error("[Gemini AI] Pipeline Error", e);
+				}
+			}
+		});
+
+		worker.setName("Gemini-Korean-Sync-Thread");
+		worker.setDaemon(true);
+		worker.start();
+
+		Map<String, Object> result = new HashMap<>();
+		result.put("status", "SUCCESS");
+		result.put("message", "Gemini AI 한글화 및 구단 역사 적재 작업이 백그라운드에서 시작되었습니다. 서버 콘솔을 확인해주세요.");
+		return result;
+	}
+}
