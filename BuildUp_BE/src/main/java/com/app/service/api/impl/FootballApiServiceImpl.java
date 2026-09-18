@@ -264,6 +264,7 @@ public class FootballApiServiceImpl implements FootballApiService {
             Long teamId = teamNode.get("id").asLong();
             String name = teamNode.path("name").asText("구단 " + teamId);
             String crest = teamNode.hasNonNull("crest") ? teamNode.get("crest").asText() : null;
+            crest = resolveOfficialEmblemUrl(teamId, crest);
 
             Teams team = new Teams();
             team.setTeamId(teamId);
@@ -285,6 +286,7 @@ public class FootballApiServiceImpl implements FootballApiService {
         Long teamId = teamNode.get("id").asLong();
         String teamName = teamNode.path("name").asText();
         String emblemUrl = teamNode.hasNonNull("crest") ? teamNode.get("crest").asText() : null;
+        emblemUrl = resolveOfficialEmblemUrl(teamId, emblemUrl);
         String venue = teamNode.path("venue").asText("홈 경기장");
         Long founded = teamNode.hasNonNull("founded") ? teamNode.get("founded").asLong() : 1900L;
 
@@ -626,5 +628,47 @@ public class FootballApiServiceImpl implements FootballApiService {
 
             teamDAO.mergePlayer(player);
         }
+    }
+
+    /**
+     * 구단 ID에 따른 프리미어리그 공식 엠블럼 URL 반환 (미매핑 구단은 전달받은 URL 유지)
+     */
+    private String resolveOfficialEmblemUrl(Long teamId, String defaultUrl) {
+        if (teamId == null) {
+            return defaultUrl;
+        }
+
+        String badgeId = switch (teamId.intValue()) {
+            case 57 -> "t3";     // Arsenal
+            case 58 -> "t7";     // Aston Villa
+            case 1044 -> "t91";  // AFC Bournemouth
+            case 402 -> "t94";   // Brentford
+            case 397 -> "t36";   // Brighton & Hove Albion
+            case 61 -> "t8";     // Chelsea
+            case 354 -> "t31";   // Crystal Palace
+            case 62 -> "t11";    // Everton
+            case 63 -> "t54";    // Fulham
+            case 349 -> "t40";   // Ipswich Town
+            case 338 -> "t13";   // Leicester City
+            case 64 -> "t14";    // Liverpool
+            case 65 -> "t43";    // Manchester City
+            case 66 -> "t1";     // Manchester United
+            case 67 -> "t4";     // Newcastle United
+            case 351 -> "t17";   // Nottingham Forest
+            case 340 -> "t20";   // Southampton
+            case 73 -> "t6";     // Tottenham Hotspur
+            case 563 -> "t21";   // West Ham United
+            case 76 -> "t39";    // Wolverhampton Wanderers
+            case 71 -> "t56";    // Sunderland
+            case 341 -> "t2";    // Leeds United
+            case 322 -> "t88";   // Hull City
+            case 1076 -> "t9";   // Coventry City
+            default -> null;
+        };
+
+        if (badgeId != null) {
+            return "https://resources.premierleague.com/premierleague/badges/50/" + badgeId + ".png";
+        }
+        return defaultUrl;
     }
 }

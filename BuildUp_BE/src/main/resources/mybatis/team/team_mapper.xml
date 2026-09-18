@@ -162,6 +162,29 @@
 		WHERE TEAM_ID = #{teamId}
 	</update>
 
+	<!-- [엠블럼 자동화] 엠블럼 미등록 또는 불량 링크 구단 목록 조회 -->
+	<select id="selectTeamsWithBrokenEmblem" resultType="Teams">
+		SELECT 
+			TEAM_ID, 
+			TEAM_NAME, 
+			TEAM_NAME_KOR, 
+			EMBLEM_URL
+		FROM TEAMS
+		WHERE EMBLEM_URL IS NULL 
+		   OR EMBLEM_URL LIKE '%crests.football-data.org%'
+		   OR EMBLEM_URL NOT LIKE '%.png'
+		ORDER BY TEAM_ID ASC
+	</select>
+
+	<!-- [엠블럼 자동화] 구단 공식 엠블럼 URL 단독 업데이트 -->
+	<update id="updateTeamEmblem" parameterType="Teams">
+		UPDATE TEAMS
+		SET 
+			EMBLEM_URL = #{emblemUrl, jdbcType=VARCHAR},
+			UPDATED_AT = SYSTIMESTAMP
+		WHERE TEAM_ID = #{teamId}
+	</update>
+
 	<!-- 전체 선수 목록 조회 (AI 번역/배치용) -->
 	<select id="selectAllPlayers" resultType="Players">
 		SELECT 

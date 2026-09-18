@@ -47,4 +47,10 @@ public interface GeminiApiService {
 	 * @return 작업 시작 상태 맵
 	 */
 	Map<String, Object> syncAllKoreanDataAsync();
+
+	/**
+	 * 깨지거나 누락된 구단 엠블럼을 AI로 자동 탐색하여 공식 투명 PNG 엠블럼으로 복구 및 DB 적재
+	 * @return 갱신된 구단 수
+	 */
+	int syncBrokenTeamEmblemsWithAI();
 }

@@ -500,18 +500,23 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 				long startTime = System.currentTimeMillis();
 
 				try {
+					// 0단계: 깨지거나 누락된 구단 엠블럼 AI 자동 복구
+					System.out.println("[0/4] 구단 엠블럼 AI 자동 복구 및 검증 중...");
+					int emblemCount = syncBrokenTeamEmblemsWithAI();
+					System.out.println("  -> 엠블럼 복구 완료: " + emblemCount + "개 구단");
+
 					// 1단계: 20개 구단 한글명, 홈구장, 역사 생성
-					System.out.println("[1/3] 20개 구단 한글명, 홈 경기장, 구단 역사 생성 중...");
+					System.out.println("[1/4] 20개 구단 한글명, 홈 경기장, 구단 역사 생성 중...");
 					int teamsCount = syncTeamsKoreanAndHistory();
 					System.out.println("  -> 구단 처리 완료: " + teamsCount + "개 구단");
 
 					// 2단계: 20개 구단 코칭스태프(감독) 번역
-					System.out.println("[2/3] 코칭스태프(감독) 한글명 및 국적 번역 중...");
+					System.out.println("[2/4] 코칭스태프(감독) 한글명 및 국적 번역 중...");
 					int staffsCount = syncStaffsKorean();
 					System.out.println("  -> 스태프 처리 완료: " + staffsCount + "명");
 
 					// 3단계: 20개 구단 선수단(500명) 일괄 번역
-					System.out.println("[3/3] 20개 구단 선수단(약 500명) 구단별 일괄 번역 중...");
+					System.out.println("[3/4] 20개 구단 선수단(약 500명) 구단별 일괄 번역 중...");
 					int playersCount = syncAllPlayersKorean();
 					System.out.println("  -> 선수단 처리 완료: " + playersCount + "명");
 
@@ -535,5 +540,128 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		result.put("status", "SUCCESS");
 		result.put("message", "Gemini AI 한글화 및 구단 역사 적재 작업이 백그라운드에서 시작되었습니다. 서버 콘솔을 확인해주세요.");
 		return result;
+	}
+
+	/**
+	 * 깨지거나 누락된 구단 엠블럼을 AI로 자동 탐색하여 공식 투명 PNG 엠블럼으로 복구 및 DB 적재
+	 */
+	@Override
+	@Transactional
+	public int syncBrokenTeamEmblemsWithAI() {
+		List<Teams> brokenTeams = teamDAO.findTeamsWithBrokenEmblem();
+		if (brokenTeams == null || brokenTeams.isEmpty()) {
+			log.info("[Gemini AI] 엠블럼 복구 대상 구단이 없습니다. (모든 구단 정상)");
+			return 0;
+		}
+
+		log.info("[Gemini AI] 깨지거나 누락된 엠블럼 복구 시작 (대상 구단 수: {})", brokenTeams.size());
+
+		List<Teams> remainingTeams = new ArrayList<>();
+		int updatedCount = 0;
+
+		// 1차: 알려진 프리미어리그 공식 CDN 매핑 우선 적용
+		for (Teams t : brokenTeams) {
+			String officialUrl = resolveKnownEmblem(t.getTeamId());
+			if (officialUrl != null) {
+				t.setEmblemUrl(officialUrl);
+				teamDAO.updateTeamEmblem(t);
+				updatedCount++;
+				log.info("  -> [{}] 공식 CDN 엠블럼 즉시 복구: {} -> {}", t.getTeamId(), t.getTeamName(), officialUrl);
+			} else {
+				remainingTeams.add(t);
+			}
+		}
+
+		// 2차: 매핑에 없는 구단은 Gemini AI가 투명 배경 공식 엠블럼 URL 자동 탐색
+		if (!remainingTeams.isEmpty()) {
+			try {
+				List<Map<String, Object>> inputList = new ArrayList<>();
+				for (Teams t : remainingTeams) {
+					Map<String, Object> item = new HashMap<>();
+					item.put("teamId", t.getTeamId());
+					item.put("teamName", t.getTeamName());
+					item.put("teamNameKor", t.getTeamNameKor());
+					inputList.add(item);
+				}
+
+				String inputJson = objectMapper.writeValueAsString(inputList);
+				StringBuilder prompt = new StringBuilder();
+				prompt.append("당신은 전 세계 축구 리그 데이터 및 공식 구단 엠블럼(Crest/Badge) 전문가입니다.\n");
+				prompt.append("아래 축구 구단 목록을 확인하고, 각 구단의 다크 모드 UI에 최적화된 '배경 투명(누끼) 고화질 PNG 엠블럼 이미지 URL'을 찾아주세요.\n\n");
+				prompt.append("[엠블럼 URL 선정 원칙]\n");
+				prompt.append("1. 잉글랜드 프리미어리그(EPL) 또는 잉글랜드 리그 구단인 경우:\n");
+				prompt.append("   - 프리미어리그 공식 Akamai CDN 주소(https://resources.premierleague.com/premierleague/badges/50/t{badgeId}.png)를 최우선으로 찾으세요.\n");
+				prompt.append("2. 타 리그 또는 기타 구단인 경우:\n");
+				prompt.append("   - 위키미디어 공용(Wikimedia Commons) 또는 구단 공식 사이트의 배경이 투명한 고화질 PNG 엠블럼 URL을 지정하세요.\n");
+				prompt.append("3. 주의사항: 절대 불투명한 흰색 사각형 배경이 포함된 깨지는 이미지를 반환하지 마세요.\n\n");
+				prompt.append("반드시 아래와 같은 JSON 배열 형식으로만 응답해야 합니다:\n");
+				prompt.append("[\n");
+				prompt.append("  {\n");
+				prompt.append("    \"teamId\": 1044,\n");
+				prompt.append("    \"emblemUrl\": \"https://resources.premierleague.com/premierleague/badges/50/t91.png\"\n");
+				prompt.append("  }\n");
+				prompt.append("]\n\n");
+				prompt.append("구단 목록 데이터:\n").append(inputJson);
+
+				String resultJson = callGemini(prompt.toString());
+				JsonNode arrayNode = objectMapper.readTree(resultJson);
+
+				if (arrayNode.isArray()) {
+					for (JsonNode node : arrayNode) {
+						Long teamId = node.path("teamId").asLong();
+						String emblemUrl = node.hasNonNull("emblemUrl") ? node.path("emblemUrl").asText().trim() : null;
+
+						if (emblemUrl != null && !emblemUrl.isBlank()) {
+							Teams updateTarget = new Teams();
+							updateTarget.setTeamId(teamId);
+							updateTarget.setEmblemUrl(emblemUrl);
+							teamDAO.updateTeamEmblem(updateTarget);
+							updatedCount++;
+							log.info("  -> [{}] Gemini AI가 탐색한 엠블럼 저장 완료: {}", teamId, emblemUrl);
+						}
+					}
+				}
+			} catch (Exception e) {
+				log.error("[Gemini AI] 엠블럼 AI 탐색 처리 중 오류: {}", e.getMessage(), e);
+			}
+		}
+
+		log.info("[Gemini AI] 구단 엠블럼 복구 완료! (총 {}개 구단 갱신)", updatedCount);
+		return updatedCount;
+	}
+
+	/**
+	 * 알려진 프리미어리그 주요 구단 공식 CDN 엠블럼 URL 반환
+	 */
+	private String resolveKnownEmblem(Long teamId) {
+		if (teamId == null) return null;
+		String badgeId = switch (teamId.intValue()) {
+			case 57 -> "t3";     // Arsenal
+			case 58 -> "t7";     // Aston Villa
+			case 1044 -> "t91";  // AFC Bournemouth
+			case 402 -> "t94";   // Brentford
+			case 397 -> "t36";   // Brighton & Hove Albion
+			case 61 -> "t8";     // Chelsea
+			case 354 -> "t31";   // Crystal Palace
+			case 62 -> "t11";    // Everton
+			case 63 -> "t54";    // Fulham
+			case 349 -> "t40";   // Ipswich Town
+			case 338 -> "t13";   // Leicester City
+			case 64 -> "t14";    // Liverpool
+			case 65 -> "t43";    // Manchester City
+			case 66 -> "t1";     // Manchester United
+			case 67 -> "t4";     // Newcastle United
+			case 351 -> "t17";   // Nottingham Forest
+			case 340 -> "t20";   // Southampton
+			case 73 -> "t6";     // Tottenham Hotspur
+			case 563 -> "t21";   // West Ham United
+			case 76 -> "t39";    // Wolverhampton Wanderers
+			case 71 -> "t56";    // Sunderland
+			case 341 -> "t2";    // Leeds United
+			case 322 -> "t88";   // Hull City
+			case 1076 -> "t9";   // Coventry City
+			default -> null;
+		};
+		return badgeId != null ? "https://resources.premierleague.com/premierleague/badges/50/" + badgeId + ".png" : null;
 	}
 }
