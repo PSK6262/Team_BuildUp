@@ -19,6 +19,8 @@
 		<typeAlias type="com.app.dto.team.TeamStats" alias="TeamStats"/>
 		<typeAlias type="com.app.dto.match.Matches" alias="Matches"/>
 		<typeAlias type="com.app.dto.match.MatchEvents" alias="MatchEvents"/>
+		<typeAlias type="com.app.dto.user.Users" alias="Users"/>
+		<typeAlias type="com.app.dto.user.UserPredicts" alias="UserPredicts"/>
 	</typeAliases>
 	
 </configuration>
