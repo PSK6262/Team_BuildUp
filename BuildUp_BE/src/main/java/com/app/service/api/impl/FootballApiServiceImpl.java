@@ -345,7 +345,8 @@ public class FootballApiServiceImpl implements FootballApiService {
                 Players player = new Players();
                 player.setPlayerId(playerId);
                 player.setName(name);
-                player.setMainPosition(convertPosition(positionRaw));
+                player.setMainPosition(convertMainPosition(positionRaw));
+                player.setDetailPosition(convertDetailPosition(positionRaw));
                 player.setNationality(nationality);
                 player.setTeamId(teamId);
 
@@ -361,7 +362,10 @@ public class FootballApiServiceImpl implements FootballApiService {
         return savedPlayers;
     }
 
-    private String convertPosition(String position) {
+    /**
+     * 주 포지션 대분류 (GK, DF, MF, FW)
+     */
+    private String convertMainPosition(String position) {
         if (position == null || position.isBlank()) {
             return "MF";
         }
@@ -370,6 +374,73 @@ public class FootballApiServiceImpl implements FootballApiService {
         if (p.contains("def") || p.contains("back") || p.equals("df")) return "DF";
         if (p.contains("mid") || p.equals("mf")) return "MF";
         if (p.contains("off") || p.contains("forw") || p.contains("att") || p.contains("wing") || p.contains("striker") || p.equals("fw")) return "FW";
+        return "MF";
+    }
+
+    /**
+     * 상세 포지션 축구 표준 공식 약어 (CB, LB, RB, CDM, CAM, CM, LM, RM, ST, LW, RW, SS, GK)
+     */
+    private String convertDetailPosition(String position) {
+        if (position == null || position.isBlank()) {
+            return "MF";
+        }
+        String p = position.trim().toLowerCase();
+
+        // 1. 골키퍼
+        if (p.contains("goal") || p.equals("gk")) {
+            return "GK";
+        }
+
+        // 2. 수비수 세부 약어 (CB, LB, RB, DF)
+        if (p.contains("centre-back") || p.contains("center-back") || p.equals("cb")) {
+            return "CB";
+        }
+        if (p.contains("left-back") || p.equals("lb")) {
+            return "LB";
+        }
+        if (p.contains("right-back") || p.equals("rb")) {
+            return "RB";
+        }
+        if (p.contains("def") || p.contains("back") || p.equals("df")) {
+            return "DF";
+        }
+
+        // 3. 미드필더 세부 약어 (CDM, CAM, CM, LM, RM, MF)
+        if (p.contains("defensive mid") || p.equals("cdm") || p.equals("dm")) {
+            return "CDM";
+        }
+        if (p.contains("attacking mid") || p.equals("cam") || p.equals("am")) {
+            return "CAM";
+        }
+        if (p.contains("left mid") || p.equals("lm")) {
+            return "LM";
+        }
+        if (p.contains("right mid") || p.equals("rm")) {
+            return "RM";
+        }
+        if (p.contains("central mid") || p.equals("cm")) {
+            return "CM";
+        }
+        if (p.contains("mid") || p.equals("mf")) {
+            return "MF";
+        }
+
+        // 4. 공격수 세부 약어 (ST, LW, RW, SS, FW)
+        if (p.contains("left wing") || p.equals("lw")) {
+            return "LW";
+        }
+        if (p.contains("right wing") || p.equals("rw")) {
+            return "RW";
+        }
+        if (p.contains("second striker") || p.equals("ss")) {
+            return "SS";
+        }
+        if (p.contains("centre-forward") || p.contains("center-forward") || p.contains("striker") || p.equals("st") || p.equals("cf")) {
+            return "ST";
+        }
+        if (p.contains("off") || p.contains("forw") || p.contains("att") || p.equals("fw")) {
+            return "FW";
+        }
 
         String upper = position.trim().toUpperCase();
         if (upper.length() > 20) {
@@ -622,7 +693,8 @@ public class FootballApiServiceImpl implements FootballApiService {
             Players player = new Players();
             player.setPlayerId(playerId);
             player.setName(name);
-            player.setMainPosition(convertPosition(positionRaw));
+            player.setMainPosition(convertMainPosition(positionRaw));
+            player.setDetailPosition(convertDetailPosition(positionRaw));
             player.setNationality(nationality);
             player.setTeamId(teamId);
 

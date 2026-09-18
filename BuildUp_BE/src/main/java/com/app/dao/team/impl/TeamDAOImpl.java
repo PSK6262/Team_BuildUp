@@ -82,6 +82,11 @@ public class TeamDAOImpl implements TeamDAO {
 	}
 
 	@Override
+	public void updatePlayerDetailPosition(Players player) {
+		sqlSession.update("TeamMapper.updatePlayerDetailPosition", player);
+	}
+
+	@Override
 	public List<Staffs> findAllStaffs() {
 		return sqlSession.selectList("TeamMapper.selectAllStaffs");
 	}

@@ -42,14 +42,16 @@
 			UPDATE SET 
 				p.NAME = #{name},
 				p.MAIN_POSITION = NVL(#{mainPosition, jdbcType=VARCHAR}, p.MAIN_POSITION),
+				p.DETAIL_POSITION = NVL(#{detailPosition, jdbcType=VARCHAR}, p.DETAIL_POSITION),
 				p.NATIONALITY = NVL(#{nationality, jdbcType=VARCHAR}, p.NATIONALITY),
 				p.TEAM_ID = NVL(#{teamId, jdbcType=NUMERIC}, p.TEAM_ID)
 		WHEN NOT MATCHED THEN
-			INSERT (PLAYER_ID, NAME, MAIN_POSITION, NATIONALITY, TEAM_ID)
+			INSERT (PLAYER_ID, NAME, MAIN_POSITION, DETAIL_POSITION, NATIONALITY, TEAM_ID)
 			VALUES (
 				#{playerId},
 				#{name},
 				#{mainPosition},
+				#{detailPosition, jdbcType=VARCHAR},
 				#{nationality, jdbcType=VARCHAR},
 				#{teamId}
 			)
@@ -86,6 +88,7 @@
 			NAME,
 			NAME_KOR,
 			MAIN_POSITION,
+			DETAIL_POSITION,
 			NATIONALITY,
 			NATIONALITY_KOR,
 			TEAM_ID
@@ -205,6 +208,13 @@
 		SET 
 			NAME_KOR = #{nameKor, jdbcType=VARCHAR},
 			NATIONALITY_KOR = #{nationalityKor, jdbcType=VARCHAR}
+		WHERE PLAYER_ID = #{playerId}
+	</update>
+
+	<!-- [Gemini AI용] 선수 상세 포지션(CB, LB, RB, CDM, CAM, ST 등) 업데이트 -->
+	<update id="updatePlayerDetailPosition" parameterType="Players">
+		UPDATE PLAYERS
+		SET DETAIL_POSITION = #{detailPosition, jdbcType=VARCHAR}
 		WHERE PLAYER_ID = #{playerId}
 	</update>
 
