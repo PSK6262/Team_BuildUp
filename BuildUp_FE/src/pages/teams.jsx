@@ -46,7 +46,7 @@ export default function TeamsPage() {
           <span className="teams-page-eyebrow">PREMIER LEAGUE</span>
           <h1 className="teams-page-title">20개 구단 소개</h1>
           <p className="teams-page-desc">
-            잉글랜드 프리미어리그를 빛내는 20개 구단의 고유 엠블럼과 역사, 공식 응원가를 확인해 보겠나.....
+            프리미어리그를 빛내는 20개 구단의 엠블럼과 역사, 응원가를 확인해 보세요!
           </p>
         </header>
 

@@ -36,19 +36,19 @@ export default function TeamVisualPanel({ team, onWheel }) {
 
           {/* 팀 이름 */}
           <h1 className="team-name">{team.teamNameKor || team.teamName}</h1>
-          {team.teamNameKor && (
+          {team.teamNameKor && team.teamName && (
             <div
               className="team-subname-en"
               style={{
                 fontSize: '18px',
-                color: 'rgba(255, 255, 255, 0.75)',
+                color: '#ffffff',
                 fontWeight: 600,
                 marginTop: '4px',
                 letterSpacing: '-0.2px',
                 textShadow: '0 2px 10px rgba(0, 0, 0, 0.6)'
               }}
             >
-              {team.teamName}
+              ({team.teamName})
             </div>
           )}
         </div>

@@ -115,9 +115,9 @@ export default function TeamSquadSection({ teamId }) {
             <div className="team-manager-info">
               <div>
                 <h3 className="team-manager-name">{manager.nameKor || manager.name}</h3>
-                {manager.nameKor && (
-                  <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 500, display: 'block', marginTop: '1px' }}>
-                    {manager.name}
+                {manager.nameKor && manager.name && (
+                  <span style={{ fontSize: '13px', color: '#0f172a', fontWeight: 600, display: 'block', marginTop: '1px' }}>
+                    ({manager.name})
                   </span>
                 )}
               </div>
@@ -211,9 +211,9 @@ export default function TeamSquadSection({ teamId }) {
                           <div className="team-player-name" title={player.name}>
                             {player.nameKor || player.name}
                           </div>
-                          {player.nameKor && (
-                            <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                              {player.name}
+                          {player.nameKor && player.name && (
+                            <div style={{ fontSize: '11px', color: '#0f172a', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '1px' }}>
+                              ({player.name})
                             </div>
                           )}
                         </div>

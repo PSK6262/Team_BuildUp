@@ -16,7 +16,7 @@ const TeamInfoPanel = forwardRef(function TeamInfoPanel(
         <section className="team-stadium-section">
           <h2 className="team-stadium-name">{team.homeGroundKor || team.homeGround}</h2>
           {team.homeGround && (
-            <p className="team-stadium-desc">{team.homeGround}</p>
+            <p className="team-stadium-desc">({team.homeGround})</p>
           )}
         </section>
 
