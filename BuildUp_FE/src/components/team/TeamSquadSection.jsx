@@ -234,8 +234,8 @@ export default function TeamSquadSection({ teamId }) {
                       title={`${player.nameKor || player.name} 2026-2027 시즌 스탯 보기`}
                     >
                       <div className="team-player-card-top">
-                        <span className={`team-player-pos-badge ${config.badgeClass}`}>
-                          {pos}
+                        <span className={`team-player-pos-badge ${(POSITION_CONFIG[(player.mainPosition || pos || 'MF').toUpperCase()] || config).badgeClass}`}>
+                          {(player.mainPosition || pos || 'MF').toUpperCase()}
                         </span>
                         <div className="team-player-nat-pill">
                           <span className="team-player-nat-name">

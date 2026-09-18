@@ -34,6 +34,21 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
   const isInjured = (stats?.isInjured ?? player.isInjured) === 'Y';
   const isSuspended = (stats?.isSuspended ?? player.isSuspended) === 'Y';
 
+  // 메인포지션 · 디테일 포지션 (골키퍼는 GK 하나로 통일, 동일 포지션 중복 방지)
+  const mainPos = (player.mainPosition || stats?.mainPosition || '').toUpperCase();
+  const detailPos = (player.detailPosition || stats?.detailPosition || '').toUpperCase();
+
+  let positionText = '';
+  if (mainPos === 'GK' || detailPos === 'GK') {
+    positionText = 'GK';
+  } else if (mainPos && detailPos && mainPos !== detailPos) {
+    positionText = `${mainPos} · ${detailPos}`;
+  } else {
+    positionText = mainPos || detailPos || '';
+  };
+
+  const posBadgeClass = mainPos ? `badge-${mainPos.toLowerCase()}` : 'badge-mf';
+
   return (
     <div
       className="player-stats-modal-backdrop"
@@ -62,7 +77,7 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
           {isSuspended && <span className="player-status-badge badge-suspended">출장정지</span>}
         </div>
 
-        {/* 상단 영역: [선수 한국어/영어 이름] (좌)  vs  [국적표기 / 국적아이콘] (우) */}
+        {/* 상단 영역: [선수 한국어/영어 이름 + 포지션 배지] (좌)  vs  [국적표기 / 국적아이콘] (우) */}
         <div className="player-stats-modal-header">
           <div className="player-stats-name-col">
             <h2 id="player-modal-title" className="player-stats-name-kor">
@@ -71,6 +86,11 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
             {nameEn && (
               <div className="player-stats-name-en">
                 ({nameEn})
+              </div>
+            )}
+            {positionText && (
+              <div className={`player-stats-position-pill ${posBadgeClass}`}>
+                {positionText}
               </div>
             )}
           </div>

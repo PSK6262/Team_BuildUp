@@ -449,6 +449,7 @@
       "name": "David Raya",
       "nameKor": "다비드 라야",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 57
@@ -458,6 +459,7 @@
       "name": "Illan Meslier",
       "nameKor": "일랑 멜리에",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 57
@@ -467,6 +469,7 @@
       "name": "Kepa Arrizabalaga",
       "nameKor": "케파 아리사발라가",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 57
@@ -476,6 +479,7 @@
       "name": "Ben White",
       "nameKor": "벤 화이트",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 57
@@ -485,6 +489,7 @@
       "name": "Cristhian Mosquera",
       "nameKor": "크리스티안 모스케라",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 57
@@ -494,6 +499,7 @@
       "name": "Ezri Konsa",
       "nameKor": "에즈리 콘사",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 57
@@ -503,6 +509,7 @@
       "name": "Gabriel Magalhães",
       "nameKor": "가브리엘 마갈량이스",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 57
@@ -512,6 +519,7 @@
       "name": "Jurrien Timber",
       "nameKor": "위리엔 팀버르",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 57
@@ -521,6 +529,7 @@
       "name": "Myles Lewis-Skelly",
       "nameKor": "마일스 루이스스켈리",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 57
@@ -530,6 +539,7 @@
       "name": "Piero Hincapié",
       "nameKor": "피에로 인카피에",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Ecuador",
       "nationalityKor": "에콰도르",
       "teamId": 57
@@ -539,6 +549,7 @@
       "name": "Riccardo Calafiori",
       "nameKor": "리카르도 칼라피오리",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Italy",
       "nationalityKor": "이탈리아",
       "teamId": 57
@@ -548,6 +559,7 @@
       "name": "William Saliba",
       "nameKor": "윌리엄 살리바",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 57
@@ -557,6 +569,7 @@
       "name": "Bruno Guimarães",
       "nameKor": "브루누 기마랑이스",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 57
@@ -566,6 +579,7 @@
       "name": "Declan Rice",
       "nameKor": "데클런 라이스",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 57
@@ -575,6 +589,7 @@
       "name": "Eberechi Eze",
       "nameKor": "에베레치 에제",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 57
@@ -584,6 +599,7 @@
       "name": "Martin Ødegaard",
       "nameKor": "마르틴 외데고르",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "Norway",
       "nationalityKor": "노르웨이",
       "teamId": 57
@@ -593,6 +609,7 @@
       "name": "Martín Zubimendi",
       "nameKor": "마르틴 수비멘디",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 57
@@ -602,6 +619,7 @@
       "name": "Mikel Merino",
       "nameKor": "미켈 메리노",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 57
@@ -611,6 +629,7 @@
       "name": "Bukayo Saka",
       "nameKor": "부카요 사카",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 57
@@ -620,6 +639,7 @@
       "name": "Christos Tzolis",
       "nameKor": "크리스토스 졸리스",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Greece",
       "nationalityKor": "그리스",
       "teamId": 57
@@ -629,6 +649,7 @@
       "name": "Kai Havertz",
       "nameKor": "카이 하베르츠",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "Germany",
       "nationalityKor": "독일",
       "teamId": 57
@@ -638,6 +659,7 @@
       "name": "Max Dowman",
       "nameKor": "맥스 다우먼",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 57
@@ -647,6 +669,7 @@
       "name": "Noni Madueke",
       "nameKor": "노니 마두에케",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 57
@@ -656,6 +679,7 @@
       "name": "Viktor Gyökeres",
       "nameKor": "빅토르 요케레스",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Sweden",
       "nationalityKor": "스웨덴",
       "teamId": 57
@@ -665,6 +689,7 @@
       "name": "Marco Bizot",
       "nameKor": "마르코 비조트",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 58
@@ -674,6 +699,7 @@
       "name": "Zion Suzuki",
       "nameKor": "스즈키 자이온",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Japan",
       "nationalityKor": "일본",
       "teamId": 58
@@ -683,6 +709,7 @@
       "name": "Aaron Wan-Bissaka",
       "nameKor": "아론 완비사카",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Congo DR",
       "nationalityKor": "DR 콩고",
       "teamId": 58
@@ -692,6 +719,7 @@
       "name": "Ian Maatsen",
       "nameKor": "이안 마트센",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 58
@@ -701,6 +729,7 @@
       "name": "Matteo Ruggeri",
       "nameKor": "마테오 루제리",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Italy",
       "nationalityKor": "이탈리아",
       "teamId": 58
@@ -710,6 +739,7 @@
       "name": "Matty Cash",
       "nameKor": "매티 캐시",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Poland",
       "nationalityKor": "폴란드",
       "teamId": 58
@@ -719,6 +749,7 @@
       "name": "Modou Keba Cisse",
       "nameKor": "모두 케바 시세",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Senegal",
       "nationalityKor": "세네갈",
       "teamId": 58
@@ -728,6 +759,7 @@
       "name": "Pau Torres",
       "nameKor": "파우 토레스",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 58
@@ -737,6 +769,7 @@
       "name": "Taylor Harwood-Bellis",
       "nameKor": "테일러 하우드벨리스",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 58
@@ -746,6 +779,7 @@
       "name": "Tyrone Mings",
       "nameKor": "타이론 밍스",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 58
@@ -755,6 +789,7 @@
       "name": "Victor Nilsson-Lindelöf",
       "nameKor": "빅토르 닐손 린델뢰프",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Sweden",
       "nationalityKor": "스웨덴",
       "teamId": 58
@@ -764,6 +799,7 @@
       "name": "Amadou Onana",
       "nameKor": "아마두 오나나",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Belgium",
       "nationalityKor": "벨기에",
       "teamId": 58
@@ -773,6 +809,7 @@
       "name": "Boubacar Kamara",
       "nameKor": "부바카르 카마라",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 58
@@ -782,6 +819,7 @@
       "name": "Emiliano Buendía",
       "nameKor": "에밀리아노 부엔디아",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "Argentina",
       "nationalityKor": "아르헨티나",
       "teamId": 58
@@ -791,6 +829,7 @@
       "name": "Johan Manzambi",
       "nameKor": "요한 만잠비",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "Switzerland",
       "nationalityKor": "스위스",
       "teamId": 58
@@ -800,6 +839,7 @@
       "name": "John McGinn",
       "nameKor": "존 맥긴",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Scotland",
       "nationalityKor": "스코틀랜드",
       "teamId": 58
@@ -809,6 +849,7 @@
       "name": "João Gomes",
       "nameKor": "주앙 고메스",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 58
@@ -818,6 +859,7 @@
       "name": "Lamare Bogarde",
       "nameKor": "라마레 보가르데",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 58
@@ -827,6 +869,7 @@
       "name": "Leon Goretzka",
       "nameKor": "레온 고레츠카",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Germany",
       "nationalityKor": "독일",
       "teamId": 58
@@ -836,6 +879,7 @@
       "name": "Ross Barkley",
       "nameKor": "로스 바클리",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 58
@@ -845,6 +889,7 @@
       "name": "Alejandro Garnacho",
       "nameKor": "알레한드로 가르나초",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Argentina",
       "nationalityKor": "아르헨티나",
       "teamId": 58
@@ -854,6 +899,7 @@
       "name": "Alysson",
       "nameKor": "알리송",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 58
@@ -863,6 +909,7 @@
       "name": "Brian Madjo",
       "nameKor": "브라이언 마디오",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Luxembourg",
       "nationalityKor": "룩셈부르크",
       "teamId": 58
@@ -872,6 +919,7 @@
       "name": "George Hemmings",
       "nameKor": "조지 헴밍스",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 58
@@ -881,6 +929,7 @@
       "name": "Ibrahim M'Baye",
       "nameKor": "이브라힘 음바예",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Senegal",
       "nationalityKor": "세네갈",
       "teamId": 58
@@ -890,6 +939,7 @@
       "name": "Nicolas Jackson",
       "nameKor": "니콜라스 잭슨",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Senegal",
       "nationalityKor": "세네갈",
       "teamId": 58
@@ -899,6 +949,7 @@
       "name": "Tammy Abraham",
       "nameKor": "태미 에이브러햄",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 58
@@ -908,6 +959,7 @@
       "name": "Emiliano Martínez",
       "nameKor": "에밀리아노 마르티네스",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Argentina",
       "nationalityKor": "아르헨티나",
       "teamId": 61
@@ -917,6 +969,7 @@
       "name": "Gabriel Slonina",
       "nameKor": "가브리엘 슬로니나",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "USA",
       "nationalityKor": "미국",
       "teamId": 61
@@ -926,6 +979,7 @@
       "name": "Mike Penders",
       "nameKor": "마이크 펜데르스",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Belgium",
       "nationalityKor": "벨기에",
       "teamId": 61
@@ -935,6 +989,7 @@
       "name": "Teddy Sharman-Lowe",
       "nameKor": "테디 샤먼로우",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 61
@@ -944,6 +999,7 @@
       "name": "Aaron Anselmino",
       "nameKor": "아론 안셀미노",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Argentina",
       "nationalityKor": "아르헨티나",
       "teamId": 61
@@ -953,6 +1009,7 @@
       "name": "Jorrel Hato",
       "nameKor": "요렐 하토",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 61
@@ -962,6 +1019,7 @@
       "name": "Josh Acheampong",
       "nameKor": "조슈아 아치암퐁",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 61
@@ -971,6 +1029,7 @@
       "name": "Levi Colwill",
       "nameKor": "리바이 콜윌",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 61
@@ -980,6 +1039,7 @@
       "name": "Malo Gusto",
       "nameKor": "말로 귀스토",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 61
@@ -989,6 +1049,7 @@
       "name": "Marco Palestra",
       "nameKor": "마르코 팔레스트라",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Italy",
       "nationalityKor": "이탈리아",
       "teamId": 61
@@ -998,6 +1059,7 @@
       "name": "Maxence Lacroix",
       "nameKor": "막상스 라크루아",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 61
@@ -1007,6 +1069,7 @@
       "name": "Pep Chavarría",
       "nameKor": "페프 차바리아",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 61
@@ -1016,6 +1079,7 @@
       "name": "Reece James",
       "nameKor": "리스 제임스",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 61
@@ -1025,6 +1089,7 @@
       "name": "Wesley Fofana",
       "nameKor": "웨슬리 포파나",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 61
@@ -1034,6 +1099,7 @@
       "name": "Cole Palmer",
       "nameKor": "콜 파머",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 61
@@ -1043,6 +1109,7 @@
       "name": "Jordan Henderson",
       "nameKor": "조던 헨더슨",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 61
@@ -1052,6 +1119,7 @@
       "name": "Moisés Caicedo",
       "nameKor": "모이세스 카이세도",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Ecuador",
       "nationalityKor": "에콰도르",
       "teamId": 61
@@ -1061,6 +1129,7 @@
       "name": "Morgan Rogers",
       "nameKor": "모건 로저스",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 61
@@ -1070,6 +1139,7 @@
       "name": "Ray Paez",
       "nameKor": "레이 파에스",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Ecuador",
       "nationalityKor": "에콰도르",
       "teamId": 61
@@ -1079,6 +1149,7 @@
       "name": "Romeo Lavia",
       "nameKor": "로메오 라비아",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "Belgium",
       "nationalityKor": "벨기에",
       "teamId": 61
@@ -1088,6 +1159,7 @@
       "name": "Valentin Barco",
       "nameKor": "발렌틴 바르코",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Argentina",
       "nationalityKor": "아르헨티나",
       "teamId": 61
@@ -1097,6 +1169,7 @@
       "name": "Danny Welbeck",
       "nameKor": "대니 웰벡",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 61
@@ -1106,6 +1179,7 @@
       "name": "Emanuel Emegha",
       "nameKor": "엠마누엘 에메가",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 61
@@ -1115,6 +1189,7 @@
       "name": "Estevao",
       "nameKor": "에스테방",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 61
@@ -1124,6 +1199,7 @@
       "name": "Geovany Quenda",
       "nameKor": "제오바니 퀜다",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Guinea-Bissau",
       "nationalityKor": "기니비사우",
       "teamId": 61
@@ -1133,6 +1209,7 @@
       "name": "Jamie Bynoe-Gittens",
       "nameKor": "제이미 바이노기튼스",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 61
@@ -1142,6 +1219,7 @@
       "name": "João Pedro",
       "nameKor": "주앙 페드루",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 61
@@ -1151,6 +1229,7 @@
       "name": "Pedro Neto",
       "nameKor": "페드루 네투",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Portugal",
       "nationalityKor": "포르투갈",
       "teamId": 61
@@ -1160,6 +1239,7 @@
       "name": "Jordan Pickford",
       "nameKor": "조던 픽퍼드",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 62
@@ -1169,6 +1249,7 @@
       "name": "Mark Travers",
       "nameKor": "마크 트래버스",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Ireland",
       "nationalityKor": "아일랜드",
       "teamId": 62
@@ -1178,6 +1259,7 @@
       "name": "Thomas King",
       "nameKor": "토마스 킹",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Wales",
       "nationalityKor": "웨일스",
       "teamId": 62
@@ -1187,6 +1269,7 @@
       "name": "Ainsley Maitland-Niles",
       "nameKor": "에인절 메이틀랜드나일스",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 62
@@ -1196,6 +1279,7 @@
       "name": "Jake O'Brien",
       "nameKor": "제이크 오브라이언",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Ireland",
       "nationalityKor": "아일랜드",
       "teamId": 62
@@ -1205,6 +1289,7 @@
       "name": "James Tarkowski",
       "nameKor": "제임스 타코스키",
       "mainPosition": "DF",
+      "detailPosition": "DF",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 62
@@ -1214,6 +1299,7 @@
       "name": "Jarrad Branthwaite",
       "nameKor": "재러드 브랜스웨이트",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 62
@@ -1223,6 +1309,7 @@
       "name": "Michael Keane",
       "nameKor": "마이클 킨",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 62
@@ -1232,6 +1319,7 @@
       "name": "Vitalii Mykolenko",
       "nameKor": "비탈리 미콜렌코",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Ukraine",
       "nationalityKor": "우크라이나",
       "teamId": 62
@@ -1241,6 +1329,7 @@
       "name": "Carlos Alcaraz",
       "nameKor": "카를로스 알카라스",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "Argentina",
       "nationalityKor": "아르헨티나",
       "teamId": 62
@@ -1250,6 +1339,7 @@
       "name": "Christian Nørgaard",
       "nameKor": "크리스티안 노르고르",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Denmark",
       "nationalityKor": "덴마크",
       "teamId": 62
@@ -1259,6 +1349,7 @@
       "name": "Harrison Armstrong",
       "nameKor": "해리슨 암스트롱",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 62
@@ -1268,6 +1359,7 @@
       "name": "Hayden Hackney",
       "nameKor": "헤이든 해크니",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 62
@@ -1277,6 +1369,7 @@
       "name": "James Garner",
       "nameKor": "제임스 가너",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 62
@@ -1286,6 +1379,7 @@
       "name": "Kiernan Dewsbury Hall",
       "nameKor": "키어넌 듀스버리홀",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 62
@@ -1295,6 +1389,7 @@
       "name": "Merlin Röhl",
       "nameKor": "메를린 뢸",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Germany",
       "nationalityKor": "독일",
       "teamId": 62
@@ -1304,6 +1399,7 @@
       "name": "Brennan Johnson",
       "nameKor": "브레넌 존슨",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Wales",
       "nationalityKor": "웨일스",
       "teamId": 62
@@ -1313,6 +1409,7 @@
       "name": "Jack Grealish",
       "nameKor": "잭 그릴리시",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 62
@@ -1322,6 +1419,7 @@
       "name": "Thierno Barry",
       "nameKor": "티에르노 배리",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 62
@@ -1331,6 +1429,7 @@
       "name": "Tyler Dibling",
       "nameKor": "타일러 디블링",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 62
@@ -1340,6 +1439,7 @@
       "name": "Tyrique George",
       "nameKor": "타이릭 조지",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 62
@@ -1349,6 +1449,7 @@
       "name": "Alex Borto",
       "nameKor": "알렉스 보르토",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "United States",
       "nationalityKor": "미국",
       "teamId": 63
@@ -1358,6 +1459,7 @@
       "name": "Benjamin Lecomte",
       "nameKor": "뱅자맹 르콩트",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 63
@@ -1367,6 +1469,7 @@
       "name": "Bernd Leno",
       "nameKor": "베른트 레노",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Germany",
       "nationalityKor": "독일",
       "teamId": 63
@@ -1376,6 +1479,7 @@
       "name": "Antonee Robinson",
       "nameKor": "앤서니 로빈슨",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "USA",
       "nationalityKor": "미국",
       "teamId": 63
@@ -1385,6 +1489,7 @@
       "name": "Calvin Bassey",
       "nameKor": "캘빈 배시",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Nigeria",
       "nationalityKor": "나이지리아",
       "teamId": 63
@@ -1394,6 +1499,7 @@
       "name": "David Affengruber",
       "nameKor": "다비트 아펜그루버",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Austria",
       "nationalityKor": "오스트리아",
       "teamId": 63
@@ -1403,6 +1509,7 @@
       "name": "Joachim Andersen",
       "nameKor": "요아킴 안데르센",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Denmark",
       "nationalityKor": "덴마크",
       "teamId": 63
@@ -1412,6 +1519,7 @@
       "name": "Jorge Cuenca",
       "nameKor": "호르헤 쿠엥카",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 63
@@ -1421,6 +1529,7 @@
       "name": "Kenny Tete",
       "nameKor": "케니 테테",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 63
@@ -1430,6 +1539,7 @@
       "name": "Luc De Fougerolles",
       "nameKor": "뤽 드 푸주롤",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Canada",
       "nationalityKor": "캐나다",
       "teamId": 63
@@ -1439,6 +1549,7 @@
       "name": "Ryan Sessegnon",
       "nameKor": "라이언 세세뇽",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 63
@@ -1448,6 +1559,7 @@
       "name": "Timothy Castagne",
       "nameKor": "티모시 카스타뉴",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Belgium",
       "nationalityKor": "벨기에",
       "teamId": 63
@@ -1457,6 +1569,7 @@
       "name": "César Palacios",
       "nameKor": "세사르 팔라시오스",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 63
@@ -1466,6 +1579,7 @@
       "name": "Emile Smith Rowe",
       "nameKor": "에밀 스미스 로우",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 63
@@ -1475,6 +1589,7 @@
       "name": "Harrison Reed",
       "nameKor": "해리슨 리드",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 63
@@ -1484,6 +1599,7 @@
       "name": "Hugo Larsson",
       "nameKor": "위고 라르손",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Sweden",
       "nationalityKor": "스웨덴",
       "teamId": 63
@@ -1493,6 +1609,7 @@
       "name": "Joshua King",
       "nameKor": "조슈아 킹",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 63
@@ -1502,6 +1619,7 @@
       "name": "Manuel Angel",
       "nameKor": "마누엘 앙헬",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 63
@@ -1511,6 +1629,7 @@
       "name": "Sander Berge",
       "nameKor": "산데르 베르게",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Norway",
       "nationalityKor": "노르웨이",
       "teamId": 63
@@ -1520,6 +1639,7 @@
       "name": "Shea Charles",
       "nameKor": "셰어 찰스",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Northern Ireland",
       "nationalityKor": "북아일랜드",
       "teamId": 63
@@ -1529,6 +1649,7 @@
       "name": "Tom Cairney",
       "nameKor": "톰 케어니",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 63
@@ -1538,6 +1659,7 @@
       "name": "Alex Iwobi",
       "nameKor": "알렉스 이워비",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Nigeria",
       "nationalityKor": "나이지리아",
       "teamId": 63
@@ -1547,6 +1669,7 @@
       "name": "Gonzalo García",
       "nameKor": "곤살로 가르시아",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 63
@@ -1556,6 +1679,7 @@
       "name": "Jonah Kusi-Asare",
       "nameKor": "요나 쿠시어사레",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Sweden",
       "nationalityKor": "스웨덴",
       "teamId": 63
@@ -1565,6 +1689,7 @@
       "name": "Kevin Santos",
       "nameKor": "케빈 산투스",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 63
@@ -1574,6 +1699,7 @@
       "name": "Oscar Bobb",
       "nameKor": "오스카르 보브",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Norway",
       "nationalityKor": "노르웨이",
       "teamId": 63
@@ -1583,6 +1709,7 @@
       "name": "Rodrigo Muniz",
       "nameKor": "로드리고 무니스",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 63
@@ -1592,6 +1719,7 @@
       "name": "Alisson Becker",
       "nameKor": "알리송 베커",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 64
@@ -1601,6 +1729,7 @@
       "name": "Freddie Woodman",
       "nameKor": "프레디 우드먼",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 64
@@ -1610,6 +1739,7 @@
       "name": "Giorgi Mamardashvili",
       "nameKor": "기오르기 마마르다슈빌리",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Georgia",
       "nationalityKor": "조지아",
       "teamId": 64
@@ -1619,6 +1749,7 @@
       "name": "Harvey Davies",
       "nameKor": "하비 데이비스",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 64
@@ -1628,6 +1759,7 @@
       "name": "Vítězslav Jaroš",
       "nameKor": "비테슬라프 야로시",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Czech Republic",
       "nationalityKor": "체코",
       "teamId": 64
@@ -1637,6 +1769,7 @@
       "name": "Conor Bradley",
       "nameKor": "코너 브래들리",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Northern Ireland",
       "nationalityKor": "북아일랜드",
       "teamId": 64
@@ -1646,6 +1779,7 @@
       "name": "Giovanni Leoni",
       "nameKor": "조반니 레오니",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Italy",
       "nationalityKor": "이탈리아",
       "teamId": 64
@@ -1655,6 +1789,7 @@
       "name": "Jeremie Frimpong",
       "nameKor": "제레미 프림퐁",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 64
@@ -1664,6 +1799,7 @@
       "name": "Jeremy Jacquet",
       "nameKor": "제레미 자케",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 64
@@ -1673,6 +1809,7 @@
       "name": "Joe Gomez",
       "nameKor": "조 고메즈",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 64
@@ -1682,6 +1819,7 @@
       "name": "Kostas Tsimikas",
       "nameKor": "코스타스 치미카스",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Greece",
       "nationalityKor": "그리스",
       "teamId": 64
@@ -1691,6 +1829,7 @@
       "name": "Milos Kerkez",
       "nameKor": "밀로시 케르케즈",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Hungary",
       "nationalityKor": "헝가리",
       "teamId": 64
@@ -1700,6 +1839,7 @@
       "name": "Ronald Araújo",
       "nameKor": "로나우드 아라우호",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Uruguay",
       "nationalityKor": "우루과이",
       "teamId": 64
@@ -1709,6 +1849,7 @@
       "name": "Virgil van Dijk",
       "nameKor": "버질 반 다이크",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 64
@@ -1718,6 +1859,7 @@
       "name": "Alexis Mac Allister",
       "nameKor": "알렉시스 마크 알리스터",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Argentina",
       "nationalityKor": "아르헨티나",
       "teamId": 64
@@ -1727,6 +1869,7 @@
       "name": "Dominik Szoboszlai",
       "nameKor": "도미니크 소보슬라이",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "Hungary",
       "nationalityKor": "헝가리",
       "teamId": 64
@@ -1736,6 +1879,7 @@
       "name": "Florian Wirtz",
       "nameKor": "플로리안 비르츠",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "Germany",
       "nationalityKor": "독일",
       "teamId": 64
@@ -1745,6 +1889,7 @@
       "name": "Ryan Gravenberch",
       "nameKor": "라이언 흐라벤베르흐",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 64
@@ -1754,6 +1899,7 @@
       "name": "Trey Nyoni",
       "nameKor": "트레이 니오니",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 64
@@ -1763,6 +1909,7 @@
       "name": "Wataru Endō",
       "nameKor": "엔도 와타루",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Japan",
       "nationalityKor": "일본",
       "teamId": 64
@@ -1772,6 +1919,7 @@
       "name": "Alexander Isak",
       "nameKor": "알렉산데르 이사크",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "Sweden",
       "nationalityKor": "스웨덴",
       "teamId": 64
@@ -1781,6 +1929,7 @@
       "name": "Bradley Barcola",
       "nameKor": "브래들리 바르콜라",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 64
@@ -1790,6 +1939,7 @@
       "name": "Cody Gakpo",
       "nameKor": "코디 각포",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 64
@@ -1799,6 +1949,7 @@
       "name": "Federico Chiesa",
       "nameKor": "페데리코 키에사",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Italy",
       "nationalityKor": "이탈리아",
       "teamId": 64
@@ -1808,6 +1959,7 @@
       "name": "Hugo Ekitike",
       "nameKor": "우고 에키티케",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 64
@@ -1817,6 +1969,7 @@
       "name": "Rio Ngumoha",
       "nameKor": "리오 은구모하",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 64
@@ -1826,6 +1979,7 @@
       "name": "Víctor Muñoz",
       "nameKor": "빅토르 무뇨스",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 64
@@ -1835,6 +1989,7 @@
       "name": "Gianluigi Donnarumma",
       "nameKor": "잔루이지 돈나룸마",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Italy",
       "nationalityKor": "이탈리아",
       "teamId": 65
@@ -1844,6 +1999,7 @@
       "name": "Géronimo Rulli",
       "nameKor": "헤로니모 룰리",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Argentina",
       "nationalityKor": "아르헨티나",
       "teamId": 65
@@ -1853,6 +2009,7 @@
       "name": "Marcus Bettinelli",
       "nameKor": "마커스 베티넬리",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 65
@@ -1862,6 +2019,7 @@
       "name": "Abdukodir Khusanov",
       "nameKor": "압두코디르 후사노프",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Uzbekistan",
       "nationalityKor": "우즈베키스탄",
       "teamId": 65
@@ -1871,6 +2029,7 @@
       "name": "Josh Wilson-Esbrand",
       "nameKor": "조시 윌슨에스브랜드",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 65
@@ -1880,6 +2039,7 @@
       "name": "Joško Gvardiol",
       "nameKor": "요슈코 그바르디올",
       "mainPosition": "DF",
+      "detailPosition": "DF",
       "nationality": "Croatia",
       "nationalityKor": "크로아티아",
       "teamId": 65
@@ -1889,6 +2049,7 @@
       "name": "Marc Guéhi",
       "nameKor": "마크 게히",
       "mainPosition": "DF",
+      "detailPosition": "DF",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 65
@@ -1898,6 +2059,7 @@
       "name": "Matheus Nunes",
       "nameKor": "마테우스 누네스",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Portugal",
       "nationalityKor": "포르투갈",
       "teamId": 65
@@ -1907,6 +2069,7 @@
       "name": "Nico O'Reilly",
       "nameKor": "니코 오라일리",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 65
@@ -1916,6 +2079,7 @@
       "name": "Rayan Aït Nouri",
       "nameKor": "라얀 아잇누리",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Algeria",
       "nationalityKor": "알제리",
       "teamId": 65
@@ -1925,6 +2089,7 @@
       "name": "Rico Lewis",
       "nameKor": "리코 루이스",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 65
@@ -1934,6 +2099,7 @@
       "name": "Rúben Dias",
       "nameKor": "후벵 디아스",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Portugal",
       "nationalityKor": "포르투갈",
       "teamId": 65
@@ -1943,6 +2109,7 @@
       "name": "Vitor Reis",
       "nameKor": "비토르 레이스",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 65
@@ -1952,6 +2119,7 @@
       "name": "Ayyoub Bouaddi",
       "nameKor": "아요브 부아디",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 65
@@ -1961,6 +2129,7 @@
       "name": "Elliot Anderson",
       "nameKor": "엘리엇 앤더슨",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 65
@@ -1970,6 +2139,7 @@
       "name": "Enzo Fernández",
       "nameKor": "엔소 페르난데스",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Argentina",
       "nationalityKor": "아르헨티나",
       "teamId": 65
@@ -1979,6 +2149,7 @@
       "name": "Mateo Kovačić",
       "nameKor": "마테오 코바치치",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Croatia",
       "nationalityKor": "크로아티아",
       "teamId": 65
@@ -1988,6 +2159,7 @@
       "name": "Phil Foden",
       "nameKor": "필 포든",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 65
@@ -1997,6 +2169,7 @@
       "name": "Rayan Cherki",
       "nameKor": "라얀 셰르키",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 65
@@ -2006,6 +2179,7 @@
       "name": "Allan",
       "nameKor": "알랑",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 65
@@ -2015,6 +2189,7 @@
       "name": "Antoine Semenyo",
       "nameKor": "앙투안 세메뇨",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Ghana",
       "nationalityKor": "가나",
       "teamId": 65
@@ -2024,6 +2199,7 @@
       "name": "Erling Haaland",
       "nameKor": "엘링 홀란",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "Norway",
       "nationalityKor": "노르웨이",
       "teamId": 65
@@ -2033,6 +2209,7 @@
       "name": "Iliman Ndiaye",
       "nameKor": "일리만 은디아예",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Senegal",
       "nationalityKor": "세네갈",
       "teamId": 65
@@ -2042,6 +2219,7 @@
       "name": "Jeremy Doku",
       "nameKor": "제레미 도쿠",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Belgium",
       "nationalityKor": "벨기에",
       "teamId": 65
@@ -2051,6 +2229,7 @@
       "name": "Ryan McAidoo",
       "nameKor": "라이언 매커두",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 65
@@ -2060,6 +2239,7 @@
       "name": "Dermot Mee",
       "nameKor": "더모트 미",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Northern Ireland",
       "nationalityKor": "북아일랜드",
       "teamId": 66
@@ -2069,6 +2249,7 @@
       "name": "Karl Darlow",
       "nameKor": "칼 달로우",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Wales",
       "nationalityKor": "웨일스",
       "teamId": 66
@@ -2078,6 +2259,7 @@
       "name": "Senne Lammens",
       "nameKor": "세네 라멘스",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Belgium",
       "nationalityKor": "벨기에",
       "teamId": 66
@@ -2087,6 +2269,7 @@
       "name": "Tom Heaton",
       "nameKor": "톰 히튼",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 66
@@ -2096,6 +2279,7 @@
       "name": "Ayden Heaven",
       "nameKor": "아이든 헤븐",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 66
@@ -2105,6 +2289,7 @@
       "name": "Diogo Dalot",
       "nameKor": "디오구 달로트",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Portugal",
       "nationalityKor": "포르투갈",
       "teamId": 66
@@ -2114,6 +2299,7 @@
       "name": "Harry Amass",
       "nameKor": "해리 아마스",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 66
@@ -2123,6 +2309,7 @@
       "name": "Harry Maguire",
       "nameKor": "해리 매과이어",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 66
@@ -2132,6 +2319,7 @@
       "name": "Leny Yoro",
       "nameKor": "레니 요로",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 66
@@ -2141,6 +2329,7 @@
       "name": "Lisandro Martínez",
       "nameKor": "리산드로 마르티네스",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Argentina",
       "nationalityKor": "아르헨티나",
       "teamId": 66
@@ -2150,6 +2339,7 @@
       "name": "Luke Shaw",
       "nameKor": "루크 쇼",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 66
@@ -2159,6 +2349,7 @@
       "name": "Matthijs de Ligt",
       "nameKor": "마테이스 더 리흐트",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 66
@@ -2168,6 +2359,7 @@
       "name": "Noussair Mazraoui",
       "nameKor": "누사이르 마즈라위",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Morocco",
       "nationalityKor": "모로코",
       "teamId": 66
@@ -2177,6 +2369,7 @@
       "name": "Andrey Santos",
       "nameKor": "안드레이 산투스",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 66
@@ -2186,6 +2379,7 @@
       "name": "Bruno Fernandes",
       "nameKor": "브루누 페르난데스",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "Portugal",
       "nationalityKor": "포르투갈",
       "teamId": 66
@@ -2195,6 +2389,7 @@
       "name": "Carlos Baleba",
       "nameKor": "카를로스 발레바",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Cameroon",
       "nationalityKor": "카메룬",
       "teamId": 66
@@ -2204,6 +2399,7 @@
       "name": "Jack Fletcher",
       "nameKor": "잭 플레처",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 66
@@ -2213,6 +2409,7 @@
       "name": "Kobbie Mainoo",
       "nameKor": "코비 마이누",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 66
@@ -2222,6 +2419,7 @@
       "name": "Manuel Ugarte",
       "nameKor": "마누엘 우가르테",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Uruguay",
       "nationalityKor": "우루과이",
       "teamId": 66
@@ -2231,6 +2429,7 @@
       "name": "Mason Mount",
       "nameKor": "메이슨 마운트",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 66
@@ -2240,6 +2439,7 @@
       "name": "Tyler Fletcher",
       "nameKor": "타일러 플레처",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 66
@@ -2249,6 +2449,7 @@
       "name": "Youri Tielemans",
       "nameKor": "유리 틸레만스",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Belgium",
       "nationalityKor": "벨기에",
       "teamId": 66
@@ -2258,6 +2459,7 @@
       "name": "Amad Diallo",
       "nameKor": "아마드 디알로",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Ivory Coast",
       "nationalityKor": "코트디부아르",
       "teamId": 66
@@ -2267,6 +2469,7 @@
       "name": "Benjamin Šeško",
       "nameKor": "벤야민 셰슈코",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Slovenia",
       "nationalityKor": "슬로베니아",
       "teamId": 66
@@ -2276,6 +2479,7 @@
       "name": "Bryan Mbeumo",
       "nameKor": "브라이언 음뵈모",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "Cameroon",
       "nationalityKor": "카메룬",
       "teamId": 66
@@ -2285,6 +2489,7 @@
       "name": "Joshua Zirkzee",
       "nameKor": "조슈아 지르크지",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 66
@@ -2294,6 +2499,7 @@
       "name": "Marcus Rashford",
       "nameKor": "마커스 래시퍼드",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 66
@@ -2303,6 +2509,7 @@
       "name": "Matheus Cunha",
       "nameKor": "마테우스 쿠냐",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 66
@@ -2312,6 +2519,7 @@
       "name": "Patrick Dorgu",
       "nameKor": "패트릭 도르구",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Denmark",
       "nationalityKor": "덴마크",
       "teamId": 66
@@ -2321,6 +2529,7 @@
       "name": "Shea Lacey",
       "nameKor": "셰이 레이시",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 66
@@ -2330,6 +2539,7 @@
       "name": "Ewen Jaouen",
       "nameKor": "에벤 자우엥",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 67
@@ -2339,6 +2549,7 @@
       "name": "Lukáš Horníček",
       "nameKor": "루카시 호르니체크",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Czech Republic",
       "nationalityKor": "체코",
       "teamId": 67
@@ -2348,6 +2559,7 @@
       "name": "Mark Gillespie",
       "nameKor": "마크 길레스피",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 67
@@ -2357,6 +2569,7 @@
       "name": "Nick Pope",
       "nameKor": "닉 포프",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 67
@@ -2366,6 +2579,7 @@
       "name": "Amar Dedić",
       "nameKor": "아마르 데디치",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Austria",
       "nationalityKor": "오스트리아",
       "teamId": 67
@@ -2375,6 +2589,7 @@
       "name": "Dan Burn",
       "nameKor": "댄 번",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 67
@@ -2384,6 +2599,7 @@
       "name": "Fabian Schär",
       "nameKor": "파비안 셰어",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Switzerland",
       "nationalityKor": "스위스",
       "teamId": 67
@@ -2393,6 +2609,7 @@
       "name": "Leo Shahar",
       "nameKor": "레오 샤하르",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 67
@@ -2402,6 +2619,7 @@
       "name": "Lewis Hall",
       "nameKor": "루이스 홀",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 67
@@ -2411,6 +2629,7 @@
       "name": "Malick Thiaw",
       "nameKor": "말릭 티아우",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Germany",
       "nationalityKor": "독일",
       "teamId": 67
@@ -2420,6 +2639,7 @@
       "name": "Sven Botman",
       "nameKor": "스벤 보트만",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 67
@@ -2429,6 +2649,7 @@
       "name": "Valentino Livramento",
       "nameKor": "발렌티노 리브라멘토",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 67
@@ -2438,6 +2659,7 @@
       "name": "Aladji Bamba",
       "nameKor": "알라지 밤바",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 67
@@ -2447,6 +2669,7 @@
       "name": "Jacob Ramsey",
       "nameKor": "제이콥 램지",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 67
@@ -2456,6 +2679,7 @@
       "name": "Joe Willock",
       "nameKor": "조 윌록",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 67
@@ -2465,6 +2689,7 @@
       "name": "Joelinton",
       "nameKor": "조엘링톤",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 67
@@ -2474,6 +2699,7 @@
       "name": "Lewis Miley",
       "nameKor": "루이스 마일리",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 67
@@ -2483,6 +2709,7 @@
       "name": "Mason Miley",
       "nameKor": "메이슨 마일리",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 67
@@ -2492,6 +2719,7 @@
       "name": "Nico Gonzalez",
       "nameKor": "니코 곤살레스",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 67
@@ -2501,6 +2729,7 @@
       "name": "Sean Steur",
       "nameKor": "션 스퇴르",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 67
@@ -2510,6 +2739,7 @@
       "name": "Anthony Elanga",
       "nameKor": "안토니 엘랑가",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "Sweden",
       "nationalityKor": "스웨덴",
       "teamId": 67
@@ -2519,6 +2749,7 @@
       "name": "Bazoumana Touré",
       "nameKor": "바주마나 투레",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Ivory Coast",
       "nationalityKor": "코트디부아르",
       "teamId": 67
@@ -2528,6 +2759,7 @@
       "name": "Harvey Barnes",
       "nameKor": "하비 반스",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 67
@@ -2537,6 +2769,7 @@
       "name": "Jacob Murphy",
       "nameKor": "제이콥 머피",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 67
@@ -2546,6 +2779,7 @@
       "name": "Matias Fernandez-Pardo",
       "nameKor": "마티아스 페르난데스파르도",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Belgium",
       "nationalityKor": "벨기에",
       "teamId": 67
@@ -2555,6 +2789,7 @@
       "name": "William Osula",
       "nameKor": "윌리엄 오술라",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Denmark",
       "nationalityKor": "덴마크",
       "teamId": 67
@@ -2564,6 +2799,7 @@
       "name": "Yoane Wissa",
       "nameKor": "요아네 위사",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "Congo DR",
       "nationalityKor": "DR 콩고",
       "teamId": 67
@@ -2573,6 +2809,7 @@
       "name": "Melker Ellborg",
       "nameKor": "멜케르 엘보르그",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Sweden",
       "nationalityKor": "스웨덴",
       "teamId": 71
@@ -2582,6 +2819,7 @@
       "name": "Robin Roefs",
       "nameKor": "로빈 루프스",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 71
@@ -2591,6 +2829,7 @@
       "name": "Simon Moore",
       "nameKor": "사이먼 무어",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 71
@@ -2600,6 +2839,7 @@
       "name": "Aji Alese",
       "nameKor": "아지 알레세",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 71
@@ -2609,6 +2849,7 @@
       "name": "Daniel Ballard",
       "nameKor": "다니엘 밸러드",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Northern Ireland",
       "nationalityKor": "북아일랜드",
       "teamId": 71
@@ -2618,6 +2859,7 @@
       "name": "Dayann Methalie",
       "nameKor": "다얀 메탈리",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 71
@@ -2627,6 +2869,7 @@
       "name": "Kevin Danso",
       "nameKor": "케빈 단소",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Austria",
       "nationalityKor": "오스트리아",
       "teamId": 71
@@ -2636,6 +2879,7 @@
       "name": "Luke O'Nien",
       "nameKor": "루크 오닌",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 71
@@ -2645,6 +2889,7 @@
       "name": "Nordi Mukiele",
       "nameKor": "노르디 무키엘레",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 71
@@ -2654,6 +2899,7 @@
       "name": "Omar Alderete",
       "nameKor": "오마르 알데레테",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Paraguay",
       "nationalityKor": "파라과이",
       "teamId": 71
@@ -2663,6 +2909,7 @@
       "name": "Reinildo",
       "nameKor": "헤이닐두",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Mozambique",
       "nationalityKor": "모잠비크",
       "teamId": 71
@@ -2672,6 +2919,7 @@
       "name": "Thomas Meunier",
       "nameKor": "토마 뫼니에",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Belgium",
       "nationalityKor": "벨기에",
       "teamId": 71
@@ -2681,6 +2929,7 @@
       "name": "Trai Hume",
       "nameKor": "트라이 흄",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Northern Ireland",
       "nationalityKor": "북아일랜드",
       "teamId": 71
@@ -2690,6 +2939,7 @@
       "name": "Abdoullah Ba",
       "nameKor": "압둘라 바",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 71
@@ -2699,6 +2949,7 @@
       "name": "Alan Browne",
       "nameKor": "앨런 브라운",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Ireland",
       "nationalityKor": "아일랜드",
       "teamId": 71
@@ -2708,6 +2959,7 @@
       "name": "Chris Rigg",
       "nameKor": "크리스 리그",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 71
@@ -2717,6 +2969,7 @@
       "name": "Enzo Le Fée",
       "nameKor": "엔조 르 페",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 71
@@ -2726,6 +2979,7 @@
       "name": "Granit Xhaka",
       "nameKor": "그라니트 자카",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Switzerland",
       "nationalityKor": "스위스",
       "teamId": 71
@@ -2735,6 +2989,7 @@
       "name": "Habib Diarra",
       "nameKor": "하비브 디아라",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Senegal",
       "nationalityKor": "세네갈",
       "teamId": 71
@@ -2744,6 +2999,7 @@
       "name": "Jules Ahoka",
       "nameKor": "쥘 아호카",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "DR Congo",
       "nationalityKor": "DR 콩고",
       "teamId": 71
@@ -2753,6 +3009,7 @@
       "name": "Noah Sadiki",
       "nameKor": "노아 사디키",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Congo DR",
       "nationalityKor": "DR 콩고",
       "teamId": 71
@@ -2762,6 +3019,7 @@
       "name": "Brian Brobbey",
       "nameKor": "브라이언 브로비",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 71
@@ -2771,6 +3029,7 @@
       "name": "Chemsdine Talbi",
       "nameKor": "솀스딘 탈비",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Morocco",
       "nationalityKor": "모로코",
       "teamId": 71
@@ -2780,6 +3039,7 @@
       "name": "Jocelin Bi",
       "nameKor": "조슬랭 비",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Ivory Coast",
       "nationalityKor": "코트디부아르",
       "teamId": 71
@@ -2789,6 +3049,7 @@
       "name": "Juan Angulo",
       "nameKor": "후안 앙굴로",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Ecuador",
       "nationalityKor": "에콰도르",
       "teamId": 71
@@ -2798,6 +3059,7 @@
       "name": "Malick Fofana",
       "nameKor": "말릭 포파나",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Belgium",
       "nationalityKor": "벨기에",
       "teamId": 71
@@ -2807,6 +3069,7 @@
       "name": "Nilson Angulo",
       "nameKor": "닐손 앙굴로",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "Ecuador",
       "nationalityKor": "에콰도르",
       "teamId": 71
@@ -2816,6 +3079,7 @@
       "name": "Romaine Mundle",
       "nameKor": "로메인 먼들",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 71
@@ -2825,6 +3089,7 @@
       "name": "Wilson Isidor",
       "nameKor": "윌슨 이지도르",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "Haiti",
       "nationalityKor": "아이티",
       "teamId": 71
@@ -2834,6 +3099,7 @@
       "name": "Antonín Kinský",
       "nameKor": "안토닌 킨스키",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Czech Republic",
       "nationalityKor": "체코",
       "teamId": 73
@@ -2843,6 +3109,7 @@
       "name": "Brandon Austin",
       "nameKor": "브랜던 오스틴",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 73
@@ -2852,6 +3119,7 @@
       "name": "Martin Dúbravka",
       "nameKor": "마르틴 두브라프카",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Slovakia",
       "nationalityKor": "슬로바키아",
       "teamId": 73
@@ -2861,6 +3129,7 @@
       "name": "Andrew Robertson",
       "nameKor": "앤디 로버트슨",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Scotland",
       "nationalityKor": "스코틀랜드",
       "teamId": 73
@@ -2870,6 +3139,7 @@
       "name": "Archie Gray",
       "nameKor": "아치 그레이",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 73
@@ -2879,6 +3149,7 @@
       "name": "Ben Davies",
       "nameKor": "벤 데이비스",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Wales",
       "nationalityKor": "웨일스",
       "teamId": 73
@@ -2888,6 +3159,7 @@
       "name": "Destiny Udogie",
       "nameKor": "데스티니 우도기",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Italy",
       "nationalityKor": "이탈리아",
       "teamId": 73
@@ -2897,6 +3169,7 @@
       "name": "Jan Paul van Hecke",
       "nameKor": "얀 폴 판 헤케",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 73
@@ -2906,6 +3179,7 @@
       "name": "Marcos Senesi",
       "nameKor": "마르코스 세네시",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Argentina",
       "nationalityKor": "아르헨티나",
       "teamId": 73
@@ -2915,6 +3189,7 @@
       "name": "Mickey van de Ven",
       "nameKor": "미키 판 더 벤",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 73
@@ -2924,6 +3199,7 @@
       "name": "Pedro Porro",
       "nameKor": "페드로 포로",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 73
@@ -2933,6 +3209,7 @@
       "name": "Tosin Adarabioyo",
       "nameKor": "토신 아다라비오요",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 73
@@ -2942,6 +3219,7 @@
       "name": "Conor Gallagher",
       "nameKor": "코너 갤러거",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 73
@@ -2951,6 +3229,7 @@
       "name": "Dejan Kulusevski",
       "nameKor": "데얀 쿨루세브스키",
       "mainPosition": "MF",
+      "detailPosition": "RM",
       "nationality": "Sweden",
       "nationalityKor": "스웨덴",
       "teamId": 73
@@ -2960,6 +3239,7 @@
       "name": "James Maddison",
       "nameKor": "제임스 매디슨",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 73
@@ -2969,6 +3249,7 @@
       "name": "Lucas Bergvall",
       "nameKor": "루카스 베리발",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Sweden",
       "nationalityKor": "스웨덴",
       "teamId": 73
@@ -2978,6 +3259,7 @@
       "name": "Mateus Fernandes",
       "nameKor": "마테우스 페르난데스",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Portugal",
       "nationalityKor": "포르투갈",
       "teamId": 73
@@ -2987,6 +3269,7 @@
       "name": "Rodrigo Bentancur",
       "nameKor": "로드리고 벤탄쿠르",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Uruguay",
       "nationalityKor": "우루과이",
       "teamId": 73
@@ -2996,6 +3279,7 @@
       "name": "Sandro Tonali",
       "nameKor": "산드로 토날리",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Italy",
       "nationalityKor": "이탈리아",
       "teamId": 73
@@ -3005,6 +3289,7 @@
       "name": "Xavi Simons",
       "nameKor": "사비 시몬스",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 73
@@ -3014,6 +3299,7 @@
       "name": "Dominic Solanke",
       "nameKor": "도미닉 솔랑케",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 73
@@ -3023,6 +3309,7 @@
       "name": "Mathys Tel",
       "nameKor": "마티스 텔",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 73
@@ -3032,6 +3319,7 @@
       "name": "Mohammed Kudus",
       "nameKor": "모하메드 쿠두스",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Ghana",
       "nationalityKor": "가나",
       "teamId": 73
@@ -3041,6 +3329,7 @@
       "name": "Mykhailo Mudryk",
       "nameKor": "미하일로 무드릭",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Ukraine",
       "nationalityKor": "우크라이나",
       "teamId": 73
@@ -3050,6 +3339,7 @@
       "name": "Omar Marmoush",
       "nameKor": "오마르 마르무시",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Egypt",
       "nationalityKor": "이집트",
       "teamId": 73
@@ -3059,6 +3349,7 @@
       "name": "Richarlison",
       "nameKor": "히샬리송",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 73
@@ -3068,6 +3359,7 @@
       "name": "Sávio",
       "nameKor": "사비우",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 73
@@ -3077,6 +3369,7 @@
       "name": "Wilson Odobert",
       "nameKor": "윌송 오도베르",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 73
@@ -3086,6 +3379,7 @@
       "name": "Dillon Phillips",
       "nameKor": "딜런 필립스",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 322
@@ -3095,6 +3389,7 @@
       "name": "Jack Butland",
       "nameKor": "잭 버틀랜드",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 322
@@ -3104,6 +3399,7 @@
       "name": "Konstantinos Tzolakis",
       "nameKor": "콘스탄티노스 촐라키스",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Greece",
       "nationalityKor": "그리스",
       "teamId": 322
@@ -3113,6 +3409,7 @@
       "name": "Brooke Norton-Cuffy",
       "nameKor": "브룩 노턴커피",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 322
@@ -3122,6 +3419,7 @@
       "name": "Charlie Hughes",
       "nameKor": "찰리 휴즈",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 322
@@ -3131,6 +3429,7 @@
       "name": "John Egan",
       "nameKor": "존 이건",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Ireland",
       "nationalityKor": "아일랜드",
       "teamId": 322
@@ -3140,6 +3439,7 @@
       "name": "Lewie Coyle",
       "nameKor": "루이 코일",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 322
@@ -3149,6 +3449,7 @@
       "name": "Lucas Herrington",
       "nameKor": "루카스 헤링턴",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Australia",
       "nationalityKor": "호주",
       "teamId": 322
@@ -3158,6 +3459,7 @@
       "name": "Matt Targett",
       "nameKor": "맷 타겟",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 322
@@ -3167,6 +3469,7 @@
       "name": "Nobel Mendy",
       "nameKor": "노벨 멘디",
       "mainPosition": "DF",
+      "detailPosition": "DF",
       "nationality": "Senegal",
       "nationalityKor": "세네갈",
       "teamId": 322
@@ -3176,6 +3479,7 @@
       "name": "Paddy McNair",
       "nameKor": "패디 맥네어",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Northern Ireland",
       "nationalityKor": "북아일랜드",
       "teamId": 322
@@ -3185,6 +3489,7 @@
       "name": "Ryan John Giles",
       "nameKor": "라이언 질스",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 322
@@ -3194,6 +3499,7 @@
       "name": "Semi Ajayi",
       "nameKor": "세미 아자이",
       "mainPosition": "DF",
+      "detailPosition": "DF",
       "nationality": "Nigeria",
       "nationalityKor": "나이지리아",
       "teamId": 322
@@ -3203,6 +3509,7 @@
       "name": "Abdülkadir Ömür",
       "nameKor": "압뒤لك디르 외뮈르",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "Turkey",
       "nationalityKor": "튀르키예",
       "teamId": 322
@@ -3212,6 +3519,7 @@
       "name": "Christos Mouzakitis",
       "nameKor": "크리스토스 무자키티스",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Greece",
       "nationalityKor": "그리스",
       "teamId": 322
@@ -3221,6 +3529,7 @@
       "name": "Darko Gyabi",
       "nameKor": "다르코 갸비",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 322
@@ -3230,6 +3539,7 @@
       "name": "Eliot Matazo",
       "nameKor": "엘리오 마타조",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Belgium",
       "nationalityKor": "벨기에",
       "teamId": 322
@@ -3239,6 +3549,7 @@
       "name": "Hidemasa Morita",
       "nameKor": "모리타 히데마사",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Japan",
       "nationalityKor": "일본",
       "teamId": 322
@@ -3248,6 +3559,7 @@
       "name": "Jens Hjertö-Dahl",
       "nameKor": "옌스 예르퇴달",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Norway",
       "nationalityKor": "노르웨이",
       "teamId": 322
@@ -3257,6 +3569,7 @@
       "name": "Kieran Dowell",
       "nameKor": "키어런 다웰",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 322
@@ -3266,6 +3579,7 @@
       "name": "Lucas Gourna-Douath",
       "nameKor": "루카스 구르나두아트",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 322
@@ -3275,6 +3589,7 @@
       "name": "Matty Crooks",
       "nameKor": "매티 크룩스",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 322
@@ -3284,6 +3599,7 @@
       "name": "Regan Slater",
       "nameKor": "리건 슬레이터",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 322
@@ -3293,6 +3609,7 @@
       "name": "Tim Iroegbunam",
       "nameKor": "팀 이로그분암",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 322
@@ -3302,6 +3619,7 @@
       "name": "Óscar Zambrano",
       "nameKor": "오스카르 삼브라노",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Ecuador",
       "nationalityKor": "에콰도르",
       "teamId": 322
@@ -3311,6 +3629,7 @@
       "name": "David Akintola",
       "nameKor": "데이비드 아킨톨라",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Nigeria",
       "nationalityKor": "나이지리아",
       "teamId": 322
@@ -3320,6 +3639,7 @@
       "name": "Elliot Stroud",
       "nameKor": "엘리엇 스트라우드",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Sweden",
       "nationalityKor": "스웨덴",
       "teamId": 322
@@ -3329,6 +3649,7 @@
       "name": "Ilyas Ansah",
       "nameKor": "일리야스 안사",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Germany",
       "nationalityKor": "독일",
       "teamId": 322
@@ -3338,6 +3659,7 @@
       "name": "Joe Gelhardt",
       "nameKor": "조 겔하르트",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 322
@@ -3347,6 +3669,7 @@
       "name": "Liam Millar",
       "nameKor": "리암 밀러",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "Canada",
       "nationalityKor": "캐나다",
       "teamId": 322
@@ -3356,6 +3679,7 @@
       "name": "Mohamed Ali Cho",
       "nameKor": "모하메드 알리 초",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 322
@@ -3365,6 +3689,7 @@
       "name": "Mohamed Belloumi",
       "nameKor": "모하메드 벨루미",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "Algeria",
       "nationalityKor": "알제리",
       "teamId": 322
@@ -3374,6 +3699,7 @@
       "name": "Oliver McBurnie",
       "nameKor": "올리버 맥버니",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Scotland",
       "nationalityKor": "스코틀랜드",
       "teamId": 322
@@ -3383,6 +3709,7 @@
       "name": "Robinio Vaz",
       "nameKor": "로비뇨 바스",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 322
@@ -3392,6 +3719,7 @@
       "name": "Sorba Thomas",
       "nameKor": "소르바 토마스",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Wales",
       "nationalityKor": "웨일스",
       "teamId": 322
@@ -3401,6 +3729,7 @@
       "name": "Alex Cairns",
       "nameKor": "알렉스 케언스",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 341
@@ -3410,6 +3739,7 @@
       "name": "James Trafford",
       "nameKor": "제임스 트래포드",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 341
@@ -3419,6 +3749,7 @@
       "name": "Michael Zetterer",
       "nameKor": "미하엘 체터러",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Germany",
       "nationalityKor": "독일",
       "teamId": 341
@@ -3428,6 +3759,7 @@
       "name": "Gabriel Gudmundsson",
       "nameKor": "가브리엘 구드문드손",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Sweden",
       "nationalityKor": "스웨덴",
       "teamId": 341
@@ -3437,6 +3769,7 @@
       "name": "Jaka Bijol",
       "nameKor": "야카 비욜",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Slovenia",
       "nationalityKor": "슬로베니아",
       "teamId": 341
@@ -3446,6 +3779,7 @@
       "name": "James Justin",
       "nameKor": "제임스 저스틴",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 341
@@ -3455,6 +3789,7 @@
       "name": "Jayden Bogle",
       "nameKor": "제이든 보글",
       "mainPosition": "DF",
+      "detailPosition": "DF",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 341
@@ -3464,6 +3799,7 @@
       "name": "Joe Rodon",
       "nameKor": "조 로든",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Wales",
       "nationalityKor": "웨일스",
       "teamId": 341
@@ -3473,6 +3809,7 @@
       "name": "Melvin Bard",
       "nameKor": "멜뱅 바르",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 341
@@ -3482,6 +3819,7 @@
       "name": "Nico Elvedi",
       "nameKor": "니코 엘베디",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Switzerland",
       "nationalityKor": "스위스",
       "teamId": 341
@@ -3491,6 +3829,7 @@
       "name": "Tarik Muharemović",
       "nameKor": "타릭 무하레모비치",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Bosnia-Herzegovina",
       "nationalityKor": "보스니아 헤르체고비나",
       "teamId": 341
@@ -3500,6 +3839,7 @@
       "name": "Anton Stach",
       "nameKor": "안톤 슈타흐",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "Germany",
       "nationalityKor": "독일",
       "teamId": 341
@@ -3509,6 +3849,7 @@
       "name": "Ao Tanaka",
       "nameKor": "다나카 아오",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Japan",
       "nationalityKor": "일본",
       "teamId": 341
@@ -3518,6 +3859,7 @@
       "name": "Brenden Aaronson",
       "nameKor": "브렌든 애런슨",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "USA",
       "nationalityKor": "미국",
       "teamId": 341
@@ -3527,6 +3869,7 @@
       "name": "Ethan Ampadu",
       "nameKor": "이선 암파두",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Wales",
       "nationalityKor": "웨일스",
       "teamId": 341
@@ -3536,6 +3879,7 @@
       "name": "Ilia Gruev",
       "nameKor": "일리야 그루에프",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Bulgaria",
       "nationalityKor": "불가리아",
       "teamId": 341
@@ -3545,6 +3889,7 @@
       "name": "Sean Longstaff",
       "nameKor": "숀 롱스태프",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 341
@@ -3554,6 +3899,7 @@
       "name": "Daniel James",
       "nameKor": "다니엘 제임스",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Wales",
       "nationalityKor": "웨일스",
       "teamId": 341
@@ -3563,6 +3909,7 @@
       "name": "Dominic Calvert-Lewin",
       "nameKor": "도미닉 칼버트르윈",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 341
@@ -3572,6 +3919,7 @@
       "name": "Harry Wilson",
       "nameKor": "해리 윌슨",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Wales",
       "nationalityKor": "웨일스",
       "teamId": 341
@@ -3581,6 +3929,7 @@
       "name": "Jean Bahoya",
       "nameKor": "장 바호야",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 341
@@ -3590,6 +3939,7 @@
       "name": "Lukas Nmecha",
       "nameKor": "루카스 은메차",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Germany",
       "nationalityKor": "독일",
       "teamId": 341
@@ -3599,6 +3949,7 @@
       "name": "Mateo Fernandez",
       "nameKor": "마테오 페르난데스",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 341
@@ -3608,6 +3959,7 @@
       "name": "Noah Okafor",
       "nameKor": "노아 오카포르",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Switzerland",
       "nationalityKor": "스위스",
       "teamId": 341
@@ -3617,6 +3969,7 @@
       "name": "Alex Palmer",
       "nameKor": "알렉스 팔머",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 349
@@ -3626,6 +3979,7 @@
       "name": "Christian Walton",
       "nameKor": "크리스천 월턴",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 349
@@ -3635,6 +3989,7 @@
       "name": "David Button",
       "nameKor": "데이비드 버튼",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 349
@@ -3644,6 +3999,7 @@
       "name": "Kjell Scherpen",
       "nameKor": "키엘 스헤르펀",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 349
@@ -3653,6 +4009,7 @@
       "name": "Abdoul Ouattara",
       "nameKor": "압둘 와타라",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Ivory Coast",
       "nationalityKor": "코트디부아르",
       "teamId": 349
@@ -3662,6 +4019,7 @@
       "name": "Cédric Kipré",
       "nameKor": "세드릭 키프레",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Ivory Coast",
       "nationalityKor": "코트디부아르",
       "teamId": 349
@@ -3671,6 +4029,7 @@
       "name": "Dara O'Shea",
       "nameKor": "다라 오셰아",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Ireland",
       "nationalityKor": "아일랜드",
       "teamId": 349
@@ -3680,6 +4039,7 @@
       "name": "Darnell Furlong",
       "nameKor": "다넬 퍼롱",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 349
@@ -3689,6 +4049,7 @@
       "name": "Issa Diop",
       "nameKor": "이사 디오프",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 349
@@ -3698,6 +4059,7 @@
       "name": "Jacob Greaves",
       "nameKor": "제이콥 그레이브스",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 349
@@ -3707,6 +4069,7 @@
       "name": "Leif Davis",
       "nameKor": "레이프 데이비스",
       "mainPosition": "DF",
+      "detailPosition": "DF",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 349
@@ -3716,6 +4079,7 @@
       "name": "Anis Mehmeti",
       "nameKor": "아니스 메흐메티",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "Albania",
       "nationalityKor": "알바니아",
       "teamId": 349
@@ -3725,6 +4089,7 @@
       "name": "Azor Matusiwa",
       "nameKor": "아조르 마투시바",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 349
@@ -3734,6 +4099,7 @@
       "name": "Exequiel Palacios",
       "nameKor": "에세키엘 팔라시오스",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Argentina",
       "nationalityKor": "아르헨티나",
       "teamId": 349
@@ -3743,6 +4109,7 @@
       "name": "Florentino",
       "nameKor": "플로렌티누",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Portugal",
       "nationalityKor": "포르투갈",
       "teamId": 349
@@ -3752,6 +4119,7 @@
       "name": "Jack Taylor",
       "nameKor": "잭 테일러",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Ireland",
       "nationalityKor": "아일랜드",
       "teamId": 349
@@ -3761,6 +4129,7 @@
       "name": "Julio Enciso",
       "nameKor": "훌리오 엔시소",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "Paraguay",
       "nationalityKor": "파라과이",
       "teamId": 349
@@ -3770,6 +4139,7 @@
       "name": "Kasey McAteer",
       "nameKor": "케이시 매커티어",
       "mainPosition": "MF",
+      "detailPosition": "RM",
       "nationality": "Ireland",
       "nationalityKor": "아일랜드",
       "teamId": 349
@@ -3779,6 +4149,7 @@
       "name": "Marcelino Núñez",
       "nameKor": "마르셀리노 누녜스",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Chile",
       "nationalityKor": "칠레",
       "teamId": 349
@@ -3788,6 +4159,7 @@
       "name": "Saša Lukić",
       "nameKor": "사샤 루키치",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Serbia",
       "nationalityKor": "세르비아",
       "teamId": 349
@@ -3797,6 +4169,7 @@
       "name": "Abdul Issahaku",
       "nameKor": "압둘 이사하쿠",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Ghana",
       "nationalityKor": "가나",
       "teamId": 349
@@ -3806,6 +4179,7 @@
       "name": "Chuba Akpom",
       "nameKor": "추바 아크폼",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 349
@@ -3815,6 +4189,7 @@
       "name": "Daizen Maeda",
       "nameKor": "마에다 다이젠",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Japan",
       "nationalityKor": "일본",
       "teamId": 349
@@ -3824,6 +4199,7 @@
       "name": "Emersonn",
       "nameKor": "에메르송",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 349
@@ -3833,6 +4209,7 @@
       "name": "Jack Clarke",
       "nameKor": "잭 클라크",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 349
@@ -3842,6 +4219,7 @@
       "name": "Jaden Philogene-Bidace",
       "nameKor": "제이든 필로진비더스",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 349
@@ -3851,6 +4229,7 @@
       "name": "Sindre Egeli",
       "nameKor": "신드레 에겔리",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Norway",
       "nationalityKor": "노르웨이",
       "teamId": 349
@@ -3860,6 +4239,7 @@
       "name": "Zian Flemming",
       "nameKor": "지안 플레밍",
       "mainPosition": "FW",
+      "detailPosition": "CF",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 349
@@ -3869,6 +4249,7 @@
       "name": "John",
       "nameKor": "존",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 351
@@ -3878,6 +4259,7 @@
       "name": "Matz Sels",
       "nameKor": "마츠 셀스",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Belgium",
       "nationalityKor": "벨기에",
       "teamId": 351
@@ -3887,6 +4269,7 @@
       "name": "Steven Benda",
       "nameKor": "슈테펜 벤다",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Germany",
       "nationalityKor": "독일",
       "teamId": 351
@@ -3896,6 +4279,7 @@
       "name": "Daniel Muñoz",
       "nameKor": "다니엘 무뇨스",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Colombia",
       "nationalityKor": "콜롬비아",
       "teamId": 351
@@ -3905,6 +4289,7 @@
       "name": "Jair Paula",
       "nameKor": "자이르 파울라",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 351
@@ -3914,6 +4299,7 @@
       "name": "Luca Netz",
       "nameKor": "루카 네츠",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Germany",
       "nationalityKor": "독일",
       "teamId": 351
@@ -3923,6 +4309,7 @@
       "name": "Murillo",
       "nameKor": "무리요",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 351
@@ -3932,6 +4319,7 @@
       "name": "Neco Williams",
       "nameKor": "네코 윌리엄스",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Wales",
       "nationalityKor": "웨일스",
       "teamId": 351
@@ -3941,6 +4329,7 @@
       "name": "Nicolò Savona",
       "nameKor": "니콜로 사보나",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Italy",
       "nationalityKor": "이탈리아",
       "teamId": 351
@@ -3950,6 +4339,7 @@
       "name": "Nikola Milenković",
       "nameKor": "니콜라 밀렌코비치",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Serbia",
       "nationalityKor": "세르비아",
       "teamId": 351
@@ -3959,6 +4349,7 @@
       "name": "Ola Aina",
       "nameKor": "올라 아이나",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Nigeria",
       "nationalityKor": "나이지리아",
       "teamId": 351
@@ -3968,6 +4359,7 @@
       "name": "Ousmane Diomande",
       "nameKor": "우스만 디오망데",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Cote d'Ivoire",
       "nationalityKor": "코트디부아르",
       "teamId": 351
@@ -3977,6 +4369,7 @@
       "name": "Ibrahim Sangaré",
       "nameKor": "이브라힘 상가레",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Ivory Coast",
       "nationalityKor": "코트디부아르",
       "teamId": 351
@@ -3986,6 +4379,7 @@
       "name": "James McAtee",
       "nameKor": "제임스 매카티",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 351
@@ -3995,6 +4389,7 @@
       "name": "Morgan Gibbs-White",
       "nameKor": "모건 깁스화이트",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 351
@@ -4004,6 +4399,7 @@
       "name": "Nicolás Domínguez",
       "nameKor": "니콜라스 도밍게스",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Argentina",
       "nationalityKor": "아르헨티나",
       "teamId": 351
@@ -4013,6 +4409,7 @@
       "name": "Ryan Yates",
       "nameKor": "라이언 예이츠",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 351
@@ -4022,6 +4419,7 @@
       "name": "Xaver Schlager",
       "nameKor": "자버 슐라거",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Austria",
       "nationalityKor": "오스트리아",
       "teamId": 351
@@ -4031,6 +4429,7 @@
       "name": "Arnaud Kalimuendo",
       "nameKor": "아르노 칼리무엔도",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 351
@@ -4040,6 +4439,7 @@
       "name": "Callum Hudson-Odoi",
       "nameKor": "칼럼 허드슨오도이",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 351
@@ -4049,6 +4449,7 @@
       "name": "Chris Wood",
       "nameKor": "크리스 우드",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "New Zealand",
       "nationalityKor": "뉴질랜드",
       "teamId": 351
@@ -4058,6 +4459,7 @@
       "name": "Dan Ndoye",
       "nameKor": "단 은도예",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "Switzerland",
       "nationalityKor": "스위스",
       "teamId": 351
@@ -4067,6 +4469,7 @@
       "name": "Igor Jesus",
       "nameKor": "이고르 제주스",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 351
@@ -4076,6 +4479,7 @@
       "name": "Liam Delap",
       "nameKor": "리암 딜랩",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 351
@@ -4085,6 +4489,7 @@
       "name": "Dean Henderson",
       "nameKor": "딘 헨더슨",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 354
@@ -4094,6 +4499,7 @@
       "name": "Remi Matthews",
       "nameKor": "레미 매튜스",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 354
@@ -4103,6 +4509,7 @@
       "name": "Walter Benítez",
       "nameKor": "발테르 베니테스",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Argentina",
       "nationalityKor": "아르헨티나",
       "teamId": 354
@@ -4112,6 +4519,7 @@
       "name": "Anan Khalaili",
       "nameKor": "아난 칼라일리",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Israel",
       "nationalityKor": "이스라엘",
       "teamId": 354
@@ -4121,6 +4529,7 @@
       "name": "Axel Disasi",
       "nameKor": "악셀 디사시",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 354
@@ -4130,6 +4539,7 @@
       "name": "Ben Chilwell",
       "nameKor": "벤 칠웰",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 354
@@ -4139,6 +4549,7 @@
       "name": "Chadi Riad",
       "nameKor": "차디 리아드",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Morocco",
       "nationalityKor": "모로코",
       "teamId": 354
@@ -4148,6 +4559,7 @@
       "name": "Chris Richards",
       "nameKor": "크리스 리처즈",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "USA",
       "nationalityKor": "미국",
       "teamId": 354
@@ -4157,6 +4569,7 @@
       "name": "Honest Ahanor",
       "nameKor": "오네스트 아하노르",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Italy",
       "nationalityKor": "이탈리아",
       "teamId": 354
@@ -4166,6 +4579,7 @@
       "name": "Jaydee Canvot",
       "nameKor": "제이디 칸보",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 354
@@ -4175,6 +4589,7 @@
       "name": "Takehiro Tomiyasu",
       "nameKor": "도미야스 다케히로",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Japan",
       "nationalityKor": "일본",
       "teamId": 354
@@ -4184,6 +4599,7 @@
       "name": "Tyrick Mitchell",
       "nameKor": "타이릭 미첼",
       "mainPosition": "DF",
+      "detailPosition": "DF",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 354
@@ -4193,6 +4609,7 @@
       "name": "Óscar Mingueza",
       "nameKor": "오스카르 밍게사",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 354
@@ -4202,6 +4619,7 @@
       "name": "Adam Wharton",
       "nameKor": "아담 와튼",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 354
@@ -4211,6 +4629,7 @@
       "name": "Cheick Doucouré",
       "nameKor": "셰이크 두쿠레",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Mali",
       "nationalityKor": "말리",
       "teamId": 354
@@ -4220,6 +4639,7 @@
       "name": "Daichi Kamada",
       "nameKor": "가마다 다이치",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "Japan",
       "nationalityKor": "일본",
       "teamId": 354
@@ -4229,6 +4649,7 @@
       "name": "Jefferson Lerma",
       "nameKor": "제퍼슨 레르마",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Colombia",
       "nationalityKor": "콜롬비아",
       "teamId": 354
@@ -4238,6 +4659,7 @@
       "name": "Quinten Timber",
       "nameKor": "퀀틴 팀버",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 354
@@ -4247,6 +4669,7 @@
       "name": "Will Hughes",
       "nameKor": "윌 휴즈",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 354
@@ -4256,6 +4679,7 @@
       "name": "Darío Osorio",
       "nameKor": "다리오 오소리오",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Chile",
       "nationalityKor": "칠레",
       "teamId": 354
@@ -4265,6 +4689,7 @@
       "name": "Dwight McNeil",
       "nameKor": "드와이트 맥닐",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 354
@@ -4274,6 +4699,7 @@
       "name": "Eddie Nketiah",
       "nameKor": "에디 은케티아",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 354
@@ -4283,6 +4709,7 @@
       "name": "Evann Guessand",
       "nameKor": "에반 게상",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Ivory Coast",
       "nationalityKor": "코트디부아르",
       "teamId": 354
@@ -4292,6 +4719,7 @@
       "name": "Ismaïla Sarr",
       "nameKor": "이스마일라 사르",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Senegal",
       "nationalityKor": "세네갈",
       "teamId": 354
@@ -4301,6 +4729,7 @@
       "name": "Jean-Philippe Mateta",
       "nameKor": "장필립 마테타",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 354
@@ -4310,6 +4739,7 @@
       "name": "Jesurun Rak-Sakyi",
       "nameKor": "제수룬 락사키",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 354
@@ -4319,6 +4749,7 @@
       "name": "Jørgen Strand Larsen",
       "nameKor": "외르겐 스트란드 라르센",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Norway",
       "nationalityKor": "노르웨이",
       "teamId": 354
@@ -4328,6 +4759,7 @@
       "name": "Matheus Franca",
       "nameKor": "마테우스 프랑사",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 354
@@ -4337,6 +4769,7 @@
       "name": "Yeremi Pino",
       "nameKor": "예레미 피노",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 354
@@ -4346,6 +4779,7 @@
       "name": "Zavier Gozo",
       "nameKor": "자비에르고조",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "USA",
       "nationalityKor": "미국",
       "teamId": 354
@@ -4355,6 +4789,7 @@
       "name": "Bart Verbruggen",
       "nameKor": "바르트 페르뷔르헌",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 397
@@ -4364,6 +4799,7 @@
       "name": "Jason Steele",
       "nameKor": "제이슨 스틸",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 397
@@ -4373,6 +4809,7 @@
       "name": "Thomas McGill",
       "nameKor": "토마스 맥길",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 397
@@ -4382,6 +4819,7 @@
       "name": "Costinha",
       "nameKor": "코스티냐",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Portugal",
       "nationalityKor": "포르투갈",
       "teamId": 397
@@ -4391,6 +4829,7 @@
       "name": "Ferdi Kadıoğlu",
       "nameKor": "페르디 카디오글루",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Turkey",
       "nationalityKor": "터키",
       "teamId": 397
@@ -4400,6 +4839,7 @@
       "name": "Jaouen Hadjam",
       "nameKor": "자우엔 하자엠",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Algeria",
       "nationalityKor": "알제리",
       "teamId": 397
@@ -4409,6 +4849,7 @@
       "name": "Lewis Dunk",
       "nameKor": "루이스 덩크",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 397
@@ -4418,6 +4859,7 @@
       "name": "Luka Vušković",
       "nameKor": "루카 부슈코비치",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Croatia",
       "nationalityKor": "크로아티아",
       "teamId": 397
@@ -4427,6 +4869,7 @@
       "name": "Mats Wieffer",
       "nameKor": "마츠 위퍼",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 397
@@ -4436,6 +4879,7 @@
       "name": "Maxim De Cuyper",
       "nameKor": "막심 더 카위퍼",
       "mainPosition": "DF",
+      "detailPosition": "DF",
       "nationality": "Belgium",
       "nationalityKor": "벨기에",
       "teamId": 397
@@ -4445,6 +4889,7 @@
       "name": "Michael Svoboda",
       "nameKor": "미하엘 스보보다",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Austria",
       "nationalityKor": "오스트리아",
       "teamId": 397
@@ -4454,6 +4899,7 @@
       "name": "Olivier Boscagli",
       "nameKor": "올리비에 보스카글리",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 397
@@ -4463,6 +4909,7 @@
       "name": "Pascal Struijk",
       "nameKor": "파스칼 스트루이크",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 397
@@ -4472,6 +4919,7 @@
       "name": "Chema Andrés",
       "nameKor": "체마 안드레스",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 397
@@ -4481,6 +4929,7 @@
       "name": "Diego Gómez",
       "nameKor": "디에고 고메스",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "Paraguay",
       "nationalityKor": "파라과이",
       "teamId": 397
@@ -4490,6 +4939,7 @@
       "name": "Femi Azeez",
       "nameKor": "페미 아제즈",
       "mainPosition": "MF",
+      "detailPosition": "RM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 397
@@ -4499,6 +4949,7 @@
       "name": "Jack Hinshelwood",
       "nameKor": "잭 힌슐우드",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 397
@@ -4508,6 +4959,7 @@
       "name": "Malick Yalcouyé",
       "nameKor": "말릭 얄쿠예",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "Mali",
       "nationalityKor": "말리",
       "teamId": 397
@@ -4517,6 +4969,7 @@
       "name": "Matt O'Riley",
       "nameKor": "맷 오라일리",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Denmark",
       "nationalityKor": "덴마크",
       "teamId": 397
@@ -4526,6 +4979,7 @@
       "name": "Pascal Groß",
       "nameKor": "파스칼 그로스",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "Germany",
       "nationalityKor": "독일",
       "teamId": 397
@@ -4535,6 +4989,7 @@
       "name": "Yasin Ayari",
       "nameKor": "야신 아야리",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "Sweden",
       "nationalityKor": "스웨덴",
       "teamId": 397
@@ -4544,6 +4999,7 @@
       "name": "Younes Ibrahim",
       "nameKor": "유네스 이브라힘",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Australia",
       "nationalityKor": "호주",
       "teamId": 397
@@ -4553,6 +5009,7 @@
       "name": "Charalampos Kostoulas",
       "nameKor": "할랄람보스 코스툴라스",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Greece",
       "nationalityKor": "그리스",
       "teamId": 397
@@ -4562,6 +5019,7 @@
       "name": "Evan Ferguson",
       "nameKor": "에번 퍼거슨",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Ireland",
       "nationalityKor": "아일랜드",
       "teamId": 397
@@ -4571,6 +5029,7 @@
       "name": "Georginio Rutter",
       "nameKor": "조르지니오 뤼터",
       "mainPosition": "FW",
+      "detailPosition": "CF",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 397
@@ -4580,6 +5039,7 @@
       "name": "Ibrahim Osman",
       "nameKor": "이브라힘 오스만",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Ghana",
       "nationalityKor": "가나",
       "teamId": 397
@@ -4589,6 +5049,7 @@
       "name": "Kaoru Mitoma",
       "nameKor": "미토마 가오루",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Japan",
       "nationalityKor": "일본",
       "teamId": 397
@@ -4598,6 +5059,7 @@
       "name": "Promise Akinpelu",
       "nameKor": "프로미스 아킨펠루",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Canada",
       "nationalityKor": "캐나다",
       "teamId": 397
@@ -4607,6 +5069,7 @@
       "name": "Stefanos Tzimas",
       "nameKor": "스테파노스 찌마스",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Greece",
       "nationalityKor": "그리스",
       "teamId": 397
@@ -4616,6 +5079,7 @@
       "name": "Yankubah Minteh",
       "nameKor": "얀쿠바 민테",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Gambia",
       "nationalityKor": "감비아",
       "teamId": 397
@@ -4625,6 +5089,7 @@
       "name": "Zadok Yohanna",
       "nameKor": "자독 요하나",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Nigeria",
       "nationalityKor": "나이지리아",
       "teamId": 397
@@ -4634,6 +5099,7 @@
       "name": "Caoimhin Kelleher",
       "nameKor": "커머스 켈러허",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Ireland",
       "nationalityKor": "아일랜드",
       "teamId": 402
@@ -4643,6 +5109,7 @@
       "name": "Ellery Balcombe",
       "nameKor": "엘러리 벌컴",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 402
@@ -4652,6 +5119,7 @@
       "name": "Hákon Rafn Valdimarsson",
       "nameKor": "하콘 라픈 발디마르손",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Iceland",
       "nationalityKor": "아이슬란드",
       "teamId": 402
@@ -4661,6 +5129,7 @@
       "name": "Aaron Hickey",
       "nameKor": "아론 히키",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Scotland",
       "nationalityKor": "스코틀랜드",
       "teamId": 402
@@ -4670,6 +5139,7 @@
       "name": "Benjamin Fredrick",
       "nameKor": "벤자민 프레드릭",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Nigeria",
       "nationalityKor": "나이지리아",
       "teamId": 402
@@ -4679,6 +5149,7 @@
       "name": "El Hadji Malick Diouf",
       "nameKor": "엘 하지 말릭 디우프",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Senegal",
       "nationalityKor": "세네갈",
       "teamId": 402
@@ -4688,6 +5159,7 @@
       "name": "Jannik Schuster",
       "nameKor": "야닉 슈스터",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Austria",
       "nationalityKor": "오스트리아",
       "teamId": 402
@@ -4697,6 +5169,7 @@
       "name": "Ji-soo Kim",
       "nameKor": "김지수",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "South Korea",
       "nationalityKor": "대한민국",
       "teamId": 402
@@ -4706,6 +5179,7 @@
       "name": "Kristoffer Ajer",
       "nameKor": "크리스토페르 아예르",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Norway",
       "nationalityKor": "노르웨이",
       "teamId": 402
@@ -4715,6 +5189,7 @@
       "name": "Michael Kayode",
       "nameKor": "마이클 카요데",
       "mainPosition": "DF",
+      "detailPosition": "DF",
       "nationality": "Italy",
       "nationalityKor": "이탈리아",
       "teamId": 402
@@ -4724,6 +5199,7 @@
       "name": "Nathan Collins",
       "nameKor": "네이선 콜린스",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Ireland",
       "nationalityKor": "아일랜드",
       "teamId": 402
@@ -4733,6 +5209,7 @@
       "name": "Rico Henry",
       "nameKor": "리코 헨리",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Jamaica",
       "nationalityKor": "자메이카",
       "teamId": 402
@@ -4742,6 +5219,7 @@
       "name": "Sepp van den Berg",
       "nameKor": "제프 판 덴 베르흐",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 402
@@ -4751,6 +5229,7 @@
       "name": "Antoni Milambo",
       "nameKor": "안토니 밀람보",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 402
@@ -4760,6 +5239,7 @@
       "name": "Fabio Carvalho",
       "nameKor": "파비우 카르발류",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "Portugal",
       "nationalityKor": "포르투갈",
       "teamId": 402
@@ -4769,6 +5249,7 @@
       "name": "Josh Dasilva",
       "nameKor": "조시 다시바",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 402
@@ -4778,6 +5259,7 @@
       "name": "Keane Lewis-Potter",
       "nameKor": "킨 루이스포터",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 402
@@ -4787,6 +5269,7 @@
       "name": "Mamadou Sangare",
       "nameKor": "마마두 상가레",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Mali",
       "nationalityKor": "말리",
       "teamId": 402
@@ -4796,6 +5279,7 @@
       "name": "Mathias Jensen",
       "nameKor": "마티아스 옌센",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Denmark",
       "nationalityKor": "덴마크",
       "teamId": 402
@@ -4805,6 +5289,7 @@
       "name": "Mikkel Damsgaard",
       "nameKor": "미켈 담스고르",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "Denmark",
       "nationalityKor": "덴마크",
       "teamId": 402
@@ -4814,6 +5299,7 @@
       "name": "Vitaly Janelt",
       "nameKor": "비탈리 야넬트",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "Germany",
       "nationalityKor": "독일",
       "teamId": 402
@@ -4823,6 +5309,7 @@
       "name": "Yegor Yarmolyuk",
       "nameKor": "예호르 야르몰리우크",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Ukraine",
       "nationalityKor": "우크라이나",
       "teamId": 402
@@ -4832,6 +5319,7 @@
       "name": "Callum Wilson",
       "nameKor": "칼럼 윌슨",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 402
@@ -4841,6 +5329,7 @@
       "name": "Dango Ouattara",
       "nameKor": "당고 와타라",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Burkina Faso",
       "nationalityKor": "부르키나파소",
       "teamId": 402
@@ -4850,6 +5339,7 @@
       "name": "Gustavo Gomes",
       "nameKor": "구스타보 고메스",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 402
@@ -4859,6 +5349,7 @@
       "name": "Jaidon Anthony",
       "nameKor": "제이든 앤서니",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 402
@@ -4868,6 +5359,7 @@
       "name": "Kaye Furo",
       "nameKor": "카예 푸로",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Belgium",
       "nationalityKor": "벨기에",
       "teamId": 402
@@ -4877,6 +5369,7 @@
       "name": "Kevin Schade",
       "nameKor": "케빈 샤데",
       "mainPosition": "FW",
+      "detailPosition": "FW",
       "nationality": "Germany",
       "nationalityKor": "독일",
       "teamId": 402
@@ -4886,6 +5379,7 @@
       "name": "Thiago",
       "nameKor": "티아구",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 402
@@ -4895,6 +5389,7 @@
       "name": "Fraser Forster",
       "nameKor": "프레이저 포스터",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1044
@@ -4904,6 +5399,7 @@
       "name": "Michele Di Gregorio",
       "nameKor": "미켈레 디 그레고리오",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Italy",
       "nationalityKor": "이탈리아",
       "teamId": 1044
@@ -4913,6 +5409,7 @@
       "name": "Đorđe Petrović",
       "nameKor": "조르제 페트로비치",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "Serbia",
       "nationalityKor": "세르비아",
       "teamId": 1044
@@ -4922,6 +5419,7 @@
       "name": "Adam Smith",
       "nameKor": "아담 스미스",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1044
@@ -4931,6 +5429,7 @@
       "name": "Adrien Truffert",
       "nameKor": "아드리앵 튀르페르",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 1044
@@ -4940,6 +5439,7 @@
       "name": "Antonio Silva",
       "nameKor": "안토니우 실바",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Portugal",
       "nationalityKor": "포르투갈",
       "teamId": 1044
@@ -4949,6 +5449,7 @@
       "name": "Bafodé Diakité",
       "nameKor": "바포데 디아키테",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 1044
@@ -4958,6 +5459,7 @@
       "name": "James Hill",
       "nameKor": "제임스 힐",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1044
@@ -4967,6 +5469,7 @@
       "name": "Juanlu",
       "nameKor": "후안루",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 1044
@@ -4976,6 +5479,7 @@
       "name": "Julian Araujo",
       "nameKor": "훌리안 아라우호",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "USA",
       "nationalityKor": "미국",
       "teamId": 1044
@@ -4985,6 +5489,7 @@
       "name": "Julio Soler",
       "nameKor": "훌리오 솔레르",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Argentina",
       "nationalityKor": "아르헨티나",
       "teamId": 1044
@@ -4994,6 +5499,7 @@
       "name": "Max Aarons",
       "nameKor": "맥스 아런스",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1044
@@ -5003,6 +5509,7 @@
       "name": "Veljko Milosavljević",
       "nameKor": "벨코 밀로사블레비치",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Serbia",
       "nationalityKor": "세르비아",
       "teamId": 1044
@@ -5012,6 +5519,7 @@
       "name": "Alex Scott",
       "nameKor": "알렉스 스콧",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1044
@@ -5021,6 +5529,7 @@
       "name": "Alex Toth",
       "nameKor": "알렉스 토트",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Hungary",
       "nationalityKor": "헝가리",
       "teamId": 1044
@@ -5030,6 +5539,7 @@
       "name": "Ben Winterburn",
       "nameKor": "벤 윈터번",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1044
@@ -5039,6 +5549,7 @@
       "name": "Justin Kluivert",
       "nameKor": "저스틴 클루이베르트",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 1044
@@ -5048,6 +5559,7 @@
       "name": "Lewis Cook",
       "nameKor": "루이스 쿡",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1044
@@ -5057,6 +5569,7 @@
       "name": "Marcus Tavernier",
       "nameKor": "마커스 태버니어",
       "mainPosition": "MF",
+      "detailPosition": "MF",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1044
@@ -5066,6 +5579,7 @@
       "name": "Ryan Christie",
       "nameKor": "라이언 크리스티",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Scotland",
       "nationalityKor": "스코틀랜드",
       "teamId": 1044
@@ -5075,6 +5589,7 @@
       "name": "Tyler Adams",
       "nameKor": "타일러 아담스",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "USA",
       "nationalityKor": "미국",
       "teamId": 1044
@@ -5084,6 +5599,7 @@
       "name": "Alvaro Rodriguez",
       "nameKor": "알바로 로드리게스",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Spain",
       "nationalityKor": "스페인",
       "teamId": 1044
@@ -5093,6 +5609,7 @@
       "name": "Amine Adli",
       "nameKor": "아민 아들리",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "Morocco",
       "nationalityKor": "모로코",
       "teamId": 1044
@@ -5102,6 +5619,7 @@
       "name": "Ben Doak",
       "nameKor": "벤 도크",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Scotland",
       "nationalityKor": "스코틀랜드",
       "teamId": 1044
@@ -5111,6 +5629,7 @@
       "name": "Daniel Jebbison",
       "nameKor": "다니엘 제비슨",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Canada",
       "nationalityKor": "캐나다",
       "teamId": 1044
@@ -5120,6 +5639,7 @@
       "name": "David Brooks",
       "nameKor": "데이비드 브룩스",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Wales",
       "nationalityKor": "웨일스",
       "teamId": 1044
@@ -5129,6 +5649,7 @@
       "name": "Eli Kroupi",
       "nameKor": "엘리 크루피",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 1044
@@ -5138,6 +5659,7 @@
       "name": "Evanilson",
       "nameKor": "에바니우송",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 1044
@@ -5147,6 +5669,7 @@
       "name": "Rayan",
       "nameKor": "하얀",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Brazil",
       "nationalityKor": "브라질",
       "teamId": 1044
@@ -5156,6 +5679,7 @@
       "name": "Ben Wilson",
       "nameKor": "벤 윌슨",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1076
@@ -5165,6 +5689,7 @@
       "name": "Carl Rushworth",
       "nameKor": "칼 러시워스",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1076
@@ -5174,6 +5699,7 @@
       "name": "Daniel Bentley",
       "nameKor": "다니엘 벤틀리",
       "mainPosition": "GK",
+      "detailPosition": "GK",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1076
@@ -5183,6 +5709,7 @@
       "name": "Aurele Amenda",
       "nameKor": "오렐 아멘다",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Switzerland",
       "nationalityKor": "스위스",
       "teamId": 1076
@@ -5192,6 +5719,7 @@
       "name": "Bobby Thomas",
       "nameKor": "바비 토마스",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1076
@@ -5201,6 +5729,7 @@
       "name": "Ethan Pinnock",
       "nameKor": "이선 피녹",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Jamaica",
       "nationalityKor": "자메이카",
       "teamId": 1076
@@ -5210,6 +5739,7 @@
       "name": "Jake Bidwell",
       "nameKor": "제이크 비드웰",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1076
@@ -5219,6 +5749,7 @@
       "name": "Jay Dasilva",
       "nameKor": "제이 다시우바",
       "mainPosition": "DF",
+      "detailPosition": "LB",
       "nationality": "Wales",
       "nationalityKor": "웨일스",
       "teamId": 1076
@@ -5228,6 +5759,7 @@
       "name": "Joel Latibeaudiere",
       "nameKor": "조엘 라티보디에르",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "Jamaica",
       "nationalityKor": "자메이카",
       "teamId": 1076
@@ -5237,6 +5769,7 @@
       "name": "Kaine Kesler",
       "nameKor": "케인 케슬러",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1076
@@ -5246,6 +5779,7 @@
       "name": "Luke Woolfenden",
       "nameKor": "루크 울펜덴",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1076
@@ -5255,6 +5789,7 @@
       "name": "Milan van Ewijk",
       "nameKor": "밀란 판 에베이크",
       "mainPosition": "DF",
+      "detailPosition": "RB",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 1076
@@ -5264,6 +5799,7 @@
       "name": "Stephen Mfuni",
       "nameKor": "스티븐 음푸니",
       "mainPosition": "DF",
+      "detailPosition": "CB",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1076
@@ -5273,6 +5809,7 @@
       "name": "Caleb Yirenkyi",
       "nameKor": "칼렙 이렌키",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Ghana",
       "nationalityKor": "가나",
       "teamId": 1076
@@ -5282,6 +5819,7 @@
       "name": "Frank Onyeka",
       "nameKor": "프랭크 오니에카",
       "mainPosition": "MF",
+      "detailPosition": "CDM",
       "nationality": "Nigeria",
       "nationalityKor": "나이지리아",
       "teamId": 1076
@@ -5291,6 +5829,7 @@
       "name": "Gustavo Hamer",
       "nameKor": "구스타보 하메르",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Netherlands",
       "nationalityKor": "네덜란드",
       "teamId": 1076
@@ -5300,6 +5839,7 @@
       "name": "Jack Rudoni",
       "nameKor": "잭 루도니",
       "mainPosition": "MF",
+      "detailPosition": "CAM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1076
@@ -5309,6 +5849,7 @@
       "name": "Josh Eccles",
       "nameKor": "조시 에클스",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1076
@@ -5318,6 +5859,7 @@
       "name": "Matt Grimes",
       "nameKor": "맷 그라임스",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1076
@@ -5327,6 +5869,7 @@
       "name": "Victor Torp",
       "nameKor": "빅토르 토르프",
       "mainPosition": "MF",
+      "detailPosition": "CM",
       "nationality": "Denmark",
       "nationalityKor": "덴마크",
       "teamId": 1076
@@ -5336,6 +5879,7 @@
       "name": "Brandon Thomas-Asante",
       "nameKor": "브랜든 토마스아산테",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Ghana",
       "nationalityKor": "가나",
       "teamId": 1076
@@ -5345,6 +5889,7 @@
       "name": "Ellis Simms",
       "nameKor": "엘리스 심스",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1076
@@ -5354,6 +5899,7 @@
       "name": "Ephron Mason-Clark",
       "nameKor": "에프론 메이슨클락",
       "mainPosition": "FW",
+      "detailPosition": "LW",
       "nationality": "England",
       "nationalityKor": "잉글랜드",
       "teamId": 1076
@@ -5363,6 +5909,7 @@
       "name": "Haji Wright",
       "nameKor": "하지 라이트",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "USA",
       "nationalityKor": "미국",
       "teamId": 1076
@@ -5372,6 +5919,7 @@
       "name": "Loum Tchaouna",
       "nameKor": "룸 차우나",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "France",
       "nationalityKor": "프랑스",
       "teamId": 1076
@@ -5381,6 +5929,7 @@
       "name": "Sidiki Cherif",
       "nameKor": "시디키 셰리프",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Guinea",
       "nationalityKor": "기니",
       "teamId": 1076
@@ -5390,6 +5939,7 @@
       "name": "Taiwo Awoniyi",
       "nameKor": "타이워 아워니이",
       "mainPosition": "FW",
+      "detailPosition": "ST",
       "nationality": "Nigeria",
       "nationalityKor": "나이지리아",
       "teamId": 1076
@@ -5399,6 +5949,7 @@
       "name": "Tatsuhiro Sakamoto",
       "nameKor": "사카모토 다쓰히로",
       "mainPosition": "FW",
+      "detailPosition": "RW",
       "nationality": "Japan",
       "nationalityKor": "일본",
       "teamId": 1076
