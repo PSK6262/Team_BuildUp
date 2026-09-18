@@ -499,3 +499,167 @@
     text-align: center;
   }
 }
+
+/* --------------------------------------------------------
+   대분류 탭: 경기 일정 vs 경기 결과
+   -------------------------------------------------------- */
+.match-main-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.match-main-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  font-size: 16px;
+  font-weight: 800;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-color: #e2e8f0;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.match-main-tab:hover {
+  background-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.match-main-tab.is-active {
+  background-color: #38003c;
+  color: #00ff85;
+  box-shadow: 0 4px 14px rgba(56, 0, 60, 0.25);
+}
+
+/* --------------------------------------------------------
+   실시간 구단 리그 순위 배지 (팀명 옆 표기)
+   -------------------------------------------------------- */
+.match-team-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 4px;
+  margin-right: 6px;
+  letter-spacing: -0.2px;
+  vertical-align: middle;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* 1~4위 챔피언스리그권 (로열 퍼플 / 네온 그린 포인트) */
+.match-team-rank-badge--top {
+  background: #38003c;
+  color: #00ff85;
+  border: 1px solid #38003c;
+}
+
+/* 5~17위 중위권 */
+.match-team-rank-badge--default {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+/* 18~20위 강등권 (주의 레드) */
+.match-team-rank-badge--danger {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+/* --------------------------------------------------------
+   경기 결과 전용 카드 및 스코어 강조
+   -------------------------------------------------------- */
+.match-card--result {
+  border-left: 4px solid #38003c;
+  background: #ffffff;
+}
+
+.match-score-box--result {
+  min-width: 130px;
+}
+
+.match-score--large {
+  font-size: 26px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.match-score__num {
+  display: inline-block;
+  min-width: 24px;
+  text-align: center;
+}
+
+.match-score__divider {
+  color: #94a3b8;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+/* 승리/패배 팀 하이라이트 */
+.match-team--winner .match-team__name {
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.match-team--winner .match-team__emblem {
+  filter: drop-shadow(0 2px 6px rgba(56, 0, 60, 0.2));
+  transform: scale(1.05);
+}
+
+.match-team--loser .match-team__name {
+  opacity: 0.55;
+}
+
+.match-team--loser .match-team__emblem {
+  opacity: 0.65;
+  filter: grayscale(20%);
+}
+
+.match-win-badge {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #00ff85;
+  color: #38003c;
+  vertical-align: middle;
+}
+
+/* 로딩 스피너 */
+.match-loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #38003c;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.match-reload-btn {
+  cursor: pointer;
+}

@@ -23,6 +23,9 @@
 	</annotation-driven>
 
 	<resources mapping="/resources/**" location="/resources/" />
+	<resources mapping="/assets/**" location="/assets/" />
+	<resources mapping="/vite.svg" location="/vite.svg" />
+	<default-servlet-handler/>
 
 	<context:component-scan	base-package="com.app.controller"/>
 	<context:component-scan base-package="com.app.service"/>

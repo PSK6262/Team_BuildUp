@@ -34,6 +34,16 @@ public class MatchDAOImpl implements MatchDAO {
 		return sqlSession.selectList("MatchMapper.selectAllMatches");
 	}
 
+    @Override
+    public List<Matches> findMatchesBySeason(Integer season) {
+        return sqlSession.selectList("MatchMapper.selectMatchesBySeason", season);
+    }
+
+	@Override
+	public List<Matches> findMatchResults(Map<String, Object> params) {
+		return sqlSession.selectList("MatchMapper.selectMatchResults", params);
+	}
+
 	@Override
 	public List<Matches> findMatchesByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
 		Map<String, Object> paramMap = new HashMap<>();
@@ -57,4 +67,3 @@ public class MatchDAOImpl implements MatchDAO {
 		sqlSession.delete("MatchMapper.deleteEventsByMatchId", matchId);
 	}
 }
-

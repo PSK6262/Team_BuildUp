@@ -28,8 +28,9 @@ function App() {
       {isTeamsPage && <TeamsPage />}
       {teamMatch && <Team teamId={teamMatch[ 1 ]} />}
 
-      {/* 경기 일정*/}
+      {/* 경기 일정 및 경기 결과 */}
       {pathname === '/plug/match' && <Match />}
+      {pathname === '/plug/matchresult' && <Match resultsOnly />}
 
       {/* 커뮤니티 */}
       {pathname === '/plug/community' && <Community />}
