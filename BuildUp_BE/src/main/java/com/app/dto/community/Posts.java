@@ -32,4 +32,10 @@ public class Posts {
     
     // 조인용 (Category)
     private String categoryType;
+
+    // 조인용 (Users): 작성자 닉네임
+    private String nickname;
+
+    // 조인용 (Teams): 구단 이름
+    private String teamName;
 }
