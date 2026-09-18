@@ -1,0 +1,501 @@
+/* ========================================================
+   MATCH SCHEDULE & FILTER PAGE STYLES (Month & Round)
+   ======================================================== */
+
+.match-page-container {
+  min-height: calc(100vh - 84px);
+  background-color: #f8fafc;
+  padding: 40px 24px 80px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: #0f172a;
+}
+
+.match-page-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* --------------------------------------------------------
+   헤더 영역
+   -------------------------------------------------------- */
+.match-page-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.match-page-eyebrow {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #38003c;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.match-page-title {
+  font-size: 36px;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0 0 10px;
+  letter-spacing: -0.5px;
+}
+
+.match-page-desc {
+  font-size: 15px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* --------------------------------------------------------
+   필터 모드 전환 토글 (월별 보기 vs 라운드별 보기)
+   -------------------------------------------------------- */
+.filter-mode-toggle {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.filter-mode-toggle__inner {
+  display: inline-flex;
+  background: #e2e8f0;
+  padding: 4px;
+  border-radius: 12px;
+  gap: 4px;
+}
+
+.filter-mode-btn {
+  border: none;
+  background: transparent;
+  padding: 9px 22px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.filter-mode-btn:hover {
+  color: #0f172a;
+}
+
+.filter-mode-btn.active {
+  background: #ffffff;
+  color: #38003c;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+/* --------------------------------------------------------
+   구단(팀) 선택 필터 바 (Team Filter Bar)
+   -------------------------------------------------------- */
+.team-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.team-filter-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: #475569;
+  letter-spacing: 0.5px;
+}
+
+.team-filter-select-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 6px 14px 6px 12px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: all 0.2s ease;
+}
+
+.team-filter-select-wrapper:hover,
+.team-filter-select-wrapper:focus-within {
+  border-color: #38003c;
+  box-shadow: 0 4px 12px rgba(56, 0, 60, 0.1);
+}
+
+.team-filter-emblem {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  margin-right: 8px;
+}
+
+.team-filter-select {
+  appearance: none;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  padding-right: 22px;
+  cursor: pointer;
+  outline: none;
+}
+
+.team-filter-arrow {
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.team-filter-reset-btn {
+  border: none;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.team-filter-reset-btn:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* --------------------------------------------------------
+   1. 월별 필터 탭 바 (Month Filter Bar)
+   -------------------------------------------------------- */
+.month-filter-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.month-filter-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  padding: 8px 12px;
+  border-radius: 40px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  border: 1px solid #e2e8f0;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.month-filter-btn {
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 9px 18px;
+  border-radius: 30px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.month-filter-btn:hover {
+  color: #38003c;
+  background-color: #f1f5f9;
+}
+
+.month-filter-btn.active {
+  background: #38003c;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(56, 0, 60, 0.25);
+}
+
+/* --------------------------------------------------------
+   2. 라운드별 필터 UI (Round Filter Controls)
+   -------------------------------------------------------- */
+.round-filter-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.round-filter-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  padding: 8px 12px;
+  border-radius: 40px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  border: 1px solid #e2e8f0;
+  overflow-x: auto;
+  max-width: 100%;
+  scrollbar-width: thin;
+}
+
+.round-filter-btn {
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 8px 15px;
+  border-radius: 30px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.round-filter-btn:hover {
+  color: #38003c;
+  background-color: #f1f5f9;
+}
+
+.round-filter-btn.active {
+  background: #38003c;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(56, 0, 60, 0.25);
+}
+
+/* --------------------------------------------------------
+   경기 일정 상태 바 (카운트 등)
+   -------------------------------------------------------- */
+.match-status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 0 4px;
+}
+
+.match-count {
+  font-size: 15px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.match-count strong {
+  color: #38003c;
+  font-weight: 800;
+}
+
+/* --------------------------------------------------------
+   경기 카드 목록 그리드
+   -------------------------------------------------------- */
+.match-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 단일 경기 카드 */
+.match-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 20px 32px;
+  display: grid;
+  grid-template-columns: 180px 1fr 140px;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.match-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
+}
+
+/* 경기 시간/날짜 정보 */
+.match-card__datetime {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.match-card__round-tag {
+  font-size: 11px;
+  font-weight: 800;
+  color: #38003c;
+  background: #f3e8ff;
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  width: fit-content;
+}
+
+.match-card__date {
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.match-card__time {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* 팀 대결 영역 */
+.match-card__versus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.match-team {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+}
+
+.match-team--home {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.match-team--away {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.match-team__name {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.match-team__emblem {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* 스코어 & 경기 상태 배지 */
+.match-score-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 90px;
+}
+
+.match-score {
+  font-size: 22px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 2px;
+}
+
+.match-score--vs {
+  font-size: 14px;
+  font-weight: 700;
+  color: #94a3b8;
+  background: #f1f5f9;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.match-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.match-badge--scheduled {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.match-badge--finished {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.match-badge--live {
+  background: #fee2e2;
+  color: #dc2626;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* 경기장 정보 */
+.match-card__ground {
+  text-align: right;
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* 경기 일정 없음 안내 */
+.match-empty {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px dashed #cbd5e1;
+  padding: 60px 20px;
+  text-align: center;
+  color: #64748b;
+}
+
+.match-empty__icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.match-empty__text {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* 반응형 모바일 대응 */
+@media (max-width: 860px) {
+  .match-card {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .match-card__datetime {
+    align-items: center;
+  }
+
+  .match-team--home {
+    flex-direction: column-reverse;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .match-team--away {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .match-card__ground {
+    text-align: center;
+  }
+}

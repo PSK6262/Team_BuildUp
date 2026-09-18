@@ -7,6 +7,7 @@ import FreeBoard from './pages/FreeBoard.jsx'
 import TeamBoards from './pages/TeamBoards.jsx'
 import PostDetail from './pages/PostDetail.jsx'
 import { communityTeams } from './data/communityTeams.js'
+import Match from './pages/Match.jsx'
 import './App.css'
 
 function App() {
@@ -25,13 +26,16 @@ function App() {
       {/* 메인 및 구단 소개 */}
       {isMainPage && <MainPage />}
       {isTeamsPage && <TeamsPage />}
-      {teamMatch && <Team teamId={teamMatch[1]} />}
+      {teamMatch && <Team teamId={teamMatch[ 1 ]} />}
+
+      {/* 경기 일정*/}
+      {pathname === '/plug/match' && <Match />}
 
       {/* 커뮤니티 */}
       {pathname === '/plug/community' && <Community />}
       {pathname === '/plug/community/free' && <FreeBoard />}
       {pathname === '/plug/community/teams' && <TeamBoards />}
-      {postMatch && <PostDetail postId={postMatch[1]} />}
+      {postMatch && <PostDetail postId={postMatch[ 1 ]} />}
       {commuTeam && <Community key={commuTeam.slug} selectedTeam={commuTeam.name} />}
       {pathname.startsWith('/plug/community/teams/') && !commuTeam && (
         <main className="community">
