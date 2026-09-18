@@ -2,8 +2,12 @@
 .user-nav * { box-sizing: border-box; }
 .user-nav__inner { display: flex; align-items: center; justify-content: space-between; gap: 28px; max-width: 1440px; min-height: 84px; margin: 0 auto; padding: 16px 32px; }
 .user-nav a { color: inherit; text-decoration: none; }
-.user-nav__logo { font-size: 25px; font-weight: 900; letter-spacing: -1px; }
-.user-nav__logo span { color: #16744b; }
+.user-nav__logo { font-size: 26px; font-weight: 900; letter-spacing: -0.5px; display: inline-flex; align-items: center; text-decoration: none; }
+.user-nav__logo-pl { color: #38003c; }
+.user-nav__logo-colon { color: #e90052; margin: 0 1px; }
+.user-nav__logo-ug { color: #02a663; }
+.user-nav a.user-nav__logo:hover { color: inherit; text-decoration: none; }
+.user-nav a.user-nav__logo:hover span { opacity: 0.85; }
 .user-nav__links, .user-nav__account { display: flex; align-items: center; gap: 22px; }
 .user-nav__links { justify-content: center; flex-wrap: wrap; }
 .user-nav__links a, .user-nav summary, .user-nav__account { font-size: 14px; font-weight: 600; white-space: nowrap; }

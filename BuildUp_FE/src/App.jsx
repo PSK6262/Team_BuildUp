@@ -6,6 +6,9 @@ import Community from './pages/Community.jsx'
 import FreeBoard from './pages/FreeBoard.jsx'
 import TeamBoards from './pages/TeamBoards.jsx'
 import PostDetail from './pages/PostDetail.jsx'
+import Login from './pages/Login.jsx'
+import Signup from './pages/Signup.jsx'
+import MyPage from './pages/MyPage.jsx'
 import { communityTeams } from './data/communityTeams.js'
 import './App.css'
 
@@ -26,6 +29,11 @@ function App() {
       {isMainPage && <MainPage />}
       {isTeamsPage && <TeamsPage />}
       {teamMatch && <Team teamId={teamMatch[1]} />}
+
+      {/* 회원 인증 및 마이페이지 */}
+      {pathname === '/plug/login' && <Login />}
+      {(pathname === '/plug/signin' || pathname === '/plug/signup') && <Signup />}
+      {pathname === '/plug/mypage' && <MyPage />}
 
       {/* 커뮤니티 */}
       {pathname === '/plug/community' && <Community />}
