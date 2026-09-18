@@ -85,12 +85,6 @@ public class FootballApiServiceImpl implements FootballApiService {
     }
 
     @Override
-    public String fetchPremierLeagueFixtures() {
-        String url = "https://api.football-data.org/v4/competitions/PL/matches";
-        return sendGetRequest(url);
-    }
-
-    @Override
     public String fetchTeamData(Long teamId) {
         String url = "https://api.football-data.org/v4/teams/" + teamId;
         return sendGetRequest(url);

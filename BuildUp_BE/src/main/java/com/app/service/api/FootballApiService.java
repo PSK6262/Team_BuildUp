@@ -4,8 +4,6 @@ import java.util.List;
 import com.app.dto.team.Players;
 
 public interface FootballApiService {
-	public String fetchPremierLeagueFixtures();
-	
 	public String fetchTeamData(Long teamId);
 	
 	public String fetchAllTeamsData();
