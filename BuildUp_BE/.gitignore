@@ -140,3 +140,6 @@ $RECYCLE.BIN/
 **/*.properties
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,eclipse,java,maven
+# Shared environment-variable configuration
+!src/main/resources/config/db.properties
+!src/main/resources/config/application.properties

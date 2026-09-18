@@ -1,54 +1,122 @@
+import { useEffect, useState } from 'react'
 import useBoardState from './useBoardState.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
-import { communityTeams } from '../data/communityTeams.js'
-import { communityPosts as posts } from '../data/communityPosts.js'
 import '../css/Community.css'
 
-// 팀 목록과 글은 화면 확인용 예시이며, 실제 팀 목록은 추후 API로 받습니다.
-const sampleTeams = communityTeams.map((team) => team.name)
 const PAGE_SIZE = 10
 
-export default function Community({ selectedTeam = '' }) {
+export default function Community({ selectedTeam = null }) {
   const [input, setInput] = useBoardState('input', '')
   const [keyword, setKeyword] = useBoardState('keyword', '')
   const [board, setBoard] = useBoardState('board', 'all')
-  const [team, setTeam] = useBoardState('team', '')
+  const [teamId, setTeamId] = useBoardState('teamId', '')
   const [sort, setSort] = useBoardState('sort', 'latest')
   const [page, setPage] = useBoardState('page', 1)
-  const filtered = posts.filter((post) =>
-    (!selectedTeam || post.team === selectedTeam) &&
-    (board === 'all' || post.board === board) && (!team || post.team === team) &&
-    post.title.toLocaleLowerCase().includes(keyword.toLocaleLowerCase()),
-  ).sort((a, b) => {
-    if (sort === 'likes') return b.likeCount - a.likeCount || b.postId - a.postId
-    if (sort === 'views') return b.viewCount - a.viewCount || b.postId - a.postId
-    return b.createdAt.localeCompare(a.createdAt) || b.postId - a.postId
-  })
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const [categories, setCategories] = useState([])
+  const [teams, setTeams] = useState([])
+  const [posts, setPosts] = useState([])
+  const [totalCount, setTotalCount] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [optionsLoading, setOptionsLoading] = useState(true)
+  const [postsLoading, setPostsLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const selectedDbTeam = selectedTeam
+    ? teams.find((team) => team.emblemUrl && team.emblemUrl === selectedTeam.emblemUrl)
+    : null
+  const selectedTeamName = selectedDbTeam?.teamNameKor || selectedDbTeam?.teamName || selectedTeam?.name || ''
+  const teamMatchMissing = Boolean(selectedTeam && !optionsLoading && !selectedDbTeam)
+
+  // 목록 검색에 필요한 실제 카테고리와 구단 정보를 조회합니다.
+  useEffect(() => {
+    const loadOptions = async () => {
+      try {
+        const [categoryResponse, teamResponse] = await Promise.all([
+          fetch('/api/communities/categories'),
+          fetch('/api/teams'),
+        ])
+        const categoryResult = await categoryResponse.json()
+        const teamResult = await teamResponse.json()
+        if (!categoryResponse.ok || !teamResponse.ok) {
+          throw new Error('게시판 정보를 불러오지 못했습니다.')
+        }
+        setCategories(Array.isArray(categoryResult.data) ? categoryResult.data : [])
+        setTeams(Array.isArray(teamResult) ? teamResult : [])
+      } catch (exception) {
+        setError(exception.message || '게시판 정보를 불러오지 못했습니다.')
+      } finally {
+        setOptionsLoading(false)
+      }
+    }
+    loadOptions()
+  }, [])
+
+  // 검색, 게시판, 구단, 정렬 및 페이지 조건으로 실제 게시글 목록을 조회합니다.
+  useEffect(() => {
+    if (categories.length === 0 || optionsLoading) return
+    if (selectedTeam && !selectedDbTeam) {
+      return
+    }
+
+    const controller = new AbortController()
+    const loadPosts = async () => {
+      setPostsLoading(true)
+      setError('')
+      try {
+        const params = new URLSearchParams()
+        categories.forEach((category) => params.append('categoryIds', category.categoryId))
+        params.set('board', selectedTeam ? 'team' : board)
+        const requestedTeamId = selectedTeam ? selectedDbTeam.teamId : teamId
+        if (requestedTeamId) params.set('teamId', requestedTeamId)
+        params.set('keyword', keyword)
+        params.set('sort', sort)
+        params.set('page', page)
+        params.set('size', PAGE_SIZE)
+
+        const response = await fetch(`/api/communities?${params.toString()}`, { signal: controller.signal })
+        const result = await response.json()
+        if (!response.ok || !result.data) {
+          throw new Error(result.message || '게시글 목록을 불러오지 못했습니다.')
+        }
+        setPosts(Array.isArray(result.data.items) ? result.data.items : [])
+        setTotalCount(result.data.totalCount || 0)
+        setTotalPages(result.data.totalPages || 0)
+      } catch (exception) {
+        if (exception.name !== 'AbortError') {
+          setError(exception.message || '게시글 목록을 불러오지 못했습니다.')
+        }
+      } finally {
+        if (!controller.signal.aborted) setPostsLoading(false)
+      }
+    }
+    loadPosts()
+    return () => controller.abort()
+  }, [board, categories, keyword, optionsLoading, page, selectedDbTeam, selectedTeam, sort, teamId])
+
+  const pageCount = Math.max(1, totalPages)
 
   return (
     <main className="community">
-      <CommunityNavigation section={selectedTeam ? 'teams' : 'main'} teamName={selectedTeam} />
+      <CommunityNavigation section={selectedTeam ? 'teams' : 'main'} teamName={selectedTeamName} />
       <p className="community__eyebrow">PLUGIN COMMUNITY</p>
-      <h1>{selectedTeam ? `${selectedTeam} 게시판` : '커뮤니티'}</h1>
+      <h1>{selectedTeam ? `${selectedTeamName} 게시판` : '커뮤니티'}</h1>
       <p className="community__intro">응원하는 팀 이야기부터 소소한 일상까지, 함께 나눠요.</p>
       <form className="community__search community__main-search" role="search" onSubmit={(event) => {
         event.preventDefault(); setKeyword(input.trim()); setPage(1)
       }}>
         <label className="community__sr-only" htmlFor="community-search">게시글 제목 검색</label>
-        <input id="community-search" type="search" value={input} onChange={(event) => setInput(event.target.value)} placeholder={selectedTeam ? `${selectedTeam} 게시글 제목 검색` : '전체 게시글 제목 검색'} />
+        <input id="community-search" type="search" value={input} onChange={(event) => setInput(event.target.value)} placeholder={selectedTeam ? `${selectedTeamName} 게시글 제목 검색` : '전체 게시글 제목 검색'} />
         <button type="submit">검색</button>
       </form>
       <div className="community__filters">
         {!selectedTeam && <div className="community__board-buttons" role="group" aria-label="게시판 필터">
-          {[['all', '전체'], ['free', '자유']].map(([value, label]) =>
-            <button key={value} type="button" aria-pressed={board === value} onClick={() => { setBoard(value); setTeam(''); setPage(1) }}>{label}</button>)}
+          {[['all', '전체'], ['free', '자유'], ['team', '팀별']].map(([value, label]) =>
+            <button key={value} type="button" aria-pressed={board === value} onClick={() => { setBoard(value); if (value === 'free') setTeamId(''); setPage(1) }}>{label}</button>)}
         </div>}
         <div className="community__selects">
-          {!selectedTeam && <label>팀 <select value={team} disabled={board === 'free'} onChange={(event) => { setTeam(event.target.value); setPage(1) }}>
+          {!selectedTeam && <label>팀 <select value={teamId} disabled={board === 'free'} onChange={(event) => { setTeamId(event.target.value); setPage(1) }}>
             <option value="">전체 팀</option>
-            {sampleTeams.map((name) => <option key={name} value={name}>{name}</option>)}
+            {teams.map((team) => <option key={team.teamId} value={team.teamId}>{team.teamNameKor || team.teamName}</option>)}
           </select></label>}
           <label>정렬 <select value={sort} onChange={(event) => { setSort(event.target.value); setPage(1) }}>
             <option value="latest">최신순</option><option value="likes">추천순</option><option value="views">조회순</option>
@@ -56,31 +124,34 @@ export default function Community({ selectedTeam = '' }) {
         </div>
       </div>
       <div className="community__toolbar">
-        <p role="status">{keyword ? `“${keyword}” 검색 결과` : selectedTeam ? `${selectedTeam} 게시글` : '통합 게시글'} <strong>{filtered.length}</strong>개</p>
-        <button type="button" disabled={!keyword && !input && board === 'all' && !team && sort === 'latest'} onClick={() => { setInput(''); setKeyword(''); setBoard('all'); setTeam(''); setSort('latest'); setPage(1) }}>검색·필터 초기화</button>
+        <p role="status">{postsLoading ? '불러오는 중' : keyword ? `“${keyword}” 검색 결과` : selectedTeam ? `${selectedTeamName} 게시글` : '통합 게시글'} <strong>{totalCount}</strong>개</p>
+        <div className="community__toolbar-actions">
+          <button type="button" disabled={!keyword && !input && board === 'all' && !teamId && sort === 'latest'} onClick={() => { setInput(''); setKeyword(''); setBoard('all'); setTeamId(''); setSort('latest'); setPage(1) }}>검색·필터 초기화</button>
+          <a className="community__main-link" href={`/plug/community/write?board=${selectedTeam ? 'team' : 'free'}`}>글쓰기</a>
+        </div>
       </div>
+      {(error || teamMatchMissing) && <p className="community__form-error" role="alert">{error || '선택한 구단을 DB에서 찾을 수 없습니다.'}</p>}
       <div className="community__table-wrap">
         <table className="community__table community__integrated-table">
           <caption className="community__sr-only">자유 및 팀별 게시글 통합 목록</caption>
           <thead><tr><th scope="col" className="community__number">번호</th><th scope="col">분류·팀</th><th scope="col">제목</th><th scope="col">조회수</th><th scope="col">추천수</th></tr></thead>
           <tbody>
-            {visible.map((post) => <tr key={post.postId}>
+            {posts.map((post) => <tr key={post.postId}>
               <td className="community__number">{post.postId}</td>
-              <td><span className={`community__badge ${post.board === 'team' ? 'community__badge--team' : ''}`}>{post.team || '자유'}</span></td>
+              <td><span className={`community__badge ${post.teamId != null ? 'community__badge--team' : ''}`}>{post.teamName || post.categoryType}</span></td>
               <td className="community__title"><a className="community__post-link" href={`/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.pathname)}`}>{post.title}</a></td><td>{post.viewCount}</td><td>{post.likeCount}</td>
             </tr>)}
-            {!visible.length && <tr><td colSpan={5} className="community__empty">조건에 맞는 게시글이 없습니다. 검색어나 필터를 바꿔보세요.</td></tr>}
+            {!postsLoading && !posts.length && <tr><td colSpan={5} className="community__empty">등록된 게시글이 없습니다.</td></tr>}
           </tbody>
         </table>
       </div>
       <div className="community__footer">
         <nav className="community__pagination" aria-label="통합 게시글 페이지">
-          <button type="button" disabled={page === 1} onClick={() => setPage(page - 1)}>이전</button>
-          {Array.from({ length: pageCount }, (_, index) => index + 1).map((number) => <button type="button" key={number} aria-label={`${number}페이지`} aria-current={page === number ? 'page' : undefined} onClick={() => setPage(number)}>{number}</button>)}
-          <button type="button" disabled={page === pageCount} onClick={() => setPage(page + 1)}>다음</button>
+          <button type="button" disabled={page === 1 || postsLoading} onClick={() => setPage(page - 1)}>이전</button>
+          {Array.from({ length: pageCount }, (_, index) => index + 1).map((number) => <button type="button" key={number} aria-label={`${number}페이지`} aria-current={page === number ? 'page' : undefined} disabled={postsLoading} onClick={() => setPage(number)}>{number}</button>)}
+          <button type="button" disabled={page === pageCount || postsLoading} onClick={() => setPage(page + 1)}>다음</button>
         </nav>
       </div>
-      <p className="community__notice">2026/27 시즌 20개 팀으로 구성한 화면입니다. 게시글은 예시이며 실제 데이터는 추후 연결됩니다.</p>
       {!selectedTeam && <section className="community__showcase" aria-labelledby="showcase-title">
         <div className="community__showcase-heading"><h2 id="showcase-title">내 팀 자랑 인기글</h2><span className="community__tag">준비 중</span></div>
         <p className="community__intro">나만의 전술, 나만의 베스트 11. 멋진 팀들을 이곳에서 만나보세요.</p>

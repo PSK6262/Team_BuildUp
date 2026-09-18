@@ -34,6 +34,6 @@
 		<beans:property name="suffix" value=".jsp"></beans:property>
 	</beans:bean>
 	
-	<context:property-placeholder location="classpath:config/*.properties" />
+	<context:property-placeholder location="classpath:config/db.properties, classpath:config/application.properties, classpath*:config/*.local.properties" />
 	
 </beans:beans>

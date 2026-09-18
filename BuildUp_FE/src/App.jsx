@@ -6,6 +6,7 @@ import Community from './pages/Community.jsx'
 import FreeBoard from './pages/FreeBoard.jsx'
 import TeamBoards from './pages/TeamBoards.jsx'
 import PostDetail from './pages/PostDetail.jsx'
+import PostWrite from './pages/PostWrite.jsx'
 import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
 import MyPage from './pages/MyPage.jsx'
@@ -39,8 +40,9 @@ function App() {
       {pathname === '/plug/community' && <Community />}
       {pathname === '/plug/community/free' && <FreeBoard />}
       {pathname === '/plug/community/teams' && <TeamBoards />}
+      {pathname === '/plug/community/write' && <PostWrite />}
       {postMatch && <PostDetail postId={postMatch[1]} />}
-      {commuTeam && <Community key={commuTeam.slug} selectedTeam={commuTeam.name} />}
+      {commuTeam && <Community key={commuTeam.slug} selectedTeam={commuTeam} />}
       {pathname.startsWith('/plug/community/teams/') && !commuTeam && (
         <main className="community">
           <h1>팀을 찾을 수 없습니다.</h1>
