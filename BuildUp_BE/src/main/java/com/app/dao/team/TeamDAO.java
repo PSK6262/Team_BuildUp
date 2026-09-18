@@ -17,6 +17,8 @@ public interface TeamDAO {
 	// Gemini AI 한글 및 역사 동기화 관련
 	void updateTeamKoreanAndHistory(Teams team);
 	void updateTeamAnthem(Teams team);
+	List<Teams> findTeamsWithBrokenEmblem();
+	void updateTeamEmblem(Teams team);
 	List<Players> findAllPlayers();
 	void updatePlayerKorean(Players player);
 	List<Staffs> findAllStaffs();

@@ -87,6 +87,18 @@ public class TeamController {
 		);
 	}
 
+	// [Gemini AI] 0-4. 깨지거나 누락된 구단 엠블럼 AI 자동 탐색 및 복구
+	// 예: GET /api/teams/sync-ai-emblems
+	@GetMapping("/sync-ai-emblems")
+	public Map<String, Object> syncAiEmblems() {
+		int count = geminiApiService.syncBrokenTeamEmblemsWithAI();
+		return Map.of(
+			"status", "SUCCESS",
+			"updatedCount", count,
+			"message", "깨지거나 누락된 구단 엠블럼 AI 복구 및 저장이 완료되었습니다."
+		);
+	}
+
 	// 1. 프리미어리그 전체 구단 및 소속 선수 전체 일괄 DB 저장 (동기화)
 	// 예: GET /api/teams/sync-all
 	@GetMapping("/sync-all")

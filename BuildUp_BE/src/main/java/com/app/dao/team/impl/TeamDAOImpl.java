@@ -62,6 +62,16 @@ public class TeamDAOImpl implements TeamDAO {
 	}
 
 	@Override
+	public List<Teams> findTeamsWithBrokenEmblem() {
+		return sqlSession.selectList("TeamMapper.selectTeamsWithBrokenEmblem");
+	}
+
+	@Override
+	public void updateTeamEmblem(Teams team) {
+		sqlSession.update("TeamMapper.updateTeamEmblem", team);
+	}
+
+	@Override
 	public List<Players> findAllPlayers() {
 		return sqlSession.selectList("TeamMapper.selectAllPlayers");
 	}
