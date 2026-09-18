@@ -377,7 +377,7 @@
 .team-stadium-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 
 .team-stadium-name {
@@ -390,9 +390,10 @@
 }
 
 .team-stadium-desc {
-  font-size: 18px;
-  color: #64748b;
-  line-height: 1.65;
+  font-size: 16px;
+  color: #0f172a;
+  font-weight: 600;
+  line-height: 1.5;
   margin: 0;
 }
 

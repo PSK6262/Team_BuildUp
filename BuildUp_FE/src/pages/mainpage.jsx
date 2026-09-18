@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import teamsData from '../../Assets/data/teamsData.js';
+import { getTeams } from '../api/teamApi.js';
 import '../css/mainpage.css';
 
 const INTRO_SENTENCES = [
@@ -10,10 +10,15 @@ const INTRO_SENTENCES = [
 ];
 
 export default function MainPage() {
+  const [teams, setTeams] = useState([]);
   const [hoveredTeam, setHoveredTeam] = useState(null);
   const [introIndex, setIntroIndex] = useState(0);
   const [isTextVisible, setIsTextVisible] = useState(true);
   const [isIntroFinished, setIsIntroFinished] = useState(false);
+
+  useEffect(() => {
+    getTeams().then((data) => setTeams(data));
+  }, []);
 
   useEffect(() => {
     if (isIntroFinished || introIndex >= INTRO_SENTENCES.length) return;
@@ -252,8 +257,8 @@ export default function MainPage() {
               <p className="mainpage-orbit-subtitle" aria-live="polite">
                 {hoveredTeam ? (
                   <>
-                    <strong className="team-highlight">{hoveredTeam.teamName}</strong>
-                    <span className="team-details"> ({hoveredTeam.homeGround})</span>
+                    <strong className="team-highlight">{hoveredTeam.teamNameKor || hoveredTeam.teamName}</strong>
+                    <span className="team-details"> ({hoveredTeam.homeGroundKor || hoveredTeam.homeGround})</span>
                   </>
                 ) : (
                   <span className="team-placeholder">구단 엠블럼에 마우스를 올려보세요</span>
@@ -263,8 +268,8 @@ export default function MainPage() {
 
             {/* 20개 엠블럼 원형 회전 링 */}
             <div className={`mainpage-orbit-ring ${hoveredTeam ? 'is-paused has-hover' : ''}`}>
-              {teamsData.map((team, index) => {
-                const angle = (index / teamsData.length) * 360;
+              {teams.map((team, index) => {
+                const angle = (index / (teams.length || 20)) * 360;
                 const isHovered = hoveredTeam?.teamId === team.teamId;
 
                 return (
@@ -281,12 +286,12 @@ export default function MainPage() {
                         onMouseLeave={() => setHoveredTeam(null)}
                         onFocus={() => setHoveredTeam(team)}
                         onBlur={() => setHoveredTeam(null)}
-                        aria-label={`${team.teamName} 상세 소개 페이지로 이동`}
-                        title={`${team.teamName} 상세 보기`}
+                        aria-label={`${team.teamNameKor || team.teamName} 상세 소개 페이지로 이동`}
+                        title={`${team.teamNameKor || team.teamName} 상세 보기`}
                       >
                         <img
                           src={team.emblemUrl}
-                          alt={`${team.teamName} 로고`}
+                          alt={`${team.teamNameKor || team.teamName} 로고`}
                           className="emblem-img"
                           loading="eager"
                         />

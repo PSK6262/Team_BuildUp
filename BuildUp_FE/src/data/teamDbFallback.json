@@ -1,0 +1,5407 @@
+{
+  "teams": [
+    {
+      "teamId": 57,
+      "teamName": "Arsenal FC",
+      "teamNameKor": "아스널 FC",
+      "history": "아스널 FC는 1886년 창단된 런던의 유서 깊은 명문 구단입니다. 2003-04 시즌 프리미어리그 최초의 '무패 우승'이라는 전무후무한 신화를 작성했습니다. 유려한 패스 축구와 오랜 전통으로 전 세계 축구팬들의 뜨거운 지지를 받고 있습니다.",
+      "emblemUrl": "https://crests.football-data.org/57.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=N8_m1XqypSQ",
+      "foundedYear": 1886,
+      "homeGround": "Emirates Stadium",
+      "homeGroundKor": "에미레이츠 스타디움",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 58,
+      "teamName": "Aston Villa FC",
+      "teamNameKor": "아스톤 빌라 FC",
+      "history": "아스톤 빌라 FC는 1874년에 창단되어 잉글랜드 축구 역사에서 빼놓을 수 없는 전통의 명가입니다. 1981-82 시즌 유러피언컵(현 UEFA 챔피언스리그) 우승을 비롯해 수많은 국내 트로피를 들어 올린 화려한 역사를 자랑합니다. 홈구장 빌라 파크의 열정적인 분위기는 오랜 역사만큼이나 깊은 무게감을 지니고 있습니다.",
+      "emblemUrl": "https://crests.football-data.org/58.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=zQ4yLg7F4Xo",
+      "foundedYear": 1874,
+      "homeGround": "Villa Park",
+      "homeGroundKor": "빌라 파크",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 61,
+      "teamName": "Chelsea FC",
+      "teamNameKor": "첼시 FC",
+      "history": "첼시 FC는 1905년 창단된 런던 서부의 자존심이자 세계적인 명문 구단입니다. 21세기 들어 구단주 변경 이후 수많은 프리미어리그 우승과 UEFA 챔피언스리그 제패를 이루며 황금기를 구가했습니다. '블루스'라는 상징적인 팀 컬러와 함께 런던을 넘어 세계 축구의 중심을 지키고 있습니다.",
+      "emblemUrl": "https://crests.football-data.org/61.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=6v4m9kX3Q1A",
+      "foundedYear": 1905,
+      "homeGround": "Stamford Bridge",
+      "homeGroundKor": "스탬포드 브릿지",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 62,
+      "teamName": "Everton FC",
+      "teamNameKor": "에버튼 FC",
+      "history": "에버튼 FC는 1878년에 창단되어 잉글랜드 1부 리그에서 가장 많은 시즌을 보낸 전통의 헤비급 구단입니다. 머지사이드 더비의 주인공으로서 수많은 우승 트로피와 레전드들을 배출해 왔습니다. '토피즈'라는 애칭과 함께 리버풀 지역의 자부심을 대변하는 역사적 상징입니다.",
+      "emblemUrl": "https://crests.football-data.org/62.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=7n8k3x2L9pQ",
+      "foundedYear": 1878,
+      "homeGround": "Hill Dickinson Stadium",
+      "homeGroundKor": "힐 디킨슨 스타디움",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 63,
+      "teamName": "Fulham FC",
+      "teamNameKor": "풀럼 FC",
+      "history": "풀럼 FC는 1879년에 창단된 런던에서 가장 오래된 프로 축구 클럽입니다. 템스 강변에 위치한 유서 깊은 홈구장 크레이븐 코티지는 클래식한 아름다움으로 전 세계 축구 여행자들의 성지로 불립니다. 서부 런던의 클래식한 품격과 끈질긴 투지를 겸비한 구단입니다.",
+      "emblemUrl": "https://crests.football-data.org/63.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=8n8k3x2L9pQ",
+      "foundedYear": 1879,
+      "homeGround": "Craven Cottage",
+      "homeGroundKor": "크레이븐 코티지",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 64,
+      "teamName": "Liverpool FC",
+      "teamNameKor": "리버풀 FC",
+      "history": "리버풀 FC는 1892년에 창단되어 잉글랜드와 유럽을 통틀어 가장 찬란한 역사와 우승 트로피를 수집한 세계적인 명문입니다. 홈구장 안필드에서 울려 퍼지는 'You'll Never Walk Alone'은 전 세계 축구팬들의 심장을 울리는 성가와도 같습니다. 붉은 유니폼의 게겐프레싱과 뜨거운 역사적 유산은 리버풀의 정체성입니다.",
+      "emblemUrl": "https://crests.football-data.org/64.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=An-w_D8699g",
+      "foundedYear": 1892,
+      "homeGround": "Anfield",
+      "homeGroundKor": "안필드",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 65,
+      "teamName": "Manchester City FC",
+      "teamNameKor": "맨체스터 시티 FC",
+      "history": "맨체스터 시티 FC는 1880년 창단된 이래 21세기 현대 축구의 패러다임을 바꾼 최고의 거함입니다. 펩 과르디올라 감독의 지휘 아래 잉글랜드 최초의 '트레블' 달성 및 프리미어리그 연맹 최초의 4연패 대업을 이룩했습니다. 시그니처 팀 컬러인 하늘색과 함께 전 세계에 가장 완벽한 패스 축구를 선보이고 있습니다.",
+      "emblemUrl": "https://crests.football-data.org/65.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=683_3V1F_4A",
+      "foundedYear": 1894,
+      "homeGround": "Etihad Stadium",
+      "homeGroundKor": "에티하드 스타디움",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 66,
+      "teamName": "Manchester United FC",
+      "teamNameKor": "맨체스터 유나이티드 FC",
+      "history": "맨체스터 유나이티드 FC는 1878년 뉴턴 히스에서 출발해 세계에서 가장 팬층이 두터운 전설적인 구단입니다. 알렉스 퍼거슨 감독 재임 시절 수많은 프리미어리그 우승과 1999년 극적인 '트레블'을 달성하며 잉글랜드 축구의 아이콘이 되었습니다. '꿈의 경기장' 올드 트래포드에서 펼쳐지는 'Glory Glory Man United'의 합창은 불멸의 영광을 상징합니다.",
+      "emblemUrl": "https://crests.football-data.org/66.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=N_H19J8hH6s",
+      "foundedYear": 1878,
+      "homeGround": "Old Trafford",
+      "homeGroundKor": "올드 트래포드",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 67,
+      "teamName": "Newcastle United FC",
+      "teamNameKor": "뉴캐슬 유나이티드 FC",
+      "history": "뉴캐슬 유나이티드 FC는 1892년에 창단되어 잉글랜드 북동부의 뜨거운 축구 열정을 대변하는 구단입니다. 블랙 앤 화이트의 줄무늬 유니폼과 함께 잉글랜드에서 가장 충성스럽고 열광적인 서포터즈를 보유하고 있습니다. 막강한 자본과 전통의 결합으로 다시 한번 프리미어리그의 최강자를 향해 포효하고 있습니다.",
+      "emblemUrl": "https://crests.football-data.org/67.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=3n8k3x2L9pQ",
+      "foundedYear": 1892,
+      "homeGround": "Stadium James' Park",
+      "homeGroundKor": "세인트 제임스 파크",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 71,
+      "teamName": "Sunderland AFC",
+      "teamNameKor": "선덜랜드 AFC",
+      "history": "선덜랜드 AFC는 1879년에 창단되어 잉글랜드 1부 리그 우승을 여러 차례 차지했던 북동부의 전통 명가입니다. 스타디움 오브 라이트라는 이름처럼 어둠 속에서도 빛을 발하는 뜨거운 팬들의 사랑을 받는 구단입니다. 붉고 흰 줄무늬 유니폼에는 잉글랜드 축구의 역사적 자부심이 깃들어 있습니다.",
+      "emblemUrl": "https://crests.football-data.org/71.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=6n8k3x2L9pQ",
+      "foundedYear": 1879,
+      "homeGround": "Stadium of Light",
+      "homeGroundKor": "스타디움 오브 라이트",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 73,
+      "teamName": "Tottenham Hotspur FC",
+      "teamNameKor": "토트넘 홋스퍼 FC",
+      "history": "토트넘 홋스퍼 FC는 1882년에 창단된 북런던의 명문 구단입니다. 공격적이고 화끈한 축구 철학을 바탕으로 1961년 더블 달성 및 유러피언 트로피를 들어 올린 자랑스러운 역사를 지니고 있습니다. 대한민국 축구의 전설 손흥민 선수가 거쳐간 팀이자 세계 최고 수준의 홈구장을 보유한 글로벌 구단입니다.",
+      "emblemUrl": "https://crests.football-data.org/73.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=3n8k3x2L9pQ",
+      "foundedYear": 1882,
+      "homeGround": "Tottenham Hotspur Stadium",
+      "homeGroundKor": "토트넘 홋스퍼 스타디움",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 322,
+      "teamName": "Hull City AFC",
+      "teamNameKor": "헐 시티 AFC",
+      "history": "1904년에 창단된 헐 시티 AFC는 요크셔주 킹스턴upon헐을 연고로 하는 구단입니다. 호랑이를 뜻하는 '타이거즈'라는 애칭을 사용하며, 거친 잉글랜드 무대에서 특유의 근성과 도전 정신을 보여왔습니다. 프리미어리그 무대를 향한 끊임없는 도전을 이어가고 있습니다.",
+      "emblemUrl": "https://crests.football-data.org/322.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=9n8k3x2L9pQ",
+      "foundedYear": 1904,
+      "homeGround": "MKM Stadium",
+      "homeGroundKor": "MKM 스타디움",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 341,
+      "teamName": "Leeds United FC",
+      "teamNameKor": "리즈 유나이티드 FC",
+      "history": "리즈 유나이티드 FC는 1919년에 창단되어 잉글랜드 북부를 대표하는 열정적인 구단입니다. 1970년대와 2000년대 초반 전성기를 구가하며 강렬한 축구 스타일과 끈끈한 팬덤으로 이름을 날렸습니다. 엘런드 로드의 공포스러운 응원 열기는 상대 팀들에게 언제나 두려움의 대상입니다.",
+      "emblemUrl": "https://crests.football-data.org/341.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=1n8k3x2L9pQ",
+      "foundedYear": 1919,
+      "homeGround": "Elland Road",
+      "homeGroundKor": "엘런드 로드",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 349,
+      "teamName": "Ipswich Town FC",
+      "teamNameKor": "입스위치 타운 FC",
+      "history": "1878년에 창단된 입스위치 타운 FC는 잉글랜드 서퍽주의 자존심입니다. 과거 바비 롭슨 감독의 지휘 아래 UEFA 컵 우승을 차지하고 리그를 호령했던 영광의 역사를 간직하고 있습니다. 오랜 기다림 끝에 다시 프리미어리그 무대로 복귀해 저력을 증명하고 있습니다.",
+      "emblemUrl": "https://crests.football-data.org/349.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=0n8k3x2L9pQ",
+      "foundedYear": 1878,
+      "homeGround": "Portman Road",
+      "homeGroundKor": "포트먼 로드",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 351,
+      "teamName": "Nottingham Forest FC",
+      "teamNameKor": "노팅엄 포레스트 FC",
+      "history": "노팅엄 포레스트 FC는 1865년에 창단된 유서 깊은 구단으로, 브라이언 클러프 감독의 지휘 아래 잉글랜드 1부 리그 우승을 거쳐 유러피언컵(현 UEFA 챔피언스리그) 2연패라는 신화적인 업적을 달성했습니다. 트렌트 강변의 시티 그라운드에는 과거 유럽을 제패했던 영광의 역사가 여전히 살아 숨 쉽고 있습니다.",
+      "emblemUrl": "https://crests.football-data.org/351.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=4n8k3x2L9pQ",
+      "foundedYear": 1865,
+      "homeGround": "The City Ground",
+      "homeGroundKor": "시티 그라운드",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 354,
+      "teamName": "Crystal Palace FC",
+      "teamNameKor": "크리스탈 팰리스 FC",
+      "history": "크리스탈 팰리스 FC는 1905년에 창단된 남런던 연고의 유서 깊은 구단입니다. 셀허스트 파크 특유의 뜨겁고 열광적인 서포터즈 응원 문화로 프리미어리그에서 가장 원정 가기 까다로운 팀으로 꼽힙니다. 탄탄한 조직력과 폭발적인 역습 축구로 매 시즌 저력을 과시하고 있습니다.",
+      "emblemUrl": "https://crests.football-data.org/354.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=4m8k3x2L9pQ",
+      "foundedYear": 1905,
+      "homeGround": "Selhurst Park",
+      "homeGroundKor": "셀허스트 파크",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 397,
+      "teamName": "Brighton & Hove Albion FC",
+      "teamNameKor": "브라이튼 앤 호브 알비온 FC",
+      "history": "1901년에 창단된 브라이튼 앤 호브 알비온 FC는 잉글랜드 남동부 해안가 도시를 연고로 하는 구단입니다. 세련된 전술적 움직임과 뛰어난 유망주 발굴 시스템으로 '갈매기 군단'이라는 별칭과 함께 프리미어리그의 태풍의 눈으로 거듭났습니다. 매 경기 상대를 압도하는 현대적이고 지능적인 축구를 선보이고 있습니다.",
+      "emblemUrl": "https://crests.football-data.org/397.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=3n5r8V7y4K0",
+      "foundedYear": 1901,
+      "homeGround": "American Express Stadium",
+      "homeGroundKor": "아메리칸 익스프레스 스타디움",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 402,
+      "teamName": "Brentford FC",
+      "teamNameKor": "브렌트포드 FC",
+      "history": "브렌트포드 FC는 1889년에 창단된 런던 서부를 연고로 하는 구단입니다. 철저한 데이터 기반의 선수 영입과 혁신적인 운영으로 거인들 틈에서 돌풍을 일으키며 프리미어리그의 다크호스로 자리 잡았습니다. 경기장마다 뿜어져 나오는 끈기 있는 투지와 조직력은 브렌트포드의 가장 큰 무기입니다.",
+      "emblemUrl": "https://crests.football-data.org/402.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=8m9k6zW3Xq0",
+      "foundedYear": 1889,
+      "homeGround": "Gtech community Stadium",
+      "homeGroundKor": "지테크 커뮤니티 스타디움",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 1044,
+      "teamName": "AFC Bournemouth",
+      "teamNameKor": "AFC 본머스",
+      "history": "1899년에 창단된 AFC 본머스는 잉글랜드 남부 도싯주의 항구 도시 본머스를 연고로 하는 구단입니다. 하부리그를 전전하던 팀에서 에디 하우 감독의 지휘 아래 기적적인 승격을 거듭하며 프리미어리그에 진입했습니다. 특유의 공격적이고 과감한 축구 스타일로 잉글랜드 무대에서 강렬한 인상을 남기고 있습니다.",
+      "emblemUrl": "https://crests.football-data.org/bournemouth.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=5z-3x4yA4nU",
+      "foundedYear": 1899,
+      "homeGround": "Vitality Stadium (Dean Court)",
+      "homeGroundKor": "바이탈리티 스타디움",
+      "updatedAt": "2026-09-17 17:53"
+    },
+    {
+      "teamId": 1076,
+      "teamName": "Coventry City FC",
+      "teamNameKor": "코벤트리 시티 FC",
+      "history": "1883년에 창단된 코벤트리 시티 FC는 1987년 FA컵 우승을 차지하며 잉글랜드 축구계에 깊은 인상을 남긴 역사 깊은 구단입니다. 오랜 기간 하부리그의 시련을 겪었으나 끈질긴 생명력으로 다시 비상을 준비하고 있습니다. 하늘색 유니폼에 담긴 전통의 무게를 안고 명가 재건을 노립니다.",
+      "emblemUrl": "https://crests.football-data.org/1076.png",
+      "anthemUrl": "https://www.youtube.com/watch?v=5n8k3x2L9pQ",
+      "foundedYear": 1883,
+      "homeGround": "Coventry Building Society Arena",
+      "homeGroundKor": "코벤트리 빌딩 소사이어티 아레나",
+      "updatedAt": "2026-09-17 17:53"
+    }
+  ],
+  "staffs": [
+    {
+      "staffId": 1,
+      "name": "Mikel Arteta",
+      "nameKor": "미켈 아르테타",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 57,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 2,
+      "name": "Unai Emery",
+      "nameKor": "우나이 에메리",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 58,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 3,
+      "name": "Xavi Alonso",
+      "nameKor": "사비 알론소",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 61,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 4,
+      "name": "David Moyes",
+      "nameKor": "데이비드 모예스",
+      "nationality": "Scotland",
+      "nationalityKor": "스코틀랜드",
+      "teamId": 62,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 5,
+      "name": "Álvaro Arbeloa",
+      "nameKor": "알바로 아르벨로아",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 63,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 6,
+      "name": "Andoni Iraola",
+      "nameKor": "안도니 이라올라",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 64,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 7,
+      "name": "Enzo Maresca",
+      "nameKor": "엔조 마레스카",
+      "nationality": "Italy",
+      "nationalityKor": "이탈리아",
+      "teamId": 65,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 8,
+      "name": "Michael Carrick",
+      "nameKor": "마이클 캐릭",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 66,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 9,
+      "name": "Matthias Jaissle",
+      "nameKor": "마티아스 야이슬",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 67,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 10,
+      "name": "Regis Le Bris",
+      "nameKor": "르지 르 브리스",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 71,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 11,
+      "name": "Roberto De Zerbi",
+      "nameKor": "로베르토 데 제르비",
+      "nationality": "Italy",
+      "nationalityKor": "이탈리아",
+      "teamId": 73,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 12,
+      "name": "Sergej Jakirovic",
+      "nameKor": "세르게이 야키로비치",
+      "nationality": "Bosnia and Herzegovina",
+      "nationalityKor": "보스니아 헤르체고비나",
+      "teamId": 322,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 13,
+      "name": "Daniel Farke",
+      "nameKor": "다니엘 파르케",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 341,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 14,
+      "name": "Gary O'Neil",
+      "nameKor": "게리 오닐",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 349,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 15,
+      "name": "Oliver Glasner",
+      "nameKor": "올리버 글라스너",
+      "nationality": "Austria",
+      "nationalityKor": "오스트리아",
+      "teamId": 351,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 16,
+      "name": "Pierre Sage",
+      "nameKor": "피에르 사즈",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 354,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 17,
+      "name": "Fabian Hurzeler",
+      "nameKor": "파비안 휘르첼러",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 397,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 18,
+      "name": "Keith Andrews",
+      "nameKor": "키스 앤드루스",
+      "nationality": "Ireland",
+      "nationalityKor": "아일랜드",
+      "teamId": 402,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 19,
+      "name": "Marco Rose",
+      "nameKor": "마르코 로제",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 1044,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    },
+    {
+      "staffId": 20,
+      "name": "Frank Lampard",
+      "nameKor": "프랭크 램파드",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1076,
+      "staffRoleId": 1,
+      "roleName": "감독"
+    }
+  ],
+  "players": [
+    {
+      "playerId": 4832,
+      "name": "David Raya",
+      "nameKor": "다비드 라야",
+      "mainPosition": "GK",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 57
+    },
+    {
+      "playerId": 74831,
+      "name": "Illan Meslier",
+      "nameKor": "일랑 멜리에",
+      "mainPosition": "GK",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 57
+    },
+    {
+      "playerId": 3189,
+      "name": "Kepa Arrizabalaga",
+      "nameKor": "케파 아리사발라가",
+      "mainPosition": "GK",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 57
+    },
+    {
+      "playerId": 6154,
+      "name": "Ben White",
+      "nameKor": "벤 화이트",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 57
+    },
+    {
+      "playerId": 172839,
+      "name": "Cristhian Mosquera",
+      "nameKor": "크리스티안 모스케라",
+      "mainPosition": "DF",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 57
+    },
+    {
+      "playerId": 6317,
+      "name": "Ezri Konsa",
+      "nameKor": "에즈리 콘사",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 57
+    },
+    {
+      "playerId": 23128,
+      "name": "Gabriel Magalhães",
+      "nameKor": "가브리엘 마갈량이스",
+      "mainPosition": "DF",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 57
+    },
+    {
+      "playerId": 98816,
+      "name": "Jurrien Timber",
+      "nameKor": "위리엔 팀버르",
+      "mainPosition": "DF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 57
+    },
+    {
+      "playerId": 244120,
+      "name": "Myles Lewis-Skelly",
+      "nameKor": "마일스 루이스스켈리",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 57
+    },
+    {
+      "playerId": 125674,
+      "name": "Piero Hincapié",
+      "nameKor": "피에로 인카피에",
+      "mainPosition": "DF",
+      "nationality": "Ecuador",
+      "nationalityKor": "에콰도르",
+      "teamId": 57
+    },
+    {
+      "playerId": 133512,
+      "name": "Riccardo Calafiori",
+      "nameKor": "리카르도 칼라피오리",
+      "mainPosition": "DF",
+      "nationality": "Italy",
+      "nationalityKor": "이탈리아",
+      "teamId": 57
+    },
+    {
+      "playerId": 80171,
+      "name": "William Saliba",
+      "nameKor": "윌리엄 살리바",
+      "mainPosition": "DF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 57
+    },
+    {
+      "playerId": 1684,
+      "name": "Bruno Guimarães",
+      "nameKor": "브루누 기마랑이스",
+      "mainPosition": "MF",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 57
+    },
+    {
+      "playerId": 8215,
+      "name": "Declan Rice",
+      "nameKor": "데클런 라이스",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 57
+    },
+    {
+      "playerId": 4032,
+      "name": "Eberechi Eze",
+      "nameKor": "에베레치 에제",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 57
+    },
+    {
+      "playerId": 7427,
+      "name": "Martin Ødegaard",
+      "nameKor": "마르틴 외데고르",
+      "mainPosition": "MF",
+      "nationality": "Norway",
+      "nationalityKor": "노르웨이",
+      "teamId": 57
+    },
+    {
+      "playerId": 115035,
+      "name": "Martín Zubimendi",
+      "nameKor": "마르틴 수비멘디",
+      "mainPosition": "MF",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 57
+    },
+    {
+      "playerId": 7935,
+      "name": "Mikel Merino",
+      "nameKor": "미켈 메리노",
+      "mainPosition": "MF",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 57
+    },
+    {
+      "playerId": 99813,
+      "name": "Bukayo Saka",
+      "nameKor": "부카요 사카",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 57
+    },
+    {
+      "playerId": 144434,
+      "name": "Christos Tzolis",
+      "nameKor": "크리스토스 졸리스",
+      "mainPosition": "FW",
+      "nationality": "Greece",
+      "nationalityKor": "그리스",
+      "teamId": 57
+    },
+    {
+      "playerId": 171,
+      "name": "Kai Havertz",
+      "nameKor": "카이 하베르츠",
+      "mainPosition": "FW",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 57
+    },
+    {
+      "playerId": 285128,
+      "name": "Max Dowman",
+      "nameKor": "맥스 다우먼",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 57
+    },
+    {
+      "playerId": 167720,
+      "name": "Noni Madueke",
+      "nameKor": "노니 마두에케",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 57
+    },
+    {
+      "playerId": 8279,
+      "name": "Viktor Gyökeres",
+      "nameKor": "빅토르 요케레스",
+      "mainPosition": "FW",
+      "nationality": "Sweden",
+      "nationalityKor": "스웨덴",
+      "teamId": 57
+    },
+    {
+      "playerId": 7675,
+      "name": "Marco Bizot",
+      "nameKor": "마르코 비조트",
+      "mainPosition": "GK",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 58
+    },
+    {
+      "playerId": 118920,
+      "name": "Zion Suzuki",
+      "nameKor": "스즈키 자이온",
+      "mainPosition": "GK",
+      "nationality": "Japan",
+      "nationalityKor": "일본",
+      "teamId": 58
+    },
+    {
+      "playerId": 8158,
+      "name": "Aaron Wan-Bissaka",
+      "nameKor": "아론 완비사카",
+      "mainPosition": "DF",
+      "nationality": "Congo DR",
+      "nationalityKor": "DR 콩고",
+      "teamId": 58
+    },
+    {
+      "playerId": 131120,
+      "name": "Ian Maatsen",
+      "nameKor": "이안 마트센",
+      "mainPosition": "DF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 58
+    },
+    {
+      "playerId": 151241,
+      "name": "Matteo Ruggeri",
+      "nameKor": "마테오 루제리",
+      "mainPosition": "DF",
+      "nationality": "Italy",
+      "nationalityKor": "이탈리아",
+      "teamId": 58
+    },
+    {
+      "playerId": 11644,
+      "name": "Matty Cash",
+      "nameKor": "매티 캐시",
+      "mainPosition": "DF",
+      "nationality": "Poland",
+      "nationalityKor": "폴란드",
+      "teamId": 58
+    },
+    {
+      "playerId": 276000,
+      "name": "Modou Keba Cisse",
+      "nameKor": "모두 케바 시세",
+      "mainPosition": "DF",
+      "nationality": "Senegal",
+      "nationalityKor": "세네갈",
+      "teamId": 58
+    },
+    {
+      "playerId": 33109,
+      "name": "Pau Torres",
+      "nameKor": "파우 토레스",
+      "mainPosition": "DF",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 58
+    },
+    {
+      "playerId": 131035,
+      "name": "Taylor Harwood-Bellis",
+      "nameKor": "테일러 하우드벨리스",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 58
+    },
+    {
+      "playerId": 8235,
+      "name": "Tyrone Mings",
+      "nameKor": "타이론 밍스",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 58
+    },
+    {
+      "playerId": 3492,
+      "name": "Victor Nilsson-Lindelöf",
+      "nameKor": "빅토르 닐손 린델뢰프",
+      "mainPosition": "DF",
+      "nationality": "Sweden",
+      "nationalityKor": "스웨덴",
+      "teamId": 58
+    },
+    {
+      "playerId": 114024,
+      "name": "Amadou Onana",
+      "nameKor": "아마두 오나나",
+      "mainPosition": "MF",
+      "nationality": "Belgium",
+      "nationalityKor": "벨기에",
+      "teamId": 58
+    },
+    {
+      "playerId": 8346,
+      "name": "Boubacar Kamara",
+      "nameKor": "부바카르 카마라",
+      "mainPosition": "MF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 58
+    },
+    {
+      "playerId": 31941,
+      "name": "Emiliano Buendía",
+      "nameKor": "에밀리아노 부엔디아",
+      "mainPosition": "MF",
+      "nationality": "Argentina",
+      "nationalityKor": "아르헨티나",
+      "teamId": 58
+    },
+    {
+      "playerId": 212309,
+      "name": "Johan Manzambi",
+      "nameKor": "요한 만잠비",
+      "mainPosition": "MF",
+      "nationality": "Switzerland",
+      "nationalityKor": "스위스",
+      "teamId": 58
+    },
+    {
+      "playerId": 34646,
+      "name": "John McGinn",
+      "nameKor": "존 맥긴",
+      "mainPosition": "MF",
+      "nationality": "Scotland",
+      "nationalityKor": "스코틀랜드",
+      "teamId": 58
+    },
+    {
+      "playerId": 138034,
+      "name": "João Gomes",
+      "nameKor": "주앙 고메스",
+      "mainPosition": "MF",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 58
+    },
+    {
+      "playerId": 172899,
+      "name": "Lamare Bogarde",
+      "nameKor": "라마레 보가르데",
+      "mainPosition": "MF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 58
+    },
+    {
+      "playerId": 3181,
+      "name": "Leon Goretzka",
+      "nameKor": "레온 고레츠카",
+      "mainPosition": "MF",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 58
+    },
+    {
+      "playerId": 7817,
+      "name": "Ross Barkley",
+      "nameKor": "로스 바클리",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 58
+    },
+    {
+      "playerId": 181901,
+      "name": "Alejandro Garnacho",
+      "nameKor": "알레한드로 가르나초",
+      "mainPosition": "FW",
+      "nationality": "Argentina",
+      "nationalityKor": "아르헨티나",
+      "teamId": 58
+    },
+    {
+      "playerId": 260718,
+      "name": "Alysson",
+      "nameKor": "알리송",
+      "mainPosition": "FW",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 58
+    },
+    {
+      "playerId": 280446,
+      "name": "Brian Madjo",
+      "nameKor": "브라이언 마디오",
+      "mainPosition": "FW",
+      "nationality": "Luxembourg",
+      "nationalityKor": "룩셈부르크",
+      "teamId": 58
+    },
+    {
+      "playerId": 289528,
+      "name": "George Hemmings",
+      "nameKor": "조지 헴밍스",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 58
+    },
+    {
+      "playerId": 265040,
+      "name": "Ibrahim M'Baye",
+      "nameKor": "이브라힘 음바예",
+      "mainPosition": "FW",
+      "nationality": "Senegal",
+      "nationalityKor": "세네갈",
+      "teamId": 58
+    },
+    {
+      "playerId": 152515,
+      "name": "Nicolas Jackson",
+      "nameKor": "니콜라스 잭슨",
+      "mainPosition": "FW",
+      "nationality": "Senegal",
+      "nationalityKor": "세네갈",
+      "teamId": 58
+    },
+    {
+      "playerId": 7985,
+      "name": "Tammy Abraham",
+      "nameKor": "태미 에이브러햄",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 58
+    },
+    {
+      "playerId": 3141,
+      "name": "Emiliano Martínez",
+      "nameKor": "에밀리아노 마르티네스",
+      "mainPosition": "GK",
+      "nationality": "Argentina",
+      "nationalityKor": "아르헨티나",
+      "teamId": 61
+    },
+    {
+      "playerId": 137544,
+      "name": "Gabriel Slonina",
+      "nameKor": "가브리엘 슬로니나",
+      "mainPosition": "GK",
+      "nationality": "USA",
+      "nationalityKor": "미국",
+      "teamId": 61
+    },
+    {
+      "playerId": 191068,
+      "name": "Mike Penders",
+      "nameKor": "마이크 펜데르스",
+      "mainPosition": "GK",
+      "nationality": "Belgium",
+      "nationalityKor": "벨기에",
+      "teamId": 61
+    },
+    {
+      "playerId": 175910,
+      "name": "Teddy Sharman-Lowe",
+      "nameKor": "테디 샤먼로우",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 61
+    },
+    {
+      "playerId": 209148,
+      "name": "Aaron Anselmino",
+      "nameKor": "아론 안셀미노",
+      "mainPosition": "DF",
+      "nationality": "Argentina",
+      "nationalityKor": "아르헨티나",
+      "teamId": 61
+    },
+    {
+      "playerId": 189477,
+      "name": "Jorrel Hato",
+      "nameKor": "요렐 하토",
+      "mainPosition": "DF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 61
+    },
+    {
+      "playerId": 249320,
+      "name": "Josh Acheampong",
+      "nameKor": "조슈아 아치암퐁",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 61
+    },
+    {
+      "playerId": 170440,
+      "name": "Levi Colwill",
+      "nameKor": "리바이 콜윌",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 61
+    },
+    {
+      "playerId": 152498,
+      "name": "Malo Gusto",
+      "nameKor": "말로 귀스토",
+      "mainPosition": "DF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 61
+    },
+    {
+      "playerId": 206136,
+      "name": "Marco Palestra",
+      "nameKor": "마르코 팔레스트라",
+      "mainPosition": "DF",
+      "nationality": "Italy",
+      "nationalityKor": "이탈리아",
+      "teamId": 61
+    },
+    {
+      "playerId": 82351,
+      "name": "Maxence Lacroix",
+      "nameKor": "막상스 라크루아",
+      "mainPosition": "DF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 61
+    },
+    {
+      "playerId": 151251,
+      "name": "Pep Chavarría",
+      "nameKor": "페프 차바리아",
+      "mainPosition": "DF",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 61
+    },
+    {
+      "playerId": 56628,
+      "name": "Reece James",
+      "nameKor": "리스 제임스",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 61
+    },
+    {
+      "playerId": 8545,
+      "name": "Wesley Fofana",
+      "nameKor": "웨슬리 포파나",
+      "mainPosition": "DF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 61
+    },
+    {
+      "playerId": 144892,
+      "name": "Cole Palmer",
+      "nameKor": "콜 파머",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 61
+    },
+    {
+      "playerId": 3320,
+      "name": "Jordan Henderson",
+      "nameKor": "조던 헨더슨",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 61
+    },
+    {
+      "playerId": 121103,
+      "name": "Moisés Caicedo",
+      "nameKor": "모이세스 카이세도",
+      "mainPosition": "MF",
+      "nationality": "Ecuador",
+      "nationalityKor": "에콰도르",
+      "teamId": 61
+    },
+    {
+      "playerId": 82140,
+      "name": "Morgan Rogers",
+      "nameKor": "모건 로저스",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 61
+    },
+    {
+      "playerId": 205684,
+      "name": "Ray Paez",
+      "nameKor": "레이 파에스",
+      "mainPosition": "MF",
+      "nationality": "Ecuador",
+      "nationalityKor": "에콰도르",
+      "teamId": 61
+    },
+    {
+      "playerId": 172738,
+      "name": "Romeo Lavia",
+      "nameKor": "로메오 라비아",
+      "mainPosition": "MF",
+      "nationality": "Belgium",
+      "nationalityKor": "벨기에",
+      "teamId": 61
+    },
+    {
+      "playerId": 170261,
+      "name": "Valentin Barco",
+      "nameKor": "발렌틴 바르코",
+      "mainPosition": "MF",
+      "nationality": "Argentina",
+      "nationalityKor": "아르헨티나",
+      "teamId": 61
+    },
+    {
+      "playerId": 3328,
+      "name": "Danny Welbeck",
+      "nameKor": "대니 웰벡",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 61
+    },
+    {
+      "playerId": 150599,
+      "name": "Emanuel Emegha",
+      "nameKor": "엠마누엘 에메가",
+      "mainPosition": "FW",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 61
+    },
+    {
+      "playerId": 244778,
+      "name": "Estevao",
+      "nameKor": "에스테방",
+      "mainPosition": "FW",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 61
+    },
+    {
+      "playerId": 229421,
+      "name": "Geovany Quenda",
+      "nameKor": "제오바니 퀜다",
+      "mainPosition": "FW",
+      "nationality": "Guinea-Bissau",
+      "nationalityKor": "기니비사우",
+      "teamId": 61
+    },
+    {
+      "playerId": 179460,
+      "name": "Jamie Bynoe-Gittens",
+      "nameKor": "제이미 바이노기튼스",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 61
+    },
+    {
+      "playerId": 103125,
+      "name": "João Pedro",
+      "nameKor": "주앙 페드루",
+      "mainPosition": "FW",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 61
+    },
+    {
+      "playerId": 2074,
+      "name": "Pedro Neto",
+      "nameKor": "페드루 네투",
+      "mainPosition": "FW",
+      "nationality": "Portugal",
+      "nationalityKor": "포르투갈",
+      "teamId": 61
+    },
+    {
+      "playerId": 3309,
+      "name": "Jordan Pickford",
+      "nameKor": "조던 픽퍼드",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 62
+    },
+    {
+      "playerId": 82135,
+      "name": "Mark Travers",
+      "nameKor": "마크 트래버스",
+      "mainPosition": "GK",
+      "nationality": "Ireland",
+      "nationalityKor": "아일랜드",
+      "teamId": 62
+    },
+    {
+      "playerId": 6180,
+      "name": "Thomas King",
+      "nameKor": "토마스 킹",
+      "mainPosition": "GK",
+      "nationality": "Wales",
+      "nationalityKor": "웨일스",
+      "teamId": 62
+    },
+    {
+      "playerId": 7792,
+      "name": "Ainsley Maitland-Niles",
+      "nameKor": "에인절 메이틀랜드나일스",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 62
+    },
+    {
+      "playerId": 131569,
+      "name": "Jake O'Brien",
+      "nameKor": "제이크 오브라이언",
+      "mainPosition": "DF",
+      "nationality": "Ireland",
+      "nationalityKor": "아일랜드",
+      "teamId": 62
+    },
+    {
+      "playerId": 3316,
+      "name": "James Tarkowski",
+      "nameKor": "제임스 타코스키",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 62
+    },
+    {
+      "playerId": 114120,
+      "name": "Jarrad Branthwaite",
+      "nameKor": "재러드 브랜스웨이트",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 62
+    },
+    {
+      "playerId": 7829,
+      "name": "Michael Keane",
+      "nameKor": "마이클 킨",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 62
+    },
+    {
+      "playerId": 16165,
+      "name": "Vitalii Mykolenko",
+      "nameKor": "비탈리 미콜렌코",
+      "mainPosition": "DF",
+      "nationality": "Ukraine",
+      "nationalityKor": "우크라이나",
+      "teamId": 62
+    },
+    {
+      "playerId": 140269,
+      "name": "Carlos Alcaraz",
+      "nameKor": "카를로스 알카라스",
+      "mainPosition": "MF",
+      "nationality": "Argentina",
+      "nationalityKor": "아르헨티나",
+      "teamId": 62
+    },
+    {
+      "playerId": 24102,
+      "name": "Christian Nørgaard",
+      "nameKor": "크리스티안 노르고르",
+      "mainPosition": "MF",
+      "nationality": "Denmark",
+      "nationalityKor": "덴마크",
+      "teamId": 62
+    },
+    {
+      "playerId": 264281,
+      "name": "Harrison Armstrong",
+      "nameKor": "해리슨 암스트롱",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 62
+    },
+    {
+      "playerId": 136284,
+      "name": "Hayden Hackney",
+      "nameKor": "헤이든 해크니",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 62
+    },
+    {
+      "playerId": 101076,
+      "name": "James Garner",
+      "nameKor": "제임스 가너",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 62
+    },
+    {
+      "playerId": 140194,
+      "name": "Kiernan Dewsbury Hall",
+      "nameKor": "키어넌 듀스버리홀",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 62
+    },
+    {
+      "playerId": 156552,
+      "name": "Merlin Röhl",
+      "nameKor": "메를린 뢸",
+      "mainPosition": "MF",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 62
+    },
+    {
+      "playerId": 124694,
+      "name": "Brennan Johnson",
+      "nameKor": "브레넌 존슨",
+      "mainPosition": "FW",
+      "nationality": "Wales",
+      "nationalityKor": "웨일스",
+      "teamId": 62
+    },
+    {
+      "playerId": 3895,
+      "name": "Jack Grealish",
+      "nameKor": "잭 그릴리시",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 62
+    },
+    {
+      "playerId": 171995,
+      "name": "Thierno Barry",
+      "nameKor": "티에르노 배리",
+      "mainPosition": "FW",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 62
+    },
+    {
+      "playerId": 218525,
+      "name": "Tyler Dibling",
+      "nameKor": "타일러 디블링",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 62
+    },
+    {
+      "playerId": 250436,
+      "name": "Tyrique George",
+      "nameKor": "타이릭 조지",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 62
+    },
+    {
+      "playerId": 300279,
+      "name": "Alex Borto",
+      "nameKor": "알렉스 보르토",
+      "mainPosition": "GK",
+      "nationality": "United States",
+      "nationalityKor": "미국",
+      "teamId": 63
+    },
+    {
+      "playerId": 8366,
+      "name": "Benjamin Lecomte",
+      "nameKor": "뱅자맹 르콩트",
+      "mainPosition": "GK",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 63
+    },
+    {
+      "playerId": 3174,
+      "name": "Bernd Leno",
+      "nameKor": "베른트 레노",
+      "mainPosition": "GK",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 63
+    },
+    {
+      "playerId": 3927,
+      "name": "Antonee Robinson",
+      "nameKor": "앤서니 로빈슨",
+      "mainPosition": "DF",
+      "nationality": "USA",
+      "nationalityKor": "미국",
+      "teamId": 63
+    },
+    {
+      "playerId": 146154,
+      "name": "Calvin Bassey",
+      "nameKor": "캘빈 배시",
+      "mainPosition": "DF",
+      "nationality": "Nigeria",
+      "nationalityKor": "나이지리아",
+      "teamId": 63
+    },
+    {
+      "playerId": 123212,
+      "name": "David Affengruber",
+      "nameKor": "다비트 아펜그루버",
+      "mainPosition": "DF",
+      "nationality": "Austria",
+      "nationalityKor": "오스트리아",
+      "teamId": 63
+    },
+    {
+      "playerId": 2253,
+      "name": "Joachim Andersen",
+      "nameKor": "요아킴 안데르센",
+      "mainPosition": "DF",
+      "nationality": "Denmark",
+      "nationalityKor": "덴마크",
+      "teamId": 63
+    },
+    {
+      "playerId": 98750,
+      "name": "Jorge Cuenca",
+      "nameKor": "호르헤 쿠엥카",
+      "mainPosition": "DF",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 63
+    },
+    {
+      "playerId": 8460,
+      "name": "Kenny Tete",
+      "nameKor": "케니 테테",
+      "mainPosition": "DF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 63
+    },
+    {
+      "playerId": 217596,
+      "name": "Luc De Fougerolles",
+      "nameKor": "뤽 드 푸주롤",
+      "mainPosition": "DF",
+      "nationality": "Canada",
+      "nationalityKor": "캐나다",
+      "teamId": 63
+    },
+    {
+      "playerId": 3959,
+      "name": "Ryan Sessegnon",
+      "nameKor": "라이언 세세뇽",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 63
+    },
+    {
+      "playerId": 1836,
+      "name": "Timothy Castagne",
+      "nameKor": "티모시 카스타뉴",
+      "mainPosition": "DF",
+      "nationality": "Belgium",
+      "nationalityKor": "벨기에",
+      "teamId": 63
+    },
+    {
+      "playerId": 290848,
+      "name": "César Palacios",
+      "nameKor": "세사르 팔라시오스",
+      "mainPosition": "MF",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 63
+    },
+    {
+      "playerId": 85570,
+      "name": "Emile Smith Rowe",
+      "nameKor": "에밀 스미스 로우",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 63
+    },
+    {
+      "playerId": 3995,
+      "name": "Harrison Reed",
+      "nameKor": "해리슨 리드",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 63
+    },
+    {
+      "playerId": 180563,
+      "name": "Hugo Larsson",
+      "nameKor": "위고 라르손",
+      "mainPosition": "MF",
+      "nationality": "Sweden",
+      "nationalityKor": "스웨덴",
+      "teamId": 63
+    },
+    {
+      "playerId": 246418,
+      "name": "Joshua King",
+      "nameKor": "조슈아 킹",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 63
+    },
+    {
+      "playerId": 291727,
+      "name": "Manuel Angel",
+      "nameKor": "마누엘 앙헬",
+      "mainPosition": "MF",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 63
+    },
+    {
+      "playerId": 8973,
+      "name": "Sander Berge",
+      "nameKor": "산데르 베르게",
+      "mainPosition": "MF",
+      "nationality": "Norway",
+      "nationalityKor": "노르웨이",
+      "teamId": 63
+    },
+    {
+      "playerId": 192108,
+      "name": "Shea Charles",
+      "nameKor": "셰어 찰스",
+      "mainPosition": "MF",
+      "nationality": "Northern Ireland",
+      "nationalityKor": "북아일랜드",
+      "teamId": 63
+    },
+    {
+      "playerId": 3965,
+      "name": "Tom Cairney",
+      "nameKor": "톰 케어니",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 63
+    },
+    {
+      "playerId": 3392,
+      "name": "Alex Iwobi",
+      "nameKor": "알렉스 이워비",
+      "mainPosition": "FW",
+      "nationality": "Nigeria",
+      "nationalityKor": "나이지리아",
+      "teamId": 63
+    },
+    {
+      "playerId": 217658,
+      "name": "Gonzalo García",
+      "nameKor": "곤살로 가르시아",
+      "mainPosition": "FW",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 63
+    },
+    {
+      "playerId": 217577,
+      "name": "Jonah Kusi-Asare",
+      "nameKor": "요나 쿠시어사레",
+      "mainPosition": "FW",
+      "nationality": "Sweden",
+      "nationalityKor": "스웨덴",
+      "teamId": 63
+    },
+    {
+      "playerId": 179122,
+      "name": "Kevin Santos",
+      "nameKor": "케빈 산투스",
+      "mainPosition": "FW",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 63
+    },
+    {
+      "playerId": 179716,
+      "name": "Oscar Bobb",
+      "nameKor": "오스카르 보브",
+      "mainPosition": "FW",
+      "nationality": "Norway",
+      "nationalityKor": "노르웨이",
+      "teamId": 63
+    },
+    {
+      "playerId": 138036,
+      "name": "Rodrigo Muniz",
+      "nameKor": "로드리고 무니스",
+      "mainPosition": "FW",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 63
+    },
+    {
+      "playerId": 1795,
+      "name": "Alisson Becker",
+      "nameKor": "알리송 베커",
+      "mainPosition": "GK",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 64
+    },
+    {
+      "playerId": 11629,
+      "name": "Freddie Woodman",
+      "nameKor": "프레디 우드먼",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 64
+    },
+    {
+      "playerId": 84506,
+      "name": "Giorgi Mamardashvili",
+      "nameKor": "기오르기 마마르다슈빌리",
+      "mainPosition": "GK",
+      "nationality": "Georgia",
+      "nationalityKor": "조지아",
+      "teamId": 64
+    },
+    {
+      "playerId": 165154,
+      "name": "Harvey Davies",
+      "nameKor": "하비 데이비스",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 64
+    },
+    {
+      "playerId": 152579,
+      "name": "Vítězslav Jaroš",
+      "nameKor": "비테슬라프 야로시",
+      "mainPosition": "GK",
+      "nationality": "Czech Republic",
+      "nationalityKor": "체코",
+      "teamId": 64
+    },
+    {
+      "playerId": 175865,
+      "name": "Conor Bradley",
+      "nameKor": "코너 브래들리",
+      "mainPosition": "DF",
+      "nationality": "Northern Ireland",
+      "nationalityKor": "북아일랜드",
+      "teamId": 64
+    },
+    {
+      "playerId": 192563,
+      "name": "Giovanni Leoni",
+      "nameKor": "조반니 레오니",
+      "mainPosition": "DF",
+      "nationality": "Italy",
+      "nationalityKor": "이탈리아",
+      "teamId": 64
+    },
+    {
+      "playerId": 128954,
+      "name": "Jeremie Frimpong",
+      "nameKor": "제레미 프림퐁",
+      "mainPosition": "DF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 64
+    },
+    {
+      "playerId": 206127,
+      "name": "Jeremy Jacquet",
+      "nameKor": "제레미 자케",
+      "mainPosition": "DF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 64
+    },
+    {
+      "playerId": 7862,
+      "name": "Joe Gomez",
+      "nameKor": "조 고메즈",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 64
+    },
+    {
+      "playerId": 7383,
+      "name": "Kostas Tsimikas",
+      "nameKor": "코스타스 치미카스",
+      "mainPosition": "DF",
+      "nationality": "Greece",
+      "nationalityKor": "그리스",
+      "teamId": 64
+    },
+    {
+      "playerId": 171141,
+      "name": "Milos Kerkez",
+      "nameKor": "밀로시 케르케즈",
+      "mainPosition": "DF",
+      "nationality": "Hungary",
+      "nationalityKor": "헝가리",
+      "teamId": 64
+    },
+    {
+      "playerId": 28292,
+      "name": "Ronald Araújo",
+      "nameKor": "로나우드 아라우호",
+      "mainPosition": "DF",
+      "nationality": "Uruguay",
+      "nationalityKor": "우루과이",
+      "teamId": 64
+    },
+    {
+      "playerId": 7869,
+      "name": "Virgil van Dijk",
+      "nameKor": "버질 반 다이크",
+      "mainPosition": "DF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 64
+    },
+    {
+      "playerId": 45681,
+      "name": "Alexis Mac Allister",
+      "nameKor": "알렉시스 마크 알리스터",
+      "mainPosition": "MF",
+      "nationality": "Argentina",
+      "nationalityKor": "아르헨티나",
+      "teamId": 64
+    },
+    {
+      "playerId": 16347,
+      "name": "Dominik Szoboszlai",
+      "nameKor": "도미니크 소보슬라이",
+      "mainPosition": "MF",
+      "nationality": "Hungary",
+      "nationalityKor": "헝가리",
+      "teamId": 64
+    },
+    {
+      "playerId": 19334,
+      "name": "Florian Wirtz",
+      "nameKor": "플로리안 비르츠",
+      "mainPosition": "MF",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 64
+    },
+    {
+      "playerId": 81793,
+      "name": "Ryan Gravenberch",
+      "nameKor": "라이언 흐라벤베르흐",
+      "mainPosition": "MF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 64
+    },
+    {
+      "playerId": 230517,
+      "name": "Trey Nyoni",
+      "nameKor": "트레이 니오니",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 64
+    },
+    {
+      "playerId": 3269,
+      "name": "Wataru Endō",
+      "nameKor": "엔도 와타루",
+      "mainPosition": "MF",
+      "nationality": "Japan",
+      "nationalityKor": "일본",
+      "teamId": 64
+    },
+    {
+      "playerId": 6486,
+      "name": "Alexander Isak",
+      "nameKor": "알렉산데르 이사크",
+      "mainPosition": "FW",
+      "nationality": "Sweden",
+      "nationalityKor": "스웨덴",
+      "teamId": 64
+    },
+    {
+      "playerId": 172762,
+      "name": "Bradley Barcola",
+      "nameKor": "브래들리 바르콜라",
+      "mainPosition": "FW",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 64
+    },
+    {
+      "playerId": 7459,
+      "name": "Cody Gakpo",
+      "nameKor": "코디 각포",
+      "mainPosition": "FW",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 64
+    },
+    {
+      "playerId": 1780,
+      "name": "Federico Chiesa",
+      "nameKor": "페데리코 키에사",
+      "mainPosition": "FW",
+      "nationality": "Italy",
+      "nationalityKor": "이탈리아",
+      "teamId": 64
+    },
+    {
+      "playerId": 152454,
+      "name": "Hugo Ekitike",
+      "nameKor": "우고 에키티케",
+      "mainPosition": "FW",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 64
+    },
+    {
+      "playerId": 273453,
+      "name": "Rio Ngumoha",
+      "nameKor": "리오 은구모하",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 64
+    },
+    {
+      "playerId": 273423,
+      "name": "Víctor Muñoz",
+      "nameKor": "빅토르 무뇨스",
+      "mainPosition": "FW",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 64
+    },
+    {
+      "playerId": 1731,
+      "name": "Gianluigi Donnarumma",
+      "nameKor": "잔루이지 돈나룸마",
+      "mainPosition": "GK",
+      "nationality": "Italy",
+      "nationalityKor": "이탈리아",
+      "teamId": 65
+    },
+    {
+      "playerId": 6,
+      "name": "Géronimo Rulli",
+      "nameKor": "헤로니모 룰리",
+      "mainPosition": "GK",
+      "nationality": "Argentina",
+      "nationalityKor": "아르헨티나",
+      "teamId": 65
+    },
+    {
+      "playerId": 3953,
+      "name": "Marcus Bettinelli",
+      "nameKor": "마커스 베티넬리",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 65
+    },
+    {
+      "playerId": 212868,
+      "name": "Abdukodir Khusanov",
+      "nameKor": "압두코디르 후사노프",
+      "mainPosition": "DF",
+      "nationality": "Uzbekistan",
+      "nationalityKor": "우즈베키스탄",
+      "teamId": 65
+    },
+    {
+      "playerId": 172791,
+      "name": "Josh Wilson-Esbrand",
+      "nameKor": "조시 윌슨에스브랜드",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 65
+    },
+    {
+      "playerId": 122266,
+      "name": "Joško Gvardiol",
+      "nameKor": "요슈코 그바르디올",
+      "mainPosition": "DF",
+      "nationality": "Croatia",
+      "nationalityKor": "크로아티아",
+      "teamId": 65
+    },
+    {
+      "playerId": 118489,
+      "name": "Marc Guéhi",
+      "nameKor": "마크 게히",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 65
+    },
+    {
+      "playerId": 91512,
+      "name": "Matheus Nunes",
+      "nameKor": "마테우스 누네스",
+      "mainPosition": "DF",
+      "nationality": "Portugal",
+      "nationalityKor": "포르투갈",
+      "teamId": 65
+    },
+    {
+      "playerId": 206743,
+      "name": "Nico O'Reilly",
+      "nameKor": "니코 오라일리",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 65
+    },
+    {
+      "playerId": 8642,
+      "name": "Rayan Aït Nouri",
+      "nameKor": "라얀 아잇누리",
+      "mainPosition": "DF",
+      "nationality": "Algeria",
+      "nationalityKor": "알제리",
+      "teamId": 65
+    },
+    {
+      "playerId": 187202,
+      "name": "Rico Lewis",
+      "nameKor": "리코 루이스",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 65
+    },
+    {
+      "playerId": 10183,
+      "name": "Rúben Dias",
+      "nameKor": "후벵 디아스",
+      "mainPosition": "DF",
+      "nationality": "Portugal",
+      "nationalityKor": "포르투갈",
+      "teamId": 65
+    },
+    {
+      "playerId": 249196,
+      "name": "Vitor Reis",
+      "nameKor": "비토르 레이스",
+      "mainPosition": "DF",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 65
+    },
+    {
+      "playerId": 221819,
+      "name": "Ayyoub Bouaddi",
+      "nameKor": "아요브 부아디",
+      "mainPosition": "MF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 65
+    },
+    {
+      "playerId": 107330,
+      "name": "Elliot Anderson",
+      "nameKor": "엘리엇 앤더슨",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 65
+    },
+    {
+      "playerId": 102603,
+      "name": "Enzo Fernández",
+      "nameKor": "엔소 페르난데스",
+      "mainPosition": "MF",
+      "nationality": "Argentina",
+      "nationalityKor": "아르헨티나",
+      "teamId": 65
+    },
+    {
+      "playerId": 65,
+      "name": "Mateo Kovačić",
+      "nameKor": "마테오 코바치치",
+      "mainPosition": "MF",
+      "nationality": "Croatia",
+      "nationalityKor": "크로아티아",
+      "teamId": 65
+    },
+    {
+      "playerId": 7888,
+      "name": "Phil Foden",
+      "nameKor": "필 포든",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 65
+    },
+    {
+      "playerId": 133242,
+      "name": "Rayan Cherki",
+      "nameKor": "라얀 셰르키",
+      "mainPosition": "MF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 65
+    },
+    {
+      "playerId": 274216,
+      "name": "Allan",
+      "nameKor": "알랑",
+      "mainPosition": "FW",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 65
+    },
+    {
+      "playerId": 4417,
+      "name": "Antoine Semenyo",
+      "nameKor": "앙투안 세메뇨",
+      "mainPosition": "FW",
+      "nationality": "Ghana",
+      "nationalityKor": "가나",
+      "teamId": 65
+    },
+    {
+      "playerId": 38101,
+      "name": "Erling Haaland",
+      "nameKor": "엘링 홀란",
+      "mainPosition": "FW",
+      "nationality": "Norway",
+      "nationalityKor": "노르웨이",
+      "teamId": 65
+    },
+    {
+      "playerId": 94091,
+      "name": "Iliman Ndiaye",
+      "nameKor": "일리만 은디아예",
+      "mainPosition": "FW",
+      "nationality": "Senegal",
+      "nationalityKor": "세네갈",
+      "teamId": 65
+    },
+    {
+      "playerId": 99775,
+      "name": "Jeremy Doku",
+      "nameKor": "제레미 도쿠",
+      "mainPosition": "FW",
+      "nationality": "Belgium",
+      "nationalityKor": "벨기에",
+      "teamId": 65
+    },
+    {
+      "playerId": 286950,
+      "name": "Ryan McAidoo",
+      "nameKor": "라이언 매커두",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 65
+    },
+    {
+      "playerId": 210730,
+      "name": "Dermot Mee",
+      "nameKor": "더모트 미",
+      "mainPosition": "GK",
+      "nationality": "Northern Ireland",
+      "nationalityKor": "북아일랜드",
+      "teamId": 66
+    },
+    {
+      "playerId": 7913,
+      "name": "Karl Darlow",
+      "nameKor": "칼 달로우",
+      "mainPosition": "GK",
+      "nationality": "Wales",
+      "nationalityKor": "웨일스",
+      "teamId": 66
+    },
+    {
+      "playerId": 129946,
+      "name": "Senne Lammens",
+      "nameKor": "세네 라멘스",
+      "mainPosition": "GK",
+      "nationality": "Belgium",
+      "nationalityKor": "벨기에",
+      "teamId": 66
+    },
+    {
+      "playerId": 8035,
+      "name": "Tom Heaton",
+      "nameKor": "톰 히튼",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 66
+    },
+    {
+      "playerId": 247644,
+      "name": "Ayden Heaven",
+      "nameKor": "아이든 헤븐",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 66
+    },
+    {
+      "playerId": 15905,
+      "name": "Diogo Dalot",
+      "nameKor": "디오구 달로트",
+      "mainPosition": "DF",
+      "nationality": "Portugal",
+      "nationalityKor": "포르투갈",
+      "teamId": 66
+    },
+    {
+      "playerId": 210150,
+      "name": "Harry Amass",
+      "nameKor": "해리 아마스",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 66
+    },
+    {
+      "playerId": 3326,
+      "name": "Harry Maguire",
+      "nameKor": "해리 매과이어",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 66
+    },
+    {
+      "playerId": 181933,
+      "name": "Leny Yoro",
+      "nameKor": "레니 요로",
+      "mainPosition": "DF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 66
+    },
+    {
+      "playerId": 46451,
+      "name": "Lisandro Martínez",
+      "nameKor": "리산드로 마르티네스",
+      "mainPosition": "DF",
+      "nationality": "Argentina",
+      "nationalityKor": "아르헨티나",
+      "teamId": 66
+    },
+    {
+      "playerId": 7898,
+      "name": "Luke Shaw",
+      "nameKor": "루크 쇼",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 66
+    },
+    {
+      "playerId": 7549,
+      "name": "Matthijs de Ligt",
+      "nameKor": "마테이스 더 리흐트",
+      "mainPosition": "DF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 66
+    },
+    {
+      "playerId": 7553,
+      "name": "Noussair Mazraoui",
+      "nameKor": "누사이르 마즈라위",
+      "mainPosition": "DF",
+      "nationality": "Morocco",
+      "nationalityKor": "모로코",
+      "teamId": 66
+    },
+    {
+      "playerId": 166366,
+      "name": "Andrey Santos",
+      "nameKor": "안드레이 산투스",
+      "mainPosition": "MF",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 66
+    },
+    {
+      "playerId": 3257,
+      "name": "Bruno Fernandes",
+      "nameKor": "브루누 페르난데스",
+      "mainPosition": "MF",
+      "nationality": "Portugal",
+      "nationalityKor": "포르투갈",
+      "teamId": 66
+    },
+    {
+      "playerId": 178604,
+      "name": "Carlos Baleba",
+      "nameKor": "카를로스 발레바",
+      "mainPosition": "MF",
+      "nationality": "Cameroon",
+      "nationalityKor": "카메룬",
+      "teamId": 66
+    },
+    {
+      "playerId": 271941,
+      "name": "Jack Fletcher",
+      "nameKor": "잭 플레처",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 66
+    },
+    {
+      "playerId": 190797,
+      "name": "Kobbie Mainoo",
+      "nameKor": "코비 마이누",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 66
+    },
+    {
+      "playerId": 28549,
+      "name": "Manuel Ugarte",
+      "nameKor": "마누엘 우가르테",
+      "mainPosition": "MF",
+      "nationality": "Uruguay",
+      "nationalityKor": "우루과이",
+      "teamId": 66
+    },
+    {
+      "playerId": 7599,
+      "name": "Mason Mount",
+      "nameKor": "메이슨 마운트",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 66
+    },
+    {
+      "playerId": 290139,
+      "name": "Tyler Fletcher",
+      "nameKor": "타일러 플레처",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 66
+    },
+    {
+      "playerId": 3658,
+      "name": "Youri Tielemans",
+      "nameKor": "유리 틸레만스",
+      "mainPosition": "MF",
+      "nationality": "Belgium",
+      "nationalityKor": "벨기에",
+      "teamId": 66
+    },
+    {
+      "playerId": 133584,
+      "name": "Amad Diallo",
+      "nameKor": "아마드 디알로",
+      "mainPosition": "FW",
+      "nationality": "Ivory Coast",
+      "nationalityKor": "코트디부아르",
+      "teamId": 66
+    },
+    {
+      "playerId": 124244,
+      "name": "Benjamin Šeško",
+      "nameKor": "벤야민 셰슈코",
+      "mainPosition": "FW",
+      "nationality": "Slovenia",
+      "nationalityKor": "슬로베니아",
+      "teamId": 66
+    },
+    {
+      "playerId": 8626,
+      "name": "Bryan Mbeumo",
+      "nameKor": "브라이언 음뵈모",
+      "mainPosition": "FW",
+      "nationality": "Cameroon",
+      "nationalityKor": "카메룬",
+      "teamId": 66
+    },
+    {
+      "playerId": 99731,
+      "name": "Joshua Zirkzee",
+      "nameKor": "조슈아 지르크지",
+      "mainPosition": "FW",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 66
+    },
+    {
+      "playerId": 3331,
+      "name": "Marcus Rashford",
+      "nameKor": "마커스 래시퍼드",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 66
+    },
+    {
+      "playerId": 30842,
+      "name": "Matheus Cunha",
+      "nameKor": "마테우스 쿠냐",
+      "mainPosition": "FW",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 66
+    },
+    {
+      "playerId": 211559,
+      "name": "Patrick Dorgu",
+      "nameKor": "패트릭 도르구",
+      "mainPosition": "FW",
+      "nationality": "Denmark",
+      "nationalityKor": "덴마크",
+      "teamId": 66
+    },
+    {
+      "playerId": 289557,
+      "name": "Shea Lacey",
+      "nameKor": "셰이 레이시",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 66
+    },
+    {
+      "playerId": 191388,
+      "name": "Ewen Jaouen",
+      "nameKor": "에벤 자우엥",
+      "mainPosition": "GK",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 67
+    },
+    {
+      "playerId": 146753,
+      "name": "Lukáš Horníček",
+      "nameKor": "루카시 호르니체크",
+      "mainPosition": "GK",
+      "nationality": "Czech Republic",
+      "nationalityKor": "체코",
+      "teamId": 67
+    },
+    {
+      "playerId": 5048,
+      "name": "Mark Gillespie",
+      "nameKor": "마크 길레스피",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 67
+    },
+    {
+      "playerId": 3310,
+      "name": "Nick Pope",
+      "nameKor": "닉 포프",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 67
+    },
+    {
+      "playerId": 81816,
+      "name": "Amar Dedić",
+      "nameKor": "아마르 데디치",
+      "mainPosition": "DF",
+      "nationality": "Austria",
+      "nationalityKor": "오스트리아",
+      "teamId": 67
+    },
+    {
+      "playerId": 4870,
+      "name": "Dan Burn",
+      "nameKor": "댄 번",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 67
+    },
+    {
+      "playerId": 88,
+      "name": "Fabian Schär",
+      "nameKor": "파비안 셰어",
+      "mainPosition": "DF",
+      "nationality": "Switzerland",
+      "nationalityKor": "스위스",
+      "teamId": 67
+    },
+    {
+      "playerId": 277574,
+      "name": "Leo Shahar",
+      "nameKor": "레오 샤하르",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 67
+    },
+    {
+      "playerId": 191140,
+      "name": "Lewis Hall",
+      "nameKor": "루이스 홀",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 67
+    },
+    {
+      "playerId": 142732,
+      "name": "Malick Thiaw",
+      "nameKor": "말릭 티아우",
+      "mainPosition": "DF",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 67
+    },
+    {
+      "playerId": 81082,
+      "name": "Sven Botman",
+      "nameKor": "스벤 보트만",
+      "mainPosition": "DF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 67
+    },
+    {
+      "playerId": 168712,
+      "name": "Valentino Livramento",
+      "nameKor": "발렌티노 리브라멘토",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 67
+    },
+    {
+      "playerId": 272943,
+      "name": "Aladji Bamba",
+      "nameKor": "알라지 밤바",
+      "mainPosition": "MF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 67
+    },
+    {
+      "playerId": 111437,
+      "name": "Jacob Ramsey",
+      "nameKor": "제이콥 램지",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 67
+    },
+    {
+      "playerId": 7798,
+      "name": "Joe Willock",
+      "nameKor": "조 윌록",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 67
+    },
+    {
+      "playerId": 10653,
+      "name": "Joelinton",
+      "nameKor": "조엘링톤",
+      "mainPosition": "MF",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 67
+    },
+    {
+      "playerId": 191939,
+      "name": "Lewis Miley",
+      "nameKor": "루이스 마일리",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 67
+    },
+    {
+      "playerId": 301059,
+      "name": "Mason Miley",
+      "nameKor": "메이슨 마일리",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 67
+    },
+    {
+      "playerId": 171986,
+      "name": "Nico Gonzalez",
+      "nameKor": "니코 곤살레스",
+      "mainPosition": "MF",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 67
+    },
+    {
+      "playerId": 251265,
+      "name": "Sean Steur",
+      "nameKor": "션 스퇴르",
+      "mainPosition": "MF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 67
+    },
+    {
+      "playerId": 166376,
+      "name": "Anthony Elanga",
+      "nameKor": "안토니 엘랑가",
+      "mainPosition": "FW",
+      "nationality": "Sweden",
+      "nationalityKor": "스웨덴",
+      "teamId": 67
+    },
+    {
+      "playerId": 249312,
+      "name": "Bazoumana Touré",
+      "nameKor": "바주마나 투레",
+      "mainPosition": "FW",
+      "nationality": "Ivory Coast",
+      "nationalityKor": "코트디부아르",
+      "teamId": 67
+    },
+    {
+      "playerId": 8076,
+      "name": "Harvey Barnes",
+      "nameKor": "하비 반스",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 67
+    },
+    {
+      "playerId": 7934,
+      "name": "Jacob Murphy",
+      "nameKor": "제이콥 머피",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 67
+    },
+    {
+      "playerId": 213511,
+      "name": "Matias Fernandez-Pardo",
+      "nameKor": "마티아스 페르난데스파르도",
+      "mainPosition": "FW",
+      "nationality": "Belgium",
+      "nationalityKor": "벨기에",
+      "teamId": 67
+    },
+    {
+      "playerId": 169324,
+      "name": "William Osula",
+      "nameKor": "윌리엄 오술라",
+      "mainPosition": "FW",
+      "nationality": "Denmark",
+      "nationalityKor": "덴마크",
+      "teamId": 67
+    },
+    {
+      "playerId": 612,
+      "name": "Yoane Wissa",
+      "nameKor": "요아네 위사",
+      "mainPosition": "FW",
+      "nationality": "Congo DR",
+      "nationalityKor": "DR 콩고",
+      "teamId": 67
+    },
+    {
+      "playerId": 150893,
+      "name": "Melker Ellborg",
+      "nameKor": "멜케르 엘보르그",
+      "mainPosition": "GK",
+      "nationality": "Sweden",
+      "nationalityKor": "스웨덴",
+      "teamId": 71
+    },
+    {
+      "playerId": 137691,
+      "name": "Robin Roefs",
+      "nameKor": "로빈 루프스",
+      "mainPosition": "GK",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 71
+    },
+    {
+      "playerId": 4292,
+      "name": "Simon Moore",
+      "nameKor": "사이먼 무어",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 71
+    },
+    {
+      "playerId": 161270,
+      "name": "Aji Alese",
+      "nameKor": "아지 알레세",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 71
+    },
+    {
+      "playerId": 121109,
+      "name": "Daniel Ballard",
+      "nameKor": "다니엘 밸러드",
+      "mainPosition": "DF",
+      "nationality": "Northern Ireland",
+      "nationalityKor": "북아일랜드",
+      "teamId": 71
+    },
+    {
+      "playerId": 264401,
+      "name": "Dayann Methalie",
+      "nameKor": "다얀 메탈리",
+      "mainPosition": "DF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 71
+    },
+    {
+      "playerId": 6655,
+      "name": "Kevin Danso",
+      "nameKor": "케빈 단소",
+      "mainPosition": "DF",
+      "nationality": "Austria",
+      "nationalityKor": "오스트리아",
+      "teamId": 71
+    },
+    {
+      "playerId": 6259,
+      "name": "Luke O'Nien",
+      "nameKor": "루크 오닌",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 71
+    },
+    {
+      "playerId": 8371,
+      "name": "Nordi Mukiele",
+      "nameKor": "노르디 무키엘레",
+      "mainPosition": "DF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 71
+    },
+    {
+      "playerId": 46491,
+      "name": "Omar Alderete",
+      "nameKor": "오마르 알데레테",
+      "mainPosition": "DF",
+      "nationality": "Paraguay",
+      "nationalityKor": "파라과이",
+      "teamId": 71
+    },
+    {
+      "playerId": 37094,
+      "name": "Reinildo",
+      "nameKor": "헤이닐두",
+      "mainPosition": "DF",
+      "nationality": "Mozambique",
+      "nationalityKor": "모잠비크",
+      "teamId": 71
+    },
+    {
+      "playerId": 3650,
+      "name": "Thomas Meunier",
+      "nameKor": "토마 뫼니에",
+      "mainPosition": "DF",
+      "nationality": "Belgium",
+      "nationalityKor": "벨기에",
+      "teamId": 71
+    },
+    {
+      "playerId": 117687,
+      "name": "Trai Hume",
+      "nameKor": "트라이 흄",
+      "mainPosition": "DF",
+      "nationality": "Northern Ireland",
+      "nationalityKor": "북아일랜드",
+      "teamId": 71
+    },
+    {
+      "playerId": 165311,
+      "name": "Abdoullah Ba",
+      "nameKor": "압둘라 바",
+      "mainPosition": "MF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 71
+    },
+    {
+      "playerId": 11362,
+      "name": "Alan Browne",
+      "nameKor": "앨런 브라운",
+      "mainPosition": "MF",
+      "nationality": "Ireland",
+      "nationalityKor": "아일랜드",
+      "teamId": 71
+    },
+    {
+      "playerId": 190817,
+      "name": "Chris Rigg",
+      "nameKor": "크리스 리그",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 71
+    },
+    {
+      "playerId": 99664,
+      "name": "Enzo Le Fée",
+      "nameKor": "엔조 르 페",
+      "mainPosition": "MF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 71
+    },
+    {
+      "playerId": 3477,
+      "name": "Granit Xhaka",
+      "nameKor": "그라니트 자카",
+      "mainPosition": "MF",
+      "nationality": "Switzerland",
+      "nationalityKor": "스위스",
+      "teamId": 71
+    },
+    {
+      "playerId": 171876,
+      "name": "Habib Diarra",
+      "nameKor": "하비브 디아라",
+      "mainPosition": "MF",
+      "nationality": "Senegal",
+      "nationalityKor": "세네갈",
+      "teamId": 71
+    },
+    {
+      "playerId": 286011,
+      "name": "Jules Ahoka",
+      "nameKor": "쥘 아호카",
+      "mainPosition": "MF",
+      "nationality": "DR Congo",
+      "nationalityKor": "DR 콩고",
+      "teamId": 71
+    },
+    {
+      "playerId": 182273,
+      "name": "Noah Sadiki",
+      "nameKor": "노아 사디키",
+      "mainPosition": "MF",
+      "nationality": "Congo DR",
+      "nationalityKor": "DR 콩고",
+      "teamId": 71
+    },
+    {
+      "playerId": 97535,
+      "name": "Brian Brobbey",
+      "nameKor": "브라이언 브로비",
+      "mainPosition": "FW",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 71
+    },
+    {
+      "playerId": 192313,
+      "name": "Chemsdine Talbi",
+      "nameKor": "솀스딘 탈비",
+      "mainPosition": "FW",
+      "nationality": "Morocco",
+      "nationalityKor": "모로코",
+      "teamId": 71
+    },
+    {
+      "playerId": 290809,
+      "name": "Jocelin Bi",
+      "nameKor": "조슬랭 비",
+      "mainPosition": "FW",
+      "nationality": "Ivory Coast",
+      "nationalityKor": "코트디부아르",
+      "teamId": 71
+    },
+    {
+      "playerId": 288921,
+      "name": "Juan Angulo",
+      "nameKor": "후안 앙굴로",
+      "mainPosition": "FW",
+      "nationality": "Ecuador",
+      "nationalityKor": "에콰도르",
+      "teamId": 71
+    },
+    {
+      "playerId": 187065,
+      "name": "Malick Fofana",
+      "nameKor": "말릭 포파나",
+      "mainPosition": "FW",
+      "nationality": "Belgium",
+      "nationalityKor": "벨기에",
+      "teamId": 71
+    },
+    {
+      "playerId": 187375,
+      "name": "Nilson Angulo",
+      "nameKor": "닐손 앙굴로",
+      "mainPosition": "FW",
+      "nationality": "Ecuador",
+      "nationalityKor": "에콰도르",
+      "teamId": 71
+    },
+    {
+      "playerId": 172275,
+      "name": "Romaine Mundle",
+      "nameKor": "로메인 먼들",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 71
+    },
+    {
+      "playerId": 83599,
+      "name": "Wilson Isidor",
+      "nameKor": "윌슨 이지도르",
+      "mainPosition": "FW",
+      "nationality": "Haiti",
+      "nationalityKor": "아이티",
+      "teamId": 71
+    },
+    {
+      "playerId": 255239,
+      "name": "Antonín Kinský",
+      "nameKor": "안토닌 킨스키",
+      "mainPosition": "GK",
+      "nationality": "Czech Republic",
+      "nationalityKor": "체코",
+      "teamId": 73
+    },
+    {
+      "playerId": 133229,
+      "name": "Brandon Austin",
+      "nameKor": "브랜던 오스틴",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 73
+    },
+    {
+      "playerId": 7914,
+      "name": "Martin Dúbravka",
+      "nameKor": "마르틴 두브라프카",
+      "mainPosition": "GK",
+      "nationality": "Slovakia",
+      "nationalityKor": "슬로바키아",
+      "teamId": 73
+    },
+    {
+      "playerId": 7868,
+      "name": "Andrew Robertson",
+      "nameKor": "앤디 로버트슨",
+      "mainPosition": "DF",
+      "nationality": "Scotland",
+      "nationalityKor": "스코틀랜드",
+      "teamId": 73
+    },
+    {
+      "playerId": 177040,
+      "name": "Archie Gray",
+      "nameKor": "아치 그레이",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 73
+    },
+    {
+      "playerId": 7994,
+      "name": "Ben Davies",
+      "nameKor": "벤 데이비스",
+      "mainPosition": "DF",
+      "nationality": "Wales",
+      "nationalityKor": "웨일스",
+      "teamId": 73
+    },
+    {
+      "playerId": 170378,
+      "name": "Destiny Udogie",
+      "nameKor": "데스티니 우도기",
+      "mainPosition": "DF",
+      "nationality": "Italy",
+      "nationalityKor": "이탈리아",
+      "teamId": 73
+    },
+    {
+      "playerId": 98566,
+      "name": "Jan Paul van Hecke",
+      "nameKor": "얀 폴 판 헤케",
+      "mainPosition": "DF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 73
+    },
+    {
+      "playerId": 46046,
+      "name": "Marcos Senesi",
+      "nameKor": "마르코스 세네시",
+      "mainPosition": "DF",
+      "nationality": "Argentina",
+      "nationalityKor": "아르헨티나",
+      "teamId": 73
+    },
+    {
+      "playerId": 131177,
+      "name": "Mickey van de Ven",
+      "nameKor": "미키 판 더 벤",
+      "mainPosition": "DF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 73
+    },
+    {
+      "playerId": 81037,
+      "name": "Pedro Porro",
+      "nameKor": "페드로 포로",
+      "mainPosition": "DF",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 73
+    },
+    {
+      "playerId": 7880,
+      "name": "Tosin Adarabioyo",
+      "nameKor": "토신 아다라비오요",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 73
+    },
+    {
+      "playerId": 119265,
+      "name": "Conor Gallagher",
+      "nameKor": "코너 갤러거",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 73
+    },
+    {
+      "playerId": 1859,
+      "name": "Dejan Kulusevski",
+      "nameKor": "데얀 쿨루세브스키",
+      "mainPosition": "MF",
+      "nationality": "Sweden",
+      "nationalityKor": "스웨덴",
+      "teamId": 73
+    },
+    {
+      "playerId": 3992,
+      "name": "James Maddison",
+      "nameKor": "제임스 매디슨",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 73
+    },
+    {
+      "playerId": 193622,
+      "name": "Lucas Bergvall",
+      "nameKor": "루카스 베리발",
+      "mainPosition": "MF",
+      "nationality": "Sweden",
+      "nationalityKor": "스웨덴",
+      "teamId": 73
+    },
+    {
+      "playerId": 187216,
+      "name": "Mateus Fernandes",
+      "nameKor": "마테우스 페르난데스",
+      "mainPosition": "MF",
+      "nationality": "Portugal",
+      "nationalityKor": "포르투갈",
+      "teamId": 73
+    },
+    {
+      "playerId": 2041,
+      "name": "Rodrigo Bentancur",
+      "nameKor": "로드리고 벤탄쿠르",
+      "mainPosition": "MF",
+      "nationality": "Uruguay",
+      "nationalityKor": "우루과이",
+      "teamId": 73
+    },
+    {
+      "playerId": 2563,
+      "name": "Sandro Tonali",
+      "nameKor": "산드로 토날리",
+      "mainPosition": "MF",
+      "nationality": "Italy",
+      "nationalityKor": "이탈리아",
+      "teamId": 73
+    },
+    {
+      "playerId": 148289,
+      "name": "Xavi Simons",
+      "nameKor": "사비 시몬스",
+      "mainPosition": "MF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 73
+    },
+    {
+      "playerId": 7878,
+      "name": "Dominic Solanke",
+      "nameKor": "도미닉 솔랑케",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 73
+    },
+    {
+      "playerId": 171977,
+      "name": "Mathys Tel",
+      "nameKor": "마티스 텔",
+      "mainPosition": "FW",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 73
+    },
+    {
+      "playerId": 77399,
+      "name": "Mohammed Kudus",
+      "nameKor": "모하메드 쿠두스",
+      "mainPosition": "FW",
+      "nationality": "Ghana",
+      "nationalityKor": "가나",
+      "teamId": 73
+    },
+    {
+      "playerId": 98978,
+      "name": "Mykhailo Mudryk",
+      "nameKor": "미하일로 무드릭",
+      "mainPosition": "FW",
+      "nationality": "Ukraine",
+      "nationalityKor": "우크라이나",
+      "teamId": 73
+    },
+    {
+      "playerId": 66896,
+      "name": "Omar Marmoush",
+      "nameKor": "오마르 마르무시",
+      "mainPosition": "FW",
+      "nationality": "Egypt",
+      "nationalityKor": "이집트",
+      "teamId": 73
+    },
+    {
+      "playerId": 8133,
+      "name": "Richarlison",
+      "nameKor": "히샬리송",
+      "mainPosition": "FW",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 73
+    },
+    {
+      "playerId": 146352,
+      "name": "Sávio",
+      "nameKor": "사비우",
+      "mainPosition": "FW",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 73
+    },
+    {
+      "playerId": 184999,
+      "name": "Wilson Odobert",
+      "nameKor": "윌송 오도베르",
+      "mainPosition": "FW",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 73
+    },
+    {
+      "playerId": 6300,
+      "name": "Dillon Phillips",
+      "nameKor": "딜런 필립스",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 322
+    },
+    {
+      "playerId": 3308,
+      "name": "Jack Butland",
+      "nameKor": "잭 버틀랜드",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 322
+    },
+    {
+      "playerId": 170812,
+      "name": "Konstantinos Tzolakis",
+      "nameKor": "콘스탄티노스 촐라키스",
+      "mainPosition": "GK",
+      "nationality": "Greece",
+      "nationalityKor": "그리스",
+      "teamId": 322
+    },
+    {
+      "playerId": 177169,
+      "name": "Brooke Norton-Cuffy",
+      "nameKor": "브룩 노턴커피",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 322
+    },
+    {
+      "playerId": 189278,
+      "name": "Charlie Hughes",
+      "nameKor": "찰리 휴즈",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 322
+    },
+    {
+      "playerId": 4425,
+      "name": "John Egan",
+      "nameKor": "존 이건",
+      "mainPosition": "DF",
+      "nationality": "Ireland",
+      "nationalityKor": "아일랜드",
+      "teamId": 322
+    },
+    {
+      "playerId": 5322,
+      "name": "Lewie Coyle",
+      "nameKor": "루이 코일",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 322
+    },
+    {
+      "playerId": 270733,
+      "name": "Lucas Herrington",
+      "nameKor": "루카스 헤링턴",
+      "mainPosition": "DF",
+      "nationality": "Australia",
+      "nationalityKor": "호주",
+      "teamId": 322
+    },
+    {
+      "playerId": 3962,
+      "name": "Matt Targett",
+      "nameKor": "맷 타겟",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 322
+    },
+    {
+      "playerId": 190558,
+      "name": "Nobel Mendy",
+      "nameKor": "노벨 멘디",
+      "mainPosition": "DF",
+      "nationality": "Senegal",
+      "nationalityKor": "세네갈",
+      "teamId": 322
+    },
+    {
+      "playerId": 4058,
+      "name": "Paddy McNair",
+      "nameKor": "패디 맥네어",
+      "mainPosition": "DF",
+      "nationality": "Northern Ireland",
+      "nationalityKor": "북아일랜드",
+      "teamId": 322
+    },
+    {
+      "playerId": 82148,
+      "name": "Ryan John Giles",
+      "nameKor": "라이언 질스",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 322
+    },
+    {
+      "playerId": 6451,
+      "name": "Semi Ajayi",
+      "nameKor": "세미 아자이",
+      "mainPosition": "DF",
+      "nationality": "Nigeria",
+      "nationalityKor": "나이지리아",
+      "teamId": 322
+    },
+    {
+      "playerId": 30298,
+      "name": "Abdülkadir Ömür",
+      "nameKor": "압뒤لك디르 외뮈르",
+      "mainPosition": "MF",
+      "nationality": "Turkey",
+      "nationalityKor": "튀르키예",
+      "teamId": 322
+    },
+    {
+      "playerId": 264301,
+      "name": "Christos Mouzakitis",
+      "nameKor": "크리스토스 무자키티스",
+      "mainPosition": "MF",
+      "nationality": "Greece",
+      "nationalityKor": "그리스",
+      "teamId": 322
+    },
+    {
+      "playerId": 184963,
+      "name": "Darko Gyabi",
+      "nameKor": "다르코 갸비",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 322
+    },
+    {
+      "playerId": 147914,
+      "name": "Eliot Matazo",
+      "nameKor": "엘리오 마타조",
+      "mainPosition": "MF",
+      "nationality": "Belgium",
+      "nationalityKor": "벨기에",
+      "teamId": 322
+    },
+    {
+      "playerId": 49092,
+      "name": "Hidemasa Morita",
+      "nameKor": "모리타 히데마사",
+      "mainPosition": "MF",
+      "nationality": "Japan",
+      "nationalityKor": "일본",
+      "teamId": 322
+    },
+    {
+      "playerId": 193627,
+      "name": "Jens Hjertö-Dahl",
+      "nameKor": "옌스 예르퇴달",
+      "mainPosition": "MF",
+      "nationality": "Norway",
+      "nationalityKor": "노르웨이",
+      "teamId": 322
+    },
+    {
+      "playerId": 11306,
+      "name": "Kieran Dowell",
+      "nameKor": "키어런 다웰",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 322
+    },
+    {
+      "playerId": 179603,
+      "name": "Lucas Gourna-Douath",
+      "nameKor": "루카스 구르나두아트",
+      "mainPosition": "MF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 322
+    },
+    {
+      "playerId": 6357,
+      "name": "Matty Crooks",
+      "nameKor": "매티 크룩스",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 322
+    },
+    {
+      "playerId": 4309,
+      "name": "Regan Slater",
+      "nameKor": "리건 슬레이터",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 322
+    },
+    {
+      "playerId": 169326,
+      "name": "Tim Iroegbunam",
+      "nameKor": "팀 이로그분암",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 322
+    },
+    {
+      "playerId": 230388,
+      "name": "Óscar Zambrano",
+      "nameKor": "오스카르 삼브라노",
+      "mainPosition": "MF",
+      "nationality": "Ecuador",
+      "nationalityKor": "에콰도르",
+      "teamId": 322
+    },
+    {
+      "playerId": 170777,
+      "name": "David Akintola",
+      "nameKor": "데이비드 아킨톨라",
+      "mainPosition": "FW",
+      "nationality": "Nigeria",
+      "nationalityKor": "나이지리아",
+      "teamId": 322
+    },
+    {
+      "playerId": 192811,
+      "name": "Elliot Stroud",
+      "nameKor": "엘리엇 스트라우드",
+      "mainPosition": "FW",
+      "nationality": "Sweden",
+      "nationalityKor": "스웨덴",
+      "teamId": 322
+    },
+    {
+      "playerId": 211740,
+      "name": "Ilyas Ansah",
+      "nameKor": "일리야스 안사",
+      "mainPosition": "FW",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 322
+    },
+    {
+      "playerId": 80761,
+      "name": "Joe Gelhardt",
+      "nameKor": "조 겔하르트",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 322
+    },
+    {
+      "playerId": 110807,
+      "name": "Liam Millar",
+      "nameKor": "리암 밀러",
+      "mainPosition": "FW",
+      "nationality": "Canada",
+      "nationalityKor": "캐나다",
+      "teamId": 322
+    },
+    {
+      "playerId": 149129,
+      "name": "Mohamed Ali Cho",
+      "nameKor": "모하메드 알리 초",
+      "mainPosition": "FW",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 322
+    },
+    {
+      "playerId": 213072,
+      "name": "Mohamed Belloumi",
+      "nameKor": "모하메드 벨루미",
+      "mainPosition": "FW",
+      "nationality": "Algeria",
+      "nationalityKor": "알제리",
+      "teamId": 322
+    },
+    {
+      "playerId": 4359,
+      "name": "Oliver McBurnie",
+      "nameKor": "올리버 맥버니",
+      "mainPosition": "FW",
+      "nationality": "Scotland",
+      "nationalityKor": "스코틀랜드",
+      "teamId": 322
+    },
+    {
+      "playerId": 213033,
+      "name": "Robinio Vaz",
+      "nameKor": "로비뇨 바스",
+      "mainPosition": "FW",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 322
+    },
+    {
+      "playerId": 26444,
+      "name": "Sorba Thomas",
+      "nameKor": "소르바 토마스",
+      "mainPosition": "FW",
+      "nationality": "Wales",
+      "nationalityKor": "웨일스",
+      "teamId": 322
+    },
+    {
+      "playerId": 5315,
+      "name": "Alex Cairns",
+      "nameKor": "알렉스 케언스",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 341
+    },
+    {
+      "playerId": 153874,
+      "name": "James Trafford",
+      "nameKor": "제임스 트래포드",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 341
+    },
+    {
+      "playerId": 9438,
+      "name": "Michael Zetterer",
+      "nameKor": "미하엘 체터러",
+      "mainPosition": "GK",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 341
+    },
+    {
+      "playerId": 31531,
+      "name": "Gabriel Gudmundsson",
+      "nameKor": "가브리엘 구드문드손",
+      "mainPosition": "DF",
+      "nationality": "Sweden",
+      "nationalityKor": "스웨덴",
+      "teamId": 341
+    },
+    {
+      "playerId": 74688,
+      "name": "Jaka Bijol",
+      "nameKor": "야카 비욜",
+      "mainPosition": "DF",
+      "nationality": "Slovenia",
+      "nationalityKor": "슬로베니아",
+      "teamId": 341
+    },
+    {
+      "playerId": 5613,
+      "name": "James Justin",
+      "nameKor": "제임스 저스틴",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 341
+    },
+    {
+      "playerId": 4184,
+      "name": "Jayden Bogle",
+      "nameKor": "제이든 보글",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 341
+    },
+    {
+      "playerId": 5714,
+      "name": "Joe Rodon",
+      "nameKor": "조 로든",
+      "mainPosition": "DF",
+      "nationality": "Wales",
+      "nationalityKor": "웨일스",
+      "teamId": 341
+    },
+    {
+      "playerId": 136721,
+      "name": "Melvin Bard",
+      "nameKor": "멜뱅 바르",
+      "mainPosition": "DF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 341
+    },
+    {
+      "playerId": 3475,
+      "name": "Nico Elvedi",
+      "nameKor": "니코 엘베디",
+      "mainPosition": "DF",
+      "nationality": "Switzerland",
+      "nationalityKor": "스위스",
+      "teamId": 341
+    },
+    {
+      "playerId": 189153,
+      "name": "Tarik Muharemović",
+      "nameKor": "타릭 무하레모비치",
+      "mainPosition": "DF",
+      "nationality": "Bosnia-Herzegovina",
+      "nationalityKor": "보스니아 헤르체고비나",
+      "teamId": 341
+    },
+    {
+      "playerId": 65843,
+      "name": "Anton Stach",
+      "nameKor": "안톤 슈타흐",
+      "mainPosition": "MF",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 341
+    },
+    {
+      "playerId": 49105,
+      "name": "Ao Tanaka",
+      "nameKor": "다나카 아오",
+      "mainPosition": "MF",
+      "nationality": "Japan",
+      "nationalityKor": "일본",
+      "teamId": 341
+    },
+    {
+      "playerId": 113262,
+      "name": "Brenden Aaronson",
+      "nameKor": "브렌든 애런슨",
+      "mainPosition": "MF",
+      "nationality": "USA",
+      "nationalityKor": "미국",
+      "teamId": 341
+    },
+    {
+      "playerId": 7815,
+      "name": "Ethan Ampadu",
+      "nameKor": "이선 암파두",
+      "mainPosition": "MF",
+      "nationality": "Wales",
+      "nationalityKor": "웨일스",
+      "teamId": 341
+    },
+    {
+      "playerId": 75284,
+      "name": "Ilia Gruev",
+      "nameKor": "일리야 그루에프",
+      "mainPosition": "MF",
+      "nationality": "Bulgaria",
+      "nationalityKor": "불가리아",
+      "teamId": 341
+    },
+    {
+      "playerId": 4955,
+      "name": "Sean Longstaff",
+      "nameKor": "숀 롱스태프",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 341
+    },
+    {
+      "playerId": 7974,
+      "name": "Daniel James",
+      "nameKor": "다니엘 제임스",
+      "mainPosition": "FW",
+      "nationality": "Wales",
+      "nationalityKor": "웨일스",
+      "teamId": 341
+    },
+    {
+      "playerId": 7839,
+      "name": "Dominic Calvert-Lewin",
+      "nameKor": "도미닉 칼버트르윈",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 341
+    },
+    {
+      "playerId": 11777,
+      "name": "Harry Wilson",
+      "nameKor": "해리 윌슨",
+      "mainPosition": "FW",
+      "nationality": "Wales",
+      "nationalityKor": "웨일스",
+      "teamId": 341
+    },
+    {
+      "playerId": 185882,
+      "name": "Jean Bahoya",
+      "nameKor": "장 바호야",
+      "mainPosition": "FW",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 341
+    },
+    {
+      "playerId": 7892,
+      "name": "Lukas Nmecha",
+      "nameKor": "루카스 은메차",
+      "mainPosition": "FW",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 341
+    },
+    {
+      "playerId": 185178,
+      "name": "Mateo Fernandez",
+      "nameKor": "마테오 페르난데스",
+      "mainPosition": "FW",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 341
+    },
+    {
+      "playerId": 16058,
+      "name": "Noah Okafor",
+      "nameKor": "노아 오카포르",
+      "mainPosition": "FW",
+      "nationality": "Switzerland",
+      "nationalityKor": "스위스",
+      "teamId": 341
+    },
+    {
+      "playerId": 8011,
+      "name": "Alex Palmer",
+      "nameKor": "알렉스 팔머",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 349
+    },
+    {
+      "playerId": 4867,
+      "name": "Christian Walton",
+      "nameKor": "크리스천 월턴",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 349
+    },
+    {
+      "playerId": 3954,
+      "name": "David Button",
+      "nameKor": "데이비드 버튼",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 349
+    },
+    {
+      "playerId": 9814,
+      "name": "Kjell Scherpen",
+      "nameKor": "키엘 스헤르펀",
+      "mainPosition": "GK",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 349
+    },
+    {
+      "playerId": 270889,
+      "name": "Abdoul Ouattara",
+      "nameKor": "압둘 와타라",
+      "mainPosition": "DF",
+      "nationality": "Ivory Coast",
+      "nationalityKor": "코트디부아르",
+      "teamId": 349
+    },
+    {
+      "playerId": 34871,
+      "name": "Cédric Kipré",
+      "nameKor": "세드릭 키프레",
+      "mainPosition": "DF",
+      "nationality": "Ivory Coast",
+      "nationalityKor": "코트디부아르",
+      "teamId": 349
+    },
+    {
+      "playerId": 25650,
+      "name": "Dara O'Shea",
+      "nameKor": "다라 오셰아",
+      "mainPosition": "DF",
+      "nationality": "Ireland",
+      "nationalityKor": "아일랜드",
+      "teamId": 349
+    },
+    {
+      "playerId": 4017,
+      "name": "Darnell Furlong",
+      "nameKor": "다넬 퍼롱",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 349
+    },
+    {
+      "playerId": 8296,
+      "name": "Issa Diop",
+      "nameKor": "이사 디오프",
+      "mainPosition": "DF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 349
+    },
+    {
+      "playerId": 125651,
+      "name": "Jacob Greaves",
+      "nameKor": "제이콥 그레이브스",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 349
+    },
+    {
+      "playerId": 99120,
+      "name": "Leif Davis",
+      "nameKor": "레이프 데이비스",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 349
+    },
+    {
+      "playerId": 152437,
+      "name": "Anis Mehmeti",
+      "nameKor": "아니스 메흐메티",
+      "mainPosition": "MF",
+      "nationality": "Albania",
+      "nationalityKor": "알바니아",
+      "teamId": 349
+    },
+    {
+      "playerId": 7566,
+      "name": "Azor Matusiwa",
+      "nameKor": "아조르 마투시바",
+      "mainPosition": "MF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 349
+    },
+    {
+      "playerId": 11720,
+      "name": "Exequiel Palacios",
+      "nameKor": "에세키엘 팔라시오스",
+      "mainPosition": "MF",
+      "nationality": "Argentina",
+      "nationalityKor": "아르헨티나",
+      "teamId": 349
+    },
+    {
+      "playerId": 37560,
+      "name": "Florentino",
+      "nameKor": "플로렌티누",
+      "mainPosition": "MF",
+      "nationality": "Portugal",
+      "nationalityKor": "포르투갈",
+      "teamId": 349
+    },
+    {
+      "playerId": 5999,
+      "name": "Jack Taylor",
+      "nameKor": "잭 테일러",
+      "mainPosition": "MF",
+      "nationality": "Ireland",
+      "nationalityKor": "아일랜드",
+      "teamId": 349
+    },
+    {
+      "playerId": 168949,
+      "name": "Julio Enciso",
+      "nameKor": "훌리오 엔시소",
+      "mainPosition": "MF",
+      "nationality": "Paraguay",
+      "nationalityKor": "파라과이",
+      "teamId": 349
+    },
+    {
+      "playerId": 176777,
+      "name": "Kasey McAteer",
+      "nameKor": "케이시 매커티어",
+      "mainPosition": "MF",
+      "nationality": "Ireland",
+      "nationalityKor": "아일랜드",
+      "teamId": 349
+    },
+    {
+      "playerId": 140245,
+      "name": "Marcelino Núñez",
+      "nameKor": "마르셀리노 누녜스",
+      "mainPosition": "MF",
+      "nationality": "Chile",
+      "nationalityKor": "칠레",
+      "teamId": 349
+    },
+    {
+      "playerId": 32938,
+      "name": "Saša Lukić",
+      "nameKor": "사샤 루키치",
+      "mainPosition": "MF",
+      "nationality": "Serbia",
+      "nationalityKor": "세르비아",
+      "teamId": 349
+    },
+    {
+      "playerId": 187162,
+      "name": "Abdul Issahaku",
+      "nameKor": "압둘 이사하쿠",
+      "mainPosition": "FW",
+      "nationality": "Ghana",
+      "nationalityKor": "가나",
+      "teamId": 349
+    },
+    {
+      "playerId": 9053,
+      "name": "Chuba Akpom",
+      "nameKor": "추바 아크폼",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 349
+    },
+    {
+      "playerId": 44017,
+      "name": "Daizen Maeda",
+      "nameKor": "마에다 다이젠",
+      "mainPosition": "FW",
+      "nationality": "Japan",
+      "nationalityKor": "일본",
+      "teamId": 349
+    },
+    {
+      "playerId": 176628,
+      "name": "Emersonn",
+      "nameKor": "에메르송",
+      "mainPosition": "FW",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 349
+    },
+    {
+      "playerId": 4158,
+      "name": "Jack Clarke",
+      "nameKor": "잭 클라크",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 349
+    },
+    {
+      "playerId": 172632,
+      "name": "Jaden Philogene-Bidace",
+      "nameKor": "제이든 필로진비더스",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 349
+    },
+    {
+      "playerId": 230057,
+      "name": "Sindre Egeli",
+      "nameKor": "신드레 에겔리",
+      "mainPosition": "FW",
+      "nationality": "Norway",
+      "nationalityKor": "노르웨이",
+      "teamId": 349
+    },
+    {
+      "playerId": 67893,
+      "name": "Zian Flemming",
+      "nameKor": "지안 플레밍",
+      "mainPosition": "FW",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 349
+    },
+    {
+      "playerId": 1299,
+      "name": "John",
+      "nameKor": "존",
+      "mainPosition": "GK",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 351
+    },
+    {
+      "playerId": 3643,
+      "name": "Matz Sels",
+      "nameKor": "마츠 셀스",
+      "mainPosition": "GK",
+      "nationality": "Belgium",
+      "nationalityKor": "벨기에",
+      "teamId": 351
+    },
+    {
+      "playerId": 81055,
+      "name": "Steven Benda",
+      "nameKor": "슈테펜 벤다",
+      "mainPosition": "GK",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 351
+    },
+    {
+      "playerId": 22010,
+      "name": "Daniel Muñoz",
+      "nameKor": "다니엘 무뇨스",
+      "mainPosition": "DF",
+      "nationality": "Colombia",
+      "nationalityKor": "콜롬비아",
+      "teamId": 351
+    },
+    {
+      "playerId": 179782,
+      "name": "Jair Paula",
+      "nameKor": "자이르 파울라",
+      "mainPosition": "DF",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 351
+    },
+    {
+      "playerId": 144361,
+      "name": "Luca Netz",
+      "nameKor": "루카 네츠",
+      "mainPosition": "DF",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 351
+    },
+    {
+      "playerId": 192637,
+      "name": "Murillo",
+      "nameKor": "무리요",
+      "mainPosition": "DF",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 351
+    },
+    {
+      "playerId": 133765,
+      "name": "Neco Williams",
+      "nameKor": "네코 윌리엄스",
+      "mainPosition": "DF",
+      "nationality": "Wales",
+      "nationalityKor": "웨일스",
+      "teamId": 351
+    },
+    {
+      "playerId": 191730,
+      "name": "Nicolò Savona",
+      "nameKor": "니콜로 사보나",
+      "mainPosition": "DF",
+      "nationality": "Italy",
+      "nationalityKor": "이탈리아",
+      "teamId": 351
+    },
+    {
+      "playerId": 1775,
+      "name": "Nikola Milenković",
+      "nameKor": "니콜라 밀렌코비치",
+      "mainPosition": "DF",
+      "nationality": "Serbia",
+      "nationalityKor": "세르비아",
+      "teamId": 351
+    },
+    {
+      "playerId": 3386,
+      "name": "Ola Aina",
+      "nameKor": "올라 아이나",
+      "mainPosition": "DF",
+      "nationality": "Nigeria",
+      "nationalityKor": "나이지리아",
+      "teamId": 351
+    },
+    {
+      "playerId": 184747,
+      "name": "Ousmane Diomande",
+      "nameKor": "우스만 디오망데",
+      "mainPosition": "DF",
+      "nationality": "Cote d'Ivoire",
+      "nationalityKor": "코트디부아르",
+      "teamId": 351
+    },
+    {
+      "playerId": 8307,
+      "name": "Ibrahim Sangaré",
+      "nameKor": "이브라힘 상가레",
+      "mainPosition": "MF",
+      "nationality": "Ivory Coast",
+      "nationalityKor": "코트디부아르",
+      "teamId": 351
+    },
+    {
+      "playerId": 172956,
+      "name": "James McAtee",
+      "nameKor": "제임스 매카티",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 351
+    },
+    {
+      "playerId": 4091,
+      "name": "Morgan Gibbs-White",
+      "nameKor": "모건 깁스화이트",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 351
+    },
+    {
+      "playerId": 46346,
+      "name": "Nicolás Domínguez",
+      "nameKor": "니콜라스 도밍게스",
+      "mainPosition": "MF",
+      "nationality": "Argentina",
+      "nationalityKor": "아르헨티나",
+      "teamId": 351
+    },
+    {
+      "playerId": 5435,
+      "name": "Ryan Yates",
+      "nameKor": "라이언 예이츠",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 351
+    },
+    {
+      "playerId": 16344,
+      "name": "Xaver Schlager",
+      "nameKor": "자버 슐라거",
+      "mainPosition": "MF",
+      "nationality": "Austria",
+      "nationalityKor": "오스트리아",
+      "teamId": 351
+    },
+    {
+      "playerId": 130668,
+      "name": "Arnaud Kalimuendo",
+      "nameKor": "아르노 칼리무엔도",
+      "mainPosition": "FW",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 351
+    },
+    {
+      "playerId": 7816,
+      "name": "Callum Hudson-Odoi",
+      "nameKor": "칼럼 허드슨오도이",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 351
+    },
+    {
+      "playerId": 8057,
+      "name": "Chris Wood",
+      "nameKor": "크리스 우드",
+      "mainPosition": "FW",
+      "nationality": "New Zealand",
+      "nationalityKor": "뉴질랜드",
+      "teamId": 351
+    },
+    {
+      "playerId": 77641,
+      "name": "Dan Ndoye",
+      "nameKor": "단 은도예",
+      "mainPosition": "FW",
+      "nationality": "Switzerland",
+      "nationalityKor": "스위스",
+      "teamId": 351
+    },
+    {
+      "playerId": 256339,
+      "name": "Igor Jesus",
+      "nameKor": "이고르 제주스",
+      "mainPosition": "FW",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 351
+    },
+    {
+      "playerId": 151095,
+      "name": "Liam Delap",
+      "nameKor": "리암 딜랩",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 351
+    },
+    {
+      "playerId": 5457,
+      "name": "Dean Henderson",
+      "nameKor": "딘 헨더슨",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 354
+    },
+    {
+      "playerId": 6413,
+      "name": "Remi Matthews",
+      "nameKor": "레미 매튜스",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 354
+    },
+    {
+      "playerId": 8420,
+      "name": "Walter Benítez",
+      "nameKor": "발테르 베니테스",
+      "mainPosition": "GK",
+      "nationality": "Argentina",
+      "nationalityKor": "아르헨티나",
+      "teamId": 354
+    },
+    {
+      "playerId": 213425,
+      "name": "Anan Khalaili",
+      "nameKor": "아난 칼라일리",
+      "mainPosition": "DF",
+      "nationality": "Israel",
+      "nationalityKor": "이스라엘",
+      "teamId": 354
+    },
+    {
+      "playerId": 813,
+      "name": "Axel Disasi",
+      "nameKor": "악셀 디사시",
+      "mainPosition": "DF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 354
+    },
+    {
+      "playerId": 8065,
+      "name": "Ben Chilwell",
+      "nameKor": "벤 칠웰",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 354
+    },
+    {
+      "playerId": 150948,
+      "name": "Chadi Riad",
+      "nameKor": "차디 리아드",
+      "mainPosition": "DF",
+      "nationality": "Morocco",
+      "nationalityKor": "모로코",
+      "teamId": 354
+    },
+    {
+      "playerId": 99856,
+      "name": "Chris Richards",
+      "nameKor": "크리스 리처즈",
+      "mainPosition": "DF",
+      "nationality": "USA",
+      "nationalityKor": "미국",
+      "teamId": 354
+    },
+    {
+      "playerId": 263661,
+      "name": "Honest Ahanor",
+      "nameKor": "오네스트 아하노르",
+      "mainPosition": "DF",
+      "nationality": "Italy",
+      "nationalityKor": "이탈리아",
+      "teamId": 354
+    },
+    {
+      "playerId": 260271,
+      "name": "Jaydee Canvot",
+      "nameKor": "제이디 칸보",
+      "mainPosition": "DF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 354
+    },
+    {
+      "playerId": 9034,
+      "name": "Takehiro Tomiyasu",
+      "nameKor": "도미야스 다케히로",
+      "mainPosition": "DF",
+      "nationality": "Japan",
+      "nationalityKor": "일본",
+      "teamId": 354
+    },
+    {
+      "playerId": 137068,
+      "name": "Tyrick Mitchell",
+      "nameKor": "타이릭 미첼",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 354
+    },
+    {
+      "playerId": 146986,
+      "name": "Óscar Mingueza",
+      "nameKor": "오스카르 밍게사",
+      "mainPosition": "DF",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 354
+    },
+    {
+      "playerId": 191396,
+      "name": "Adam Wharton",
+      "nameKor": "아담 와튼",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 354
+    },
+    {
+      "playerId": 74677,
+      "name": "Cheick Doucouré",
+      "nameKor": "셰이크 두쿠레",
+      "mainPosition": "MF",
+      "nationality": "Mali",
+      "nationalityKor": "말리",
+      "teamId": 354
+    },
+    {
+      "playerId": 6716,
+      "name": "Daichi Kamada",
+      "nameKor": "가마다 다이치",
+      "mainPosition": "MF",
+      "nationality": "Japan",
+      "nationalityKor": "일본",
+      "teamId": 354
+    },
+    {
+      "playerId": 3737,
+      "name": "Jefferson Lerma",
+      "nameKor": "제퍼슨 레르마",
+      "mainPosition": "MF",
+      "nationality": "Colombia",
+      "nationalityKor": "콜롬비아",
+      "teamId": 354
+    },
+    {
+      "playerId": 97536,
+      "name": "Quinten Timber",
+      "nameKor": "퀀틴 팀버",
+      "mainPosition": "MF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 354
+    },
+    {
+      "playerId": 8124,
+      "name": "Will Hughes",
+      "nameKor": "윌 휴즈",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 354
+    },
+    {
+      "playerId": 179319,
+      "name": "Darío Osorio",
+      "nameKor": "다리오 오소리오",
+      "mainPosition": "FW",
+      "nationality": "Chile",
+      "nationalityKor": "칠레",
+      "teamId": 354
+    },
+    {
+      "playerId": 11623,
+      "name": "Dwight McNeil",
+      "nameKor": "드와이트 맥닐",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 354
+    },
+    {
+      "playerId": 7800,
+      "name": "Eddie Nketiah",
+      "nameKor": "에디 은케티아",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 354
+    },
+    {
+      "playerId": 128710,
+      "name": "Evann Guessand",
+      "nameKor": "에반 게상",
+      "mainPosition": "FW",
+      "nationality": "Ivory Coast",
+      "nationalityKor": "코트디부아르",
+      "teamId": 354
+    },
+    {
+      "playerId": 3638,
+      "name": "Ismaïla Sarr",
+      "nameKor": "이스마일라 사르",
+      "mainPosition": "FW",
+      "nationality": "Senegal",
+      "nationalityKor": "세네갈",
+      "teamId": 354
+    },
+    {
+      "playerId": 641,
+      "name": "Jean-Philippe Mateta",
+      "nameKor": "장필립 마테타",
+      "mainPosition": "FW",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 354
+    },
+    {
+      "playerId": 179712,
+      "name": "Jesurun Rak-Sakyi",
+      "nameKor": "제수룬 락사키",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 354
+    },
+    {
+      "playerId": 213269,
+      "name": "Jørgen Strand Larsen",
+      "nameKor": "외르겐 스트란드 라르센",
+      "mainPosition": "FW",
+      "nationality": "Norway",
+      "nationalityKor": "노르웨이",
+      "teamId": 354
+    },
+    {
+      "playerId": 176241,
+      "name": "Matheus Franca",
+      "nameKor": "마테우스 프랑사",
+      "mainPosition": "FW",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 354
+    },
+    {
+      "playerId": 152505,
+      "name": "Yeremi Pino",
+      "nameKor": "예레미 피노",
+      "mainPosition": "FW",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 354
+    },
+    {
+      "playerId": 224618,
+      "name": "Zavier Gozo",
+      "nameKor": "자비에르고조",
+      "mainPosition": "FW",
+      "nationality": "USA",
+      "nationalityKor": "미국",
+      "teamId": 354
+    },
+    {
+      "playerId": 126870,
+      "name": "Bart Verbruggen",
+      "nameKor": "바르트 페르뷔르헌",
+      "mainPosition": "GK",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 397
+    },
+    {
+      "playerId": 4040,
+      "name": "Jason Steele",
+      "nameKor": "제이슨 스틸",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 397
+    },
+    {
+      "playerId": 140203,
+      "name": "Thomas McGill",
+      "nameKor": "토마스 맥길",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 397
+    },
+    {
+      "playerId": 185116,
+      "name": "Costinha",
+      "nameKor": "코스티냐",
+      "mainPosition": "DF",
+      "nationality": "Portugal",
+      "nationalityKor": "포르투갈",
+      "teamId": 397
+    },
+    {
+      "playerId": 9869,
+      "name": "Ferdi Kadıoğlu",
+      "nameKor": "페르디 카디오글루",
+      "mainPosition": "DF",
+      "nationality": "Turkey",
+      "nationalityKor": "터키",
+      "teamId": 397
+    },
+    {
+      "playerId": 147891,
+      "name": "Jaouen Hadjam",
+      "nameKor": "자우엔 하자엠",
+      "mainPosition": "DF",
+      "nationality": "Algeria",
+      "nationalityKor": "알제리",
+      "teamId": 397
+    },
+    {
+      "playerId": 8259,
+      "name": "Lewis Dunk",
+      "nameKor": "루이스 덩크",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 397
+    },
+    {
+      "playerId": 216835,
+      "name": "Luka Vušković",
+      "nameKor": "루카 부슈코비치",
+      "mainPosition": "DF",
+      "nationality": "Croatia",
+      "nationalityKor": "크로아티아",
+      "teamId": 397
+    },
+    {
+      "playerId": 97505,
+      "name": "Mats Wieffer",
+      "nameKor": "마츠 위퍼",
+      "mainPosition": "DF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 397
+    },
+    {
+      "playerId": 142075,
+      "name": "Maxim De Cuyper",
+      "nameKor": "막심 더 카위퍼",
+      "mainPosition": "DF",
+      "nationality": "Belgium",
+      "nationalityKor": "벨기에",
+      "teamId": 397
+    },
+    {
+      "playerId": 61968,
+      "name": "Michael Svoboda",
+      "nameKor": "미하엘 스보보다",
+      "mainPosition": "DF",
+      "nationality": "Austria",
+      "nationalityKor": "오스트리아",
+      "teamId": 397
+    },
+    {
+      "playerId": 846,
+      "name": "Olivier Boscagli",
+      "nameKor": "올리비에 보스카글리",
+      "mainPosition": "DF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 397
+    },
+    {
+      "playerId": 4146,
+      "name": "Pascal Struijk",
+      "nameKor": "파스칼 스트루이크",
+      "mainPosition": "DF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 397
+    },
+    {
+      "playerId": 270273,
+      "name": "Chema Andrés",
+      "nameKor": "체마 안드레스",
+      "mainPosition": "MF",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 397
+    },
+    {
+      "playerId": 178951,
+      "name": "Diego Gómez",
+      "nameKor": "디에고 고메스",
+      "mainPosition": "MF",
+      "nationality": "Paraguay",
+      "nationalityKor": "파라과이",
+      "teamId": 397
+    },
+    {
+      "playerId": 29319,
+      "name": "Femi Azeez",
+      "nameKor": "페미 아제즈",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 397
+    },
+    {
+      "playerId": 190851,
+      "name": "Jack Hinshelwood",
+      "nameKor": "잭 힌슐우드",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 397
+    },
+    {
+      "playerId": 246670,
+      "name": "Malick Yalcouyé",
+      "nameKor": "말릭 얄쿠예",
+      "mainPosition": "MF",
+      "nationality": "Mali",
+      "nationalityKor": "말리",
+      "teamId": 397
+    },
+    {
+      "playerId": 3974,
+      "name": "Matt O'Riley",
+      "nameKor": "맷 오라일리",
+      "mainPosition": "MF",
+      "nationality": "Denmark",
+      "nationalityKor": "덴마크",
+      "teamId": 397
+    },
+    {
+      "playerId": 8273,
+      "name": "Pascal Groß",
+      "nameKor": "파스칼 그로스",
+      "mainPosition": "MF",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 397
+    },
+    {
+      "playerId": 145613,
+      "name": "Yasin Ayari",
+      "nameKor": "야신 아야리",
+      "mainPosition": "MF",
+      "nationality": "Sweden",
+      "nationalityKor": "스웨덴",
+      "teamId": 397
+    },
+    {
+      "playerId": 301031,
+      "name": "Younes Ibrahim",
+      "nameKor": "유네스 이브라힘",
+      "mainPosition": "MF",
+      "nationality": "Australia",
+      "nationalityKor": "호주",
+      "teamId": 397
+    },
+    {
+      "playerId": 264300,
+      "name": "Charalampos Kostoulas",
+      "nameKor": "할랄람보스 코스툴라스",
+      "mainPosition": "FW",
+      "nationality": "Greece",
+      "nationalityKor": "그리스",
+      "teamId": 397
+    },
+    {
+      "playerId": 130809,
+      "name": "Evan Ferguson",
+      "nameKor": "에번 퍼거슨",
+      "mainPosition": "FW",
+      "nationality": "Ireland",
+      "nationalityKor": "아일랜드",
+      "teamId": 397
+    },
+    {
+      "playerId": 81189,
+      "name": "Georginio Rutter",
+      "nameKor": "조르지니오 뤼터",
+      "mainPosition": "FW",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 397
+    },
+    {
+      "playerId": 205531,
+      "name": "Ibrahim Osman",
+      "nameKor": "이브라힘 오스만",
+      "mainPosition": "FW",
+      "nationality": "Ghana",
+      "nationalityKor": "가나",
+      "teamId": 397
+    },
+    {
+      "playerId": 132707,
+      "name": "Kaoru Mitoma",
+      "nameKor": "미토마 가오루",
+      "mainPosition": "FW",
+      "nationality": "Japan",
+      "nationalityKor": "일본",
+      "teamId": 397
+    },
+    {
+      "playerId": 260992,
+      "name": "Promise Akinpelu",
+      "nameKor": "프로미스 아킨펠루",
+      "mainPosition": "FW",
+      "nationality": "Canada",
+      "nationalityKor": "캐나다",
+      "teamId": 397
+    },
+    {
+      "playerId": 209504,
+      "name": "Stefanos Tzimas",
+      "nameKor": "스테파노스 찌마스",
+      "mainPosition": "FW",
+      "nationality": "Greece",
+      "nationalityKor": "그리스",
+      "teamId": 397
+    },
+    {
+      "playerId": 187482,
+      "name": "Yankubah Minteh",
+      "nameKor": "얀쿠바 민테",
+      "mainPosition": "FW",
+      "nationality": "Gambia",
+      "nationalityKor": "감비아",
+      "teamId": 397
+    },
+    {
+      "playerId": 279784,
+      "name": "Zadok Yohanna",
+      "nameKor": "자독 요하나",
+      "mainPosition": "FW",
+      "nationality": "Nigeria",
+      "nationalityKor": "나이지리아",
+      "teamId": 397
+    },
+    {
+      "playerId": 102046,
+      "name": "Caoimhin Kelleher",
+      "nameKor": "커머스 켈러허",
+      "mainPosition": "GK",
+      "nationality": "Ireland",
+      "nationalityKor": "아일랜드",
+      "teamId": 402
+    },
+    {
+      "playerId": 4419,
+      "name": "Ellery Balcombe",
+      "nameKor": "엘러리 벌컴",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 402
+    },
+    {
+      "playerId": 144530,
+      "name": "Hákon Rafn Valdimarsson",
+      "nameKor": "하콘 라픈 발디마르손",
+      "mainPosition": "GK",
+      "nationality": "Iceland",
+      "nationalityKor": "아이슬란드",
+      "teamId": 402
+    },
+    {
+      "playerId": 101111,
+      "name": "Aaron Hickey",
+      "nameKor": "아론 히키",
+      "mainPosition": "DF",
+      "nationality": "Scotland",
+      "nationalityKor": "스코틀랜드",
+      "teamId": 402
+    },
+    {
+      "playerId": 245364,
+      "name": "Benjamin Fredrick",
+      "nameKor": "벤자민 프레드릭",
+      "mainPosition": "DF",
+      "nationality": "Nigeria",
+      "nationalityKor": "나이지리아",
+      "teamId": 402
+    },
+    {
+      "playerId": 193633,
+      "name": "El Hadji Malick Diouf",
+      "nameKor": "엘 하지 말릭 디우프",
+      "mainPosition": "DF",
+      "nationality": "Senegal",
+      "nationalityKor": "세네갈",
+      "teamId": 402
+    },
+    {
+      "playerId": 227064,
+      "name": "Jannik Schuster",
+      "nameKor": "야닉 슈스터",
+      "mainPosition": "DF",
+      "nationality": "Austria",
+      "nationalityKor": "오스트리아",
+      "teamId": 402
+    },
+    {
+      "playerId": 221783,
+      "name": "Ji-soo Kim",
+      "nameKor": "김지수",
+      "mainPosition": "DF",
+      "nationality": "South Korea",
+      "nationalityKor": "대한민국",
+      "teamId": 402
+    },
+    {
+      "playerId": 16068,
+      "name": "Kristoffer Ajer",
+      "nameKor": "크리스토페르 아예르",
+      "mainPosition": "DF",
+      "nationality": "Norway",
+      "nationalityKor": "노르웨이",
+      "teamId": 402
+    },
+    {
+      "playerId": 204348,
+      "name": "Michael Kayode",
+      "nameKor": "마이클 카요데",
+      "mainPosition": "DF",
+      "nationality": "Italy",
+      "nationalityKor": "이탈리아",
+      "teamId": 402
+    },
+    {
+      "playerId": 115642,
+      "name": "Nathan Collins",
+      "nameKor": "네이선 콜린스",
+      "mainPosition": "DF",
+      "nationality": "Ireland",
+      "nationalityKor": "아일랜드",
+      "teamId": 402
+    },
+    {
+      "playerId": 4426,
+      "name": "Rico Henry",
+      "nameKor": "리코 헨리",
+      "mainPosition": "DF",
+      "nationality": "Jamaica",
+      "nationalityKor": "자메이카",
+      "teamId": 402
+    },
+    {
+      "playerId": 7720,
+      "name": "Sepp van den Berg",
+      "nameKor": "제프 판 덴 베르흐",
+      "mainPosition": "DF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 402
+    },
+    {
+      "playerId": 171965,
+      "name": "Antoni Milambo",
+      "nameKor": "안토니 밀람보",
+      "mainPosition": "MF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 402
+    },
+    {
+      "playerId": 151119,
+      "name": "Fabio Carvalho",
+      "nameKor": "파비우 카르발류",
+      "mainPosition": "MF",
+      "nationality": "Portugal",
+      "nationalityKor": "포르투갈",
+      "teamId": 402
+    },
+    {
+      "playerId": 7796,
+      "name": "Josh Dasilva",
+      "nameKor": "조시 다시바",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 402
+    },
+    {
+      "playerId": 101910,
+      "name": "Keane Lewis-Potter",
+      "nameKor": "킨 루이스포터",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 402
+    },
+    {
+      "playerId": 150964,
+      "name": "Mamadou Sangare",
+      "nameKor": "마마두 상가레",
+      "mainPosition": "MF",
+      "nationality": "Mali",
+      "nationalityKor": "말리",
+      "teamId": 402
+    },
+    {
+      "playerId": 10194,
+      "name": "Mathias Jensen",
+      "nameKor": "마티아스 옌센",
+      "mainPosition": "MF",
+      "nationality": "Denmark",
+      "nationalityKor": "덴마크",
+      "teamId": 402
+    },
+    {
+      "playerId": 24238,
+      "name": "Mikkel Damsgaard",
+      "nameKor": "미켈 담스고르",
+      "mainPosition": "MF",
+      "nationality": "Denmark",
+      "nationalityKor": "덴마크",
+      "teamId": 402
+    },
+    {
+      "playerId": 10000,
+      "name": "Vitaly Janelt",
+      "nameKor": "비탈리 야넬트",
+      "mainPosition": "MF",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 402
+    },
+    {
+      "playerId": 204421,
+      "name": "Yegor Yarmolyuk",
+      "nameKor": "예호르 야르몰리우크",
+      "mainPosition": "MF",
+      "nationality": "Ukraine",
+      "nationalityKor": "우크라이나",
+      "teamId": 402
+    },
+    {
+      "playerId": 8251,
+      "name": "Callum Wilson",
+      "nameKor": "칼럼 윌슨",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 402
+    },
+    {
+      "playerId": 177305,
+      "name": "Dango Ouattara",
+      "nameKor": "당고 와타라",
+      "mainPosition": "FW",
+      "nationality": "Burkina Faso",
+      "nationalityKor": "부르키나파소",
+      "teamId": 402
+    },
+    {
+      "playerId": 213296,
+      "name": "Gustavo Gomes",
+      "nameKor": "구스타보 고메스",
+      "mainPosition": "FW",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 402
+    },
+    {
+      "playerId": 150778,
+      "name": "Jaidon Anthony",
+      "nameKor": "제이든 앤서니",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 402
+    },
+    {
+      "playerId": 213518,
+      "name": "Kaye Furo",
+      "nameKor": "카예 푸로",
+      "mainPosition": "FW",
+      "nationality": "Belgium",
+      "nationalityKor": "벨기에",
+      "teamId": 402
+    },
+    {
+      "playerId": 123286,
+      "name": "Kevin Schade",
+      "nameKor": "케빈 샤데",
+      "mainPosition": "FW",
+      "nationality": "Germany",
+      "nationalityKor": "독일",
+      "teamId": 402
+    },
+    {
+      "playerId": 138230,
+      "name": "Thiago",
+      "nameKor": "티아구",
+      "mainPosition": "FW",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 402
+    },
+    {
+      "playerId": 8079,
+      "name": "Fraser Forster",
+      "nameKor": "프레이저 포스터",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1044
+    },
+    {
+      "playerId": 41381,
+      "name": "Michele Di Gregorio",
+      "nameKor": "미켈레 디 그레고리오",
+      "mainPosition": "GK",
+      "nationality": "Italy",
+      "nationalityKor": "이탈리아",
+      "teamId": 1044
+    },
+    {
+      "playerId": 121765,
+      "name": "Đorđe Petrović",
+      "nameKor": "조르제 페트로비치",
+      "mainPosition": "GK",
+      "nationality": "Serbia",
+      "nationalityKor": "세르비아",
+      "teamId": 1044
+    },
+    {
+      "playerId": 8231,
+      "name": "Adam Smith",
+      "nameKor": "아담 스미스",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1044
+    },
+    {
+      "playerId": 135482,
+      "name": "Adrien Truffert",
+      "nameKor": "아드리앵 튀르페르",
+      "mainPosition": "DF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 1044
+    },
+    {
+      "playerId": 185610,
+      "name": "Antonio Silva",
+      "nameKor": "안토니우 실바",
+      "mainPosition": "DF",
+      "nationality": "Portugal",
+      "nationalityKor": "포르투갈",
+      "teamId": 1044
+    },
+    {
+      "playerId": 98745,
+      "name": "Bafodé Diakité",
+      "nameKor": "바포데 디아키테",
+      "mainPosition": "DF",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 1044
+    },
+    {
+      "playerId": 82145,
+      "name": "James Hill",
+      "nameKor": "제임스 힐",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1044
+    },
+    {
+      "playerId": 180038,
+      "name": "Juanlu",
+      "nameKor": "후안루",
+      "mainPosition": "DF",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 1044
+    },
+    {
+      "playerId": 113335,
+      "name": "Julian Araujo",
+      "nameKor": "훌리안 아라우호",
+      "mainPosition": "DF",
+      "nationality": "USA",
+      "nationalityKor": "미국",
+      "teamId": 1044
+    },
+    {
+      "playerId": 183583,
+      "name": "Julio Soler",
+      "nameKor": "훌리오 솔레르",
+      "mainPosition": "DF",
+      "nationality": "Argentina",
+      "nationalityKor": "아르헨티나",
+      "teamId": 1044
+    },
+    {
+      "playerId": 80765,
+      "name": "Max Aarons",
+      "nameKor": "맥스 아런스",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1044
+    },
+    {
+      "playerId": 227046,
+      "name": "Veljko Milosavljević",
+      "nameKor": "벨코 밀로사블레비치",
+      "mainPosition": "DF",
+      "nationality": "Serbia",
+      "nationalityKor": "세르비아",
+      "teamId": 1044
+    },
+    {
+      "playerId": 161088,
+      "name": "Alex Scott",
+      "nameKor": "알렉스 스콧",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1044
+    },
+    {
+      "playerId": 192316,
+      "name": "Alex Toth",
+      "nameKor": "알렉스 토트",
+      "mainPosition": "MF",
+      "nationality": "Hungary",
+      "nationalityKor": "헝가리",
+      "teamId": 1044
+    },
+    {
+      "playerId": 273152,
+      "name": "Ben Winterburn",
+      "nameKor": "벤 윈터번",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1044
+    },
+    {
+      "playerId": 7561,
+      "name": "Justin Kluivert",
+      "nameKor": "저스틴 클루이베르트",
+      "mainPosition": "MF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 1044
+    },
+    {
+      "playerId": 3327,
+      "name": "Lewis Cook",
+      "nameKor": "루이스 쿡",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1044
+    },
+    {
+      "playerId": 6396,
+      "name": "Marcus Tavernier",
+      "nameKor": "마커스 태버니어",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1044
+    },
+    {
+      "playerId": 34495,
+      "name": "Ryan Christie",
+      "nameKor": "라이언 크리스티",
+      "mainPosition": "MF",
+      "nationality": "Scotland",
+      "nationalityKor": "스코틀랜드",
+      "teamId": 1044
+    },
+    {
+      "playerId": 77596,
+      "name": "Tyler Adams",
+      "nameKor": "타일러 아담스",
+      "mainPosition": "MF",
+      "nationality": "USA",
+      "nationalityKor": "미국",
+      "teamId": 1044
+    },
+    {
+      "playerId": 189369,
+      "name": "Alvaro Rodriguez",
+      "nameKor": "알바로 로드리게스",
+      "mainPosition": "FW",
+      "nationality": "Spain",
+      "nationalityKor": "스페인",
+      "teamId": 1044
+    },
+    {
+      "playerId": 137047,
+      "name": "Amine Adli",
+      "nameKor": "아민 아들리",
+      "mainPosition": "FW",
+      "nationality": "Morocco",
+      "nationalityKor": "모로코",
+      "teamId": 1044
+    },
+    {
+      "playerId": 176789,
+      "name": "Ben Doak",
+      "nameKor": "벤 도크",
+      "mainPosition": "FW",
+      "nationality": "Scotland",
+      "nationalityKor": "스코틀랜드",
+      "teamId": 1044
+    },
+    {
+      "playerId": 169191,
+      "name": "Daniel Jebbison",
+      "nameKor": "다니엘 제비슨",
+      "mainPosition": "FW",
+      "nationality": "Canada",
+      "nationalityKor": "캐나다",
+      "teamId": 1044
+    },
+    {
+      "playerId": 4321,
+      "name": "David Brooks",
+      "nameKor": "데이비드 브룩스",
+      "mainPosition": "FW",
+      "nationality": "Wales",
+      "nationalityKor": "웨일스",
+      "teamId": 1044
+    },
+    {
+      "playerId": 204241,
+      "name": "Eli Kroupi",
+      "nameKor": "엘리 크루피",
+      "mainPosition": "FW",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 1044
+    },
+    {
+      "playerId": 131260,
+      "name": "Evanilson",
+      "nameKor": "에바니우송",
+      "mainPosition": "FW",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 1044
+    },
+    {
+      "playerId": 203356,
+      "name": "Rayan",
+      "nameKor": "하얀",
+      "mainPosition": "FW",
+      "nationality": "Brazil",
+      "nationalityKor": "브라질",
+      "teamId": 1044
+    },
+    {
+      "playerId": 5347,
+      "name": "Ben Wilson",
+      "nameKor": "벤 윌슨",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1076
+    },
+    {
+      "playerId": 171498,
+      "name": "Carl Rushworth",
+      "nameKor": "칼 러시워스",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1076
+    },
+    {
+      "playerId": 4418,
+      "name": "Daniel Bentley",
+      "nameKor": "다니엘 벤틀리",
+      "mainPosition": "GK",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1076
+    },
+    {
+      "playerId": 169297,
+      "name": "Aurele Amenda",
+      "nameKor": "오렐 아멘다",
+      "mainPosition": "DF",
+      "nationality": "Switzerland",
+      "nationalityKor": "스위스",
+      "teamId": 1076
+    },
+    {
+      "playerId": 144782,
+      "name": "Bobby Thomas",
+      "nameKor": "바비 토마스",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1076
+    },
+    {
+      "playerId": 4334,
+      "name": "Ethan Pinnock",
+      "nameKor": "이선 피녹",
+      "mainPosition": "DF",
+      "nationality": "Jamaica",
+      "nationalityKor": "자메이카",
+      "teamId": 1076
+    },
+    {
+      "playerId": 4015,
+      "name": "Jake Bidwell",
+      "nameKor": "제이크 비드웰",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1076
+    },
+    {
+      "playerId": 6308,
+      "name": "Jay Dasilva",
+      "nameKor": "제이 다시우바",
+      "mainPosition": "DF",
+      "nationality": "Wales",
+      "nationalityKor": "웨일스",
+      "teamId": 1076
+    },
+    {
+      "playerId": 130044,
+      "name": "Joel Latibeaudiere",
+      "nameKor": "조엘 라티보디에르",
+      "mainPosition": "DF",
+      "nationality": "Jamaica",
+      "nationalityKor": "자메이카",
+      "teamId": 1076
+    },
+    {
+      "playerId": 171509,
+      "name": "Kaine Kesler",
+      "nameKor": "케인 케슬러",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1076
+    },
+    {
+      "playerId": 4235,
+      "name": "Luke Woolfenden",
+      "nameKor": "루크 울펜덴",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1076
+    },
+    {
+      "playerId": 55048,
+      "name": "Milan van Ewijk",
+      "nameKor": "밀란 판 에베이크",
+      "mainPosition": "DF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 1076
+    },
+    {
+      "playerId": 286320,
+      "name": "Stephen Mfuni",
+      "nameKor": "스티븐 음푸니",
+      "mainPosition": "DF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1076
+    },
+    {
+      "playerId": 262187,
+      "name": "Caleb Yirenkyi",
+      "nameKor": "칼렙 이렌키",
+      "mainPosition": "MF",
+      "nationality": "Ghana",
+      "nationalityKor": "가나",
+      "teamId": 1076
+    },
+    {
+      "playerId": 24210,
+      "name": "Frank Onyeka",
+      "nameKor": "프랭크 오니에카",
+      "mainPosition": "MF",
+      "nationality": "Nigeria",
+      "nationalityKor": "나이지리아",
+      "teamId": 1076
+    },
+    {
+      "playerId": 9623,
+      "name": "Gustavo Hamer",
+      "nameKor": "구스타보 하메르",
+      "mainPosition": "MF",
+      "nationality": "Netherlands",
+      "nationalityKor": "네덜란드",
+      "teamId": 1076
+    },
+    {
+      "playerId": 114123,
+      "name": "Jack Rudoni",
+      "nameKor": "잭 루도니",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1076
+    },
+    {
+      "playerId": 83372,
+      "name": "Josh Eccles",
+      "nameKor": "조시 에클스",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1076
+    },
+    {
+      "playerId": 6358,
+      "name": "Matt Grimes",
+      "nameKor": "맷 그라임스",
+      "mainPosition": "MF",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1076
+    },
+    {
+      "playerId": 24207,
+      "name": "Victor Torp",
+      "nameKor": "빅토르 토르프",
+      "mainPosition": "MF",
+      "nationality": "Denmark",
+      "nationalityKor": "덴마크",
+      "teamId": 1076
+    },
+    {
+      "playerId": 6389,
+      "name": "Brandon Thomas-Asante",
+      "nameKor": "브랜든 토마스아산테",
+      "mainPosition": "FW",
+      "nationality": "Ghana",
+      "nationalityKor": "가나",
+      "teamId": 1076
+    },
+    {
+      "playerId": 146122,
+      "name": "Ellis Simms",
+      "nameKor": "엘리스 심스",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1076
+    },
+    {
+      "playerId": 6009,
+      "name": "Ephron Mason-Clark",
+      "nameKor": "에프론 메이슨클락",
+      "mainPosition": "FW",
+      "nationality": "England",
+      "nationalityKor": "잉글랜드",
+      "teamId": 1076
+    },
+    {
+      "playerId": 10076,
+      "name": "Haji Wright",
+      "nameKor": "하지 라이트",
+      "mainPosition": "FW",
+      "nationality": "USA",
+      "nationalityKor": "미국",
+      "teamId": 1076
+    },
+    {
+      "playerId": 170394,
+      "name": "Loum Tchaouna",
+      "nameKor": "룸 차우나",
+      "mainPosition": "FW",
+      "nationality": "France",
+      "nationalityKor": "프랑스",
+      "teamId": 1076
+    },
+    {
+      "playerId": 213712,
+      "name": "Sidiki Cherif",
+      "nameKor": "시디키 셰리프",
+      "mainPosition": "FW",
+      "nationality": "Guinea",
+      "nationalityKor": "기니",
+      "teamId": 1076
+    },
+    {
+      "playerId": 9218,
+      "name": "Taiwo Awoniyi",
+      "nameKor": "타이워 아워니이",
+      "mainPosition": "FW",
+      "nationality": "Nigeria",
+      "nationalityKor": "나이지리아",
+      "teamId": 1076
+    },
+    {
+      "playerId": 113632,
+      "name": "Tatsuhiro Sakamoto",
+      "nameKor": "사카모토 다쓰히로",
+      "mainPosition": "FW",
+      "nationality": "Japan",
+      "nationalityKor": "일본",
+      "teamId": 1076
+    }
+  ]
+}

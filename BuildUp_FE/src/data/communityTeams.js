@@ -1,8 +1,28 @@
-// 2026/27 시즌 기준. DB 연동 시 TEAMS 응답으로 교체하며 slug는 DB ID가 아닙니다.
+// 2026/27 시즌 기준. DB TEAMS 테이블과 연동되는 커뮤니티 구단 메타데이터
 // 출처: https://www.premierleague.com/en/news/4675508/premier-league-fixture-schedulereleased-for-season-202627
-import teamsData from '../../Assets/data/teamsData.js'
 
-const teamIds = { arsenal: 2, 'aston-villa': 3, bournemouth: 1, brentford: 4, brighton: 5, chelsea: 6, coventry: 7, 'crystal-palace': 8, everton: 9, fulham: 10, hull: 11, ipswich: 12, leeds: 13, liverpool: 14, 'man-city': 15, 'man-united': 16, newcastle: 17, nottingham: 18, sunderland: 19, tottenham: 20 }
+const teamMeta = {
+  arsenal: { teamId: 57, badge: 't3' },
+  'aston-villa': { teamId: 58, badge: 't7' },
+  bournemouth: { teamId: 1044, badge: 't91' },
+  brentford: { teamId: 402, badge: 't94' },
+  brighton: { teamId: 397, badge: 't36' },
+  chelsea: { teamId: 61, badge: 't8' },
+  coventry: { teamId: 1076, badge: 't9' },
+  'crystal-palace': { teamId: 354, badge: 't31' },
+  everton: { teamId: 62, badge: 't11' },
+  fulham: { teamId: 63, badge: 't54' },
+  hull: { teamId: 322, badge: 't88' },
+  ipswich: { teamId: 349, badge: 't40' },
+  leeds: { teamId: 341, badge: 't2' },
+  liverpool: { teamId: 64, badge: 't14' },
+  'man-city': { teamId: 65, badge: 't43' },
+  'man-united': { teamId: 66, badge: 't1' },
+  newcastle: { teamId: 67, badge: 't4' },
+  nottingham: { teamId: 351, badge: 't17' },
+  sunderland: { teamId: 71, badge: 't56' },
+  tottenham: { teamId: 73, badge: 't6' },
+};
 
 export const communityTeams = [
   ['arsenal', '아스널'], ['aston-villa', '애스턴 빌라'], ['bournemouth', '본머스'],
@@ -13,7 +33,11 @@ export const communityTeams = [
   ['man-united', '맨체스터 유나이티드'], ['newcastle', '뉴캐슬 유나이티드'],
   ['nottingham', '노팅엄 포리스트'], ['sunderland', '선덜랜드'], ['tottenham', '토트넘'],
 ].map(([slug, name]) => {
-  // 이름 표기 차이와 무관하게 공통 팀 데이터의 ID로 엠블럼을 연결합니다.
-  const team = teamsData.find((item) => item.teamId === teamIds[slug])
-  return { slug, name, teamId: team?.teamId, emblemUrl: team?.emblemUrl }
-})
+  const meta = teamMeta[slug];
+  return {
+    slug,
+    name,
+    teamId: meta?.teamId,
+    emblemUrl: meta ? `https://resources.premierleague.com/premierleague/badges/50/${meta.badge}.png` : ''
+  };
+});
