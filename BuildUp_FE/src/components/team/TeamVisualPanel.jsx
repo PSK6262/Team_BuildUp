@@ -35,7 +35,22 @@ export default function TeamVisualPanel({ team, onWheel }) {
           </div>
 
           {/* 팀 이름 */}
-          <h1 className="team-name">{team.teamName}</h1>
+          <h1 className="team-name">{team.teamNameKor || team.teamName}</h1>
+          {team.teamNameKor && (
+            <div
+              className="team-subname-en"
+              style={{
+                fontSize: '18px',
+                color: 'rgba(255, 255, 255, 0.75)',
+                fontWeight: 600,
+                marginTop: '4px',
+                letterSpacing: '-0.2px',
+                textShadow: '0 2px 10px rgba(0, 0, 0, 0.6)'
+              }}
+            >
+              {team.teamName}
+            </div>
+          )}
         </div>
 
         {/* 중앙: 엠블럼 바탕 위에 감싸는 원 없이 대형 공식 엠블럼 직접 표시 */}

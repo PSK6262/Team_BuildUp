@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import teamSquadData from '../../data/teamSquadData.js';
+import React, { useState, useEffect } from 'react';
+import { getTeamPlayers, getTeamStaffs } from '../../api/teamApi.js';
 import { getFlagUrl } from '../../utils/flagUtils.js';
 
 const POSITION_CONFIG = {
@@ -31,56 +31,113 @@ const POSITION_CONFIG = {
 
 export default function TeamSquadSection({ teamId }) {
   const numericId = parseInt(teamId, 10);
-  const clubData =
-    teamSquadData[numericId] ||
-    teamSquadData[String(numericId)] ||
-    Object.values(teamSquadData).find(
-      (c) => c.apiTeamId === numericId || c.teamId === numericId
-    );
+  const [players, setPlayers] = useState([]);
+  const [staffs, setStaffs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState('ALL');
 
-  if (!clubData) {
-    return null;
-  }
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchSquadData() {
+      try {
+        setLoading(true);
+        const [playerList, staffList] = await Promise.all([
+          getTeamPlayers(numericId),
+          getTeamStaffs(numericId),
+        ]);
 
-  const { manager, squad } = clubData;
+        if (isMounted) {
+          setPlayers(Array.isArray(playerList) ? playerList : []);
+          setStaffs(Array.isArray(staffList) ? staffList : []);
+        }
+      } catch (err) {
+        console.error('[TeamSquadSection] 스쿼드 데이터 로드 오류:', err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    if (numericId) {
+      fetchSquadData();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [numericId]);
+
+  // 감독 (staffRoleId === 1 또는 첫 번째 스태프)
+  const manager = staffs.find((s) => s.staffRoleId === 1) || staffs[0] || null;
+
+  // 포지션별 선수 분류 (FW, MF, DF, GK)
   const positions = ['FW', 'MF', 'DF', 'GK'];
-  const totalPlayers = positions.reduce(
-    (acc, pos) => acc + (squad[pos]?.length || 0),
-    0
-  );
+  const squad = {
+    FW: [],
+    MF: [],
+    DF: [],
+    GK: [],
+  };
 
-  const filterPositions =
-    selectedTab === 'ALL' ? positions : [selectedTab];
+  players.forEach((p) => {
+    const pos = (p.mainPosition || '').toUpperCase();
+    if (squad[pos]) {
+      squad[pos].push(p);
+    } else {
+      if (!squad[pos]) squad[pos] = [];
+      squad[pos].push(p);
+    }
+  });
+
+  const totalPlayers = players.length;
+  const filterPositions = selectedTab === 'ALL' ? positions : [selectedTab];
+
+  if (loading) {
+    return (
+      <div className="team-squad-container" style={{ padding: '30px 0', textAlign: 'center', color: '#64748b' }}>
+        <p>선수단 데이터를 불러오는 중입니다...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="team-squad-container">
       {/* 1. 구단 사령탑 (감독) 섹션 */}
-      <section className="team-manager-section">
-        <div className="team-squad-section-header">
-          <h2 className="team-squad-title">구단 감독</h2>
-          <span className="team-squad-subtitle">Head Coach</span>
-        </div>
-
-        <div className="team-manager-card">
-          <div className="team-manager-info">
-            <h3 className="team-manager-name">{manager.name}</h3>
-            <span className="team-manager-nat-badge">
-              <span className="team-nat-text">{manager.koreanNation}</span>
-            </span>
+      {manager && (
+        <section className="team-manager-section">
+          <div className="team-squad-section-header">
+            <h2 className="team-squad-title">구단 감독</h2>
+            <span className="team-squad-subtitle">Head Coach</span>
           </div>
-          {getFlagUrl(manager.nationality, manager.koreanNation) && (
-            <img
-              src={getFlagUrl(manager.nationality, manager.koreanNation, 80)}
-              alt={manager.koreanNation}
-              className="team-manager-flag-icon"
-              loading="lazy"
-            />
-          )}
-        </div>
-      </section>
 
-      <div className="team-section-divider" />
+          <div className="team-manager-card">
+            <div className="team-manager-info">
+              <div>
+                <h3 className="team-manager-name">{manager.nameKor || manager.name}</h3>
+                {manager.nameKor && (
+                  <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 500, display: 'block', marginTop: '1px' }}>
+                    {manager.name}
+                  </span>
+                )}
+              </div>
+              <span className="team-manager-nat-badge">
+                <span className="team-nat-text">{manager.nationalityKor || manager.nationality}</span>
+              </span>
+            </div>
+            {getFlagUrl(manager.nationality, manager.nationalityKor) && (
+              <img
+                src={getFlagUrl(manager.nationality, manager.nationalityKor, 80)}
+                alt={manager.nationalityKor || manager.nationality}
+                className="team-manager-flag-icon"
+                loading="lazy"
+              />
+            )}
+          </div>
+        </section>
+      )}
+
+      {manager && <div className="team-section-divider" />}
 
       {/* 2. 포지션별 선수단 (스쿼드) 섹션 */}
       <section className="team-squad-section">
@@ -120,10 +177,10 @@ export default function TeamSquadSection({ teamId }) {
         {/* 포지션별 선수 목록 그리드 */}
         <div className="team-squad-groups">
           {filterPositions.map((pos) => {
-            const players = squad[pos] || [];
+            const groupPlayers = squad[pos] || [];
             const config = POSITION_CONFIG[pos];
 
-            if (players.length === 0) return null;
+            if (groupPlayers.length === 0) return null;
 
             return (
               <div key={pos} className="team-squad-group">
@@ -132,31 +189,38 @@ export default function TeamSquadSection({ teamId }) {
                     {config.label}
                     <span className="team-group-code">({pos})</span>
                   </h3>
-                  <span className="team-group-count">{players.length}명</span>
+                  <span className="team-group-count">{groupPlayers.length}명</span>
                 </div>
 
                 <div className="team-player-grid">
-                  {players.map((player) => (
-                    <div key={player.id} className="team-player-card">
+                  {groupPlayers.map((player) => (
+                    <div key={player.playerId || player.id || player.name} className="team-player-card">
                       <div className="team-player-card-top">
                         <span className={`team-player-pos-badge ${config.badgeClass}`}>
                           {pos}
                         </span>
                         <div className="team-player-nat-pill">
                           <span className="team-player-nat-name">
-                            {player.koreanNation}
+                            {player.nationalityKor || player.nationality}
                           </span>
                         </div>
                       </div>
 
                       <div className="team-player-card-bottom">
-                        <div className="team-player-name" title={player.name}>
-                          {player.name}
+                        <div style={{ overflow: 'hidden', minWidth: 0, flex: 1 }}>
+                          <div className="team-player-name" title={player.name}>
+                            {player.nameKor || player.name}
+                          </div>
+                          {player.nameKor && (
+                            <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {player.name}
+                            </div>
+                          )}
                         </div>
-                        {getFlagUrl(player.nationality, player.koreanNation) && (
+                        {getFlagUrl(player.nationality, player.nationalityKor) && (
                           <img
-                            src={getFlagUrl(player.nationality, player.koreanNation, 40)}
-                            alt={player.koreanNation}
+                            src={getFlagUrl(player.nationality, player.nationalityKor, 40)}
+                            alt={player.nationalityKor || player.nationality}
                             className="team-player-flag-icon"
                             loading="lazy"
                           />
@@ -173,4 +237,3 @@ export default function TeamSquadSection({ teamId }) {
     </div>
   );
 }
-

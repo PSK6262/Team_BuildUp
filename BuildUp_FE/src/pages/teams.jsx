@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { getTeams } from '../api/teamApi.js';
+import { getTeams, getInitialTeams } from '../api/teamApi.js';
 import TeamCard from '../components/team/TeamCard.jsx';
 import '../css/teams.css';
 
 export default function TeamsPage() {
-  const [teams, setTeams] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [teams, setTeams] = useState(() => getInitialTeams());
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -50,22 +50,22 @@ export default function TeamsPage() {
           </p>
         </header>
 
-        {/* 로딩 인디케이터 */}
-        {loading && (
+        {/* 로딩 인디케이터 (초기 데이터 없을 때만 표시) */}
+        {loading && teams.length === 0 && (
           <div className="teams-loading-wrap" style={{ textAlign: 'center', padding: '60px 0', color: '#6b7280' }}>
             <p>구단 데이터를 데이터베이스에서 불러오는 중입니다...</p>
           </div>
         )}
 
         {/* 에러 메시지 */}
-        {!loading && error && (
+        {!loading && error && teams.length === 0 && (
           <div className="teams-error-wrap" style={{ textAlign: 'center', padding: '40px 0', color: '#ef4444' }}>
             <p>{error}</p>
           </div>
         )}
 
         {/* 4열 5행 구단 카드 그리드 (총 20개 구단) */}
-        {!loading && (
+        {teams.length > 0 && (
           <main className="teams-grid" aria-label="프리미어리그 20개 구단 목록">
             {teams.map((team) => (
               <TeamCard key={team.teamId} team={team} />
