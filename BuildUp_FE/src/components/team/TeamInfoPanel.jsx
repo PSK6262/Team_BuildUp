@@ -15,9 +15,9 @@ const TeamInfoPanel = forwardRef(function TeamInfoPanel(
         {/* 1. 홈구장 섹션 */}
         <section className="team-stadium-section">
           <h2 className="team-stadium-name">{team.homeGroundKor || team.homeGround}</h2>
-          <p className="team-stadium-desc">
-            {team.teamNameKor || team.teamName}의 역사와 열정이 살아 숨 쉬는 공식 연고 홈 경기장입니다.
-          </p>
+          {team.homeGround && (
+            <p className="team-stadium-desc">{team.homeGround}</p>
+          )}
         </section>
 
         <div className="team-section-divider" />
