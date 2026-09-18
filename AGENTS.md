@@ -28,7 +28,7 @@
 - 주석은 해당 코드의 기능만 짧게 설명한다. 문법 강의나 장황한 구현 원리 설명은 넣지 않는다.
 - 요청값은 바인딩하고, 정렬은 허용된 값으로 제한한다. 기존 검증 기능은 유지한다.
 - 게시판 구분은 승인된 `CommunityBoardType` enum을 사용하여 매퍼까지 전달한다.
-- 커뮤니티 API는 frade 형식의 `ResultCode`와 `RestApiResponse`로 `code/message/data` JSON을 반환한다.
+- 커뮤니티 API는 frade 형식의 `ResultCode`와 `ApiResponse`로 `code/message/data` JSON을 반환한다.
 - 카테고리 ID, 팀 ID 등 DB 식별자를 임의로 확정하지 않는다.
 - 커뮤니티 작성자 조회는 `POSTS.USER_ID = USERS.USER_ID`로 JOIN하고 `NICKNAME`을 사용한다.
 - 임시 프론트 데이터를 계속 늘리기보다 실제 백엔드 API 연결을 우선한다.

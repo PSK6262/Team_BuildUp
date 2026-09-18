@@ -9,7 +9,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.app.common.ResultCode;
-import com.app.dto.rest.RestApiResponse;
+import com.app.common.ApiResponse;
 import org.springframework.web.server.ResponseStatusException;
 import com.app.dto.community.CommunityBoardType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,7 +26,7 @@ public class CommunityController {
 
     // 검색 조건을 받아 게시글 목록과 페이지 정보를 반환합니다.
     @GetMapping("/api/communities")
-    public RestApiResponse<PostListResponse> communities(
+    public ApiResponse<PostListResponse> communities(
             @RequestParam("categoryIds") List<Long> categoryIds,
             @RequestParam(value = "board", defaultValue = "all") String board,
             @RequestParam(value = "teamId", required = false) Long teamId,
@@ -44,30 +44,30 @@ public class CommunityController {
         PostListResponse result = communityService.findPosts(categoryIds, boardType, teamId, keyword, sort, page, size);
         // 빈 목록도 페이지 정보를 유지하여 반환합니다.
         if (result.getItems().isEmpty()) {
-            return RestApiResponse.response(ResultCode.SUC_EMPTY, result);
+            return ApiResponse.response(ResultCode.SUC_EMPTY, result);
         }
-        return RestApiResponse.success(result);
+        return ApiResponse.success(result);
     }
 
     // 누락되거나 형식이 잘못된 요청값을 처리합니다.
     @ExceptionHandler({MissingServletRequestParameterException.class, MethodArgumentTypeMismatchException.class})
-    public ResponseEntity<RestApiResponse<Void>> invalidParameter(Exception exception) {
-        return ResponseEntity.badRequest().body(RestApiResponse.error(ResultCode.INVALID_INPUT));
+    public ResponseEntity<ApiResponse<Void>> invalidParameter(Exception exception) {
+        return ResponseEntity.badRequest().body(ApiResponse.error(ResultCode.INVALID_INPUT));
     }
 
     // 요청 검증 오류의 HTTP 상태를 유지하여 반환합니다.
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<RestApiResponse<Void>> invalidRequest(ResponseStatusException exception) {
+    public ResponseEntity<ApiResponse<Void>> invalidRequest(ResponseStatusException exception) {
         ResultCode code = exception.getStatus() == HttpStatus.BAD_REQUEST
             ? ResultCode.INVALID_INPUT : ResultCode.FAIL;
-        return ResponseEntity.status(exception.getStatus()).body(RestApiResponse.error(code));
+        return ResponseEntity.status(exception.getStatus()).body(ApiResponse.error(code));
     }
 
     // 서버 오류를 기록하고 공통 실패 응답을 반환합니다.
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<RestApiResponse<Void>> serverError(Exception exception) {
+    public ResponseEntity<ApiResponse<Void>> serverError(Exception exception) {
         log.log(Level.SEVERE, "Community API failed", exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(RestApiResponse.error(ResultCode.FAIL));
+            .body(ApiResponse.error(ResultCode.FAIL));
     }
 }

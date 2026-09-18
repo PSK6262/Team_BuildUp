@@ -14,9 +14,13 @@ public enum ResultCode {
     INVALID_INPUT("REJ_002", "요청값을 확인해주세요.");
     
     //개인정보 영역(로그인,회원가입 마이페이지... REJ_101~200까지 사용)
-	
+	//1
 	
 	//커뮤니티 영역(REJ_201~300)
+	
+	//
+	
+	//
 
     private final String code;
     private final String message;
