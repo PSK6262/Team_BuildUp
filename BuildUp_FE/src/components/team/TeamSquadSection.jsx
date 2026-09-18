@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getTeamPlayers, getTeamStaffs } from '../../api/teamApi.js';
+import { getTeamPlayers, getTeamStaffs, getPlayerStats } from '../../api/teamApi.js';
 import { getFlagUrl } from '../../utils/flagUtils.js';
+import PlayerStatsModal from './PlayerStatsModal.jsx';
 
 const POSITION_CONFIG = {
   FW: {
@@ -35,6 +36,30 @@ export default function TeamSquadSection({ teamId }) {
   const [staffs, setStaffs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState('ALL');
+
+  // 선수 스탯 모달 상태
+  const [activePlayer, setActivePlayer] = useState(null);
+  const [playerStats, setPlayerStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+
+  async function handlePlayerClick(player) {
+    setActivePlayer(player);
+    setStatsLoading(true);
+    setPlayerStats(null);
+    try {
+      const stats = await getPlayerStats(player.playerId);
+      setPlayerStats(stats);
+    } catch (err) {
+      console.error('[TeamSquadSection] 선수 스탯 조회 오류:', err);
+    } finally {
+      setStatsLoading(false);
+    }
+  }
+
+  function handleCloseModal() {
+    setActivePlayer(null);
+    setPlayerStats(null);
+  }
 
   useEffect(() => {
     let isMounted = true;
@@ -194,7 +219,20 @@ export default function TeamSquadSection({ teamId }) {
 
                 <div className="team-player-grid">
                   {groupPlayers.map((player) => (
-                    <div key={player.playerId || player.id || player.name} className="team-player-card">
+                    <div
+                      key={player.playerId || player.id || player.name}
+                      className="team-player-card"
+                      onClick={() => handlePlayerClick(player)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handlePlayerClick(player);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      title={`${player.nameKor || player.name} 2026-2027 시즌 스탯 보기`}
+                    >
                       <div className="team-player-card-top">
                         <span className={`team-player-pos-badge ${config.badgeClass}`}>
                           {pos}
@@ -234,6 +272,14 @@ export default function TeamSquadSection({ teamId }) {
           })}
         </div>
       </section>
+
+      {/* 선수 시즌 스탯 모달창 */}
+      <PlayerStatsModal
+        player={activePlayer}
+        stats={playerStats}
+        loading={statsLoading}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }

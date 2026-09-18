@@ -135,3 +135,102 @@ export async function getTeamStaffs(teamId) {
 
   return (fallbackBundle.staffs || []).filter((s) => s.teamId === numId);
 }
+
+/**
+ * 5. 특정 선수 상세 스탯 조회 (GET /api/teams/players/{playerId}/stats)
+ * - DB의 PLAYER_STATS 테이블 데이터와 1:1 연동
+ */
+export async function getPlayerStats(playerId) {
+  const numId = parseInt(playerId, 10);
+  if (!numId) return null;
+
+  try {
+    const res = await fetch(`/api/teams/players/${numId}/stats`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.playerId) {
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn(`[teamApi] 선수 스탯(/api/teams/players/${numId}/stats) 조회 실패, DB 스냅샷 사용:`, err.message);
+  }
+
+  return (fallbackBundle.playerStats || []).find((s) => s.playerId === numId) || null;
+}
+
+/**
+ * 6. 특정 구단 소속 선수 전체 스탯 목록 조회
+ * - 해당 구단 선수들의 PLAYER_STATS 목록을 반환
+ */
+export async function getTeamPlayerStats(teamId) {
+  const numId = parseInt(teamId, 10);
+  if (isExcludedTeam({ teamId: numId })) {
+    return [];
+  }
+
+  try {
+    const res = await fetch(`/api/teams/${numId}/player-stats`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+    }
+  } catch (err) {
+    // 백엔드 개별 지원 및 폴백 번들 연동
+  }
+
+  return (fallbackBundle.playerStats || []).filter((s) => s.teamId === numId);
+}
+
+/**
+ * 7. 프리미어리그 득점 랭킹 조회 (GET /api/teams/top-scorers?limit={limit})
+ * - PLAYER_STATS 테이블의 득점(GOALS) 기준 상위 랭킹
+ */
+export async function getTopScorers(limit = 20) {
+  try {
+    const res = await fetch(`/api/teams/top-scorers?limit=${limit}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn('[teamApi] 득점 랭킹(/api/teams/top-scorers) 조회 실패, DB 스냅샷 사용:', err.message);
+  }
+
+  return [...(fallbackBundle.playerStats || [])]
+    .filter((s) => s.goals > 0)
+    .sort((a, b) => b.goals - a.goals || b.assists - a.assists)
+    .slice(0, limit);
+}
+
+/**
+ * 8. 특정 구단 소속 선수 목록 + 개인 스탯(PLAYER_STATS) 통합 조회
+ * - 선수 기본 정보에 시즌 골, 어시스트, 경고, 퇴장, 부상/출전정지 상태를 결합하여 반환
+ */
+export async function getTeamPlayersWithStats(teamId) {
+  const [players, stats] = await Promise.all([
+    getTeamPlayers(teamId),
+    getTeamPlayerStats(teamId)
+  ]);
+
+  const statsMap = new Map((stats || []).map((s) => [s.playerId, s]));
+  return (players || []).map((p) => {
+    const st = statsMap.get(p.playerId);
+    return {
+      ...p,
+      stats: st || null,
+      goals: st?.goals ?? 0,
+      assists: st?.assists ?? 0,
+      yellowCards: st?.yellowCards ?? 0,
+      redCards: st?.redCards ?? 0,
+      isInjured: st?.isInjured ?? 'N',
+      injuryNote: st?.injuryNote ?? null,
+      isSuspended: st?.isSuspended ?? 'N'
+    };
+  });
+}
+
