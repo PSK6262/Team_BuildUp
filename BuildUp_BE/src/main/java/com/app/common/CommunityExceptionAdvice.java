@@ -1,4 +1,4 @@
-package com.app.controller.advice;
+package com.app.common;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.app.common.ApiResponse;
-import com.app.common.ResultCode;
+
+
 
 // 커뮤니티 API에서 발생한 예외를 공통 응답 형식으로 처리합니다.
 @RestControllerAdvice(basePackages = "com.app.controller.community")
