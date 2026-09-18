@@ -21,6 +21,7 @@ public interface TeamDAO {
 	void updateTeamEmblem(Teams team);
 	List<Players> findAllPlayers();
 	void updatePlayerKorean(Players player);
+	void updatePlayerDetailPosition(Players player);
 	List<Staffs> findAllStaffs();
 	void updateStaffKorean(Staffs staff);
 
