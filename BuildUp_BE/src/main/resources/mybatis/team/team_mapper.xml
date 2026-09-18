@@ -42,7 +42,12 @@
 			UPDATE SET 
 				p.NAME = #{name},
 				p.MAIN_POSITION = NVL(#{mainPosition, jdbcType=VARCHAR}, p.MAIN_POSITION),
-				p.DETAIL_POSITION = NVL(#{detailPosition, jdbcType=VARCHAR}, p.DETAIL_POSITION),
+				p.DETAIL_POSITION = CASE 
+					WHEN p.DETAIL_POSITION IS NOT NULL 
+					     AND p.DETAIL_POSITION NOT IN ('GK', 'DF', 'MF', 'FW') 
+					THEN p.DETAIL_POSITION 
+					ELSE NVL(#{detailPosition, jdbcType=VARCHAR}, p.DETAIL_POSITION) 
+				END,
 				p.NATIONALITY = NVL(#{nationality, jdbcType=VARCHAR}, p.NATIONALITY),
 				p.TEAM_ID = NVL(#{teamId, jdbcType=NUMERIC}, p.TEAM_ID)
 		WHEN NOT MATCHED THEN
@@ -51,7 +56,7 @@
 				#{playerId},
 				#{name},
 				#{mainPosition},
-				#{detailPosition, jdbcType=VARCHAR},
+				NVL(#{detailPosition, jdbcType=VARCHAR}, #{mainPosition}),
 				#{nationality, jdbcType=VARCHAR},
 				#{teamId}
 			)

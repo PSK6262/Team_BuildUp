@@ -45,10 +45,10 @@ public class MatchScheduler {
     public void syncLiveMatches() {
         LocalDate today = LocalDate.now();
 
-        // 1단계: 오늘(00:00:00 ~ 23:59:59) 열리는 경기 목록 조회
-        LocalDateTime startOfDay = today.atStartOfDay();
+        // 1단계: 최근 3시간 전부터 오늘(23:59:59)까지 열리는 경기 목록 조회 (자정 전후 경기 누락 방지)
+        LocalDateTime startWindow = LocalDateTime.now().minusHours(3);
         LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
-        List<Matches> todayMatches = matchService.getMatchesByDateRange(startOfDay, endOfDay);
+        List<Matches> todayMatches = matchService.getMatchesByDateRange(startWindow, endOfDay);
 
         // 경기가 없는 날이면 즉시 종료 (외부 API 호출 한도 낭비 방지)
         if (todayMatches == null || todayMatches.isEmpty()) {
@@ -84,6 +84,10 @@ public class MatchScheduler {
         // 4단계: 방금 종료된 경기의 타임라인 이벤트(골, 자책골 등) 1회 수집 (Big Balls Data)
         try {
             int updatedEvents = bigBallsApiService.syncMatchEventsByDate(today.toString());
+            // 새벽 0시~6시 시간대라면 어제 늦은 밤 시작해 방금 끝난 경기 이벤트도 함께 안전 수집
+            if (LocalTime.now().getHour() < 6) {
+                updatedEvents += bigBallsApiService.syncMatchEventsByDate(today.minusDays(1).toString());
+            }
             System.out.println("  - 이벤트 갱신: 총 " + updatedEvents + "건의 타임라인 이벤트 동기화 완료");
         } catch (Exception e) {
             System.err.println("  - 이벤트 갱신 중 오류: " + e.getMessage());
