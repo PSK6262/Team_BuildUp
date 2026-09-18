@@ -53,12 +53,13 @@ export default function MyPage() {
 
         const res = await fetch('/api/users/me', { headers })
         const data = await res.json()
+        const userObj = data.data || data.user
 
-        if (res.ok && data.status === 'SUCCESS' && data.user) {
-          setProfile(data.user)
-          setNickname(data.user.nickname || '')
-          setEmail(data.user.email || '')
-          setFavoriteTeamId(data.user.favoriteTeamId ? String(data.user.favoriteTeamId) : '')
+        if (res.ok && (data.status === 'SUCCESS' || data.code === 'SUC_001') && userObj) {
+          setProfile(userObj)
+          setNickname(userObj.nickname || '')
+          setEmail(userObj.email || '')
+          setFavoriteTeamId(userObj.favoriteTeamId ? String(userObj.favoriteTeamId) : '')
         } else {
           // 백엔드 세션 만료 시 리덕스 데이터로 1차 폴백
           if (reduxUser) {
@@ -114,11 +115,12 @@ export default function MyPage() {
       })
 
       const data = await res.json()
+      const updatedUser = data.data || data.user
 
-      if (res.ok && data.status === 'SUCCESS') {
+      if (res.ok && (data.status === 'SUCCESS' || data.code === 'SUC_001') && updatedUser) {
         setMessage('회원 정보가 성공적으로 수정되었습니다.')
-        setProfile(data.user)
-        dispatch(updateUser(data.user))
+        setProfile(updatedUser)
+        dispatch(updateUser(updatedUser))
         setIsEditing(false)
       } else {
         setErrorMsg(data.message || '정보 수정 중 오류가 발생했습니다.')

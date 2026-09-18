@@ -35,4 +35,9 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> response(ResultCode resultCode, T data) {
         return new ApiResponse<>(resultCode, data);
     }
+
+    // 프론트엔드 호환용 상태값 ("SUCCESS" / "FAIL")
+    public String getStatus() {
+        return (code != null && code.startsWith("SUC")) ? "SUCCESS" : "FAIL";
+    }
 }

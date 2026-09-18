@@ -263,7 +263,7 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 			prompt.append("   - Pep Guardiola -> '펩 과르디올라', Mikel Arteta -> '미켈 아르테타', Arne Slot -> '아르네 슬롯', Ange Postecoglou -> '엔제 포스테코글루', Unai Emery -> '우나이 에메리'\n");
 			prompt.append("3. 국적 명칭 방송 표준 준수:\n");
 			prompt.append("   - 'Bosnia and Herzegovina'는 공식 정식 국호인 '보스니아 헤르체고비나'로 통일\n");
-			prompt.append("   - 'Democratic Republic of the Congo'는 방송 자막 표준인 'DR 콩고'로 표기\n");
+			prompt.append("   - 'Democratic Republic of the Congo', 'Congo DR', 'DR Congo'는 영문 약어를 쓰지 말고 공식 한글 국호인 '콩고 민주 공화국'으로 반드시 표기\n");
 			prompt.append("   - 'Korea Republic' / 'South Korea' -> '대한민국'\n");
 			prompt.append("   - 'England/Scotland/Wales/Northern Ireland' -> '잉글랜드/스코틀랜드/웨일스/북아일랜드'\n\n");
 			prompt.append("반드시 아래와 같은 JSON 배열 형식으로만 응답해야 합니다:\n");
@@ -342,7 +342,7 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 			prompt.append("   - Mohamed Salah -> '모하메드 살라'\n");
 			prompt.append("3. 국적 명칭 방송 공식 자막 기준 준수:\n");
 			prompt.append("   - 'Bosnia and Herzegovina' -> '보스니아 헤르체고비나'\n");
-			prompt.append("   - 'Democratic Republic of the Congo' -> 'DR 콩고'\n");
+			prompt.append("   - 'Democratic Republic of the Congo', 'Congo DR', 'DR Congo' -> 영문 약어(DR) 금지, '콩고 민주 공화국'으로 반드시 표기\n");
 			prompt.append("   - 'Korea Republic' / 'South Korea' -> '대한민국'\n");
 			prompt.append("   - 'England/Scotland/Wales/Northern Ireland' -> '잉글랜드/스코틀랜드/웨일스/북아일랜드'\n");
 			prompt.append("   - 'Netherlands' -> '네덜란드', 'Norway' -> '노르웨이', 'Ivory Coast'/'Cote d'Ivoire' -> '코트디부아르'\n\n");
@@ -747,12 +747,11 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 					Players originalPlayer = playerMap.get(playerId);
 					if (originalPlayer == null) continue;
 
-					// Java 백엔드 2중 안전 필터 (할루시네이션 0% 보장)
-					String validatedDetail = validateAndSanitizeDetailPosition(originalPlayer.getMainPosition(), rawDetail);
+					String detailPosition = validateAndSanitizeDetailPosition(originalPlayer.getMainPosition(), rawDetail);
 
 					Players updateTarget = new Players();
 					updateTarget.setPlayerId(playerId);
-					updateTarget.setDetailPosition(validatedDetail);
+					updateTarget.setDetailPosition(detailPosition);
 
 					teamDAO.updatePlayerDetailPosition(updateTarget);
 					updatedCount++;
@@ -769,49 +768,38 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	}
 
 	/**
-	 * 백엔드 2중 안전 가드레일: 선수의 대분류와 AI가 반환한 세부 포지션을 검증하고 불일치 시 자동 보정
+	 * 세부 포지션 정규화 가드레일:
+	 * 1) 이미 공식 약어(CB, LB, CDM, CAM, ST 등)인 경우 그대로 유지
+	 * 2) AI가 풀네임(CENTRE-BACK 등)으로 반환한 경우 공식 약어로 정규화
+	 * 3) 비정상적인 값이면 원래 대분류 유지
 	 */
 	private String validateAndSanitizeDetailPosition(String mainPosition, String detailPosition) {
-		String main = (mainPosition != null) ? mainPosition.trim().toUpperCase() : "MF";
-		String detail = (detailPosition != null) ? detailPosition.trim().toUpperCase() : "";
+		if (detailPosition == null || detailPosition.isBlank()) {
+			return mainPosition;
+		}
+		String d = detailPosition.trim().toUpperCase();
 
-		// 1. 골키퍼
-		if ("GK".equals(main)) {
-			return "GK";
+		// 1. 이미 올바른 공식 약어인 경우 그대로 통과
+		if (List.of("GK", "CB", "LB", "RB", "LWB", "RWB", "CDM", "CM", "CAM", "LM", "RM", "ST", "CF", "LW", "RW", "SS").contains(d)) {
+			return d;
 		}
 
-		// 2. 수비수
-		if ("DF".equals(main)) {
-			if (List.of("CB", "LB", "RB", "LWB", "RWB").contains(detail)) {
-				return detail;
-			}
-			return "CB"; // 기본값 CB
-		}
+		// 2. AI가 풀네임이나 변형으로 응답했을 때 공식 약어로 정규화
+		if (d.contains("CENTRE-BACK") || d.contains("CENTER-BACK")) return "CB";
+		if (d.contains("LEFT-BACK")) return "LB";
+		if (d.contains("RIGHT-BACK")) return "RB";
+		if (d.contains("DEFENSIVE MID")) return "CDM";
+		if (d.contains("ATTACKING MID")) return "CAM";
+		if (d.contains("CENTRAL MID")) return "CM";
+		if (d.contains("LEFT WING")) return "LW";
+		if (d.contains("RIGHT WING")) return "RW";
+		if (d.contains("SECOND STRIKER")) return "SS";
+		if (d.contains("STRIKER") || d.contains("FORWARD")) return "ST";
 
-		// 3. 미드필더
-		if ("MF".equals(main)) {
-			if (List.of("CDM", "CM", "CAM", "LM", "RM").contains(detail)) {
-				return detail;
-			}
-			if ("DM".equals(detail)) return "CDM";
-			if ("AM".equals(detail)) return "CAM";
-			return "CM"; // 기본값 CM
-		}
-
-		// 4. 공격수
-		if ("FW".equals(main)) {
-			if (List.of("ST", "CF", "LW", "RW", "SS").contains(detail)) {
-				return detail;
-			}
-			return "ST"; // 기본값 ST
-		}
-
-		return "MF";
+		// 3. 그 외 알 수 없는 형식이면 원래 대분류 유지
+		return (mainPosition != null) ? mainPosition : "MF";
 	}
 
-	/**
-	 * 전체 20개 구단 모든 선수단의 세부 포지션 Gemini AI 정밀 판별 및 DB 일괄 적재
-	 */
 	@Override
 	public int syncAllPlayersDetailPositions() {
 		List<Teams> teamList = teamDAO.findAllTeams();
