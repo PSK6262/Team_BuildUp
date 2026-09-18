@@ -12,7 +12,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.sprin
                       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
 	<!-- 1. 프로퍼티 설정 통합 (콤마를 사용하여 여러 설정을 단 하나의 태그로 안전하게 로드합니다) -->
-	<context:property-placeholder location="classpath:config/db.properties, classpath:config/application.properties" ignore-resource-not-found="true" ignore-unresolvable="true"/>
+	<context:property-placeholder location="classpath:config/db.properties, classpath:config/application.properties" />
 
 	<!-- 데이터베이스 연결 설정 -->
 	<bean class="org.apache.commons.dbcp2.BasicDataSource" id="data_source" destroy-method="close">

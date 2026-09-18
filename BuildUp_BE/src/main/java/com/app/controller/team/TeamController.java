@@ -87,6 +87,43 @@ public class TeamController {
 		);
 	}
 
+	// [Gemini AI] 0-4. 깨지거나 누락된 구단 엠블럼 AI 자동 탐색 및 복구
+	// 예: GET /api/teams/sync-ai-emblems
+	@GetMapping("/sync-ai-emblems")
+	public Map<String, Object> syncAiEmblems() {
+		int count = geminiApiService.syncBrokenTeamEmblemsWithAI();
+		return Map.of(
+			"status", "SUCCESS",
+			"updatedCount", count,
+			"message", "깨지거나 누락된 구단 엠블럼 AI 복구 및 저장이 완료되었습니다."
+		);
+	}
+
+	// [Gemini AI] 0-5. 20개 구단 전체 선수 세부 포지션(CB, LB, RB, CDM, CAM, ST 등) AI 정밀 판별 및 DB 적재
+	// 예: GET /api/teams/sync-ai-detail-positions
+	@GetMapping("/sync-ai-detail-positions")
+	public Map<String, Object> syncAiDetailPositions() {
+		int count = geminiApiService.syncAllPlayersDetailPositions();
+		return Map.of(
+			"status", "SUCCESS",
+			"message", "20개 구단 전체 선수의 세부 포지션(CB, LB, RB, CDM, CAM, ST 등) 정밀 동기화가 완료되었습니다.",
+			"updatedCount", count
+		);
+	}
+
+	// [Gemini AI] 0-6. 특정 구단 소속 선수 세부 포지션 AI 단독 적재
+	// 예: GET /api/teams/57/sync-ai-detail-positions
+	@GetMapping("/{teamId}/sync-ai-detail-positions")
+	public Map<String, Object> syncAiDetailPositionsByTeam(@PathVariable("teamId") Long teamId) {
+		int count = geminiApiService.syncPlayersDetailPositionsByTeamId(teamId);
+		return Map.of(
+			"status", "SUCCESS",
+			"teamId", teamId,
+			"message", "구단(ID: " + teamId + ") 소속 선수의 세부 포지션 정밀 동기화가 완료되었습니다.",
+			"updatedCount", count
+		);
+	}
+
 	// 1. 프리미어리그 전체 구단 및 소속 선수 전체 일괄 DB 저장 (동기화)
 	// 예: GET /api/teams/sync-all
 	@GetMapping("/sync-all")

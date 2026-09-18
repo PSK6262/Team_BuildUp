@@ -62,6 +62,16 @@ public class TeamDAOImpl implements TeamDAO {
 	}
 
 	@Override
+	public List<Teams> findTeamsWithBrokenEmblem() {
+		return sqlSession.selectList("TeamMapper.selectTeamsWithBrokenEmblem");
+	}
+
+	@Override
+	public void updateTeamEmblem(Teams team) {
+		sqlSession.update("TeamMapper.updateTeamEmblem", team);
+	}
+
+	@Override
 	public List<Players> findAllPlayers() {
 		return sqlSession.selectList("TeamMapper.selectAllPlayers");
 	}
@@ -69,6 +79,11 @@ public class TeamDAOImpl implements TeamDAO {
 	@Override
 	public void updatePlayerKorean(Players player) {
 		sqlSession.update("TeamMapper.updatePlayerKorean", player);
+	}
+
+	@Override
+	public void updatePlayerDetailPosition(Players player) {
+		sqlSession.update("TeamMapper.updatePlayerDetailPosition", player);
 	}
 
 	@Override

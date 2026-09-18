@@ -47,4 +47,23 @@ public interface GeminiApiService {
 	 * @return 작업 시작 상태 맵
 	 */
 	Map<String, Object> syncAllKoreanDataAsync();
+
+	/**
+	 * 깨지거나 누락된 구단 엠블럼을 AI로 자동 탐색하여 공식 투명 PNG 엠블럼으로 복구 및 DB 적재
+	 * @return 갱신된 구단 수
+	 */
+	int syncBrokenTeamEmblemsWithAI();
+
+	/**
+	 * 특정 구단 선수들의 세부 포지션(CB, LB, RB, CDM, CAM, CM, LM, RM, ST, LW, RW 등) Gemini AI 정밀 판별 및 DB 적재
+	 * @param teamId 구단 식별자
+	 * @return 갱신된 선수 수
+	 */
+	int syncPlayersDetailPositionsByTeamId(Long teamId);
+
+	/**
+	 * 전체 20개 구단 모든 선수단의 세부 포지션 Gemini AI 정밀 판별 및 DB 일괄 적재
+	 * @return 갱신된 총 선수 수
+	 */
+	int syncAllPlayersDetailPositions();
 }

@@ -11,6 +11,8 @@
 
 	<typeAliases>
 		<typeAlias type="com.app.dto.community.Posts" alias="Posts"/>
+		<typeAlias type="com.app.dto.community.PostLikes" alias="PostLikes"/>
+		<typeAlias type="com.app.dto.community.CommunityCategory" alias="CommunityCategory"/>
 		<typeAlias type="com.app.dto.community.Comments" alias="Comments"/>
 		<typeAlias type="com.app.dto.team.Teams" alias="Teams"/>
 		<typeAlias type="com.app.dto.team.Players" alias="Players"/>
@@ -19,6 +21,8 @@
 		<typeAlias type="com.app.dto.team.TeamStats" alias="TeamStats"/>
 		<typeAlias type="com.app.dto.match.Matches" alias="Matches"/>
 		<typeAlias type="com.app.dto.match.MatchEvents" alias="MatchEvents"/>
+		<typeAlias type="com.app.dto.user.Users" alias="Users"/>
+		<typeAlias type="com.app.dto.user.UserPredicts" alias="UserPredicts"/>
 	</typeAliases>
 	
 </configuration>

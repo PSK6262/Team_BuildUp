@@ -6,6 +6,10 @@ import Community from './pages/Community.jsx'
 import FreeBoard from './pages/FreeBoard.jsx'
 import TeamBoards from './pages/TeamBoards.jsx'
 import PostDetail from './pages/PostDetail.jsx'
+import PostWrite from './pages/PostWrite.jsx'
+import Login from './pages/Login.jsx'
+import Signup from './pages/Signup.jsx'
+import MyPage from './pages/MyPage.jsx'
 import { communityTeams } from './data/communityTeams.js'
 import Match from './pages/Match.jsx'
 import './App.css'
@@ -32,12 +36,18 @@ function App() {
       {pathname === '/plug/match' && <Match />}
       {pathname === '/plug/matchresult' && <Match resultsOnly />}
 
+      {/* 회원 인증 및 마이페이지 */}
+      {pathname === '/plug/login' && <Login />}
+      {(pathname === '/plug/signin' || pathname === '/plug/signup') && <Signup />}
+      {pathname === '/plug/mypage' && <MyPage />}
+
       {/* 커뮤니티 */}
       {pathname === '/plug/community' && <Community />}
       {pathname === '/plug/community/free' && <FreeBoard />}
       {pathname === '/plug/community/teams' && <TeamBoards />}
-      {postMatch && <PostDetail postId={postMatch[ 1 ]} />}
-      {commuTeam && <Community key={commuTeam.slug} selectedTeam={commuTeam.name} />}
+      {pathname === '/plug/community/write' && <PostWrite />}
+      {postMatch && <PostDetail postId={postMatch[1]} />}
+      {commuTeam && <Community key={commuTeam.slug} selectedTeam={commuTeam} />}
       {pathname.startsWith('/plug/community/teams/') && !commuTeam && (
         <main className="community">
           <h1>팀을 찾을 수 없습니다.</h1>

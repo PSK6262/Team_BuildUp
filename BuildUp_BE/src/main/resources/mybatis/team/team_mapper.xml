@@ -42,14 +42,21 @@
 			UPDATE SET 
 				p.NAME = #{name},
 				p.MAIN_POSITION = NVL(#{mainPosition, jdbcType=VARCHAR}, p.MAIN_POSITION),
+				p.DETAIL_POSITION = CASE 
+					WHEN p.DETAIL_POSITION IS NOT NULL 
+					     AND p.DETAIL_POSITION NOT IN ('GK', 'DF', 'MF', 'FW') 
+					THEN p.DETAIL_POSITION 
+					ELSE NVL(#{detailPosition, jdbcType=VARCHAR}, p.DETAIL_POSITION) 
+				END,
 				p.NATIONALITY = NVL(#{nationality, jdbcType=VARCHAR}, p.NATIONALITY),
 				p.TEAM_ID = NVL(#{teamId, jdbcType=NUMERIC}, p.TEAM_ID)
 		WHEN NOT MATCHED THEN
-			INSERT (PLAYER_ID, NAME, MAIN_POSITION, NATIONALITY, TEAM_ID)
+			INSERT (PLAYER_ID, NAME, MAIN_POSITION, DETAIL_POSITION, NATIONALITY, TEAM_ID)
 			VALUES (
 				#{playerId},
 				#{name},
 				#{mainPosition},
+				NVL(#{detailPosition, jdbcType=VARCHAR}, #{mainPosition}),
 				#{nationality, jdbcType=VARCHAR},
 				#{teamId}
 			)
@@ -86,6 +93,7 @@
 			NAME,
 			NAME_KOR,
 			MAIN_POSITION,
+			DETAIL_POSITION,
 			NATIONALITY,
 			NATIONALITY_KOR,
 			TEAM_ID
@@ -162,6 +170,29 @@
 		WHERE TEAM_ID = #{teamId}
 	</update>
 
+	<!-- [엠블럼 자동화] 엠블럼 미등록 또는 불량 링크 구단 목록 조회 -->
+	<select id="selectTeamsWithBrokenEmblem" resultType="Teams">
+		SELECT 
+			TEAM_ID, 
+			TEAM_NAME, 
+			TEAM_NAME_KOR, 
+			EMBLEM_URL
+		FROM TEAMS
+		WHERE EMBLEM_URL IS NULL 
+		   OR EMBLEM_URL LIKE '%crests.football-data.org%'
+		   OR EMBLEM_URL NOT LIKE '%.png'
+		ORDER BY TEAM_ID ASC
+	</select>
+
+	<!-- [엠블럼 자동화] 구단 공식 엠블럼 URL 단독 업데이트 -->
+	<update id="updateTeamEmblem" parameterType="Teams">
+		UPDATE TEAMS
+		SET 
+			EMBLEM_URL = #{emblemUrl, jdbcType=VARCHAR},
+			UPDATED_AT = SYSTIMESTAMP
+		WHERE TEAM_ID = #{teamId}
+	</update>
+
 	<!-- 전체 선수 목록 조회 (AI 번역/배치용) -->
 	<select id="selectAllPlayers" resultType="Players">
 		SELECT 
@@ -182,6 +213,13 @@
 		SET 
 			NAME_KOR = #{nameKor, jdbcType=VARCHAR},
 			NATIONALITY_KOR = #{nationalityKor, jdbcType=VARCHAR}
+		WHERE PLAYER_ID = #{playerId}
+	</update>
+
+	<!-- [Gemini AI용] 선수 상세 포지션(CB, LB, RB, CDM, CAM, ST 등) 업데이트 -->
+	<update id="updatePlayerDetailPosition" parameterType="Players">
+		UPDATE PLAYERS
+		SET DETAIL_POSITION = #{detailPosition, jdbcType=VARCHAR}
 		WHERE PLAYER_ID = #{playerId}
 	</update>
 

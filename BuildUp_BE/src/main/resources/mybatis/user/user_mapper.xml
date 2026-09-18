@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="UserMapper">
+
+	<!-- 신규 회원 가입 -->
+	<insert id="insertUser" parameterType="Users" useGeneratedKeys="true" keyProperty="userId" keyColumn="USER_ID">
+		INSERT INTO USERS (
+			LOGIN_ID,
+			PASSWORD,
+			NICKNAME,
+			EMAIL,
+			FAVORITE_TEAM_ID,
+			ROLE_CODE,
+			POINT,
+			CREATED_AT
+		) VALUES (
+			#{loginId},
+			#{password},
+			#{nickname},
+			#{email},
+			#{favoriteTeamId, jdbcType=NUMERIC},
+			NVL(#{roleCode, jdbcType=NUMERIC}, 1),
+			NVL(#{point, jdbcType=NUMERIC}, 100),
+			SYSTIMESTAMP
+		)
+	</insert>
+
+	<!-- 회원가입 시 승부예측 1:1 통계 초기 레코드 생성 -->
+	<insert id="insertUserPredictsInitial" parameterType="long">
+		INSERT INTO USER_PREDICTS (
+			USER_ID,
+			PREDICT_WIN,
+			PREDICT_TOTAL,
+			UPDATED_AT
+		) VALUES (
+			#{userId},
+			0,
+			0,
+			SYSTIMESTAMP
+		)
+	</insert>
+
+	<!-- 로그인 아이디로 회원 단건 조회 (로그인 및 중복검사용) -->
+	<select id="selectUserByLoginId" parameterType="string" resultType="Users">
+		SELECT 
+			u.USER_ID,
+			u.LOGIN_ID,
+			u.PASSWORD,
+			u.NICKNAME,
+			u.EMAIL,
+			u.FAVORITE_TEAM_ID,
+			u.ROLE_CODE,
+			u.POINT,
+			u.CREATED_AT,
+			u.UPDATED_AT,
+			r.ROLE_NAME
+		FROM USERS u
+		LEFT JOIN USER_ROLES r ON u.ROLE_CODE = r.ROLE_CODE
+		WHERE u.LOGIN_ID = #{loginId}
+	</select>
+
+	<!-- 회원 식별자(PK)로 회원 정보 조회 (마이페이지용) -->
+	<select id="selectUserByUserId" parameterType="long" resultType="Users">
+		SELECT 
+			u.USER_ID,
+			u.LOGIN_ID,
+			u.PASSWORD,
+			u.NICKNAME,
+			u.EMAIL,
+			u.FAVORITE_TEAM_ID,
+			u.ROLE_CODE,
+			u.POINT,
+			u.CREATED_AT,
+			u.UPDATED_AT,
+			r.ROLE_NAME
+		FROM USERS u
+		LEFT JOIN USER_ROLES r ON u.ROLE_CODE = r.ROLE_CODE
+		WHERE u.USER_ID = #{userId}
+	</select>
+
+	<!-- 로그인 아이디 중복 개수 확인 -->
+	<select id="countByLoginId" parameterType="string" resultType="int">
+		SELECT COUNT(*)
+		FROM USERS
+		WHERE LOGIN_ID = #{loginId}
+	</select>
+
+	<!-- 닉네임 중복 개수 확인 -->
+	<select id="countByNickname" parameterType="string" resultType="int">
+		SELECT COUNT(*)
+		FROM USERS
+		WHERE NICKNAME = #{nickname}
+	</select>
+
+	<!-- 회원 기본 정보 수정 (닉네임, 이메일, 선호구단) -->
+	<update id="updateUser" parameterType="Users">
+		UPDATE USERS
+		SET 
+			NICKNAME = #{nickname},
+			EMAIL = #{email},
+			FAVORITE_TEAM_ID = #{favoriteTeamId, jdbcType=NUMERIC},
+			UPDATED_AT = SYSTIMESTAMP
+		WHERE USER_ID = #{userId}
+	</update>
+
+	<!-- 비밀번호 변경 -->
+	<update id="updatePassword" parameterType="map">
+		UPDATE USERS
+		SET 
+			PASSWORD = #{newPassword},
+			UPDATED_AT = SYSTIMESTAMP
+		WHERE USER_ID = #{userId}
+	</update>
+
+</mapper>

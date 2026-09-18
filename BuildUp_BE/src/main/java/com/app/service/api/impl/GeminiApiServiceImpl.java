@@ -263,7 +263,7 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 			prompt.append("   - Pep Guardiola -> '펩 과르디올라', Mikel Arteta -> '미켈 아르테타', Arne Slot -> '아르네 슬롯', Ange Postecoglou -> '엔제 포스테코글루', Unai Emery -> '우나이 에메리'\n");
 			prompt.append("3. 국적 명칭 방송 표준 준수:\n");
 			prompt.append("   - 'Bosnia and Herzegovina'는 공식 정식 국호인 '보스니아 헤르체고비나'로 통일\n");
-			prompt.append("   - 'Democratic Republic of the Congo'는 방송 자막 표준인 'DR 콩고'로 표기\n");
+			prompt.append("   - 'Democratic Republic of the Congo', 'Congo DR', 'DR Congo'는 영문 약어를 쓰지 말고 공식 한글 국호인 '콩고 민주 공화국'으로 반드시 표기\n");
 			prompt.append("   - 'Korea Republic' / 'South Korea' -> '대한민국'\n");
 			prompt.append("   - 'England/Scotland/Wales/Northern Ireland' -> '잉글랜드/스코틀랜드/웨일스/북아일랜드'\n\n");
 			prompt.append("반드시 아래와 같은 JSON 배열 형식으로만 응답해야 합니다:\n");
@@ -342,7 +342,7 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 			prompt.append("   - Mohamed Salah -> '모하메드 살라'\n");
 			prompt.append("3. 국적 명칭 방송 공식 자막 기준 준수:\n");
 			prompt.append("   - 'Bosnia and Herzegovina' -> '보스니아 헤르체고비나'\n");
-			prompt.append("   - 'Democratic Republic of the Congo' -> 'DR 콩고'\n");
+			prompt.append("   - 'Democratic Republic of the Congo', 'Congo DR', 'DR Congo' -> 영문 약어(DR) 금지, '콩고 민주 공화국'으로 반드시 표기\n");
 			prompt.append("   - 'Korea Republic' / 'South Korea' -> '대한민국'\n");
 			prompt.append("   - 'England/Scotland/Wales/Northern Ireland' -> '잉글랜드/스코틀랜드/웨일스/북아일랜드'\n");
 			prompt.append("   - 'Netherlands' -> '네덜란드', 'Norway' -> '노르웨이', 'Ivory Coast'/'Cote d'Ivoire' -> '코트디부아르'\n\n");
@@ -500,24 +500,34 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 				long startTime = System.currentTimeMillis();
 
 				try {
+					// 0단계: 깨지거나 누락된 구단 엠블럼 AI 자동 복구
+					System.out.println("[0/4] 구단 엠블럼 AI 자동 복구 및 검증 중...");
+					int emblemCount = syncBrokenTeamEmblemsWithAI();
+					System.out.println("  -> 엠블럼 복구 완료: " + emblemCount + "개 구단");
+
 					// 1단계: 20개 구단 한글명, 홈구장, 역사 생성
-					System.out.println("[1/3] 20개 구단 한글명, 홈 경기장, 구단 역사 생성 중...");
+					System.out.println("[1/4] 20개 구단 한글명, 홈 경기장, 구단 역사 생성 중...");
 					int teamsCount = syncTeamsKoreanAndHistory();
 					System.out.println("  -> 구단 처리 완료: " + teamsCount + "개 구단");
 
 					// 2단계: 20개 구단 코칭스태프(감독) 번역
-					System.out.println("[2/3] 코칭스태프(감독) 한글명 및 국적 번역 중...");
+					System.out.println("[2/4] 코칭스태프(감독) 한글명 및 국적 번역 중...");
 					int staffsCount = syncStaffsKorean();
 					System.out.println("  -> 스태프 처리 완료: " + staffsCount + "명");
 
 					// 3단계: 20개 구단 선수단(500명) 일괄 번역
-					System.out.println("[3/3] 20개 구단 선수단(약 500명) 구단별 일괄 번역 중...");
+					System.out.println("[3/5] 20개 구단 선수단(약 500명) 구단별 일괄 번역 중...");
 					int playersCount = syncAllPlayersKorean();
 					System.out.println("  -> 선수단 처리 완료: " + playersCount + "명");
 
+					// 4단계: 20개 구단 선수단 세부 포지션(CB, LB, RB, CDM, CAM, ST 등) AI 정밀 판별
+					System.out.println("[4/5] 20개 구단 선수단 세부 포지션 AI 정밀 판별 및 적재 중...");
+					int detailPosCount = syncAllPlayersDetailPositions();
+					System.out.println("  -> 세부 포지션 처리 완료: " + detailPosCount + "명");
+
 					long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
 					System.out.println("======================================================================");
-					System.out.println("[BuildUp - Gemini AI] 모든 한글화 및 역사 적재 완료! (총 소요시간: " + elapsedTime + "초)");
+					System.out.println("[BuildUp - Gemini AI] 모든 한글화, 역사 및 세부 포지션 적재 완료! (총 소요시간: " + elapsedTime + "초)");
 					System.out.println("======================================================================");
 
 				} catch (Exception e) {
@@ -535,5 +545,288 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		result.put("status", "SUCCESS");
 		result.put("message", "Gemini AI 한글화 및 구단 역사 적재 작업이 백그라운드에서 시작되었습니다. 서버 콘솔을 확인해주세요.");
 		return result;
+	}
+
+	/**
+	 * 깨지거나 누락된 구단 엠블럼을 AI로 자동 탐색하여 공식 투명 PNG 엠블럼으로 복구 및 DB 적재
+	 */
+	@Override
+	@Transactional
+	public int syncBrokenTeamEmblemsWithAI() {
+		List<Teams> brokenTeams = teamDAO.findTeamsWithBrokenEmblem();
+		if (brokenTeams == null || brokenTeams.isEmpty()) {
+			log.info("[Gemini AI] 엠블럼 복구 대상 구단이 없습니다. (모든 구단 정상)");
+			return 0;
+		}
+
+		log.info("[Gemini AI] 깨지거나 누락된 엠블럼 복구 시작 (대상 구단 수: {})", brokenTeams.size());
+
+		List<Teams> remainingTeams = new ArrayList<>();
+		int updatedCount = 0;
+
+		// 1차: 알려진 프리미어리그 공식 CDN 매핑 우선 적용
+		for (Teams t : brokenTeams) {
+			String officialUrl = resolveKnownEmblem(t.getTeamId());
+			if (officialUrl != null) {
+				t.setEmblemUrl(officialUrl);
+				teamDAO.updateTeamEmblem(t);
+				updatedCount++;
+				log.info("  -> [{}] 공식 CDN 엠블럼 즉시 복구: {} -> {}", t.getTeamId(), t.getTeamName(), officialUrl);
+			} else {
+				remainingTeams.add(t);
+			}
+		}
+
+		// 2차: 매핑에 없는 구단은 Gemini AI가 투명 배경 공식 엠블럼 URL 자동 탐색
+		if (!remainingTeams.isEmpty()) {
+			try {
+				List<Map<String, Object>> inputList = new ArrayList<>();
+				for (Teams t : remainingTeams) {
+					Map<String, Object> item = new HashMap<>();
+					item.put("teamId", t.getTeamId());
+					item.put("teamName", t.getTeamName());
+					item.put("teamNameKor", t.getTeamNameKor());
+					inputList.add(item);
+				}
+
+				String inputJson = objectMapper.writeValueAsString(inputList);
+				StringBuilder prompt = new StringBuilder();
+				prompt.append("당신은 전 세계 축구 리그 데이터 및 공식 구단 엠블럼(Crest/Badge) 전문가입니다.\n");
+				prompt.append("아래 축구 구단 목록을 확인하고, 각 구단의 다크 모드 UI에 최적화된 '배경 투명(누끼) 고화질 PNG 엠블럼 이미지 URL'을 찾아주세요.\n\n");
+				prompt.append("[엠블럼 URL 선정 원칙]\n");
+				prompt.append("1. 잉글랜드 프리미어리그(EPL) 또는 잉글랜드 리그 구단인 경우:\n");
+				prompt.append("   - 프리미어리그 공식 Akamai CDN 주소(https://resources.premierleague.com/premierleague/badges/50/t{badgeId}.png)를 최우선으로 찾으세요.\n");
+				prompt.append("2. 타 리그 또는 기타 구단인 경우:\n");
+				prompt.append("   - 위키미디어 공용(Wikimedia Commons) 또는 구단 공식 사이트의 배경이 투명한 고화질 PNG 엠블럼 URL을 지정하세요.\n");
+				prompt.append("3. 주의사항: 절대 불투명한 흰색 사각형 배경이 포함된 깨지는 이미지를 반환하지 마세요.\n\n");
+				prompt.append("반드시 아래와 같은 JSON 배열 형식으로만 응답해야 합니다:\n");
+				prompt.append("[\n");
+				prompt.append("  {\n");
+				prompt.append("    \"teamId\": 1044,\n");
+				prompt.append("    \"emblemUrl\": \"https://resources.premierleague.com/premierleague/badges/50/t91.png\"\n");
+				prompt.append("  }\n");
+				prompt.append("]\n\n");
+				prompt.append("구단 목록 데이터:\n").append(inputJson);
+
+				String resultJson = callGemini(prompt.toString());
+				JsonNode arrayNode = objectMapper.readTree(resultJson);
+
+				if (arrayNode.isArray()) {
+					for (JsonNode node : arrayNode) {
+						Long teamId = node.path("teamId").asLong();
+						String emblemUrl = node.hasNonNull("emblemUrl") ? node.path("emblemUrl").asText().trim() : null;
+
+						if (emblemUrl != null && !emblemUrl.isBlank()) {
+							Teams updateTarget = new Teams();
+							updateTarget.setTeamId(teamId);
+							updateTarget.setEmblemUrl(emblemUrl);
+							teamDAO.updateTeamEmblem(updateTarget);
+							updatedCount++;
+							log.info("  -> [{}] Gemini AI가 탐색한 엠블럼 저장 완료: {}", teamId, emblemUrl);
+						}
+					}
+				}
+			} catch (Exception e) {
+				log.error("[Gemini AI] 엠블럼 AI 탐색 처리 중 오류: {}", e.getMessage(), e);
+			}
+		}
+
+		log.info("[Gemini AI] 구단 엠블럼 복구 완료! (총 {}개 구단 갱신)", updatedCount);
+		return updatedCount;
+	}
+
+	/**
+	 * 알려진 프리미어리그 주요 구단 공식 CDN 엠블럼 URL 반환
+	 */
+	private String resolveKnownEmblem(Long teamId) {
+		if (teamId == null) return null;
+		String badgeId = switch (teamId.intValue()) {
+			case 57 -> "t3";     // Arsenal
+			case 58 -> "t7";     // Aston Villa
+			case 1044 -> "t91";  // AFC Bournemouth
+			case 402 -> "t94";   // Brentford
+			case 397 -> "t36";   // Brighton & Hove Albion
+			case 61 -> "t8";     // Chelsea
+			case 354 -> "t31";   // Crystal Palace
+			case 62 -> "t11";    // Everton
+			case 63 -> "t54";    // Fulham
+			case 349 -> "t40";   // Ipswich Town
+			case 338 -> "t13";   // Leicester City
+			case 64 -> "t14";    // Liverpool
+			case 65 -> "t43";    // Manchester City
+			case 66 -> "t1";     // Manchester United
+			case 67 -> "t4";     // Newcastle United
+			case 351 -> "t17";   // Nottingham Forest
+			case 340 -> "t20";   // Southampton
+			case 73 -> "t6";     // Tottenham Hotspur
+			case 563 -> "t21";   // West Ham United
+			case 76 -> "t39";    // Wolverhampton Wanderers
+			case 71 -> "t56";    // Sunderland
+			case 341 -> "t2";    // Leeds United
+			case 322 -> "t88";   // Hull City
+			case 1076 -> "t9";   // Coventry City
+			default -> null;
+		};
+		return badgeId != null ? "https://resources.premierleague.com/premierleague/badges/50/" + badgeId + ".png" : null;
+	}
+
+	/**
+	 * 특정 구단 선수단의 세부 포지션(CB, LB, RB, CDM, CAM, CM, LM, RM, ST, LW, RW 등) Gemini AI 정밀 판별 및 DB 적재
+	 * - 할루시네이션 원천 차단:
+	 *   1) 프롬프트에 선수의 영문명, 한글명, 소속구단, 기존 4대 대분류(MAIN_POSITION) 제공
+	 *   2) 대분류 카테고리 일치 구속(GK->GK, DF->CB/LB/RB, MF->CDM/CM/CAM/LM/RM, FW->ST/LW/RW/SS)
+	 *   3) Java 백엔드 2중 필터링을 통해 허용되지 않은 포지션이나 카테고리 불일치 시 자동 보정(Fail-safe)
+	 */
+	@Override
+	@Transactional
+	public int syncPlayersDetailPositionsByTeamId(Long teamId) {
+		List<Players> playerList = teamDAO.findPlayersByTeamId(teamId);
+		if (playerList == null || playerList.isEmpty()) {
+			return 0;
+		}
+
+		Teams team = teamDAO.findTeamById(teamId);
+		String teamName = (team != null) ? (team.getTeamNameKor() != null ? team.getTeamNameKor() : team.getTeamName()) : "구단";
+
+		log.info("[Gemini AI] 구단 [{}] 소속 선수단 세부 포지션 AI 정밀 판별 시작 (대상: {}명)", teamName, playerList.size());
+
+		Map<Long, Players> playerMap = new HashMap<>();
+		List<Map<String, Object>> inputPlayers = new ArrayList<>();
+		for (Players p : playerList) {
+			playerMap.put(p.getPlayerId(), p);
+
+			Map<String, Object> item = new HashMap<>();
+			item.put("playerId", p.getPlayerId());
+			item.put("name", p.getName());
+			item.put("nameKor", p.getNameKor());
+			item.put("teamName", teamName);
+			item.put("mainPosition", p.getMainPosition()); // GK, DF, MF, FW
+			inputPlayers.add(item);
+		}
+
+		try {
+			String playersJson = objectMapper.writeValueAsString(inputPlayers);
+			StringBuilder prompt = new StringBuilder();
+			prompt.append("당신은 프리미어리그(EPL) 공식 데이터 분석가이자 SPOTV 축구 중계 전문 프로파일러입니다.\n");
+			prompt.append("제공된 선수 목록의 실제 경기 프로필 및 공식 전술 배치를 바탕으로 각 선수의 '주 세부 포지션 공식 약어'를 정밀하게 판별해주세요.\n\n");
+			prompt.append("[★ 할루시네이션 방지 절대 규칙 - 위반 절대 금지 ★]\n");
+			prompt.append("1. 선수의 기존 'mainPosition' 대분류 카테고리를 100% 엄격히 준수해야 합니다:\n");
+			prompt.append("   - mainPosition이 'GK'인 경우: 무조건 'GK'로만 지정\n");
+			prompt.append("   - mainPosition이 'DF'인 경우: 'CB', 'LB', 'RB', 'LWB', 'RWB' 중에서만 지정 (절대 미드필더/공격수 부여 금지)\n");
+			prompt.append("   - mainPosition이 'MF'인 경우: 'CDM', 'CM', 'CAM', 'LM', 'RM' 중에서만 지정 (절대 수비수/공격수 부여 금지)\n");
+			prompt.append("   - mainPosition이 'FW'인 경우: 'ST', 'CF', 'LW', 'RW', 'SS' 중에서만 지정 (절대 수비수/미드필더 부여 금지)\n");
+			prompt.append("2. 출력 약어는 오직 공인 축구 약어만 허용됩니다. 부가 설명이나 다른 텍스트는 절대 작성하지 마세요.\n");
+			prompt.append("3. 대표적인 팩트 기준 예시:\n");
+			prompt.append("   - 살리바, 반다이크, 로메로, 디아스 -> 'CB'\n");
+			prompt.append("   - 진첸코, 그바르디올, 우도기, 로버트슨 -> 'LB'\n");
+			prompt.append("   - 화이트, 포로, 아놀드, 워커 -> 'RB'\n");
+			prompt.append("   - 로드리, 라이스, 파티, 카이세도 -> 'CDM'\n");
+			prompt.append("   - 외데고르, 더브라위너, 매디슨, 브루누 -> 'CAM'\n");
+			prompt.append("   - 엔소 페르난데스, 마이누, 코바치치 -> 'CM'\n");
+			prompt.append("   - 사카, 살라, 쿨루셉스키 -> 'RW'\n");
+			prompt.append("   - 손흥민, 마르티넬리, 디아스 -> 'LW'\n");
+			prompt.append("   - 홀란, 솔란케, 하베르츠, 잭슨, 호일룬 -> 'ST'\n\n");
+			prompt.append("반드시 아래와 같은 JSON 배열 형식으로만 응답해야 합니다:\n");
+			prompt.append("[\n");
+			prompt.append("  {\n");
+			prompt.append("    \"playerId\": 3233,\n");
+			prompt.append("    \"detailPosition\": \"CAM\"\n");
+			prompt.append("  }\n");
+			prompt.append("]\n\n");
+			prompt.append("선수 목록 데이터:\n").append(playersJson);
+
+			String resultJson = callGemini(prompt.toString());
+			JsonNode arrayNode = objectMapper.readTree(resultJson);
+
+			int updatedCount = 0;
+			if (arrayNode.isArray()) {
+				for (JsonNode node : arrayNode) {
+					Long playerId = node.path("playerId").asLong();
+					String rawDetail = node.path("detailPosition").asText("").trim().toUpperCase();
+
+					Players originalPlayer = playerMap.get(playerId);
+					if (originalPlayer == null) continue;
+
+					String detailPosition = validateAndSanitizeDetailPosition(originalPlayer.getMainPosition(), rawDetail);
+
+					Players updateTarget = new Players();
+					updateTarget.setPlayerId(playerId);
+					updateTarget.setDetailPosition(detailPosition);
+
+					teamDAO.updatePlayerDetailPosition(updateTarget);
+					updatedCount++;
+				}
+			}
+
+			log.info("[Gemini AI] 구단 [{}] 세부 포지션 정밀 적재 완료! (총 {}명 반영)", teamName, updatedCount);
+			return updatedCount;
+
+		} catch (Exception e) {
+			log.error("[Gemini AI] 구단 [{}] 세부 포지션 처리 중 오류: {}", teamName, e.getMessage(), e);
+			throw new RuntimeException("세부 포지션 AI 판별 실패: " + e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * 세부 포지션 정규화 가드레일:
+	 * 1) 이미 공식 약어(CB, LB, CDM, CAM, ST 등)인 경우 그대로 유지
+	 * 2) AI가 풀네임(CENTRE-BACK 등)으로 반환한 경우 공식 약어로 정규화
+	 * 3) 비정상적인 값이면 원래 대분류 유지
+	 */
+	private String validateAndSanitizeDetailPosition(String mainPosition, String detailPosition) {
+		if (detailPosition == null || detailPosition.isBlank()) {
+			return mainPosition;
+		}
+		String d = detailPosition.trim().toUpperCase();
+
+		// 1. 이미 올바른 공식 약어인 경우 그대로 통과
+		if (List.of("GK", "CB", "LB", "RB", "LWB", "RWB", "CDM", "CM", "CAM", "LM", "RM", "ST", "CF", "LW", "RW", "SS").contains(d)) {
+			return d;
+		}
+
+		// 2. AI가 풀네임이나 변형으로 응답했을 때 공식 약어로 정규화
+		if (d.contains("CENTRE-BACK") || d.contains("CENTER-BACK")) return "CB";
+		if (d.contains("LEFT-BACK")) return "LB";
+		if (d.contains("RIGHT-BACK")) return "RB";
+		if (d.contains("DEFENSIVE MID")) return "CDM";
+		if (d.contains("ATTACKING MID")) return "CAM";
+		if (d.contains("CENTRAL MID")) return "CM";
+		if (d.contains("LEFT WING")) return "LW";
+		if (d.contains("RIGHT WING")) return "RW";
+		if (d.contains("SECOND STRIKER")) return "SS";
+		if (d.contains("STRIKER") || d.contains("FORWARD")) return "ST";
+
+		// 3. 그 외 알 수 없는 형식이면 원래 대분류 유지
+		return (mainPosition != null) ? mainPosition : "MF";
+	}
+
+	@Override
+	public int syncAllPlayersDetailPositions() {
+		List<Teams> teamList = teamDAO.findAllTeams();
+		if (teamList == null || teamList.isEmpty()) {
+			log.warn("[Gemini AI] 등록된 구단이 없습니다.");
+			return 0;
+		}
+
+		log.info("======================================================================");
+		log.info("[Gemini AI] 20개 구단 전체 선수 세부 포지션 AI 정밀 판별 시작 (총 {}개 구단)", teamList.size());
+		log.info("======================================================================");
+
+		int totalUpdated = 0;
+		for (Teams t : teamList) {
+			try {
+				int count = syncPlayersDetailPositionsByTeamId(t.getTeamId());
+				totalUpdated += count;
+				// 구단별 약 0.5초 간격 안정적 처리
+				Thread.sleep(500);
+			} catch (Exception e) {
+				log.error("[Gemini AI] 구단 ID {} 세부 포지션 동기화 실패: {}", t.getTeamId(), e.getMessage());
+			}
+		}
+
+		log.info("======================================================================");
+		log.info("[Gemini AI] 전체 구단 선수 세부 포지션 AI 동기화 최종 완료! (총 {}명 반영)", totalUpdated);
+		log.info("======================================================================");
+		return totalUpdated;
 	}
 }

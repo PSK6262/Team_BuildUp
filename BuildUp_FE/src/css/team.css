@@ -74,7 +74,11 @@
 .team-left-top {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .team-back-link {
@@ -127,9 +131,16 @@
   font-weight: 900;
   color: #ffffff;
   margin: 4px 0 0;
-  line-height: 1.1;
-  letter-spacing: -1px;
+  line-height: 1.15;
+  letter-spacing: -0.8px;
   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.85);
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow: visible;
+}
+
+.team-subname-en {
+  white-space: nowrap;
   word-break: keep-all;
 }
 
@@ -377,7 +388,7 @@
 .team-stadium-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 
 .team-stadium-name {
@@ -390,9 +401,10 @@
 }
 
 .team-stadium-desc {
-  font-size: 18px;
-  color: #64748b;
-  line-height: 1.65;
+  font-size: 16px;
+  color: #0f172a;
+  font-weight: 600;
+  line-height: 1.5;
   margin: 0;
 }
 
@@ -609,12 +621,14 @@
   gap: 8px;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  cursor: pointer;
+  user-select: none;
 }
 
 .team-player-card:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  transform: translateY(-2px);
+  border-color: #94a3b8;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
 }
 
 .team-player-card-top {
@@ -742,3 +756,315 @@
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 }
+
+/* ========================================================
+   선수 2026-2027 시즌 스탯 모달 (Player Stats Modal)
+   ======================================================== */
+
+.player-stats-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.68);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: playerModalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.player-stats-modal-card {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 480px;
+  padding: 30px 32px 32px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  position: relative;
+  border: 1px solid #e2e8f0;
+  animation: playerModalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.player-stats-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.player-stats-modal-close:hover {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.player-stats-modal-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #38003c;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.player-status-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.badge-injured {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.badge-suspended {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.player-stats-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.player-stats-name-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.player-stats-name-kor {
+  font-size: 26px;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.player-stats-name-en {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+  letter-spacing: -0.2px;
+}
+
+.player-stats-position-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 6px;
+  gap: 3px;
+}
+
+.player-stats-position-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  width: fit-content;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.player-stats-position-pill:hover {
+  filter: brightness(0.96);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.player-stats-position-pill.badge-fw {
+  background: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+}
+
+.player-stats-position-pill.badge-mf {
+  background: #ecfdf5;
+  color: #10b981;
+  border: 1px solid #a7f3d0;
+}
+
+.player-stats-position-pill.badge-df {
+  background: #eff6ff;
+  color: #3b82f6;
+  border: 1px solid #bfdbfe;
+}
+
+.player-stats-position-pill.badge-gk {
+  background: #f5f3ff;
+  color: #8b5cf6;
+  border: 1px solid #ddd6fe;
+}
+
+.player-stats-position-guide {
+  min-height: 38px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.position-guide-hint {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+.player-stats-position-group:hover .position-guide-hint {
+  color: #64748b;
+}
+
+.position-desc-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: positionFadeIn 0.16s ease-out forwards;
+}
+
+.position-desc-line {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.2px;
+  line-height: 1.35;
+}
+
+@keyframes positionFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.player-stats-nat-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.player-stats-nat-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.player-stats-flag-icon {
+  width: 42px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.player-stats-modal-divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 0 0 20px 0;
+}
+
+.player-stats-modal-body {
+  width: 100%;
+}
+
+.player-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.player-stat-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 18px;
+  transition: all 0.2s ease;
+}
+
+.player-stat-item:hover {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+}
+
+.player-stat-item .stat-label {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.stat-item-goal .stat-value {
+  font-size: 18px;
+  font-weight: 900;
+  color: #ef4444;
+}
+
+.stat-item-assist .stat-value {
+  font-size: 18px;
+  font-weight: 900;
+  color: #3b82f6;
+}
+
+.player-stats-loading {
+  text-align: center;
+  padding: 24px 0;
+  color: #64748b;
+  font-weight: 600;
+}
+
+@keyframes playerModalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes playerModalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+

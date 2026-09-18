@@ -11,16 +11,24 @@ public enum ResultCode {
     SUCCESS("SUC_001", "성공"),
     SUC_EMPTY("SUC_002", "성공했으나 비어있음"),
     FAIL("REJ_001", "요청 처리 중 오류가 발생했습니다."),
-    INVALID_INPUT("REJ_002", "요청값을 확인해주세요.");
-    
-    //개인정보 영역(로그인,회원가입 마이페이지... REJ_101~200까지 사용)
-	//1
-	
-	//커뮤니티 영역(REJ_201~300)
-	
-	//
-	
-	//
+    INVALID_INPUT("REJ_002", "요청값을 확인해주세요."),
+    UNAUTHORIZED("REJ_003", "로그인이 필요한 서비스입니다."),
+    FORBIDDEN("REJ_004", "접근 권한이 없습니다."),
+
+    // 개인정보 / 유저 / 마이페이지 영역
+    USER_NOT_FOUND("REJ_101", "사용자 정보를 찾을 수 없습니다."),
+    DUPLICATE_LOGIN_ID("REJ_102", "이미 사용 중인 아이디입니다."),
+    DUPLICATE_NICKNAME("REJ_103", "이미 사용 중인 닉네임입니다."),
+    DUPLICATE_EMAIL("REJ_104", "이미 등록된 이메일입니다."),
+    INVALID_PASSWORD("REJ_105", "비밀번호가 일치하지 않습니다."),
+    PROFILE_UPDATE_FAIL("REJ_106", "회원 정보 수정에 실패했습니다."),
+
+    // 커뮤니티 로그인 확인 실패
+    COMMUNITY_LOGIN_REQUIRED("REJ_201", "로그인이 필요합니다."),
+    COMMUNITY_POST_NOT_FOUND("REJ_202", "게시글을 찾을 수 없습니다."),
+    COMMUNITY_POST_FORBIDDEN("REJ_203", "작성자만 게시글을 변경할 수 있습니다."),
+    COMMUNITY_COMMENT_NOT_FOUND("REJ_204", "댓글을 찾을 수 없습니다."),
+    COMMUNITY_COMMENT_FORBIDDEN("REJ_205", "작성자만 댓글을 변경할 수 있습니다.");
 
     private final String code;
     private final String message;
