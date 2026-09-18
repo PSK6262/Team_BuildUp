@@ -16,6 +16,7 @@ import com.app.dto.team.Staffs;
 import com.app.dto.team.TeamStats;
 import com.app.dto.team.Teams;
 import com.app.service.api.FootballApiService;
+import com.app.service.api.GeminiApiService;
 import com.app.service.team.TeamService;
 
 @RestController
@@ -27,6 +28,64 @@ public class TeamController {
 
 	@Autowired
 	private FootballApiService footballApiService;
+
+	@Autowired
+	private GeminiApiService geminiApiService;
+
+	// [Gemini AI] 0. 전체 구단 역사 및 한글명 일괄 자동 적재 (비동기 백그라운드)
+	// 예: GET 또는 POST /api/teams/sync-ai-korean
+	@GetMapping("/sync-ai-korean")
+	public Map<String, Object> syncAiKorean() {
+		return geminiApiService.syncAllKoreanDataAsync();
+	}
+
+	// [Gemini AI] 0-1. 20개 구단 한글명, 홈구장, 역사 동기화만 단독 실행
+	// 예: GET /api/teams/sync-ai-teams
+	@GetMapping("/sync-ai-teams")
+	public Map<String, Object> syncAiTeams() {
+		int count = geminiApiService.syncTeamsKoreanAndHistory();
+		return Map.of(
+			"status", "SUCCESS",
+			"message", "20개 구단 한글명 및 역사 생성이 완료되었습니다.",
+			"updatedCount", count
+		);
+	}
+
+	// [Gemini AI] 0-2. 코칭스태프(감독) 한글명 번역만 단독 실행
+	// 예: GET /api/teams/sync-ai-staffs
+	@GetMapping("/sync-ai-staffs")
+	public Map<String, Object> syncAiStaffs() {
+		int count = geminiApiService.syncStaffsKorean();
+		return Map.of(
+			"status", "SUCCESS",
+			"message", "코칭스태프 한글명 번역이 완료되었습니다.",
+			"updatedCount", count
+		);
+	}
+
+	// [Gemini AI] 0-3. 전체 선수단 한글 번역만 단독 실행
+	// 예: GET /api/teams/sync-ai-players
+	@GetMapping("/sync-ai-players")
+	public Map<String, Object> syncAiPlayers() {
+		int count = geminiApiService.syncAllPlayersKorean();
+		return Map.of(
+			"status", "SUCCESS",
+			"message", "전체 선수단 한글명 번역이 완료되었습니다.",
+			"updatedCount", count
+		);
+	}
+
+	// [응원가 자동화] 20개 구단 공식 유튜브 응원가 일괄 DB 적재
+	// 예: GET /api/teams/sync-anthems
+	@GetMapping("/sync-anthems")
+	public Map<String, Object> syncAnthems() {
+		int count = geminiApiService.syncAllTeamAnthems();
+		return Map.of(
+			"status", "SUCCESS",
+			"updatedCount", count,
+			"message", "20개 구단의 공식 유튜브 응원가(Anthem)가 DB에 성공적으로 저장되었습니다."
+		);
+	}
 
 	// 1. 프리미어리그 전체 구단 및 소속 선수 전체 일괄 DB 저장 (동기화)
 	// 예: GET /api/teams/sync-all

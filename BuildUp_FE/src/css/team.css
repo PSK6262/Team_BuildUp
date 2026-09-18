@@ -3,18 +3,20 @@
    ======================================================== */
 
 .team-container {
-  min-height: calc(100vh - 72px);
+  height: calc(100vh - 85px);
+  max-height: calc(100vh - 85px);
   background-color: #ffffff;
   display: grid;
   grid-template-columns: 3.2fr 6.8fr;
   padding: 0;
   margin: 0;
+  overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   color: #0f172a;
 }
 
 /* --------------------------------------------------------
-   Left Panel (30%): Full Background Filled (No Card Format)
+   Left Panel (30%): Fixed (No scroll, emblem background)
    -------------------------------------------------------- */
 .team-left {
   position: relative;
@@ -25,8 +27,8 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 72px);
   height: 100%;
+  min-height: 0;
 }
 
 /* 엠블럼을 화면 전체에 가득 채우는 배경 (초미세 블러 1.5px) */
@@ -131,10 +133,37 @@
   word-break: keep-all;
 }
 
-/* 중앙 여백 (엠블럼을 시원하게 노출) */
+/* 중앙 엠블럼 띄우기 영역 (원 없이 대형 엠블럼 단독 노출) */
 .team-left-middle {
   flex: 1;
-  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 0;
+  min-height: 200px;
+  padding: 20px 0;
+  min-height: 240px;
+}
+
+.team-center-emblem {
+  width: 200px;
+  height: 200px;
+  max-width: 85%;
+  width: 250px;
+  height: 250px;
+  max-width: 90%;
+  object-fit: contain;
+  filter: drop-shadow(0 16px 36px rgba(0, 0, 0, 0.75)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.78)) drop-shadow(0 4px 14px rgba(0, 0, 0, 0.5));
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s ease;
+  user-select: none;
+}
+
+.team-center-emblem:hover {
+  transform: translateY(-6px) scale(1.06);
+  filter: drop-shadow(0 24px 46px rgba(0, 0, 0, 0.85)) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.6));
+  transform: translateY(-6px) scale(1.05);
+  filter: drop-shadow(0 26px 50px rgba(0, 0, 0, 0.88)) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.6));
 }
 
 /* --------------------------------------------------------
@@ -262,13 +291,39 @@
 }
 
 /* --------------------------------------------------------
-   Right Panel (70%): Clean White Editorial Presentation
+   Right Panel (70%): Clean White Editorial Presentation (Scrollable)
    -------------------------------------------------------- */
 .team-right {
   background: #ffffff;
   padding: 56px 64px 60px;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.team-right::-webkit-scrollbar {
+  width: 8px;
+}
+
+.team-right::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.team-right::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 999px;
+  border: 2px solid #ffffff;
+}
+
+.team-right::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
 }
 
 .team-right-inner {
@@ -371,15 +426,294 @@
 }
 
 /* --------------------------------------------------------
+   3. 구단 감독 & 포지션별 선수단 (스쿼드) 섹션
+   -------------------------------------------------------- */
+.team-squad-container {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.team-squad-section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.team-squad-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.4px;
+}
+
+.team-squad-subtitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.2px;
+}
+
+/* 감독 (Head Coach) 카드 */
+.team-manager-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.team-manager-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.team-manager-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.team-manager-nat-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #334155;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 3px 11px;
+  border-radius: 999px;
+}
+
+.team-manager-flag-icon {
+  width: 32px;
+  height: 22px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+/* 선수단 (Squad) 필터 탭 & 헤더 */
+.team-squad-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.team-position-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.team-pos-tab {
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.team-pos-tab:hover {
+  color: #0f172a;
+}
+
+.team-pos-tab.is-active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  font-weight: 800;
+}
+
+/* 포지션별 그룹 및 그리드 */
+.team-squad-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.team-squad-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.team-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1.5px solid #f1f5f9;
+}
+
+.team-group-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.team-group-code {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.team-group-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+/* 개별 선수 카드 그리드 */
+.team-player-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
+}
+
+.team-player-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.team-player-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+.team-player-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.team-player-pos-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.3px;
+}
+
+.badge-fw {
+  background: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+}
+
+.badge-mf {
+  background: #ecfdf5;
+  color: #10b981;
+  border: 1px solid #a7f3d0;
+}
+
+.badge-df {
+  background: #eff6ff;
+  color: #3b82f6;
+  border: 1px solid #bfdbfe;
+}
+
+.badge-gk {
+  background: #f5f3ff;
+  color: #8b5cf6;
+  border: 1px solid #ddd6fe;
+}
+
+.team-player-nat-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #475569;
+  background: #f8fafc;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+}
+
+.team-player-nat-name {
+  white-space: nowrap;
+}
+
+.team-player-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.team-player-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.team-player-flag-icon {
+  width: 24px;
+  height: 16px;
+  object-fit: cover;
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------
    반응형 미디어 쿼리 (1024px 이하 모바일/태블릿)
    -------------------------------------------------------- */
 @media (max-width: 1024px) {
   .team-container {
+    height: auto;
+    max-height: none;
+    overflow: visible;
     grid-template-columns: 1fr;
   }
 
   .team-left {
+    height: auto;
     min-height: 540px;
+    overflow: hidden;
   }
 
   .team-left__content {
@@ -387,6 +721,8 @@
   }
 
   .team-right {
+    height: auto;
+    overflow-y: visible;
     padding: 36px 24px;
   }
 
@@ -400,5 +736,9 @@
 
   .team-history-title {
     font-size: 22px;
+  }
+
+  .team-player-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 }

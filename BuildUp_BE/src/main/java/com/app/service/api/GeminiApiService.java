@@ -1,0 +1,50 @@
+package com.app.service.api;
+
+import java.util.Map;
+
+/**
+ * [Gemini AI 축구 데이터 한글 번역 및 구단 역사 생성 서비스]
+ * - Google Gemini 1.5 Flash 모델 연동
+ * - 20개 구단 한글명, 홈구장 한글명, 역사(3~4문장) 자동 생성
+ * - 코칭스태프(감독) 한글명, 국적 번역
+ * - 500여 명 선수단 한글명, 국적 일괄 번역
+ */
+public interface GeminiApiService {
+
+	/**
+	 * 20개 구단 한글 명칭, 홈 경기장 한글 명칭 및 구단 역사 일괄 생성 및 DB 적재
+	 * @return 갱신된 구단 수
+	 */
+	int syncTeamsKoreanAndHistory();
+
+	/**
+	 * 코칭스태프(감독 등) 한글 이름 및 국적 일괄 번역 및 DB 적재
+	 * @return 갱신된 스태프 수
+	 */
+	int syncStaffsKorean();
+
+	/**
+	 * 특정 구단의 소속 선수단 한글 이름 및 국적 번역 및 DB 적재
+	 * @param teamId 구단 식별자
+	 * @return 갱신된 선수 수
+	 */
+	int syncPlayersKoreanByTeamId(Long teamId);
+
+	/**
+	 * 전체 20개 구단의 모든 선수단(약 500명) 일괄 번역 및 DB 적재
+	 * @return 갱신된 총 선수 수
+	 */
+	int syncAllPlayersKorean();
+
+	/**
+	 * 20개 구단 공식 유튜브 응원가(Anthem) 일괄 DB 적재
+	 * @return 갱신된 구단 수
+	 */
+	int syncAllTeamAnthems();
+
+	/**
+	 * 전체 한글화 및 역사 생성 작업 일괄 비동기 실행 (구단 -> 스태프 -> 선수단)
+	 * @return 작업 시작 상태 맵
+	 */
+	Map<String, Object> syncAllKoreanDataAsync();
+}

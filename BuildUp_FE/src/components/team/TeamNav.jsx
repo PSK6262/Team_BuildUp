@@ -10,17 +10,17 @@ export default function TeamNav({ prevTeam, nextTeam }) {
         <a
           href={`/plug/team/${prevTeam.teamId}`}
           className="team-nav-arrow"
-          title={`이전: ${prevTeam.teamName}`}
+          title={`이전: ${prevTeam.teamNameKor || prevTeam.teamName}`}
         >
-          ◀ {prevTeam.teamName}
+          ◀ {prevTeam.teamNameKor || prevTeam.teamName}
         </a>
         <span className="team-nav-divider">|</span>
         <a
           href={`/plug/team/${nextTeam.teamId}`}
           className="team-nav-arrow"
-          title={`다음: ${nextTeam.teamName}`}
+          title={`다음: ${nextTeam.teamNameKor || nextTeam.teamName}`}
         >
-          {nextTeam.teamName} ▶
+          {nextTeam.teamNameKor || nextTeam.teamName} ▶
         </a>
       </div>
     </div>

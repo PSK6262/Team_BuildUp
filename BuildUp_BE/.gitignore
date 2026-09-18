@@ -135,7 +135,8 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 
-# Windows shortcuts
-*.lnk
+# Properties files (API keys, DB credentials, etc.)
+*.properties
+**/*.properties
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,eclipse,java,maven
