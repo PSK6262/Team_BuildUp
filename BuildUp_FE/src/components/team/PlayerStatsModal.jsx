@@ -1,7 +1,37 @@
-  import React, { useEffect } from 'react';
+  import React, { useState, useEffect } from 'react';
 import { getFlagUrl } from '../../utils/flagUtils.js';
 
+// 메인 포지션 한글 설명 매핑
+const MAIN_POS_DESC = {
+  FW: 'FW-공격수',
+  MF: 'MF-미드필더',
+  DF: 'DF-수비수',
+  GK: 'GK-골키퍼',
+};
+
+// 세부 포지션 한글 설명 매핑
+const DETAIL_POS_DESC = {
+  ST: 'ST-스트라이커(중앙 공격수)',
+  CF: 'CF-중앙 공격수(세컨드 스트라이커)',
+  LW: 'LW-왼쪽 공격수(레프트 윙어)',
+  RW: 'RW-오른쪽 공격수(라이트 윙어)',
+  SS: 'SS-세컨드 스트라이커',
+  CAM: 'CAM-공격형 미드필더',
+  CM: 'CM-중앙 미드필더',
+  CDM: 'CDM-수비형 미드필더',
+  LM: 'LM-왼쪽 미드필더(레프트 미드필더)',
+  RM: 'RM-오른쪽 미드필더(라이트 미드필더)',
+  CB: 'CB-중앙 수비수(센터백)',
+  LB: 'LB-왼쪽 수비수(레프트백)',
+  RB: 'RB-오른쪽 수비수(라이트백)',
+  LWB: 'LWB-왼쪽 윙백',
+  RWB: 'RWB-오른쪽 윙백',
+  GK: 'GK-골키퍼',
+};
+
 export default function PlayerStatsModal({ player, stats, loading, onClose }) {
+  const [isPosHovered, setIsPosHovered] = useState(false);
+
   // ESC 키를 누르면 모달창 닫기
   useEffect(() => {
     function handleKeyDown(e) {
@@ -45,9 +75,15 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
     positionText = `${mainPos} · ${detailPos}`;
   } else {
     positionText = mainPos || detailPos || '';
-  };
+  }
 
   const posBadgeClass = mainPos ? `badge-${mainPos.toLowerCase()}` : 'badge-mf';
+
+  // 호버 시 노출할 포지션 설명 (라인 1: 메인, 라인 2: 세부 포지션)
+  const mainPosDesc = MAIN_POS_DESC[mainPos] || (mainPos ? `${mainPos}-포지션` : '');
+  const detailPosDesc = (detailPos && detailPos !== mainPos && detailPos !== 'GK')
+    ? (DETAIL_POS_DESC[detailPos] || `${detailPos}-상세 포지션`)
+    : null;
 
   return (
     <div
@@ -77,7 +113,7 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
           {isSuspended && <span className="player-status-badge badge-suspended">출장정지</span>}
         </div>
 
-        {/* 상단 영역: [선수 한국어/영어 이름 + 포지션 배지] (좌)  vs  [국적표기 / 국적아이콘] (우) */}
+        {/* 상단 영역: [선수 한국어/영어 이름 + 포지션 배지 및 호버 안내] (좌)  vs  [국적표기 / 국적아이콘] (우) */}
         <div className="player-stats-modal-header">
           <div className="player-stats-name-col">
             <h2 id="player-modal-title" className="player-stats-name-kor">
@@ -89,8 +125,36 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
               </div>
             )}
             {positionText && (
-              <div className={`player-stats-position-pill ${posBadgeClass}`}>
-                {positionText}
+              <div
+                className="player-stats-position-group"
+                onMouseEnter={() => setIsPosHovered(true)}
+                onMouseLeave={() => setIsPosHovered(false)}
+              >
+                <div
+                  className={`player-stats-position-pill ${posBadgeClass}`}
+                  onClick={() => setIsPosHovered((prev) => !prev)}
+                  tabIndex={0}
+                  role="button"
+                  title="마우스를 올리면 포지션 설명이 표시됩니다"
+                >
+                  {positionText}
+                </div>
+
+                {/* 태그 밑 안내 문구 / 호버 시 포지션 설명 전환 영역 */}
+                <div className="player-stats-position-guide">
+                  {isPosHovered ? (
+                    <div className="position-desc-box">
+                      <div className="position-desc-line">{mainPosDesc}</div>
+                      {detailPosDesc && (
+                        <div className="position-desc-line">{detailPosDesc}</div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="position-guide-hint">
+                      태그에 마우스를 올려보세요
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
