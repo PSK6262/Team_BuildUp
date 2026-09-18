@@ -35,6 +35,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * [외부 축구 데이터 동기화 서비스 구현체 - FootballApiServiceImpl]
+ * 
+ * [왜 1:1 DTO 대신 JsonNode(Jackson 트리 모델)를 사용하는가?]
+ * 1. 외부 축구 API(football-data.org) 응답은 수십 개의 부가 정보와 4~5단계의 깊은 중첩 구조를 가집니다.
+ * 2. 이를 모두 자바 DTO 클래스로 만들면 수십 개의 임시 클래스가 생겨 관리가 복잡해지고 API 스키마 변경에 취약해집니다.
+ * 3. 따라서 JsonNode를 사용하여 우리 DB에 실제로 필요한 핵심 데이터(ID, 스코어, 일시, 엠블럼 등)만 집게(Picker)처럼
+ *    선별 추출하며, path() 메서드를 통해 중간 필드가 누락되어도 NullPointerException 없이 안전하게 처리합니다.
+ */
 @Slf4j
 @Service
 public class FootballApiServiceImpl implements FootballApiService {
@@ -67,6 +76,12 @@ public class FootballApiServiceImpl implements FootballApiService {
                 .build();
     }
 
+    /**
+     * 외부 축구 API(football-data.org)에 GET HTTP 요청을 전송하고 JSON 본문 문자열을 반환합니다.
+     * - X-Auth-Token 헤더에 API 키를 탑재하여 인증합니다.
+     * @param url 호출할 외부 API 전체 URL
+     * @return 성공 시 JSON 문자열, 실패 시 null
+     */
     private String sendGetRequest(String url) {
         try {
             HttpClient client = createInsecureHttpClient();
@@ -84,18 +99,32 @@ public class FootballApiServiceImpl implements FootballApiService {
         }
     }
 
+    /**
+     * 특정 구단의 기본 정보 및 소속 선수단(Squad) JSON 데이터를 외부 API에서 조회합니다.
+     * @param teamId 구단 식별자 (예: 57 - 아스널)
+     * @return 구단 및 스쿼드 원본 JSON 응답 문자열
+     */
     @Override
     public String fetchTeamData(Long teamId) {
         String url = "https://api.football-data.org/v4/teams/" + teamId;
         return sendGetRequest(url);
     }
 
+    /**
+     * 프리미어리그에 참가하는 전체 20개 구단 목록 JSON 데이터를 외부 API에서 조회합니다.
+     * @return 전체 구단 목록 원본 JSON 응답 문자열
+     */
     @Override
     public String fetchAllTeamsData() {
         String url = "https://api.football-data.org/v4/competitions/PL/teams";
         return sendGetRequest(url);
     }
 
+    /**
+     * 특정 구단의 최신 선수단 정보를 외부 API에서 조회하여 TEAMS 및 PLAYERS 테이블에 저장/갱신합니다.
+     * @param teamId 구단 식별자
+     * @return DB에 저장/갱신된 해당 구단 소속 선수 리스트
+     */
     @Override
     @Transactional
     public List<Players> syncTeamPlayers(Long teamId) {
@@ -114,6 +143,10 @@ public class FootballApiServiceImpl implements FootballApiService {
         }
     }
 
+    /**
+     * 프리미어리그 전체 20개 구단 및 약 500여 명의 선수단을 외부 API에서 일괄 조회하여 DB에 동기화합니다.
+     * @return DB에 일괄 저장된 총 선수 수
+     */
     @Override
     @Transactional
     public int syncAllPremierLeagueTeamsAndPlayers() {
@@ -140,6 +173,12 @@ public class FootballApiServiceImpl implements FootballApiService {
         }
     }
 
+    /**
+     * 특정 시즌(기본값: 최신 시즌)의 전체 380경기 일정을 외부 API에서 조회하여 MATCHES 테이블에 일괄 적재합니다.
+     * - 경기 일시는 런던/UTC 시각에서 한국 표준시(KST, Asia/Seoul)로 자동 변환됩니다.
+     * @param season 대상 시즌 연도 (예: 2026, null일 경우 최신 시즌)
+     * @return DB에 동기화된 경기 일정 건수
+     */
     @Override
     @Transactional
     public int syncPremierLeagueSeasonMatches(Integer season) {
@@ -171,16 +210,23 @@ public class FootballApiServiceImpl implements FootballApiService {
         }
     }
 
+    /**
+     * 지정한 특정 일자(기본값: 오늘)에 진행되는 경기들의 상태와 실시간 스코어를 외부 API에서 조회하여 DB에 갱신합니다.
+     * @param date 대상 일자 (null일 경우 오늘 한국 날짜 기준)
+     * @return 상태/스코어가 갱신된 경기 건수
+     */
     @Override
     @Transactional
     public int syncMatchesByDate(LocalDate date) {
         LocalDate targetDate = (date != null) ? date : LocalDate.now(ZoneId.of("Asia/Seoul"));
-        String dateStr = targetDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
-        String url = "https://api.football-data.org/v4/competitions/PL/matches?dateFrom=" + dateStr + "&dateTo=" + dateStr;
+        // KST와 UTC 시차(9시간)를 고려하여 어제~오늘 2일간 범위를 조회 (월요일 새벽 경기 누락 방지)
+        String fromDateStr = targetDate.minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE);
+        String toDateStr = targetDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
+        String url = "https://api.football-data.org/v4/competitions/PL/matches?dateFrom=" + fromDateStr + "&dateTo=" + toDateStr;
 
         String jsonResult = sendGetRequest(url);
         if (jsonResult == null || jsonResult.isBlank()) {
-            throw new RuntimeException(dateStr + " 일자 경기 일정을 가져오는데 실패했습니다.");
+            throw new RuntimeException(fromDateStr + " ~ " + toDateStr + " 기간 경기 일정을 가져오는데 실패했습니다.");
         }
 
         try {
@@ -201,6 +247,14 @@ public class FootballApiServiceImpl implements FootballApiService {
             throw new RuntimeException("일자별 경기 데이터 동기화 중 오류 발생: " + e.getMessage(), e);
         }
     }
+
+    /**
+     * 단일 경기 JSON 노드를 파싱하여 외래키 무결성을 검증하고, 스코어/상태/일시를 MATCHES 테이블에 MERGE합니다.
+     * - [JsonNode 활용 이유]: path("score").path("fullTime")처럼 체이닝해도 중간 필드가 없으면 빈 깡통 노드를 반환하여 NullPointerException을 방어합니다.
+     * - [hasNonNull 활용]: 경기 시작 전 미입력(null) 상태와 실제 '0:0' 스코어를 구분하기 위해 사용합니다.
+     * @param matchNode 외부 API에서 내려온 단일 경기 JSON 노드
+     * @return 저장/갱신 성공 여부 (true: 성공, false: 필수값 누락)
+     */
     private boolean parseAndSaveMatch(JsonNode matchNode) {
         if (matchNode == null || !matchNode.hasNonNull("id")) {
             return false;
@@ -229,10 +283,9 @@ public class FootballApiServiceImpl implements FootballApiService {
         String statusRaw = matchNode.path("status").asText("SCHEDULED");
         String status = convertMatchStatus(statusRaw);
 
-        Long homeScore = matchNode.path("score").path("fullTime").hasNonNull("home")
-                ? matchNode.path("score").path("fullTime").get("home").asLong() : null;
-        Long awayScore = matchNode.path("score").path("fullTime").hasNonNull("away")
-                ? matchNode.path("score").path("fullTime").get("away").asLong() : null;
+        JsonNode fullTimeNode = matchNode.path("score").path("fullTime");
+        Long homeScore = fullTimeNode.hasNonNull("home") ? fullTimeNode.get("home").asLong() : null;
+        Long awayScore = fullTimeNode.hasNonNull("away") ? fullTimeNode.get("away").asLong() : null;
 
         LocalDateTime endedAt = null;
         if ("FINISHED".equalsIgnoreCase(status)) {
@@ -253,6 +306,11 @@ public class FootballApiServiceImpl implements FootballApiService {
         return true;
     }
 
+    /**
+     * 경기 또는 득점자 데이터 저장 시, 구단 외래키(FK) 제약조건 위반(ORA-02291)을 방지하기 위해
+     * 해당 구단이 TEAMS 테이블에 없으면 기본 구단 레코드를 선저장(UPSERT)합니다.
+     * @param teamNode 외부 API의 구단 JSON 노드
+     */
     private void ensureTeamExists(JsonNode teamNode) {
         if (teamNode != null && teamNode.hasNonNull("id")) {
             Long teamId = teamNode.get("id").asLong();
@@ -272,6 +330,11 @@ public class FootballApiServiceImpl implements FootballApiService {
         }
     }
 
+    /**
+     * 구단 JSON 노드에서 구단 기본 정보를 TEAMS 테이블에 저장하고, 소속 선수단 전체를 PLAYERS 및 PLAYER_STATS 테이블에 저장합니다.
+     * @param teamNode 구단 및 스쿼드가 포함된 JSON 노드
+     * @return DB에 저장된 선수 목록
+     */
     private List<Players> parseAndSaveTeamWithSquad(JsonNode teamNode) {
         if (teamNode == null || !teamNode.hasNonNull("id")) {
             return new ArrayList<>();
@@ -357,7 +420,9 @@ public class FootballApiServiceImpl implements FootballApiService {
     }
 
     /**
-     * 주 포지션 대분류 (GK, DF, MF, FW)
+     * 영문 포지션 명칭을 우리 서비스의 4대 메인 포지션 대분류(GK, DF, MF, FW)로 표준화 변환합니다.
+     * @param position 외부 API에서 전달받은 원본 포지션 문자열
+     * @return 표준 메인 포지션 코드 (GK, DF, MF, FW)
      */
     private String convertMainPosition(String position) {
         if (position == null || position.isBlank()) {
@@ -372,7 +437,9 @@ public class FootballApiServiceImpl implements FootballApiService {
     }
 
     /**
-     * 상세 포지션 축구 표준 공식 약어 (CB, LB, RB, CDM, CAM, CM, LM, RM, ST, LW, RW, SS, GK)
+     * 영문 포지션 명칭을 축구 표준 공식 세부 포지션 약어(CB, LB, RB, CDM, CAM, CM, ST, LW, RW 등)로 변환합니다.
+     * @param position 외부 API에서 전달받은 원본 포지션 문자열
+     * @return 공식 세부 포지션 약어
      */
     private String convertDetailPosition(String position) {
         if (position == null || position.isBlank()) {
@@ -443,6 +510,11 @@ public class FootballApiServiceImpl implements FootballApiService {
         return upper;
     }
 
+    /**
+     * 외부 API의 경기 진행 상태(TIMED, IN_PLAY, PAUSED, FINISHED 등)를 우리 시스템의 경기 상태값으로 변환합니다.
+     * @param status 외부 API 경기 상태 문자열
+     * @return 표준화된 경기 상태 문자열 (SCHEDULED, LIVE, FINISHED, SUSPENDED, CANCELLED)
+     */
     private String convertMatchStatus(String status) {
         if (status == null || status.isBlank()) {
             return "SCHEDULED";
@@ -469,6 +541,11 @@ public class FootballApiServiceImpl implements FootballApiService {
         }
     }
 
+    /**
+     * [유료 API 도입 대비 틀] 프리미어리그 구단 감독/코칭스태프 기본 정보를 STAFFS 테이블에 일괄 적재합니다.
+     * - 현재 football-data.org 무료 플랜에서는 감독 데이터가 제공되지 않아 비활성화(Dormant) 상태입니다.
+     * @return 적재된 감독 수 (현재: 0)
+     */
     @Override
     @Transactional
     public int initPremierLeagueStaffs() {
@@ -514,6 +591,9 @@ public class FootballApiServiceImpl implements FootballApiService {
         return 0;
     }
 
+    /**
+     * 스태프 DTO 객체 생성을 보조하는 헬퍼 메서드입니다.
+     */
     @SuppressWarnings("unused")
     private Staffs createStaff(Long teamId, String name, String nationality, Long staffRoleId) {
         Staffs s = new Staffs();
@@ -524,6 +604,11 @@ public class FootballApiServiceImpl implements FootballApiService {
         return s;
     }
 
+    /**
+     * 특정 시즌의 프리미어리그 순위표(순위, 승점, 경기수, 승무패, 득실차 등)를 외부 API에서 조회하여 TEAM_STATS 테이블에 동기화합니다.
+     * @param season 대상 시즌 (null일 경우 2026 기본 적용)
+     * @return 갱신된 구단 순위 레코드 수
+     */
     @Override
     @Transactional
     public int syncPremierLeagueStandings(Integer season) {
@@ -540,9 +625,10 @@ public class FootballApiServiceImpl implements FootballApiService {
         try {
             JsonNode rootNode = objectMapper.readTree(jsonResult);
             int targetSeason = (season != null) ? season : 2026;
-            if (season == null && rootNode.hasNonNull("filters") && rootNode.path("filters").hasNonNull("season")) {
+            JsonNode filtersNode = rootNode.path("filters");
+            if (season == null && filtersNode.hasNonNull("season")) {
                 try {
-                    targetSeason = Integer.parseInt(rootNode.path("filters").get("season").asText());
+                    targetSeason = Integer.parseInt(filtersNode.get("season").asText());
                 } catch (Exception ignored) {}
             }
 
@@ -593,6 +679,11 @@ public class FootballApiServiceImpl implements FootballApiService {
         }
     }
 
+    /**
+     * 최근 3개 시즌(2024, 2025, 2026)의 리그 순위표를 외부 API에서 순차 조회하여 DB에 일괄 동기화합니다.
+     * - 무료 API의 호출 제한(분당 10회)을 준수하기 위해 호출 간 1.5초 대기를 적용합니다.
+     * @return 저장된 총 순위 레코드 수
+     */
     @Override
     public int syncRecentThreeSeasonsStandings() {
         int[] seasons = {2024, 2025, 2026};
@@ -622,6 +713,11 @@ public class FootballApiServiceImpl implements FootballApiService {
         return totalUpdated;
     }
 
+    /**
+     * 프리미어리그 개인 득점 랭킹(골, 도움) 데이터를 외부 API에서 조회하여 PLAYER_STATS 테이블에 동기화합니다.
+     * @param limit 조회할 상위 득점자 수 (기본: 100명)
+     * @return 동기화된 득점자 수
+     */
     @Override
     @Transactional
     public int syncPremierLeagueScorers(Integer limit) {
@@ -670,13 +766,21 @@ public class FootballApiServiceImpl implements FootballApiService {
         }
     }
 
+    /**
+     * 득점자 기록 저장 시, 선수 외래키(FK) 제약조건 위반을 방지하기 위해 해당 선수가 PLAYERS 테이블에 없으면 선저장합니다.
+     * @param playerNode 선수 JSON 노드
+     * @param teamNode 소속 구단 JSON 노드
+     */
     private void ensurePlayerExists(JsonNode playerNode, JsonNode teamNode) {
         if (playerNode != null && playerNode.hasNonNull("id")) {
             Long playerId = playerNode.get("id").asLong();
             String name = playerNode.path("name").asText("선수 " + playerId);
-            String positionRaw = playerNode.hasNonNull("section")
-                    ? playerNode.get("section").asText()
-                    : (playerNode.hasNonNull("position") ? playerNode.get("position").asText() : null);
+            String positionRaw = null;
+            if (playerNode.hasNonNull("section")) {
+                positionRaw = playerNode.get("section").asText();
+            } else if (playerNode.hasNonNull("position")) {
+                positionRaw = playerNode.get("position").asText();
+            }
             String nationality = playerNode.hasNonNull("nationality") ? playerNode.get("nationality").asText() : null;
             Long teamId = (teamNode != null && teamNode.hasNonNull("id")) ? teamNode.get("id").asLong() : null;
 
@@ -688,7 +792,8 @@ public class FootballApiServiceImpl implements FootballApiService {
             player.setPlayerId(playerId);
             player.setName(name);
             player.setMainPosition(convertMainPosition(positionRaw));
-            player.setDetailPosition(convertDetailPosition(positionRaw));
+            // 기존 정밀 세부 포지션(CAM, ST 등) 보존을 위해 null 전달 (매퍼 NVL 처리)
+            player.setDetailPosition(null);
             player.setNationality(nationality);
             player.setTeamId(teamId);
 
@@ -697,7 +802,10 @@ public class FootballApiServiceImpl implements FootballApiService {
     }
 
     /**
-     * 구단 ID에 따른 프리미어리그 공식 엠블럼 URL 반환 (미매핑 구단은 전달받은 URL 유지)
+     * 구단 ID를 기반으로 프리미어리그 공식 CDN의 고화질 투명 PNG 엠블럼 URL로 매핑 및 보정합니다.
+     * @param teamId 구단 식별자
+     * @param defaultUrl 공식 CDN 엠블럼이 매핑되지 않았을 때 반환할 기본 URL
+     * @return 프리미어리그 공식 엠블럼 URL (매핑 실패 시 defaultUrl)
      */
     private String resolveOfficialEmblemUrl(Long teamId, String defaultUrl) {
         if (teamId == null) {

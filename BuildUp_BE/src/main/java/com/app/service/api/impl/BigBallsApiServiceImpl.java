@@ -320,6 +320,33 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
             }
 
             if (targetExtMatchId == null || targetExtMatchId.isBlank()) {
+                // KST/UTC 시차 대응: 한국 시간 새벽 경기일 경우 현지 기준(전날)으로 1회 자동 폴백 재시도
+                try {
+                    String prevDate = LocalDate.parse(matchDate).minusDays(1).toString();
+                    String prevUrl = "https://api.bigballsdata.com/v1/matches?sport=football&league=epl&date=" + prevDate;
+                    String prevJson = sendGetRequest(prevUrl);
+                    if (prevJson != null && !prevJson.isBlank()) {
+                        JsonNode prevRoot = objectMapper.readTree(prevJson);
+                        JsonNode prevMatches = prevRoot.has("data") ? prevRoot.get("data") : prevRoot;
+                        if (prevMatches.isArray()) {
+                            for (JsonNode mNode : prevMatches) {
+                                String extHome = mNode.path("home").path("name").asText("");
+                                String extAway = mNode.path("away").path("name").asText("");
+                                Long resolvedHomeId = ApiBridgeUtil.mapTeamToId(extHome, allTeams);
+                                Long resolvedAwayId = ApiBridgeUtil.mapTeamToId(extAway, allTeams);
+                                if (resolvedHomeId != null && resolvedAwayId != null &&
+                                    resolvedHomeId.equals(match.getHomeTeamId()) &&
+                                    resolvedAwayId.equals(match.getAwayTeamId())) {
+                                    targetExtMatchId = mNode.path("id").asText();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+
+            if (targetExtMatchId == null || targetExtMatchId.isBlank()) {
                 log.warn("[BigBallsData] MATCH_ID={}에 매칭되는 Big Balls Data 경기 ID를 찾지 못했습니다. ({} vs {})",
                         matchId, (homeTeam != null ? homeTeam.getTeamName() : ""), (awayTeam != null ? awayTeam.getTeamName() : ""));
                 return 0;
