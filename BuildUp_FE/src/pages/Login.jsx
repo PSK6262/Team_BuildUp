@@ -27,12 +27,18 @@ export default function Login() {
       })
 
       const data = await res.json()
+      const isSuccess = res.ok && (data.status === 'SUCCESS' || data.code === 'SUC_001')
 
-      if (res.ok && data.status === 'SUCCESS') {
-        if (data.token) {
-          localStorage.setItem('buildup_token', data.token)
+      if (isSuccess) {
+        const token = data.data?.token || data.token
+        const user = data.data?.user || data.user
+
+        if (token) {
+          localStorage.setItem('buildup_token', token)
         }
-        dispatch(loginSuccess(data.user))
+        if (user) {
+          dispatch(loginSuccess(user))
+        }
         window.location.assign('/plug/mainpage')
       } else {
         setErrorMsg(data.message || '아이디 또는 비밀번호가 일치하지 않습니다.')

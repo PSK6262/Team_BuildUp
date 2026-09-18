@@ -47,12 +47,13 @@ export default function Signup() {
         throw new Error(`서버 응답 오류 (HTTP ${res.status})`)
       }
       const data = await res.json()
-      if (data.available) {
+      const isAvailable = Boolean(data.data === true || data.available || data.data?.available || (data.code === 'SUC_001' && data.status !== 'FAIL'))
+      if (isAvailable) {
         setIdChecked(true)
         setIdCheckMsg('✓ 사용 가능한 아이디입니다.')
       } else {
         setIdChecked(false)
-        setIdCheckMsg('✕ 이미 사용 중인 아이디입니다.')
+        setIdCheckMsg(data.message || '✕ 이미 사용 중인 아이디입니다.')
       }
     } catch (err) {
       console.error('[아이디 중복확인 실패]', err)
@@ -72,12 +73,13 @@ export default function Signup() {
         throw new Error(`서버 응답 오류 (HTTP ${res.status})`)
       }
       const data = await res.json()
-      if (data.available) {
+      const isAvailable = Boolean(data.data === true || data.available || data.data?.available || (data.code === 'SUC_001' && data.status !== 'FAIL'))
+      if (isAvailable) {
         setNicknameChecked(true)
         setNicknameCheckMsg('✓ 사용 가능한 닉네임입니다.')
       } else {
         setNicknameChecked(false)
-        setNicknameCheckMsg('✕ 이미 사용 중인 닉네임입니다.')
+        setNicknameCheckMsg(data.message || '✕ 이미 사용 중인 닉네임입니다.')
       }
     } catch (err) {
       console.error('[닉네임 중복확인 실패]', err)
@@ -114,8 +116,9 @@ export default function Signup() {
       })
 
       const data = await res.json()
+      const isSuccess = res.ok && (data.status === 'SUCCESS' || data.code === 'SUC_001')
 
-      if (res.ok && data.status === 'SUCCESS') {
+      if (isSuccess) {
         alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.')
         window.location.assign('/plug/login')
       } else {
