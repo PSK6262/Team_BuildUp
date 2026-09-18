@@ -4,6 +4,216 @@
 
 <mapper namespace="CommunityMapper">
 
+	<!-- 커뮤니티 카테고리 목록 조회 -->
+	<select id="findCategories" resultType="CommunityCategory">
+		SELECT
+			CATEGORY_ID,
+			CATEGORY_TYPE
+		FROM CATEGORY
+		ORDER BY CATEGORY_ID
+	</select>
+
+	<!-- 로그인한 사용자의 게시글 등록 -->
+	<insert id="insertPost" parameterType="Posts" useGeneratedKeys="true" keyProperty="postId" keyColumn="POST_ID">
+		INSERT INTO POSTS (
+			USER_ID,
+			TEAM_ID,
+			TITLE,
+			CONTENT,
+			CATEGORY_ID
+		) VALUES (
+			#{userId},
+			#{teamId},
+			#{title},
+			#{content},
+			#{categoryId}
+		)
+	</insert>
+
+	<!-- 작성자의 게시글 수정 -->
+	<update id="updatePost" parameterType="Posts">
+		UPDATE POSTS
+		SET TEAM_ID = #{teamId},
+			TITLE = #{title},
+			CONTENT = #{content},
+			CATEGORY_ID = #{categoryId},
+			UPDATED_AT = SYSTIMESTAMP
+		WHERE POST_ID = #{postId}
+		AND USER_ID = #{userId}
+		AND IS_BLIND = 'N'
+	</update>
+
+	<!-- 작성자의 게시글 숨김 처리 -->
+	<update id="blindPost" parameterType="map">
+		UPDATE POSTS
+		SET IS_BLIND = 'Y',
+			UPDATED_AT = SYSTIMESTAMP
+		WHERE POST_ID = #{postId}
+		AND USER_ID = #{userId}
+		AND IS_BLIND = 'N'
+	</update>
+
+	<!-- 사용자의 게시글 추천 여부 조회 -->
+	<select id="countPostLike" parameterType="PostLikes" resultType="int">
+		SELECT COUNT(*)
+		FROM POST_LIKES
+		WHERE USER_ID = #{userId}
+		AND POST_ID = #{postId}
+	</select>
+
+	<!-- 게시글 추천 내역 등록 -->
+	<insert id="insertPostLike" parameterType="PostLikes">
+		INSERT INTO POST_LIKES (
+			USER_ID,
+			POST_ID
+		) VALUES (
+			#{userId},
+			#{postId}
+		)
+	</insert>
+
+	<!-- 게시글 추천 내역 삭제 -->
+	<delete id="deletePostLike" parameterType="PostLikes">
+		DELETE FROM POST_LIKES
+		WHERE USER_ID = #{userId}
+		AND POST_ID = #{postId}
+	</delete>
+
+	<!-- 게시글 추천수 증가 -->
+	<update id="increaseLikeCount" parameterType="long">
+		UPDATE POSTS
+		SET LIKE_COUNT = LIKE_COUNT + 1
+		WHERE POST_ID = #{postId}
+		AND IS_BLIND = 'N'
+	</update>
+
+	<!-- 게시글 추천수 감소 -->
+	<update id="decreaseLikeCount" parameterType="long">
+		UPDATE POSTS
+		SET LIKE_COUNT = GREATEST(LIKE_COUNT - 1, 0)
+		WHERE POST_ID = #{postId}
+		AND IS_BLIND = 'N'
+	</update>
+
+	<!-- 게시글의 댓글과 대댓글 목록 조회 -->
+	<select id="findComments" parameterType="long" resultType="Comments">
+		SELECT
+			c.COMMENT_ID,
+			c.POST_ID,
+			c.USER_ID,
+			u.NICKNAME,
+			c.P_COMMENT_ID,
+			c.CONTENT,
+			c.IS_BLIND,
+			c.CREATED_AT,
+			c.UPDATED_AT
+		FROM COMMENTS c
+		JOIN USERS u ON u.USER_ID = c.USER_ID
+		WHERE c.POST_ID = #{postId}
+		AND (
+			c.IS_BLIND = 'N'
+			OR (
+				c.P_COMMENT_ID IS NULL
+				AND EXISTS (
+					SELECT 1
+					FROM COMMENTS child
+					WHERE child.P_COMMENT_ID = c.COMMENT_ID
+					AND child.IS_BLIND = 'N'
+				)
+			)
+		)
+		ORDER BY
+			NVL(c.P_COMMENT_ID, c.COMMENT_ID),
+			CASE WHEN c.P_COMMENT_ID IS NULL THEN 0 ELSE 1 END,
+			c.CREATED_AT,
+			c.COMMENT_ID
+	</select>
+
+	<!-- 댓글 번호로 댓글과 작성자 정보 조회 -->
+	<select id="findCommentById" parameterType="long" resultType="Comments">
+		SELECT
+			c.COMMENT_ID,
+			c.POST_ID,
+			c.USER_ID,
+			u.NICKNAME,
+			c.P_COMMENT_ID,
+			c.CONTENT,
+			c.IS_BLIND,
+			c.CREATED_AT,
+			c.UPDATED_AT
+		FROM COMMENTS c
+		JOIN USERS u ON u.USER_ID = c.USER_ID
+		WHERE c.COMMENT_ID = #{commentId}
+		AND c.IS_BLIND = 'N'
+	</select>
+
+	<!-- 로그인한 사용자의 댓글 또는 대댓글 등록 -->
+	<insert id="insertComment" parameterType="Comments" useGeneratedKeys="true" keyProperty="commentId" keyColumn="COMMENT_ID">
+		INSERT INTO COMMENTS (
+			POST_ID,
+			USER_ID,
+			P_COMMENT_ID,
+			CONTENT
+		) VALUES (
+			#{postId},
+			#{userId},
+			#{pCommentId},
+			#{content}
+		)
+	</insert>
+
+	<!-- 작성자의 댓글 또는 대댓글 내용 수정 -->
+	<update id="updateComment" parameterType="Comments">
+		UPDATE COMMENTS
+		SET CONTENT = #{content},
+			UPDATED_AT = SYSTIMESTAMP
+		WHERE COMMENT_ID = #{commentId}
+		AND USER_ID = #{userId}
+		AND IS_BLIND = 'N'
+	</update>
+
+	<!-- 작성자의 댓글 또는 대댓글 숨김 처리 -->
+	<update id="blindComment" parameterType="map">
+		UPDATE COMMENTS
+		SET IS_BLIND = 'Y',
+			UPDATED_AT = SYSTIMESTAMP
+		WHERE COMMENT_ID = #{commentId}
+		AND USER_ID = #{userId}
+		AND IS_BLIND = 'N'
+	</update>
+
+	<!-- 게시글 상세 정보 및 작성자 닉네임 조회 -->
+	<select id="findPostById" parameterType="long" resultType="Posts">
+		SELECT
+			p.POST_ID,
+			p.USER_ID,
+			u.NICKNAME,
+			p.TEAM_ID,
+			COALESCE(t.TEAM_NAME_KOR, t.TEAM_NAME) AS TEAM_NAME,
+			p.CATEGORY_ID,
+			c.CATEGORY_TYPE,
+			p.TITLE,
+			p.CONTENT,
+			p.VIEW_COUNT,
+			p.LIKE_COUNT,
+			p.CREATED_AT,
+			p.UPDATED_AT
+		FROM POSTS p
+		JOIN USERS u ON u.USER_ID = p.USER_ID
+		JOIN CATEGORY c ON c.CATEGORY_ID = p.CATEGORY_ID
+		LEFT JOIN TEAMS t ON t.TEAM_ID = p.TEAM_ID
+		WHERE p.POST_ID = #{postId}
+		AND p.IS_BLIND = 'N'
+	</select>
+
+	<!-- 공개 게시글 조회수 증가 -->
+	<update id="increaseViewCount" parameterType="long">
+		UPDATE POSTS
+		SET VIEW_COUNT = VIEW_COUNT + 1
+		WHERE POST_ID = #{postId}
+		AND IS_BLIND = 'N'
+	</update>
+
 	<!-- 검색 조건에 맞는 전체 게시글 수 조회 -->
 	<select id="countPosts" parameterType="map" resultType="long">
 		SELECT COUNT(*)
@@ -37,7 +247,7 @@
 			p.USER_ID,
 			u.NICKNAME,
 			p.TEAM_ID,
-			t.TEAM_NAME,
+			COALESCE(t.TEAM_NAME_KOR, t.TEAM_NAME) AS TEAM_NAME,
 			p.CATEGORY_ID,
 			c.CATEGORY_TYPE,
 			p.TITLE,

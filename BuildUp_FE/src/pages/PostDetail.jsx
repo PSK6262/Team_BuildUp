@@ -1,38 +1,485 @@
-import { communityPosts } from '../data/communityPosts.js'
+import { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { communityTeams } from '../data/communityTeams.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
 import '../css/Community.css'
 
 export default function PostDetail({ postId }) {
-  const post = communityPosts.find((item) => String(item.postId) === postId)
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn)
+  const user = useSelector((state) => state.auth.user)
+  const [post, setPost] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [editing, setEditing] = useState(false)
+  const [categories, setCategories] = useState([])
+  const [teams, setTeams] = useState([])
+  const [categoryId, setCategoryId] = useState('')
+  const [teamId, setTeamId] = useState('')
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [actionLoading, setActionLoading] = useState(false)
+  const [actionError, setActionError] = useState('')
+  const [liked, setLiked] = useState(false)
+  const [likeLoading, setLikeLoading] = useState(false)
+  const [comments, setComments] = useState([])
+  const [commentContent, setCommentContent] = useState('')
+  const [replyTarget, setReplyTarget] = useState(null)
+  const [commentLoading, setCommentLoading] = useState(false)
+  const [commentsError, setCommentsError] = useState('')
+  const [editingCommentId, setEditingCommentId] = useState(null)
+  const [editCommentContent, setEditCommentContent] = useState('')
+  const [commentActionId, setCommentActionId] = useState(null)
   const requestedReturn = new URLSearchParams(window.location.search).get('from')
   // 외부 주소나 임의의 경로로 이동하지 않도록 실제 목록 경로만 허용합니다.
   const allowedPaths = ['/plug/community', '/plug/community/free', ...communityTeams.map((team) => `/plug/community/teams/${team.slug}`)]
   const backTo = allowedPaths.includes(requestedReturn) ? requestedReturn : '/plug/community'
+  // 이전 서버가 반환한 pcommentId도 함께 읽어 대댓글 관계를 유지합니다.
+  const getParentCommentId = (comment) => comment.pCommentId ?? comment.pcommentId
 
-  if (!post) return <main className="community">
+  // 게시글 번호로 실제 상세 데이터를 조회합니다.
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const response = await fetch(`/api/communities/${encodeURIComponent(postId)}`)
+        const result = await response.json()
+        if (!response.ok || !result.data) {
+          throw new Error(result.message || '게시글을 불러오지 못했습니다.')
+        }
+        setPost(result.data)
+      } catch (exception) {
+        setError(exception.message || '게시글을 불러오지 못했습니다.')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchPost()
+  }, [postId])
+
+  // 로그인한 사용자가 이 게시글을 추천했는지 확인합니다.
+  useEffect(() => {
+    if (!isLoggedIn) return
+
+    const fetchLikeStatus = async () => {
+      try {
+        const token = localStorage.getItem('buildup_token')
+        const headers = token ? { Authorization: `Bearer ${token}` } : {}
+        const response = await fetch(`/api/communities/${encodeURIComponent(postId)}/likes/me`, { headers })
+        const isJson = response.headers.get('content-type')?.includes('application/json')
+        const result = isJson ? await response.json() : null
+        if (response.ok && result) setLiked(Boolean(result.data))
+      } catch {
+        // 추천 여부 조회가 실패해도 게시글 상세 화면은 계속 표시합니다.
+      }
+    }
+    fetchLikeStatus()
+  }, [isLoggedIn, postId])
+
+  // 게시글의 일반 댓글과 대댓글을 함께 조회합니다.
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const response = await fetch(`/api/communities/${encodeURIComponent(postId)}/comments`)
+        const isJson = response.headers.get('content-type')?.includes('application/json')
+        const result = isJson ? await response.json() : null
+        if (!response.ok || !Array.isArray(result?.data)) {
+          throw new Error(result?.message || '댓글을 불러오지 못했습니다.')
+        }
+        setComments(result.data)
+      } catch (exception) {
+        setCommentsError(exception.message || '댓글을 불러오지 못했습니다.')
+      }
+    }
+    fetchComments()
+  }, [postId])
+
+  const startEditing = async () => {
+    setActionError('')
+    setActionLoading(true)
+    try {
+      const [categoryResponse, teamResponse] = await Promise.all([
+        fetch('/api/communities/categories'),
+        fetch('/api/teams'),
+      ])
+      const categoryResult = await categoryResponse.json()
+      const teamResult = await teamResponse.json()
+      if (!categoryResponse.ok || !teamResponse.ok) {
+        throw new Error('수정에 필요한 정보를 불러오지 못했습니다.')
+      }
+      setCategories(Array.isArray(categoryResult.data) ? categoryResult.data : [])
+      setTeams(Array.isArray(teamResult) ? teamResult : [])
+      setCategoryId(String(post.categoryId))
+      setTeamId(post.teamId == null ? '' : String(post.teamId))
+      setTitle(post.title || '')
+      setContent(post.content || '')
+      setEditing(true)
+    } catch (exception) {
+      setActionError(exception.message || '수정에 필요한 정보를 불러오지 못했습니다.')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const updatePost = async (event) => {
+    event.preventDefault()
+    setActionError('')
+    if (!categoryId || !title.trim() || !content.trim()) {
+      setActionError('카테고리, 제목, 내용을 모두 입력해주세요.')
+      return
+    }
+
+    setActionLoading(true)
+    try {
+      const token = localStorage.getItem('buildup_token')
+      const headers = { 'Content-Type': 'application/json' }
+      if (token) headers.Authorization = `Bearer ${token}`
+      const response = await fetch(`/api/communities/${encodeURIComponent(postId)}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          categoryId: Number(categoryId),
+          teamId: teamId ? Number(teamId) : null,
+          title: title.trim(),
+          content: content.trim(),
+        }),
+      })
+      const result = await response.json()
+      if (!response.ok || !result?.data) {
+        throw new Error(result.message || '게시글 수정에 실패했습니다.')
+      }
+      setPost(result.data)
+      setEditing(false)
+    } catch (exception) {
+      setActionError(exception.message || '게시글 수정에 실패했습니다.')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const deletePost = async () => {
+    if (!window.confirm('게시글을 삭제하시겠습니까?')) return
+    setActionError('')
+    setActionLoading(true)
+    try {
+      const token = localStorage.getItem('buildup_token')
+      const headers = token ? { Authorization: `Bearer ${token}` } : {}
+      const response = await fetch(`/api/communities/${encodeURIComponent(postId)}`, {
+        method: 'DELETE',
+        headers,
+      })
+      const result = await response.json()
+      if (!response.ok) {
+        throw new Error(result.message || '게시글 삭제에 실패했습니다.')
+      }
+      window.location.assign(backTo)
+    } catch (exception) {
+      setActionError(exception.message || '게시글 삭제에 실패했습니다.')
+      setActionLoading(false)
+    }
+  }
+
+  // 로그인 상태에 따라 게시글 추천을 등록하거나 취소합니다.
+  const toggleLike = async () => {
+    if (!isLoggedIn) {
+      window.location.assign('/plug/login')
+      return
+    }
+
+    setActionError('')
+    setLikeLoading(true)
+    try {
+      const token = localStorage.getItem('buildup_token')
+      const headers = token ? { Authorization: `Bearer ${token}` } : {}
+      const response = await fetch(`/api/communities/${encodeURIComponent(postId)}/likes`, {
+        method: liked ? 'DELETE' : 'POST',
+        headers,
+      })
+      const isJson = response.headers.get('content-type')?.includes('application/json')
+      const result = isJson ? await response.json() : null
+      if (!response.ok || !result.data) {
+        if (!isJson && response.status === 404) {
+          throw new Error('추천 API가 서버에 반영되지 않았습니다. Tomcat 서버를 다시 게시한 뒤 재시작해주세요.')
+        }
+        throw new Error(result?.message || '추천 처리에 실패했습니다.')
+      }
+      setPost(result.data)
+      setLiked(!liked)
+    } catch (exception) {
+      setActionError(exception.message || '추천 처리에 실패했습니다.')
+    } finally {
+      setLikeLoading(false)
+    }
+  }
+
+  // 선택한 부모 댓글 번호가 있으면 대댓글로, 없으면 일반 댓글로 등록합니다.
+  const createComment = async (event) => {
+    event.preventDefault()
+    if (!isLoggedIn) {
+      window.location.assign('/plug/login')
+      return
+    }
+    if (!commentContent.trim()) {
+      setCommentsError('댓글 내용을 입력해주세요.')
+      return
+    }
+
+    setCommentsError('')
+    setCommentLoading(true)
+    try {
+      const token = localStorage.getItem('buildup_token')
+      const headers = { 'Content-Type': 'application/json' }
+      if (token) headers.Authorization = `Bearer ${token}`
+      const response = await fetch(`/api/communities/${encodeURIComponent(postId)}/comments`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          content: commentContent.trim(),
+          pCommentId: replyTarget?.commentId || null,
+        }),
+      })
+      const isJson = response.headers.get('content-type')?.includes('application/json')
+      const result = isJson ? await response.json() : null
+      if (!response.ok || !result?.data) {
+        if (!isJson && response.status === 404) {
+          throw new Error('댓글 API가 서버에 반영되지 않았습니다. Tomcat 서버를 다시 게시한 뒤 재시작해주세요.')
+        }
+        throw new Error(result?.message || '댓글 등록에 실패했습니다.')
+      }
+      setComments((current) => [...current, result.data])
+      setCommentContent('')
+      setReplyTarget(null)
+    } catch (exception) {
+      setCommentsError(exception.message || '댓글 등록에 실패했습니다.')
+    } finally {
+      setCommentLoading(false)
+    }
+  }
+
+  // 선택한 댓글의 현재 내용을 수정 입력창에 표시합니다.
+  const startCommentEditing = (comment) => {
+    setEditingCommentId(comment.commentId)
+    setEditCommentContent(comment.content)
+    setCommentsError('')
+  }
+
+  // 로그인한 작성자의 댓글 내용을 수정합니다.
+  const updateComment = async (event, commentId) => {
+    event.preventDefault()
+    if (!editCommentContent.trim()) {
+      setCommentsError('댓글 내용을 입력해주세요.')
+      return
+    }
+
+    setCommentsError('')
+    setCommentActionId(commentId)
+    try {
+      const token = localStorage.getItem('buildup_token')
+      const headers = { 'Content-Type': 'application/json' }
+      if (token) headers.Authorization = `Bearer ${token}`
+      const response = await fetch(`/api/communities/${encodeURIComponent(postId)}/comments/${commentId}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ content: editCommentContent.trim() }),
+      })
+      const isJson = response.headers.get('content-type')?.includes('application/json')
+      const result = isJson ? await response.json() : null
+      if (!response.ok || !result?.data) {
+        throw new Error(result?.message || '댓글 수정에 실패했습니다.')
+      }
+      setComments((current) => current.map((comment) =>
+        Number(comment.commentId) === Number(commentId) ? result.data : comment))
+      setEditingCommentId(null)
+      setEditCommentContent('')
+    } catch (exception) {
+      setCommentsError(exception.message || '댓글 수정에 실패했습니다.')
+    } finally {
+      setCommentActionId(null)
+    }
+  }
+
+  // 로그인한 작성자의 댓글을 숨김 처리합니다.
+  const deleteComment = async (commentId) => {
+    if (!window.confirm('댓글을 삭제하시겠습니까?')) return
+    setCommentsError('')
+    setCommentActionId(commentId)
+    try {
+      const token = localStorage.getItem('buildup_token')
+      const headers = token ? { Authorization: `Bearer ${token}` } : {}
+      const response = await fetch(`/api/communities/${encodeURIComponent(postId)}/comments/${commentId}`, {
+        method: 'DELETE',
+        headers,
+      })
+      const isJson = response.headers.get('content-type')?.includes('application/json')
+      const result = isJson ? await response.json() : null
+      if (!response.ok) {
+        throw new Error(result?.message || '댓글 삭제에 실패했습니다.')
+      }
+      setComments((current) => {
+        const hasVisibleReplies = current.some((comment) =>
+          Number(getParentCommentId(comment)) === Number(commentId) && comment.isBlind !== 'Y')
+        if (!hasVisibleReplies) {
+          return current.filter((comment) => Number(comment.commentId) !== Number(commentId))
+        }
+        return current.map((comment) => Number(comment.commentId) === Number(commentId)
+          ? { ...comment, isBlind: 'Y', content: '' }
+          : comment)
+      })
+      if (Number(editingCommentId) === Number(commentId)) {
+        setEditingCommentId(null)
+        setEditCommentContent('')
+      }
+      if (Number(replyTarget?.commentId) === Number(commentId)) {
+        setReplyTarget(null)
+      }
+    } catch (exception) {
+      setCommentsError(exception.message || '댓글 삭제에 실패했습니다.')
+    } finally {
+      setCommentActionId(null)
+    }
+  }
+
+  if (loading) return <main className="community">
+    <CommunityNavigation />
+    <p className="community__intro" role="status">게시글을 불러오는 중입니다.</p>
+  </main>
+
+  if (error || !post) return <main className="community">
     <CommunityNavigation />
     <h1>게시글을 찾을 수 없습니다.</h1>
-    <p className="community__intro">주소를 확인하거나 목록에서 다른 글을 선택해 주세요.</p>
+    <p className="community__intro">{error || '주소를 확인하거나 목록에서 다른 글을 선택해 주세요.'}</p>
     <a className="community__main-link" href={backTo}>목록으로 돌아가기</a>
   </main>
 
+  const isTeamPost = post.teamId != null
+  const isOwner = isLoggedIn && Number(user?.userId) === Number(post.userId)
+  const rootComments = comments.filter((comment) => getParentCommentId(comment) == null)
+  const visibleCommentCount = comments.filter((comment) => comment.isBlind !== 'Y').length
+
+  // 일반 댓글과 대댓글에 동일한 작성자 수정·삭제 기능을 표시합니다.
+  const renderComment = (comment, canReply) => {
+    if (comment.isBlind === 'Y') {
+      return <p className="community__deleted-comment">삭제된 댓글입니다.</p>
+    }
+    const isCommentOwner = isLoggedIn && Number(user?.userId) === Number(comment.userId)
+    const isEditingComment = Number(editingCommentId) === Number(comment.commentId)
+    const isCommentBusy = Number(commentActionId) === Number(comment.commentId)
+
+    return <>
+      <header><strong>{comment.nickname}</strong><time dateTime={comment.createdAt}>{comment.createdAt}</time></header>
+      {isEditingComment ? <form className="community__comment-edit" onSubmit={(event) => updateComment(event, comment.commentId)}>
+        <textarea rows="3" value={editCommentContent} onChange={(event) => setEditCommentContent(event.target.value)} disabled={isCommentBusy} />
+        <div>
+          <button type="button" onClick={() => { setEditingCommentId(null); setEditCommentContent('') }} disabled={isCommentBusy}>취소</button>
+          <button type="submit" disabled={isCommentBusy}>{isCommentBusy ? '수정 중...' : '수정 완료'}</button>
+        </div>
+      </form> : <p>{comment.content}</p>}
+      {!isEditingComment && <div className="community__comment-actions">
+        {canReply && <button type="button" onClick={() => { setReplyTarget(comment); setCommentsError('') }}>답글</button>}
+        {isCommentOwner && <>
+          <button type="button" onClick={() => startCommentEditing(comment)} disabled={isCommentBusy}>수정</button>
+          <button type="button" className="community__comment-delete" onClick={() => deleteComment(comment.commentId)} disabled={isCommentBusy}>삭제</button>
+        </>}
+      </div>}
+    </>
+  }
+
   return <main className="community">
-    <CommunityNavigation section={post.board === 'team' ? 'teams' : 'free'} teamName={post.team} />
-    <article className="community__detail">
+    <CommunityNavigation section={isTeamPost ? 'teams' : 'free'} teamName={post.teamName || ''} />
+    {actionError && <p className="community__form-error" role="alert">{actionError}</p>}
+
+    {editing ? <form className="community__write-form" onSubmit={updatePost}>
+      <label>카테고리
+        <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)} disabled={actionLoading}>
+          {categories.map((category) => <option key={category.categoryId} value={category.categoryId}>{category.categoryType}</option>)}
+        </select>
+      </label>
+      <label>구단
+        <select value={teamId} onChange={(event) => setTeamId(event.target.value)} disabled={actionLoading}>
+          <option value="">자유게시판</option>
+          {teams.map((team) => <option key={team.teamId} value={team.teamId}>{team.teamNameKor || team.teamName}</option>)}
+        </select>
+      </label>
+      <label>제목
+        <input type="text" maxLength="255" value={title} onChange={(event) => setTitle(event.target.value)} disabled={actionLoading} />
+      </label>
+      <label>내용
+        <textarea rows="14" value={content} onChange={(event) => setContent(event.target.value)} disabled={actionLoading} />
+      </label>
+      <div className="community__form-actions">
+        <button type="button" onClick={() => { setEditing(false); setActionError('') }} disabled={actionLoading}>취소</button>
+        <button type="submit" className="community__submit" disabled={actionLoading}>{actionLoading ? '수정 중...' : '수정 완료'}</button>
+      </div>
+    </form> : <article className="community__detail">
       <header>
-        <span className="community__badge">{post.team || '자유게시판'}</span>
+        <span className={`community__badge ${isTeamPost ? 'community__badge--team' : ''}`}>{post.teamName || post.categoryType || '자유게시판'}</span>
         <h1>{post.title}</h1>
         <dl className="community__post-meta">
           <div><dt>작성자</dt><dd>{post.nickname}</dd></div>
-          <div><dt>작성일</dt><dd><time dateTime={post.createdAt}>{post.createdAt.replace('T', ' ').slice(0, 16)}</time></dd></div>
+          <div><dt>작성일</dt><dd><time dateTime={post.createdAt}>{post.createdAt?.replace('T', ' ').slice(0, 16)}</time></dd></div>
           <div><dt>조회수</dt><dd>{post.viewCount}</dd></div>
           <div><dt>추천수</dt><dd>{post.likeCount}</dd></div>
         </dl>
       </header>
       <div className="community__post-body">{post.content}</div>
-    </article>
-    <div className="community__detail-actions"><a className="community__main-link" href={backTo}>목록으로 돌아가기</a></div>
-    <p className="community__notice">예시 게시글입니다. 댓글·추천·수정·삭제와 실제 데이터 저장은 아직 연결하지 않았습니다.</p>
+    </article>}
+
+    <div className="community__detail-actions">
+      <a className="community__main-link" href={backTo}>목록으로 돌아가기</a>
+      <button
+        type="button"
+        className={liked ? 'community__like community__like--active' : 'community__like'}
+        onClick={toggleLike}
+        disabled={likeLoading}
+        aria-pressed={liked}
+      >
+        {likeLoading ? '처리 중...' : liked ? '추천 취소' : isLoggedIn ? '추천' : '로그인 후 추천'}
+      </button>
+      {isOwner && !editing && <>
+        <button type="button" onClick={startEditing} disabled={actionLoading}>수정</button>
+        <button type="button" className="community__danger" onClick={deletePost} disabled={actionLoading}>삭제</button>
+      </>}
+    </div>
+    {!isOwner && <p className="community__notice">수정과 삭제는 게시글 작성자만 사용할 수 있습니다.</p>}
+
+    <section className="community__comments" aria-labelledby="community-comments-title">
+      <h2 id="community-comments-title">댓글 <span>{visibleCommentCount}</span></h2>
+      {commentsError && <p className="community__form-error" role="alert">{commentsError}</p>}
+
+      <div className="community__comment-list">
+        {rootComments.length === 0 && !commentsError && <p className="community__comment-empty">첫 댓글을 작성해보세요.</p>}
+        {rootComments.map((comment) => <div className="community__comment-group" key={comment.commentId}>
+          <article className="community__comment">
+            {renderComment(comment, true)}
+          </article>
+          {comments.filter((reply) => Number(getParentCommentId(reply)) === Number(comment.commentId)).map((reply) =>
+            <div className="community__reply-row" key={reply.commentId}>
+              <span className="community__reply-marker" aria-hidden="true">ㄴ</span>
+              <article className="community__comment community__comment--reply">
+                <span className="community__reply-badge">답글</span>
+                {renderComment(reply, false)}
+              </article>
+            </div>
+          )}
+        </div>)}
+      </div>
+
+      <form className="community__comment-form" onSubmit={createComment}>
+        {replyTarget && <div className="community__reply-target">
+          <span><strong>{replyTarget.nickname}</strong>님에게 답글 작성</span>
+          <button type="button" onClick={() => setReplyTarget(null)}>답글 취소</button>
+        </div>}
+        <label htmlFor="community-comment">{replyTarget ? '대댓글 내용' : '댓글 내용'}</label>
+        <textarea
+          id="community-comment"
+          rows="4"
+          value={commentContent}
+          onChange={(event) => setCommentContent(event.target.value)}
+          placeholder={isLoggedIn ? '내용을 입력해주세요.' : '로그인 후 댓글을 작성할 수 있습니다.'}
+          disabled={commentLoading}
+        />
+        <button type="submit" className="community__submit" disabled={commentLoading}>
+          {commentLoading ? '등록 중...' : isLoggedIn ? replyTarget ? '대댓글 등록' : '댓글 등록' : '로그인'}
+        </button>
+      </form>
+    </section>
   </main>
 }
