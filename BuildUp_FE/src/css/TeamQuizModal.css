@@ -1,0 +1,809 @@
+/* ========================================================
+   TeamQuizModal CSS: Premier League Balance Quiz Modal
+   ======================================================== */
+
+.team-quiz-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(12, 1, 16, 0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 16px;
+  animation: quizBackdropFadeIn 0.3s ease forwards;
+  box-sizing: border-box;
+}
+
+@keyframes quizBackdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.team-quiz-card {
+  position: relative;
+  width: 100%;
+  max-width: 620px;
+  background: linear-gradient(150deg, #26052f 0%, #17011c 55%, #100114 100%);
+  border: 1.5px solid rgba(220, 150, 245, 0.3);
+  border-radius: 24px;
+  padding: 36px 32px 32px;
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.85),
+    0 0 50px rgba(170, 75, 195, 0.22),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  box-sizing: border-box;
+  animation: quizCardScaleIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  overflow: hidden;
+}
+
+@keyframes quizCardScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* 닫기 버튼 */
+.team-quiz-close-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.team-quiz-close-btn:hover {
+  background: rgba(255, 50, 95, 0.25);
+  border-color: #ff3366;
+  color: #ffffff;
+  transform: rotate(90deg);
+}
+
+/* --------------------------------------------------------
+   1. 퀴즈 스텝 단계 (Q1 ~ Q5)
+   -------------------------------------------------------- */
+.team-quiz-question-stage {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* 상단 프로그레스 바 */
+.team-quiz-progress-wrap {
+  margin-bottom: 24px;
+}
+
+.team-quiz-step-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.team-quiz-step-tag {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #00ff87;
+  background: rgba(0, 255, 135, 0.12);
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 255, 135, 0.25);
+}
+
+.team-quiz-step-number {
+  font-size: 13px;
+  color: #d1bfe3;
+}
+
+.team-quiz-step-number strong {
+  font-size: 16px;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.team-quiz-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.team-quiz-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #9346a2 0%, #00ff87 100%);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 255, 135, 0.6);
+}
+
+/* 질문 타이틀 */
+.team-quiz-header {
+  text-align: center;
+  margin-bottom: 26px;
+  padding: 0 8px;
+}
+
+.team-quiz-badge-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.team-quiz-q-badge {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 900;
+  color: #ff3388;
+  background: rgba(255, 51, 136, 0.15);
+  border: 1px solid rgba(255, 51, 136, 0.35);
+  padding: 2px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+
+.team-quiz-badge-group .team-quiz-q-badge {
+  margin-bottom: 0;
+}
+
+.team-quiz-category-tag {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #c084fc;
+  background: rgba(192, 132, 252, 0.15);
+  border: 1px solid rgba(192, 132, 252, 0.35);
+  padding: 2px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+}
+
+.team-quiz-title {
+  margin: 0;
+  font-size: clamp(19px, 2.8vw, 24px);
+  font-weight: 800;
+  line-height: 1.45;
+  color: #ffffff;
+  word-break: keep-all;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* 옵션 그리드 (A vs B) */
+.team-quiz-options-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.team-quiz-option-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(220, 160, 240, 0.22);
+  border-radius: 16px;
+  color: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.team-quiz-option-card:hover {
+  background: rgba(147, 70, 162, 0.25);
+  border-color: #00ff87;
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.45),
+    0 0 16px rgba(0, 255, 135, 0.3);
+}
+
+.team-quiz-option-card.is-selected {
+  background: linear-gradient(135deg, rgba(0, 255, 135, 0.2) 0%, rgba(147, 70, 162, 0.35) 100%);
+  border-color: #00ff87;
+  box-shadow:
+    0 0 20px rgba(0, 255, 135, 0.5),
+    inset 0 0 10px rgba(0, 255, 135, 0.2);
+  transform: scale(0.99);
+}
+
+.option-badge {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 16px;
+  color: #d8b4e2;
+  transition: all 0.2s ease;
+}
+
+.team-quiz-option-card:hover .option-badge,
+.team-quiz-option-card.is-selected .option-badge {
+  background: #00ff87;
+  border-color: #00ff87;
+  color: #16011c;
+  box-shadow: 0 0 12px rgba(0, 255, 135, 0.8);
+}
+
+.option-content {
+  flex: 1;
+}
+
+.option-label {
+  font-size: clamp(14px, 2vw, 16px);
+  font-weight: 600;
+  line-height: 1.45;
+  word-break: keep-all;
+  color: #f1e7fa;
+}
+
+/* VS 구분자 */
+.team-quiz-vs-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin: -4px 0;
+}
+
+.team-quiz-vs-divider::before,
+.team-quiz-vs-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(210, 140, 235, 0.25), transparent);
+}
+
+.team-quiz-vs-divider span {
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: rgba(210, 180, 240, 0.6);
+}
+
+/* 하단 이전 버튼 */
+.team-quiz-footer-nav {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 20px;
+  min-height: 32px;
+}
+
+.team-quiz-back-step-btn {
+  background: none;
+  border: none;
+  color: rgba(220, 200, 240, 0.7);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.team-quiz-back-step-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* --------------------------------------------------------
+   2. 결과 화면 (Result)
+   -------------------------------------------------------- */
+.team-quiz-result-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px 0;
+  animation: resultFadeIn 0.4s ease forwards;
+}
+
+@keyframes resultFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.team-quiz-result-badge {
+  margin-bottom: 18px;
+}
+
+.team-quiz-result-badge span {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #00ff87;
+  background: rgba(0, 255, 135, 0.12);
+  border: 1px solid rgba(0, 255, 135, 0.35);
+  padding: 6px 16px;
+  border-radius: 999px;
+  box-shadow: 0 0 16px rgba(0, 255, 135, 0.2);
+}
+
+.team-quiz-emblem-wrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+
+.team-quiz-emblem-glow {
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 255, 135, 0.4) 0%, rgba(147, 70, 162, 0.3) 60%, transparent 75%);
+  animation: emblemPulse 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes emblemPulse {
+  0%, 100% {
+    transform: scale(0.95);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.95;
+  }
+}
+
+.team-quiz-result-emblem {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.65));
+  z-index: 1;
+}
+
+.team-quiz-result-message-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(220, 160, 245, 0.25);
+  border-radius: 18px;
+  padding: 20px 24px;
+  width: 100%;
+  margin-bottom: 26px;
+  box-sizing: border-box;
+}
+
+.team-quiz-match-headline {
+  margin: 0 0 12px 0;
+  font-size: clamp(17px, 2.4vw, 22px);
+  font-weight: 800;
+  line-height: 1.5;
+  color: #ffffff;
+  word-break: keep-all;
+}
+
+.team-quiz-match-headline .highlight-club {
+  color: #00ff87;
+  font-weight: 900;
+  text-shadow: 0 0 12px rgba(0, 255, 135, 0.7);
+}
+
+.team-quiz-match-headline .highlight-rate {
+  color: #ff3388;
+  font-weight: 900;
+  font-size: 1.15em;
+  text-shadow: 0 0 14px rgba(255, 51, 136, 0.8);
+}
+
+.team-quiz-result-desc {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #d1bfe3;
+  line-height: 1.55;
+  word-break: keep-all;
+  font-style: italic;
+}
+
+/* 버튼 액션 그룹 */
+.team-quiz-action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.team-quiz-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: all 0.22s ease;
+}
+
+.team-quiz-btn--primary {
+  background: linear-gradient(135deg, #00ff87 0%, #00c868 100%);
+  color: #120117;
+  border: none;
+  box-shadow:
+    0 4px 18px rgba(0, 255, 135, 0.4),
+    0 0 25px rgba(0, 255, 135, 0.2);
+}
+
+.team-quiz-btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 24px rgba(0, 255, 135, 0.55),
+    0 0 35px rgba(0, 255, 135, 0.4);
+  filter: brightness(1.06);
+}
+
+.team-quiz-btn--restart {
+  background: rgba(255, 255, 255, 0.07);
+  color: #e2d2f2;
+  border: 1.5px solid rgba(220, 160, 245, 0.3);
+}
+
+.team-quiz-btn--restart:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+/* 반응형 모바일 대응 */
+@media (max-width: 600px) {
+  .team-quiz-card {
+    padding: 28px 18px 22px;
+    border-radius: 20px;
+  }
+
+  .team-quiz-title {
+    font-size: 18px;
+  }
+
+  .team-quiz-option-card {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  .option-badge {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .option-label {
+    font-size: 14px;
+  }
+
+  .team-quiz-result-message-box {
+    padding: 16px;
+  }
+
+  .team-quiz-match-headline {
+    font-size: 17px;
+  }
+}
+
+/* ========================================================
+   5. 서든데스 타이브레이커(Tie-breaker) 전용 스타일
+   ======================================================== */
+
+.team-quiz-card.is-tie-breaker-mode {
+  border-color: rgba(255, 75, 43, 0.45);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.9),
+    0 0 50px rgba(255, 75, 43, 0.25),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+/* 서든데스 전환 배너 스테이지 */
+.team-quiz-tie-banner-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 12px 8px 16px;
+  animation: tieBannerFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes tieBannerFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.tie-banner-fire-icon {
+  font-size: 42px;
+  margin-bottom: 8px;
+  animation: firePulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes firePulse {
+  from {
+    transform: scale(0.95);
+    filter: drop-shadow(0 0 8px rgba(255, 75, 43, 0.6));
+  }
+  to {
+    transform: scale(1.18);
+    filter: drop-shadow(0 0 20px rgba(255, 140, 0, 0.9));
+  }
+}
+
+.team-quiz-tie-banner {
+  margin-bottom: 20px;
+}
+
+.tie-banner-title {
+  margin: 0;
+  font-size: clamp(19px, 2.8vw, 24px);
+  font-weight: 800;
+  line-height: 1.45;
+  color: #ffffff;
+  word-break: keep-all;
+}
+
+.tie-banner-highlight {
+  background: linear-gradient(90deg, #ff416c 0%, #ff4b2b 50%, #ffa000 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 900;
+  font-size: 1.08em;
+  display: inline-block;
+  margin-top: 4px;
+  text-shadow: 0 0 20px rgba(255, 75, 43, 0.4);
+}
+
+/* 경합 후보 구단 프리뷰 */
+.tie-candidates-preview {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 75, 43, 0.35);
+  border-radius: 18px;
+  padding: 16px 20px;
+  box-sizing: border-box;
+  margin-bottom: 22px;
+}
+
+.tie-candidates-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: #ffa000;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.tie-candidates-list {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tie-candidate-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+
+.tie-candidate-emblem {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.tie-candidate-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.tie-candidate-vs {
+  font-size: 13px;
+  font-weight: 900;
+  color: #ff416c;
+  letter-spacing: 0.5px;
+}
+
+/* 로더 및 전환 버튼 */
+.tie-loader-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.tie-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #ff4b2b;
+  border-radius: 50%;
+  animation: tieSpin 0.75s linear infinite;
+}
+
+@keyframes tieSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tie-start-btn {
+  background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+  color: #ffffff;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(255, 75, 43, 0.4);
+  transition: all 0.2s ease;
+}
+
+.tie-start-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(255, 75, 43, 0.6);
+  filter: brightness(1.1);
+}
+
+/* 타이브레이커 질문 화면 */
+.tie-breaker-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.tie-breaker-main-badge {
+  font-size: 12px;
+  font-weight: 900;
+  color: #ff7043;
+  background: rgba(255, 75, 43, 0.16);
+  border: 1px solid rgba(255, 75, 43, 0.4);
+  padding: 4px 12px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 12px rgba(255, 75, 43, 0.2);
+}
+
+.tie-breaker-step-badge {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffd1b3;
+}
+
+.tie-compact-candidates {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px dashed rgba(255, 75, 43, 0.35);
+  border-radius: 10px;
+  padding: 6px 14px;
+  margin-bottom: 18px;
+}
+
+.tie-compact-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.tie-compact-list {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tie-compact-name {
+  font-size: 12px;
+  font-weight: 800;
+  color: #00ff87;
+  background: rgba(0, 255, 135, 0.1);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.tie-q-badge {
+  background: rgba(255, 75, 43, 0.2) !important;
+  border-color: #ff4b2b !important;
+  color: #ff8a65 !important;
+}
+
+.tie-card:hover {
+  border-color: #ff4b2b !important;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.55),
+    0 0 20px rgba(255, 75, 43, 0.35) !important;
+}
+
+.tie-card.is-selected {
+  border-color: #ff4b2b !important;
+  background: linear-gradient(135deg, rgba(255, 75, 43, 0.3) 0%, rgba(147, 70, 162, 0.35) 100%) !important;
+  box-shadow:
+    0 0 24px rgba(255, 75, 43, 0.55),
+    inset 0 0 12px rgba(255, 75, 43, 0.25) !important;
+}
+
+.tie-card:hover .tie-badge,
+.tie-card.is-selected .tie-badge {
+  background: #ff4b2b !important;
+  border-color: #ff4b2b !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 14px rgba(255, 75, 43, 0.8) !important;
+}
+
+/* 결과 화면 서든데스 승리 뱃지 */
+.team-quiz-tb-win-badge {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #ff8a65;
+  background: rgba(255, 75, 43, 0.16);
+  border: 1px solid rgba(255, 75, 43, 0.4);
+  padding: 6px 18px;
+  border-radius: 999px;
+  box-shadow: 0 0 16px rgba(255, 75, 43, 0.25);
+}
+
+
