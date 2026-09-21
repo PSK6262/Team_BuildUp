@@ -16,5 +16,6 @@ public interface TeamService {
 	List<TeamStats> getTeamStatsHistory(Long teamId);
 	List<TeamStats> getTeamStandings(Integer season);
 	List<PlayerStats> getTopScorers(Integer limit);
+	List<PlayerStats> getPlayerRankings(String metric);
 	PlayerStats getPlayerStats(Long playerId);
 }

@@ -1,6 +1,6 @@
 import AllUseNav from './pages/AllUseNav.jsx'
 import MainPage from './pages/mainpage.jsx'
-import TeamsPage from './pages/teams.jsx'
+import TeamsPage, { StandingsPage } from './pages/teams.jsx'
 import Team from './pages/team.jsx'
 import Community from './pages/Community.jsx'
 import FreeBoard from './pages/FreeBoard.jsx'
@@ -13,6 +13,7 @@ import Signup from './pages/Signup.jsx'
 import MyPage from './pages/MyPage.jsx'
 import ChatbotWidget from './components/ChatbotWidget.jsx'
 import { communityTeams } from './data/communityTeams.js'
+import Match from './pages/Match.jsx'
 import './App.css'
 
 function App() {
@@ -33,7 +34,12 @@ function App() {
       {/* 메인 및 구단 소개 */}
       {isMainPage && <MainPage />}
       {isTeamsPage && <TeamsPage />}
-      {teamMatch && <Team teamId={teamMatch[1]} />}
+      {pathname === '/plug/rankpage' && <StandingsPage />}
+      {teamMatch && <Team teamId={teamMatch[ 1 ]} />}
+
+      {/* 경기 일정 및 경기 결과 */}
+      {pathname === '/plug/match' && <Match />}
+      {pathname === '/plug/matchresult' && <Match resultsOnly />}
 
       {/* 회원 인증 및 마이페이지 */}
       {pathname === '/plug/prediction' && <Prediction />}
@@ -46,7 +52,7 @@ function App() {
       {pathname === '/plug/community/free' && <FreeBoard />}
       {pathname === '/plug/community/teams' && <TeamBoards />}
       {pathname === '/plug/community/write' && <PostWrite />}
-      {postMatch && <PostDetail postId={postMatch[1]} />}
+      {postMatch && <PostDetail postId={postMatch[ 1 ]} />}
       {commuTeam && <Community key={commuTeam.slug} selectedTeam={commuTeam} />}
       {pathname.startsWith('/plug/community/teams/') && !commuTeam && (
         <main className="community">
