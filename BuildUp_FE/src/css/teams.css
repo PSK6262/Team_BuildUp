@@ -308,3 +308,49 @@
     grid-template-columns: 1fr;
   }
 }
+
+.standings-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.standings-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #38003c;
+  font-weight: 800;
+}
+
+.standings-team:focus-visible {
+  outline: 2px solid #38003c;
+  outline-offset: 4px;
+}
+
+@media (max-width: 600px) {
+  .standings-table th,
+  .standings-table td {
+    padding: 12px 8px;
+  }
+
+  .standings-table tr > :nth-child(2) {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: white;
+    box-shadow: 3px 0 5px rgb(15 23 42 / 6%);
+  }
+
+  .standings-table thead tr > :nth-child(2) {
+    background: #38003c;
+  }
+}

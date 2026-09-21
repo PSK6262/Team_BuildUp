@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
-import teamsData from '../../Assets/data/teamsData.js'
+import teamDbFallback from '../data/teamDbFallback.json'
 import '../css/match.css'
+
+const teamsData = teamDbFallback.teams
 
 // 프리미어리그 시즌 월 목록 (8월 ~ 5월 + 전체)
 const MONTH_TABS = [
@@ -330,7 +332,7 @@ export default function Match({ resultsOnly = false }) {
       teamMap.set(id, {
         teamId: id,
         teamName: t.teamName,
-        teamNameKor: TEAM_NAMES_KOR[ id ] || t.teamName,
+        teamNameKor: t.teamNameKor || TEAM_NAMES_KOR[ id ] || t.teamName,
         emblemUrl: t.emblemUrl || '',
         homeGround: t.homeGround || '홈 경기장',
       })
@@ -378,7 +380,7 @@ export default function Match({ resultsOnly = false }) {
         return {
           teamId: numId,
           teamName: foundFromStatic.teamName,
-          teamNameKor: TEAM_NAMES_KOR[ numId ] || foundFromStatic.teamName,
+          teamNameKor: foundFromStatic.teamNameKor || TEAM_NAMES_KOR[ numId ] || foundFromStatic.teamName,
           emblemUrl: foundFromStatic.emblemUrl || '',
           homeGround: foundFromStatic.homeGround || '홈 경기장',
         }

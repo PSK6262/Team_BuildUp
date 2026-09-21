@@ -85,6 +85,14 @@ const standingsColumns = [
   [ 'goalDiff', '득실차' ], [ 'points', '승점' ],
 ];
 
+function isStandingRow(row) {
+  return row && typeof row === 'object'
+    && Number.isInteger(row.teamId) && row.teamId > 0
+    && (row.currentRank == null || (Number.isInteger(row.currentRank) && row.currentRank > 0))
+    && standingsColumns.every(([ field ]) => row[field] == null
+      || (Number.isInteger(row[field]) && (field === 'goalDiff' || row[field] >= 0)));
+}
+
 export function StandingsPage() {
   const [ season, setSeason ] = useState(() => {
     const value = Number(new URLSearchParams(window.location.search).get('season'));
@@ -132,7 +140,8 @@ function StandingsTable({ season }) {
         const response = await fetch(`/api/teams/standings?season=${season}`, { signal: controller.signal });
         if (!response.ok) throw new Error('순위 조회 실패');
         const rows = await response.json();
-        if (!Array.isArray(rows) || rows.some((row) => !row || typeof row !== 'object')) {
+        if (!Array.isArray(rows) || !rows.every(isStandingRow)
+          || new Set(rows.map((row) => row.teamId)).size !== rows.length) {
           throw new Error('잘못된 순위 응답');
         }
         if (!controller.signal.aborted) {
@@ -164,6 +173,10 @@ function StandingsTable({ season }) {
   const updatedAt = result.rows.map((row) => row.updatedAt).filter(Boolean).sort().at(-1);
   return (
     <>
+      <div className="standings-summary">
+        <span>시즌 {season}/{String(season + 1).slice(-2)} · <strong>{result.rows.length}개 구단</strong></span>
+        <span>전체 경기 기준</span>
+      </div>
       <div className="standings-scroll" role="region" aria-label="리그 순위표, 가로 스크롤 가능" tabIndex={0}>
         <table className="standings-table">
           <caption>{season}/{String(season + 1).slice(-2)} 프리미어리그 순위</caption>
@@ -173,7 +186,7 @@ function StandingsTable({ season }) {
           </tr></thead>
           <tbody>{result.rows.map((row) => (
             <tr key={row.teamId}>
-              <td>{row.currentRank ?? '—'}</td>
+              <td><span className="standings-rank">{row.currentRank ?? '—'}</span></td>
               <th scope="row"><a className="standings-team" href={`/plug/team/${row.teamId}`}>
                 {row.emblemUrl && <img src={row.emblemUrl} alt="" width="28" height="28" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} />}
                 {row.teamName || '구단명 미등록'}
@@ -187,7 +200,7 @@ function StandingsTable({ season }) {
           ))}</tbody>
         </table>
       </div>
-      <p className="standings-note">득실차 = 득점 − 실점 · 순위와 승점은 제공된 공식 기록을 표시합니다.</p>
+      <p className="standings-note">득실차 = 득점 − 실점 · 순위와 승점은 서버에 저장된 리그 기록을 그대로 표시합니다.</p>
       {updatedAt && <p className="standings-note">최근 데이터 갱신: {updatedAt}</p>}
     </>
   );
