@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { updateUser } from '../store/authSlice.js'
+import { updateUser, logout } from '../store/authSlice.js'
+
+const EMAIL_REGEX = /^[a-zA-Z0-9](?!.*\.\.)[a-zA-Z0-9._-]{2,28}[a-zA-Z0-9]@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 
 export default function MyPage() {
   const dispatch = useDispatch()
@@ -35,6 +37,11 @@ export default function MyPage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
+
+  // 회원 탈퇴 경고 모달 상태
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false)
+  const [withdrawAgreed, setWithdrawAgreed] = useState(false)
+  const [withdrawing, setWithdrawing] = useState(false)
 
   // 사용자 상세 정보 로드
   useEffect(() => {
@@ -95,6 +102,16 @@ export default function MyPage() {
       return
     }
 
+    if (!email.trim()) {
+      setErrorMsg('이메일을 입력해주세요.')
+      return
+    }
+
+    if (!EMAIL_REGEX.test(email.trim())) {
+      setErrorMsg('올바른 이메일 형식을 입력해주세요. (영문, 숫자, 특수문자 . _ - 허용, 4~30자)')
+      return
+    }
+
     setSaving(true)
 
     try {
@@ -126,9 +143,53 @@ export default function MyPage() {
         setErrorMsg(data.message || '정보 수정 중 오류가 발생했습니다.')
       }
     } catch (err) {
-      setErrorMsg('서버와 통신할 수 없습니다.')
+      console.error('[프로필 수정 오류]', err)
+      setErrorMsg('서버와 통신할 수 없습니다. 잠시 후 다시 시도해주세요.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  // 회원 탈퇴 모달 열기
+  const handleWithdrawClick = () => {
+    setWithdrawAgreed(false)
+    setShowWithdrawModal(true)
+  }
+
+  // 회원 탈퇴 최종 실행
+  const handleConfirmWithdraw = async () => {
+    if (!withdrawAgreed) {
+      alert('탈퇴 유의사항을 확인하시고 동의 체크박스를 선택해 주세요.')
+      return
+    }
+
+    setWithdrawing(true)
+    try {
+      const token = localStorage.getItem('buildup_token')
+      const headers = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
+      const res = await fetch('/api/users/me', {
+        method: 'DELETE',
+        headers
+      })
+
+      const data = await res.json()
+      if (data.status === 'SUCCESS' || data.code === 'SUC_001') {
+        alert('회원 탈퇴가 완료되었습니다.\n작성하신 게시글과 댓글은 커뮤니티 보존을 위해 (탈퇴회원)으로 유지됩니다.')
+        setShowWithdrawModal(false)
+        dispatch(logout())
+        window.location.assign('/plug/login')
+      } else {
+        alert(data.message || '회원 탈퇴 처리 중 오류가 발생했습니다.')
+      }
+    } catch (err) {
+      console.error('[회원 탈퇴 오류]', err)
+      alert('서버와 통신할 수 없습니다. 잠시 후 다시 시도해주세요.')
+    } finally {
+      setWithdrawing(false)
     }
   }
 
@@ -255,9 +316,15 @@ export default function MyPage() {
               <input
                 id="editEmail"
                 type="email"
+                placeholder="example@domain.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
+              {email && (
+                <span className={`auth-hint ${EMAIL_REGEX.test(email.trim()) ? 'auth-hint--ok' : 'auth-hint--err'}`}>
+                  {EMAIL_REGEX.test(email.trim()) ? '✓ 올바른 이메일 형식입니다.' : '✕ 올바른 이메일 형식이 아닙니다. (영문/숫자 시작·끝, 특수문자 . _ - 허용, 4~30자)'}
+                </span>
+              )}
             </div>
 
             <div className="auth-field">
@@ -296,7 +363,93 @@ export default function MyPage() {
             </div>
           </form>
         )}
+
+        {/* 회원 탈퇴 링크 (마이페이지 하단, 회색 글자로 작게) */}
+        <div style={{ marginTop: '28px', textAlign: 'center', borderTop: '1px solid #f1f3f5', paddingTop: '16px' }}>
+          <button
+            type="button"
+            onClick={handleWithdrawClick}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#9ca3af',
+              fontSize: '12px',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              padding: '4px 8px'
+            }}
+          >
+            회원탈퇴
+          </button>
+        </div>
       </div>
+
+      {/* 회원 탈퇴 경고 모달 */}
+      {showWithdrawModal && (
+        <div className="withdraw-modal-overlay" onClick={() => !withdrawing && setShowWithdrawModal(false)}>
+          <div className="withdraw-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="withdraw-modal-header">
+              <span style={{ fontSize: '22px' }}>⚠️</span>
+              <h3>회원 탈퇴 전 필수 확인 사항</h3>
+            </div>
+
+            <div className="withdraw-warning-box">
+              <div className="withdraw-warning-item">
+                <h4 className="withdraw-item-title">1. 작성된 게시글 및 댓글 보존</h4>
+                <p className="withdraw-item-desc">
+                  회원 탈퇴를 진행하더라도 기존에 작성하신 게시글과 댓글은 삭제되지 않고 사이트에 영구 보존되며, 작성자명은 <strong>(탈퇴회원)</strong>으로 안전하게 익명화 처리됩니다.
+                </p>
+              </div>
+
+              <div className="withdraw-warning-item">
+                <h4 className="withdraw-item-title">2. 작성글 수정 및 삭제 영구 불가 (중요)</h4>
+                <p className="withdraw-item-desc">
+                  탈퇴 완료 즉시 계정이 소멸되므로, 이후에는 본인이 작성했던 글이나 댓글을 다시 수정하거나 삭제할 수 없습니다.
+                </p>
+                <p className="withdraw-item-desc">
+                  삭제를 원하시는 게시물이나 댓글이 있다면 <strong>반드시 탈퇴 전에 먼저 직접 삭제</strong>해 주시기 바랍니다.
+                </p>
+              </div>
+
+              <div className="withdraw-warning-item">
+                <h4 className="withdraw-item-title">3. 계정 복구 불가 및 재가입 안내</h4>
+                <p className="withdraw-item-desc">
+                  탈퇴 즉시 보유 포인트 및 계정 정보는 초기화되며 복구가 불가능합니다. 추후 동일한 이메일로 다시 회원가입을 하실 수는 있으나, 새로운 계정으로 생성되므로 <strong>이전 작성글에 대한 관리 권한은 절대 복구되지 않습니다.</strong>
+                </p>
+              </div>
+            </div>
+
+            <label className="withdraw-agree-label">
+              <input
+                type="checkbox"
+                checked={withdrawAgreed}
+                onChange={(e) => setWithdrawAgreed(e.target.checked)}
+                disabled={withdrawing}
+              />
+              <span>위 유의사항을 모두 확인하였으며, 이에 동의하고 탈퇴를 진행합니다. (필수)</span>
+            </label>
+
+            <div className="withdraw-modal-actions">
+              <button
+                type="button"
+                className="withdraw-cancel-modal-btn"
+                onClick={() => setShowWithdrawModal(false)}
+                disabled={withdrawing}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                className="withdraw-confirm-btn"
+                onClick={handleConfirmWithdraw}
+                disabled={!withdrawAgreed || withdrawing}
+              >
+                {withdrawing ? '탈퇴 처리 중...' : '탈퇴 완료하기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

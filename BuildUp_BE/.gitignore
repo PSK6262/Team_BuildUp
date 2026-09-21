@@ -138,5 +138,7 @@ $RECYCLE.BIN/
 # Properties files (API keys, DB credentials, etc.)
 *.properties
 **/*.properties
+smtp.properties
+**/smtp.properties
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,eclipse,java,maven

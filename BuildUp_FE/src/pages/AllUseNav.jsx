@@ -57,7 +57,7 @@ export default function AllUseNav() {
   return (
     <header className="user-nav">
       <nav className="user-nav__inner" aria-label="공통 네비게이션">
-        <a className="user-nav__logo" href="/plug/mainpage" aria-label="PLUGIN 메인페이지">
+        <a className="user-nav__logo" href="/plug/mainpage" aria-label="PL:UG 메인페이지">
           <span className="user-nav__logo-pl">PL</span>
           <span className="user-nav__logo-colon">:</span>
           <span className="user-nav__logo-ug">UG</span>

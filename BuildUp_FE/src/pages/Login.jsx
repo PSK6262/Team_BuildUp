@@ -55,7 +55,7 @@ export default function Login() {
       <div className="auth-card">
         <div className="auth-header">
           <h2>로그인</h2>
-          <p>BUILDUP 서비스에 오신 것을 환영합니다.</p>
+          <p>PL:UG 서비스에 오신 것을 환영합니다.</p>
         </div>
 
         {errorMsg && <div className="auth-error-banner">{errorMsg}</div>}

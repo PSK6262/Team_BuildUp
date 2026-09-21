@@ -24,6 +24,11 @@ public interface UserService {
 	boolean isNicknameAvailable(String nickname);
 
 	/**
+	 * 이메일 중복 확인 (사용 가능 여부: 중복 없으면 true)
+	 */
+	boolean isEmailAvailable(String email);
+
+	/**
 	 * 마이페이지 사용자 상세 정보 조회
 	 */
 	Users getUserProfile(Long userId);
@@ -37,4 +42,9 @@ public interface UserService {
 	 * 비밀번호 변경
 	 */
 	boolean changePassword(Long userId, String currentPassword, String newPassword);
+
+	/**
+	 * 회원 탈퇴 (회원 데이터 및 연관 데이터 삭제)
+	 */
+	boolean withdraw(Long userId, String email);
 }
