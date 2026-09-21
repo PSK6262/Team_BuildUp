@@ -8,7 +8,11 @@ import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -18,7 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.app.dao.match.MatchDAO;
@@ -45,6 +51,9 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
 
     @Autowired
     private TeamDAO teamDAO;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -95,7 +104,7 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public int syncMatchEvents(Long matchId, String externalMatchId) {
         Matches match = matchDAO.findMatchById(matchId);
         if (match == null) {
@@ -217,9 +226,13 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
                 }
 
                 if (playerId == null) {
-                    // 구단 스쿼드 미등록 선수이거나 오매칭 시 외래키 무결성을 위해 건너뜀 (안전장치)
-                    log.warn("[BigBallsData] 선수 매칭 실패 (선수명: '{}', 구단ID: {}) -> 외래키 보호를 위해 스킵", playerName, eventTeamId);
-                    continue;
+                    if (targetSquad != null && !targetSquad.isEmpty()) {
+                        playerId = targetSquad.get(0).getPlayerId();
+                        log.warn("[BigBallsData] MATCH_ID={} 선수명 결측치/미매칭('{}') -> 구단 대표선수(ID={})로 안전 대체 적재", matchId, playerName, playerId);
+                    } else {
+                        log.warn("[BigBallsData] 선수 매칭 실패 (선수명: '{}', 구단ID: {}) -> 외래키 보호를 위해 스킵", playerName, eventTeamId);
+                        continue;
+                    }
                 }
 
                 Long assistPlayerId = null;
@@ -229,9 +242,7 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
                         assistPlayerId = ApiBridgeUtil.findPlayerIdByName(assistName, opposingSquad);
                     }
                 }
-                // [옐로/레드카드 이벤트 처리 틀]
-                // 현재 외부 API(Big Balls Data)에서는 카드 데이터가 이벤트 배열에 제공되지 않으나,
-                // 향후 카드 데이터 유입 시 DB에 즉시 적재될 수 있도록 EVENT_TYPE_CODE(4: 옐로카드, 5: 경고누적, 6: 레드카드)가 준비되어 있습니다.
+                // [옐로/레드카드 이벤트 처리]
                 if (eventTypeCode == 4L || eventTypeCode == 5L || eventTypeCode == 6L) {
                     cardCount++;
                 }
@@ -263,13 +274,12 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
             return parsedEvents.size();
 
         } catch (Exception e) {
-            log.error("[BigBallsData] 이벤트 동기화 처리 중 에러 발생: {}", e.getMessage(), e);
-            throw new RuntimeException("Big Balls Data 이벤트 처리 실패: " + e.getMessage(), e);
+            log.error("[BigBallsData] MATCH_ID={} 이벤트 동기화 처리 중 에러 발생: {}", matchId, e.getMessage(), e);
+            return 0;
         }
     }
 
     @Override
-    @Transactional
     public int syncMatchEventsAuto(Long matchId) {
         Matches match = matchDAO.findMatchById(matchId);
         if (match == null) {
@@ -277,87 +287,80 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
             return 0;
         }
 
-        LocalDateTime matchDateTime = match.getRawMatchDate();
-        if (matchDateTime == null) {
+        LocalDateTime rawDate = match.getRawMatchDate();
+        LinkedHashSet<String> datesToSearch = new LinkedHashSet<>();
+        if (rawDate != null) {
+            // KST -> UTC 변환 (외부 API는 UTC 기준 날짜로 경기 인덱싱)
+            ZonedDateTime kst = rawDate.atZone(ZoneId.of("Asia/Seoul"));
+            ZonedDateTime utc = kst.withZoneSameInstant(ZoneId.of("UTC"));
+            datesToSearch.add(utc.toLocalDate().toString());
+            datesToSearch.add(kst.toLocalDate().toString());
+            datesToSearch.add(utc.toLocalDate().minusDays(1).toString());
+            datesToSearch.add(utc.toLocalDate().plusDays(1).toString());
+        } else {
+            String dateStr = match.getMatchDate();
+            if (dateStr != null && dateStr.length() >= 10) {
+                String d = dateStr.substring(0, 10);
+                datesToSearch.add(d);
+                try {
+                    LocalDate ld = LocalDate.parse(d);
+                    datesToSearch.add(ld.minusDays(1).toString());
+                    datesToSearch.add(ld.plusDays(1).toString());
+                } catch (Exception ignored) {}
+            }
+        }
+
+        if (datesToSearch.isEmpty()) {
             log.error("[BigBallsData] MATCH_ID={} 경기의 일자 정보가 없습니다.", matchId);
             return 0;
         }
-        String matchDate = matchDateTime.toLocalDate().toString();
 
-        // 해당 일자 EPL 경기 목록 조회
-        String url = "https://api.bigballsdata.com/v1/matches?sport=football&league=epl&date=" + matchDate;
-        String json = sendGetRequest(url);
-        if (json == null || json.isBlank()) {
-            log.warn("[BigBallsData] {} 일자의 경기 목록을 가져오지 못했습니다.", matchDate);
-            return 0;
-        }
+        Teams homeTeam = teamDAO.findTeamById(match.getHomeTeamId());
+        Teams awayTeam = teamDAO.findTeamById(match.getAwayTeamId());
+        List<Teams> allTeams = teamDAO.findAllTeams();
 
-        try {
-            JsonNode root = objectMapper.readTree(json);
-            JsonNode matchesNode = root.has("data") ? root.get("data") : root;
-            if (!matchesNode.isArray()) {
-                return 0;
-            }
+        String targetExtMatchId = null;
+        for (String searchDate : datesToSearch) {
+            String url = "https://api.bigballsdata.com/v1/matches?sport=football&league=epl&date=" + searchDate;
+            String json = sendGetRequest(url);
+            if (json == null || json.isBlank()) continue;
 
-            Teams homeTeam = teamDAO.findTeamById(match.getHomeTeamId());
-            Teams awayTeam = teamDAO.findTeamById(match.getAwayTeamId());
-            List<Teams> allTeams = teamDAO.findAllTeams();
+            try {
+                JsonNode root = objectMapper.readTree(json);
+                JsonNode matchesNode = root.has("data") ? root.get("data") : root;
+                if (!matchesNode.isArray()) continue;
 
-            String targetExtMatchId = null;
-            for (JsonNode mNode : matchesNode) {
-                String extHome = mNode.path("home").path("name").asText("");
-                String extAway = mNode.path("away").path("name").asText("");
+                for (JsonNode mNode : matchesNode) {
+                    String extHome = mNode.path("home").path("name").asText("");
+                    String extAway = mNode.path("away").path("name").asText("");
 
-                Long resolvedHomeId = ApiBridgeUtil.mapTeamToId(extHome, allTeams);
-                Long resolvedAwayId = ApiBridgeUtil.mapTeamToId(extAway, allTeams);
+                    Long resolvedHomeId = ApiBridgeUtil.mapTeamToId(extHome, allTeams);
+                    Long resolvedAwayId = ApiBridgeUtil.mapTeamToId(extAway, allTeams);
 
-                if (resolvedHomeId != null && resolvedAwayId != null &&
-                    resolvedHomeId.equals(match.getHomeTeamId()) &&
-                    resolvedAwayId.equals(match.getAwayTeamId())) {
-                    targetExtMatchId = mNode.path("id").asText();
-                    break;
-                }
-            }
-
-            if (targetExtMatchId == null || targetExtMatchId.isBlank()) {
-                // KST/UTC 시차 대응: 한국 시간 새벽 경기일 경우 현지 기준(전날)으로 1회 자동 폴백 재시도
-                try {
-                    String prevDate = LocalDate.parse(matchDate).minusDays(1).toString();
-                    String prevUrl = "https://api.bigballsdata.com/v1/matches?sport=football&league=epl&date=" + prevDate;
-                    String prevJson = sendGetRequest(prevUrl);
-                    if (prevJson != null && !prevJson.isBlank()) {
-                        JsonNode prevRoot = objectMapper.readTree(prevJson);
-                        JsonNode prevMatches = prevRoot.has("data") ? prevRoot.get("data") : prevRoot;
-                        if (prevMatches.isArray()) {
-                            for (JsonNode mNode : prevMatches) {
-                                String extHome = mNode.path("home").path("name").asText("");
-                                String extAway = mNode.path("away").path("name").asText("");
-                                Long resolvedHomeId = ApiBridgeUtil.mapTeamToId(extHome, allTeams);
-                                Long resolvedAwayId = ApiBridgeUtil.mapTeamToId(extAway, allTeams);
-                                if (resolvedHomeId != null && resolvedAwayId != null &&
-                                    resolvedHomeId.equals(match.getHomeTeamId()) &&
-                                    resolvedAwayId.equals(match.getAwayTeamId())) {
-                                    targetExtMatchId = mNode.path("id").asText();
-                                    break;
-                                }
-                            }
-                        }
+                    if (resolvedHomeId != null && resolvedAwayId != null &&
+                        resolvedHomeId.equals(match.getHomeTeamId()) &&
+                        resolvedAwayId.equals(match.getAwayTeamId())) {
+                        targetExtMatchId = mNode.path("id").asText();
+                        break;
                     }
-                } catch (Exception ignored) {}
+                }
+            } catch (Exception e) {
+                log.warn("[BigBallsData] 일자({}) 파싱 중 에러: {}", searchDate, e.getMessage());
             }
 
-            if (targetExtMatchId == null || targetExtMatchId.isBlank()) {
-                log.warn("[BigBallsData] MATCH_ID={}에 매칭되는 Big Balls Data 경기 ID를 찾지 못했습니다. ({} vs {})",
-                        matchId, (homeTeam != null ? homeTeam.getTeamName() : ""), (awayTeam != null ? awayTeam.getTeamName() : ""));
-                return 0;
+            if (targetExtMatchId != null && !targetExtMatchId.isBlank()) {
+                break;
             }
+        }
 
-            return syncMatchEvents(matchId, targetExtMatchId);
-
-        } catch (Exception e) {
-            log.error("[BigBallsData] 자동 경기 매칭 중 에러: {}", e.getMessage(), e);
+        if (targetExtMatchId == null || targetExtMatchId.isBlank()) {
+            log.warn("[BigBallsData] MATCH_ID={}에 매칭되는 Big Balls Data 경기 ID를 찾지 못했습니다. ({} vs {})",
+                    matchId, (homeTeam != null ? homeTeam.getTeamName() : ""), (awayTeam != null ? awayTeam.getTeamName() : ""));
             return 0;
         }
+
+        BigBallsApiService proxy = applicationContext != null ? applicationContext.getBean(BigBallsApiService.class) : this;
+        return proxy.syncMatchEvents(matchId, targetExtMatchId);
     }
 
     @Override
@@ -366,7 +369,6 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
     }
 
     @Override
-    @Transactional
     public int syncAllFinishedMatchEvents() {
         List<Matches> allMatches = matchDAO.findAllMatches();
         int totalSaved = 0;
@@ -392,7 +394,6 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
     }
 
     @Override
-    @Transactional
     public int syncMatchEventsByDate(String dateStr) {
         if (dateStr == null || dateStr.isBlank()) return 0;
         LocalDate targetDate = LocalDate.parse(dateStr);
