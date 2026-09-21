@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import teamDbFallback from '../data/teamDbFallback.json'
 import { getTeams } from '../api/teamApi.js'
+import FcManagerModeModal from '../components/match/FcManagerModeModal.jsx'
 import '../css/match.css'
 
 const teamsData = teamDbFallback.teams
@@ -282,6 +283,7 @@ export default function Match() {
   const [ loading, setLoading ] = useState(false)
   const [ reload, setReload ] = useState(0)
   const [ syncing, setSyncing ] = useState(false)
+  const [ activeMatchForModal, setActiveMatchForModal ] = useState(null)
 
   const handleSyncMatches = async () => {
     if (syncing) return
@@ -959,16 +961,35 @@ export default function Match() {
                     </div>
                   </div>
 
-                  {/* 홈 경기장 안내 (TEAMS.HOME_GROUND_KOR 우선 반영) */}
+                  {/* 홈 경기장 안내 및 감독모드 텍스트 중계 버튼 */}
                   <div className="match-card__ground">
                     <span className="match-ground-pill">
                       📍 {match.displayHomeGround || match.homeGroundKor || homeTeam.homeGroundKor || getStadiumNameKor(match.homeGround || homeTeam.homeGround, match.homeTeamId)}
                     </span>
+                    <button
+                      type="button"
+                      className="match-manager-mode-btn"
+                      onClick={() => setActiveMatchForModal(match)}
+                      title="FC 온라인 감독모드 스타일 2D 피치 & 문자 중계 열기"
+                    >
+                      🎮 감독모드 중계
+                    </button>
                   </div>
                 </article>
               )
             })}
           </div>
+        )}
+
+        {/* FC 온라인 감독모드 스타일 2D 피치 & 타임라인 텍스트 중계 모달 */}
+        {activeMatchForModal && (
+          <FcManagerModeModal
+            isOpen={Boolean(activeMatchForModal)}
+            onClose={() => setActiveMatchForModal(null)}
+            match={activeMatchForModal}
+            homeTeam={getTeamInfo(activeMatchForModal.homeTeamId)}
+            awayTeam={getTeamInfo(activeMatchForModal.awayTeamId)}
+          />
         )}
       </div>
     </div>

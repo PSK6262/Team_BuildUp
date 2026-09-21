@@ -26,6 +26,28 @@ public class MatchEvents {
     @JsonProperty("assistPlayerId")
     private Long assistPlayerId;       // [FK] 도움 선수 식별자 (없으면 NULL)
 
+    // --- 조인용 확장 필드 (선수명, 팀명, 엠블럼) ---
+    @JsonProperty("playerName")
+    private String playerName;
+
+    @JsonProperty("playerNameKor")
+    private String playerNameKor;
+
+    @JsonProperty("assistPlayerName")
+    private String assistPlayerName;
+
+    @JsonProperty("assistPlayerNameKor")
+    private String assistPlayerNameKor;
+
+    @JsonProperty("teamName")
+    private String teamName;
+
+    @JsonProperty("teamNameKor")
+    private String teamNameKor;
+
+    @JsonProperty("teamEmblemUrl")
+    private String teamEmblemUrl;
+
     // --- snake_case 호환 Getter (프론트엔드/API snake_case 참조 지원) ---
     @JsonProperty("event_time")
     public Long getEventTimeSnake() {
@@ -83,4 +105,25 @@ public class MatchEvents {
 
     public Long getAssistPlayerId() { return assistPlayerId; }
     public void setAssistPlayerId(Long assistPlayerId) { this.assistPlayerId = assistPlayerId; }
+
+    public String getPlayerName() { return playerName; }
+    public void setPlayerName(String playerName) { this.playerName = playerName; }
+
+    public String getPlayerNameKor() { return playerNameKor; }
+    public void setPlayerNameKor(String playerNameKor) { this.playerNameKor = playerNameKor; }
+
+    public String getAssistPlayerName() { return assistPlayerName; }
+    public void setAssistPlayerName(String assistPlayerName) { this.assistPlayerName = assistPlayerName; }
+
+    public String getAssistPlayerNameKor() { return assistPlayerNameKor; }
+    public void setAssistPlayerNameKor(String assistPlayerNameKor) { this.assistPlayerNameKor = assistPlayerNameKor; }
+
+    public String getTeamName() { return teamName; }
+    public void setTeamName(String teamName) { this.teamName = teamName; }
+
+    public String getTeamNameKor() { return teamNameKor; }
+    public void setTeamNameKor(String teamNameKor) { this.teamNameKor = teamNameKor; }
+
+    public String getTeamEmblemUrl() { return teamEmblemUrl; }
+    public void setTeamEmblemUrl(String teamEmblemUrl) { this.teamEmblemUrl = teamEmblemUrl; }
 }
