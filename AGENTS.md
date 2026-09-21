@@ -12,6 +12,7 @@
 
 ## 백엔드
 
+- 백엔드는 2026-09-21에 맞춘 `origin/develop` 기준을 유지한다. 이후 사용자가 새 기능 추가를 요청한 경우에만 필요한 범위에서 수정한다.
 - `BuildUp_BE`의 기존 Spring MVC, MyBatis, Oracle 및 패키지 구조를 따른다.
 - 기존 Controller → Service → ServiceImpl → DAO → DAOImpl → MyBatis 매퍼 흐름을 따른다.
 - 기존 DTO를 우선 재사용한다. JOIN 결과는 기존 DTO에 JOIN용 필드를 추가한다.

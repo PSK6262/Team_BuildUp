@@ -26,6 +26,7 @@ public class JwtProvider {
 	
 	// token 만료시간 설정
 	private static final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 30; //30분 
+	private static final long REFRESH_TOKEN_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7일
 	
 	
 	//시크릿키 생성   (비밀키 변환 -> 인코딩 -> 키 생성) 

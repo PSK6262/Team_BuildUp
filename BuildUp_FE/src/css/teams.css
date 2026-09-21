@@ -1,3 +1,109 @@
+.standings-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.standings-toolbar select,
+.standings-message button {
+  padding: 10px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  color: #38003c;
+  font: inherit;
+}
+
+.standings-message {
+  padding: 48px 16px;
+  text-align: center;
+  color: #475569;
+}
+
+.standings-message button {
+  cursor: pointer;
+}
+
+.standings-scroll {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: white;
+}
+
+.standings-scroll:focus-visible {
+  outline: 3px solid #38003c;
+  outline-offset: 3px;
+}
+
+.standings-table {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.standings-table caption {
+  padding: 18px;
+  text-align: left;
+  font-weight: 700;
+}
+
+.standings-table th,
+.standings-table td {
+  padding: 16px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.standings-table thead {
+  background: #38003c;
+  color: white;
+}
+
+.standings-table tbody th {
+  text-align: left;
+}
+
+.standings-table tbody tr:last-child>* {
+  border-bottom: 0;
+}
+
+.standings-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.standings-team {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.standings-team:hover {
+  text-decoration: underline;
+}
+
+.standings-team img {
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.standings-points {
+  font-weight: 800;
+  color: #38003c;
+  background: #f4f0f5;
+}
+
+.standings-note {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 /* ========================================================
    TEAMS DIRECTORY PAGE - 4x5 GRID LAYOUT (White Theme)
    ======================================================== */
@@ -202,4 +308,3 @@
     grid-template-columns: 1fr;
   }
 }
-

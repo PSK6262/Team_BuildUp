@@ -1,6 +1,6 @@
 import AllUseNav from './pages/AllUseNav.jsx'
 import MainPage from './pages/mainpage.jsx'
-import TeamsPage from './pages/teams.jsx'
+import TeamsPage, { StandingsPage } from './pages/teams.jsx'
 import Team from './pages/team.jsx'
 import Community from './pages/Community.jsx'
 import FreeBoard from './pages/FreeBoard.jsx'
@@ -30,6 +30,7 @@ function App() {
       {/* 메인 및 구단 소개 */}
       {isMainPage && <MainPage />}
       {isTeamsPage && <TeamsPage />}
+      {pathname === '/plug/rankpage' && <StandingsPage />}
       {teamMatch && <Team teamId={teamMatch[ 1 ]} />}
 
       {/* 경기 일정 및 경기 결과 */}
@@ -46,7 +47,7 @@ function App() {
       {pathname === '/plug/community/free' && <FreeBoard />}
       {pathname === '/plug/community/teams' && <TeamBoards />}
       {pathname === '/plug/community/write' && <PostWrite />}
-      {postMatch && <PostDetail postId={postMatch[1]} />}
+      {postMatch && <PostDetail postId={postMatch[ 1 ]} />}
       {commuTeam && <Community key={commuTeam.slug} selectedTeam={commuTeam} />}
       {pathname.startsWith('/plug/community/teams/') && !commuTeam && (
         <main className="community">

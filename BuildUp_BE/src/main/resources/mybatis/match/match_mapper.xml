@@ -4,124 +4,52 @@
 
 <mapper namespace="MatchMapper">
 
-    <!-- 시즌 전체 경기 조회 (구단 정보 조인) -->
-    <!-- MATCHES 테이블에 SEASON/MATCHDAY 컬럼이 없으므로 MATCH_DATE 기반으로 동적 산출 -->
-    <select id="selectMatchesBySeason" parameterType="int" resultType="Matches">
-        SELECT m.MATCH_ID, m.MATCH_DATE,
-               CASE 
-                   WHEN TO_NUMBER(TO_CHAR(m.MATCH_DATE, 'MM')) &gt;= 8 
-                   THEN TO_NUMBER(TO_CHAR(m.MATCH_DATE, 'YYYY')) 
-                   ELSE TO_NUMBER(TO_CHAR(m.MATCH_DATE, 'YYYY')) - 1 
-               END AS SEASON,
-               CEIL(ROW_NUMBER() OVER (ORDER BY m.MATCH_DATE ASC, m.MATCH_ID ASC) / 10) AS ROUND,
-               m.HOME_TEAM_ID, m.AWAY_TEAM_ID, m.HOME_SCORE, m.AWAY_SCORE,
-               m.STATUS, m.NOTICE, m.ENDED_AT,
-               NVL(h.TEAM_NAME, '구단 ' || m.HOME_TEAM_ID) AS HOME_TEAM_NAME,
-               NVL(h.TEAM_NAME_KOR, h.TEAM_NAME) AS HOME_TEAM_NAME_KOR,
-               h.EMBLEM_URL AS HOME_EMBLEM_URL, h.HOME_GROUND, h.HOME_GROUND_KOR,
-               NVL(a.TEAM_NAME, '구단 ' || m.AWAY_TEAM_ID) AS AWAY_TEAM_NAME,
-               NVL(a.TEAM_NAME_KOR, a.TEAM_NAME) AS AWAY_TEAM_NAME_KOR,
-               a.EMBLEM_URL AS AWAY_EMBLEM_URL
-        FROM MATCHES m
-        LEFT JOIN TEAMS h ON h.TEAM_ID = m.HOME_TEAM_ID
-        LEFT JOIN TEAMS a ON a.TEAM_ID = m.AWAY_TEAM_ID
-        WHERE m.MATCH_DATE &gt;= TO_DATE(#{season} || '-07-01', 'YYYY-MM-DD')
-          AND m.MATCH_DATE &lt; TO_DATE((#{season} + 1) || '-07-01', 'YYYY-MM-DD')
-        ORDER BY m.MATCH_DATE ASC, m.MATCH_ID ASC
-    </select>
-
-	<!-- 경기 정보 UPSERT (MERGE) - MATCHES 테이블의 실제 컬럼들만 사용 -->
+	<!-- 경기 정보 UPSERT (MERGE) -->
 	<insert id="mergeMatch" parameterType="Matches">
 		MERGE INTO MATCHES m
 		USING (SELECT #{matchId} AS MATCH_ID FROM DUAL) s
 		ON (m.MATCH_ID = s.MATCH_ID)
 		WHEN MATCHED THEN
 			UPDATE SET 
-				m.MATCH_DATE = #{matchDateValue, jdbcType=TIMESTAMP},
+				m.MATCH_DATE = #{matchDate},
 				m.HOME_SCORE = #{homeScore, jdbcType=NUMERIC},
 				m.AWAY_SCORE = #{awayScore, jdbcType=NUMERIC},
 				m.STATUS = #{status},
-                m.HOME_TEAM_ID = #{homeTeamId},
-                m.AWAY_TEAM_ID = #{awayTeamId},
-				m.ENDED_AT = #{endedAtValue, jdbcType=TIMESTAMP}
+				m.ENDED_AT = #{endedAt, jdbcType=TIMESTAMP}
 		WHEN NOT MATCHED THEN
 			INSERT (MATCH_ID, MATCH_DATE, HOME_TEAM_ID, AWAY_TEAM_ID, HOME_SCORE, AWAY_SCORE, STATUS, NOTICE, ENDED_AT)
 			VALUES (
 				#{matchId},
-				#{matchDateValue, jdbcType=TIMESTAMP},
+				#{matchDate},
 				#{homeTeamId},
 				#{awayTeamId},
 				#{homeScore, jdbcType=NUMERIC},
 				#{awayScore, jdbcType=NUMERIC},
 				#{status},
 				#{notice, jdbcType=CLOB},
-				#{endedAtValue, jdbcType=TIMESTAMP}
+				#{endedAt, jdbcType=TIMESTAMP}
 			)
 	</insert>
 
-	<!-- 전체 경기 목록 조회 (구단 정보 조인) -->
+	<!-- 전체 경기 목록 조회 -->
 	<select id="selectAllMatches" resultType="Matches">
-		SELECT m.MATCH_ID, m.MATCH_DATE,
-               CASE 
-                   WHEN TO_NUMBER(TO_CHAR(m.MATCH_DATE, 'MM')) &gt;= 8 
-                   THEN TO_NUMBER(TO_CHAR(m.MATCH_DATE, 'YYYY')) 
-                   ELSE TO_NUMBER(TO_CHAR(m.MATCH_DATE, 'YYYY')) - 1 
-               END AS SEASON,
-               CEIL(ROW_NUMBER() OVER (ORDER BY m.MATCH_DATE ASC, m.MATCH_ID ASC) / 10) AS ROUND,
-		       m.HOME_TEAM_ID, m.AWAY_TEAM_ID, m.HOME_SCORE, m.AWAY_SCORE,
-		       m.STATUS, m.NOTICE, m.ENDED_AT,
-		       NVL(h.TEAM_NAME, '구단 ' || m.HOME_TEAM_ID) AS HOME_TEAM_NAME,
-               NVL(h.TEAM_NAME_KOR, h.TEAM_NAME) AS HOME_TEAM_NAME_KOR,
-		       h.EMBLEM_URL AS HOME_EMBLEM_URL, h.HOME_GROUND, h.HOME_GROUND_KOR,
-		       NVL(a.TEAM_NAME, '구단 ' || m.AWAY_TEAM_ID) AS AWAY_TEAM_NAME,
-               NVL(a.TEAM_NAME_KOR, a.TEAM_NAME) AS AWAY_TEAM_NAME_KOR,
-		       a.EMBLEM_URL AS AWAY_EMBLEM_URL
-		FROM MATCHES m
-		LEFT JOIN TEAMS h ON h.TEAM_ID = m.HOME_TEAM_ID
-		LEFT JOIN TEAMS a ON a.TEAM_ID = m.AWAY_TEAM_ID
-		ORDER BY m.MATCH_DATE ASC, m.MATCH_ID ASC
-	</select>
-
-	<!-- 경기 결과 조회 (종료된 경기 및 스코어 등록 경기, 최신순) -->
-	<select id="selectMatchResults" parameterType="map" resultType="Matches">
-		SELECT m.MATCH_ID, m.MATCH_DATE,
-               CASE 
-                   WHEN TO_NUMBER(TO_CHAR(m.MATCH_DATE, 'MM')) &gt;= 8 
-                   THEN TO_NUMBER(TO_CHAR(m.MATCH_DATE, 'YYYY')) 
-                   ELSE TO_NUMBER(TO_CHAR(m.MATCH_DATE, 'YYYY')) - 1 
-               END AS SEASON,
-               CEIL(ROW_NUMBER() OVER (ORDER BY m.MATCH_DATE ASC, m.MATCH_ID ASC) / 10) AS ROUND,
-		       m.HOME_TEAM_ID, m.AWAY_TEAM_ID, m.HOME_SCORE, m.AWAY_SCORE,
-		       m.STATUS, m.NOTICE, m.ENDED_AT,
-		       NVL(h.TEAM_NAME, '구단 ' || m.HOME_TEAM_ID) AS HOME_TEAM_NAME,
-               NVL(h.TEAM_NAME_KOR, h.TEAM_NAME) AS HOME_TEAM_NAME_KOR,
-		       h.EMBLEM_URL AS HOME_EMBLEM_URL, h.HOME_GROUND, h.HOME_GROUND_KOR,
-		       NVL(a.TEAM_NAME, '구단 ' || m.AWAY_TEAM_ID) AS AWAY_TEAM_NAME,
-               NVL(a.TEAM_NAME_KOR, a.TEAM_NAME) AS AWAY_TEAM_NAME_KOR,
-		       a.EMBLEM_URL AS AWAY_EMBLEM_URL
-		FROM MATCHES m
-		LEFT JOIN TEAMS h ON h.TEAM_ID = m.HOME_TEAM_ID
-		LEFT JOIN TEAMS a ON a.TEAM_ID = m.AWAY_TEAM_ID
-		WHERE (m.STATUS IN ('FINISHED', 'AWARDED') OR (m.HOME_SCORE IS NOT NULL AND m.AWAY_SCORE IS NOT NULL))
-		<if test="season != null">
-			AND m.MATCH_DATE &gt;= TO_DATE(#{season} || '-07-01', 'YYYY-MM-DD')
-            AND m.MATCH_DATE &lt; TO_DATE((#{season} + 1) || '-07-01', 'YYYY-MM-DD')
-		</if>
-		<if test="teamId != null">
-			AND (m.HOME_TEAM_ID = #{teamId} OR m.AWAY_TEAM_ID = #{teamId})
-		</if>
-		ORDER BY m.MATCH_DATE DESC, m.MATCH_ID DESC
+		SELECT 
+			MATCH_ID,
+			MATCH_DATE,
+			HOME_TEAM_ID,
+			AWAY_TEAM_ID,
+			HOME_SCORE,
+			AWAY_SCORE,
+			STATUS,
+			NOTICE,
+			ENDED_AT
+		FROM MATCHES
+		ORDER BY MATCH_DATE ASC
 	</select>
 
 	<!-- 특정 날짜 범위 경기 조회 -->
 	<select id="selectMatchesByDateRange" parameterType="map" resultType="Matches">
 		SELECT 
-            CASE 
-                WHEN TO_NUMBER(TO_CHAR(MATCH_DATE, 'MM')) &gt;= 8 
-                THEN TO_NUMBER(TO_CHAR(MATCH_DATE, 'YYYY')) 
-                ELSE TO_NUMBER(TO_CHAR(MATCH_DATE, 'YYYY')) - 1 
-            END AS SEASON,
-            1 AS ROUND,
 			MATCH_ID,
 			MATCH_DATE,
 			HOME_TEAM_ID,
@@ -138,25 +66,18 @@
 
 	<!-- 단건 경기 상세 조회 -->
 	<select id="selectMatchById" parameterType="long" resultType="Matches">
-		SELECT m.MATCH_ID, m.MATCH_DATE,
-               CASE 
-                   WHEN TO_NUMBER(TO_CHAR(m.MATCH_DATE, 'MM')) &gt;= 8 
-                   THEN TO_NUMBER(TO_CHAR(m.MATCH_DATE, 'YYYY')) 
-                   ELSE TO_NUMBER(TO_CHAR(m.MATCH_DATE, 'YYYY')) - 1 
-               END AS SEASON,
-               1 AS ROUND,
-		       m.HOME_TEAM_ID, m.AWAY_TEAM_ID, m.HOME_SCORE, m.AWAY_SCORE,
-		       m.STATUS, m.NOTICE, m.ENDED_AT,
-		       NVL(h.TEAM_NAME, '구단 ' || m.HOME_TEAM_ID) AS HOME_TEAM_NAME,
-               NVL(h.TEAM_NAME_KOR, h.TEAM_NAME) AS HOME_TEAM_NAME_KOR,
-		       h.EMBLEM_URL AS HOME_EMBLEM_URL, h.HOME_GROUND, h.HOME_GROUND_KOR,
-		       NVL(a.TEAM_NAME, '구단 ' || m.AWAY_TEAM_ID) AS AWAY_TEAM_NAME,
-               NVL(a.TEAM_NAME_KOR, a.TEAM_NAME) AS AWAY_TEAM_NAME_KOR,
-		       a.EMBLEM_URL AS AWAY_EMBLEM_URL
-		FROM MATCHES m
-		LEFT JOIN TEAMS h ON h.TEAM_ID = m.HOME_TEAM_ID
-		LEFT JOIN TEAMS a ON a.TEAM_ID = m.AWAY_TEAM_ID
-		WHERE m.MATCH_ID = #{matchId}
+		SELECT 
+			MATCH_ID,
+			MATCH_DATE,
+			HOME_TEAM_ID,
+			AWAY_TEAM_ID,
+			HOME_SCORE,
+			AWAY_SCORE,
+			STATUS,
+			NOTICE,
+			ENDED_AT
+		FROM MATCHES
+		WHERE MATCH_ID = #{matchId}
 	</select>
 
 	<!-- 경기 이벤트 등록 -->

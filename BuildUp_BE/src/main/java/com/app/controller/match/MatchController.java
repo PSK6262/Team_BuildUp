@@ -1,16 +1,8 @@
 package com.app.controller.match;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,24 +10,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
 
 import com.app.dto.match.Matches;
 import com.app.dto.match.MatchEvents;
 import com.app.service.api.FootballApiService;
 import com.app.service.api.BigBallsApiService;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import com.app.service.match.MatchService;
 
-@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping({"/api/matches", "/matches"})
 public class MatchController {
-
-	@Autowired
-	private DataSource dataSource;
 
 	@Autowired
 	private MatchService matchService;
@@ -47,11 +31,10 @@ public class MatchController {
 	private BigBallsApiService bigBallsApiService;
 
 	// 1. 시즌 경기 일정 DB 일괄 동기화 (초기 1회 적재용)
-	// 예: POST /api/matches/sync-season?season=2026
-	@PostMapping("/sync-season")
+	// 예: GET /api/matches/sync-season (최신 시즌 자동) 또는 GET /api/matches/sync-season?season=2026
+	@GetMapping("/sync-season")
 	public Map<String, Object> syncSeasonMatches(
 			@RequestParam(value = "season", required = false) Integer season) {
-        validateSeason(season);
 		String seasonDisplay = (season != null) ? season.toString() : "최신 활성 시즌";
 		System.out.println("======================================================================");
 		System.out.println("[BuildUp] 시즌 경기 일정 일괄 동기화 시작 (시즌: " + seasonDisplay + ")");
@@ -107,107 +90,11 @@ public class MatchController {
 	}
 
 	// 4. 전체 경기 일정 조회 (DB 데이터)
-	// 예: GET /api/matches 또는 GET /api/matches?season=2026
+	// 예: GET /api/matches 또는 GET /api/matches/
 	@GetMapping({"", "/"})
-	public List<Matches> getAllMatches(@RequestParam(value = "season", required = false) Integer season) {
-		try {
-			validateSeason(season);
-			List<Matches> list = (season == null) ? matchService.getAllMatches() : matchService.getMatchesBySeason(season);
-			if (list == null || list.isEmpty()) {
-				// 지정 시즌에 일정이 없으면 전체 경기 시도
-				if (season != null) {
-					List<Matches> all = matchService.getAllMatches();
-					if (all != null && !all.isEmpty()) {
-						return all;
-					}
-				}
-				return Collections.emptyList();
-			}
-			return list;
-		} catch (Exception e) {
-			System.err.println("[MatchController] 경기 조회 중 예외 발생 (season=" + season + "): " + e.getMessage());
-			e.printStackTrace();
-			// 500 방어를 위해 빈 리스트 반환
-			return Collections.emptyList();
-		}
+	public List<Matches> getAllMatches() {
+		return matchService.getAllMatches();
 	}
-
-	// 4-1. 경기 결과 목록 조회 (DB의 종료 경기 및 스코어 연동)
-	// 예: GET /api/matches/results 또는 GET /api/matches/results?season=2026&round=1&teamId=57
-	@GetMapping("/results")
-	public List<Matches> getMatchResults(
-			@RequestParam(value = "season", required = false) Integer season,
-			@RequestParam(value = "round", required = false) Integer round,
-			@RequestParam(value = "teamId", required = false) Long teamId) {
-		try {
-			validateSeason(season);
-			List<Matches> list = matchService.getMatchResults(season, round, teamId);
-			return list != null ? list : Collections.emptyList();
-		} catch (Exception e) {
-			System.err.println("[MatchController] 경기 결과 조회 중 예외 발생: " + e.getMessage());
-			e.printStackTrace();
-			return Collections.emptyList();
-		}
-	}
-
-	// [진단 엔드포인트] DB MATCHES 테이블 상태 점검
-	// 예: GET /api/matches/debug
-	@GetMapping("/debug")
-	public Map<String, Object> debugMatchesTable() {
-		Map<String, Object> result = new HashMap<>();
-		List<String> columns = new ArrayList<>();
-		List<Map<String, Object>> sampleRows = new ArrayList<>();
-		int count = 0;
-
-		try (Connection conn = dataSource.getConnection()) {
-			// 1. 컬럼 메타데이터
-			try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM MATCHES WHERE 1=0");
-				 ResultSet rs = ps.executeQuery()) {
-				ResultSetMetaData meta = rs.getMetaData();
-				for (int i = 1; i <= meta.getColumnCount(); i++) {
-					columns.add(meta.getColumnName(i) + " (" + meta.getColumnTypeName(i) + ")");
-				}
-			}
-
-			// 2. 전체 Row 수
-			try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM MATCHES");
-				 ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
-					count = rs.getInt(1);
-				}
-			}
-
-			// 3. 샘플 5건
-			try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM MATCHES FETCH FIRST 5 ROWS ONLY");
-				 ResultSet rs = ps.executeQuery()) {
-				ResultSetMetaData meta = rs.getMetaData();
-				while (rs.next()) {
-					Map<String, Object> row = new HashMap<>();
-					for (int i = 1; i <= meta.getColumnCount(); i++) {
-						row.put(meta.getColumnName(i), rs.getString(i));
-					}
-					sampleRows.add(row);
-				}
-			}
-
-			result.put("status", "SUCCESS");
-			result.put("table", "MATCHES");
-			result.put("totalRows", count);
-			result.put("columns", columns);
-			result.put("sampleRows", sampleRows);
-		} catch (Exception e) {
-			result.put("status", "ERROR");
-			result.put("error", e.getMessage());
-		}
-
-		return result;
-	}
-
-    private void validateSeason(Integer season) {
-        if (season != null && (season < 1992 || season > 2100)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "올바른 시즌 시작 연도를 입력하세요.");
-        }
-    }
 
 	// 5. 단건 경기 상세 조회 (DB 데이터)
 	// 예: GET /api/matches/{matchId}
