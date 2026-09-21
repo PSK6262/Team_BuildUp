@@ -109,6 +109,28 @@
 		FETCH FIRST #{limit} ROWS ONLY
 	</select>
 
+	<!-- 두 구단의 맞대결 결과를 최근 경기부터 조회 -->
+	<select id="selectHeadToHeadMatches" parameterType="map" resultType="Matches">
+		SELECT
+			m.MATCH_ID,
+			m.MATCH_DATE,
+			m.HOME_TEAM_ID,
+			COALESCE(h.TEAM_NAME_KOR, h.TEAM_NAME) AS HOME_TEAM_NAME,
+			m.AWAY_TEAM_ID,
+			COALESCE(a.TEAM_NAME_KOR, a.TEAM_NAME) AS AWAY_TEAM_NAME,
+			m.HOME_SCORE,
+			m.AWAY_SCORE,
+			m.STATUS
+		FROM MATCHES m
+		JOIN TEAMS h ON h.TEAM_ID = m.HOME_TEAM_ID
+		JOIN TEAMS a ON a.TEAM_ID = m.AWAY_TEAM_ID
+		WHERE m.STATUS = 'FINISHED'
+		AND ((m.HOME_TEAM_ID = #{firstTeamId} AND m.AWAY_TEAM_ID = #{secondTeamId})
+			OR (m.HOME_TEAM_ID = #{secondTeamId} AND m.AWAY_TEAM_ID = #{firstTeamId}))
+		ORDER BY m.MATCH_DATE DESC, m.MATCH_ID DESC
+		FETCH FIRST #{limit} ROWS ONLY
+	</select>
+
 	<!-- 정확한 최종 점수와 양 팀 이름을 최근 순으로 조회 -->
 	<select id="selectFinishedMatchesByScore" parameterType="map" resultType="Matches">
 		SELECT
@@ -175,16 +197,22 @@
 	<!-- 경기별 이벤트 목록 조회 (시간순) -->
 	<select id="selectEventsByMatchId" parameterType="long" resultType="MatchEvents">
 		SELECT 
-			EVENT_ID,
-			MATCH_ID,
-			TEAM_ID,
-			EVENT_TIME,
-			EVENT_TYPE,
-			PLAYER_ID,
-			ASSIST_PLAYER_ID
-		FROM MATCH_EVENTS
-		WHERE MATCH_ID = #{matchId}
-		ORDER BY EVENT_TIME ASC, EVENT_ID ASC
+			me.EVENT_ID,
+			me.MATCH_ID,
+			me.TEAM_ID,
+			me.EVENT_TIME,
+			me.EVENT_TYPE,
+			et.EVENT_TYPE_NAME,
+			me.PLAYER_ID,
+			COALESCE(p.NAME_KOR, p.NAME) AS PLAYER_NAME,
+			me.ASSIST_PLAYER_ID,
+			COALESCE(ap.NAME_KOR, ap.NAME) AS ASSIST_PLAYER_NAME
+		FROM MATCH_EVENTS me
+		JOIN EVENT_TYPE et ON et.EVENT_TYPE_CODE = me.EVENT_TYPE
+		JOIN PLAYERS p ON p.PLAYER_ID = me.PLAYER_ID
+		LEFT JOIN PLAYERS ap ON ap.PLAYER_ID = me.ASSIST_PLAYER_ID
+		WHERE me.MATCH_ID = #{matchId}
+		ORDER BY me.EVENT_TIME ASC, me.EVENT_ID ASC
 	</select>
 
 	<!-- 경기별 이벤트 전체 삭제 (재동기화/갱신용) -->

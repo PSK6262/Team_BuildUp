@@ -60,6 +60,15 @@ public class MatchDAOImpl implements MatchDAO {
 	}
 
 	@Override
+	public List<Matches> findHeadToHeadMatches(Long firstTeamId, Long secondTeamId, int limit) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("firstTeamId", firstTeamId);
+		params.put("secondTeamId", secondTeamId);
+		params.put("limit", limit);
+		return sqlSession.selectList("MatchMapper.selectHeadToHeadMatches", params);
+	}
+
+	@Override
 	public List<Matches> findFinishedMatchesByScore(long homeScore, long awayScore,
 			Long teamId, Long opponentTeamId, int limit) {
 		Map<String, Object> params = new HashMap<>();

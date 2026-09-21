@@ -32,7 +32,8 @@ public class ChatbotController {
 
 		try {
 			return ResponseEntity.ok(ApiResponse.success(geminiApiService.answerEplQuestion(
-				question, body.get("pagePath"), body.get("scoreContext"))));
+				question, body.get("pagePath"), body.get("scoreContext"),
+				body.get("conversationContext"))));
         } catch (IllegalStateException exception) {
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(ApiResponse.error(ResultCode.FAIL));
         }

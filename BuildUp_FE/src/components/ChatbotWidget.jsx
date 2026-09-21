@@ -10,6 +10,15 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
 }
 
+// 검색 답변에 포함된 출처 주소를 새 탭에서 열 수 있는 링크로 표시합니다.
+function renderTextWithLinks(text) {
+  return text.split(/(https?:\/\/[^\s]+)/g).map((part, index) =>
+    /^https?:\/\//.test(part)
+      ? <a key={index} href={part} target="_blank" rel="noreferrer">출처 보기</a>
+      : part,
+  )
+}
+
 function initialPosition() {
   const fallback = {
     x: Math.max(EDGE, window.innerWidth - BUTTON_SIZE - 24),
@@ -32,7 +41,9 @@ function initialPosition() {
 // 여러 경기 결과를 날짜·점수·승리 팀으로 나누어 표시합니다.
 function renderMessageContent(text) {
   const lines = text.split('\n')
-  if (lines.length < 2 || !lines.slice(1).every((line) => line.startsWith('- '))) return text
+  if (lines.length < 2 || !lines.slice(1).every((line) => line.startsWith('- '))) {
+    return renderTextWithLinks(text)
+  }
 
   return <>
     <strong className="chatbot-widget__result-title">{lines[0]}</strong>
@@ -167,10 +178,19 @@ export default function ChatbotWidget() {
       const scoreContext = messages.filter((message) => message.role === 'user')
         .slice(-4).reverse().map((message) => message.text.match(SCORE_PATTERN)?.[0])
         .find(Boolean) || ''
+      const conversationContext = messages.slice(-2).reverse()
+        .map((message) => `${message.role === 'user' ? '사용자' : '챗봇'}: ${message.text}`)
+        .join('\n')
+        .slice(0, 5000)
       const response = await fetch('/api/chatbot/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: text, pagePath: window.location.pathname, scoreContext }),
+        body: JSON.stringify({
+          question: text,
+          pagePath: window.location.pathname,
+          scoreContext,
+          conversationContext,
+        }),
       })
       const isJson = response.headers.get('content-type')?.includes('application/json')
       const result = isJson ? await response.json() : null
