@@ -237,6 +237,16 @@ public class TeamController {
 		return teamService.getTopScorers(limit);
 	}
 
+	@GetMapping("/player-rankings")
+	public List<PlayerStats> getPlayerRankings(
+			@RequestParam(value = "metric", defaultValue = "goals") String metric) {
+		if (!java.util.Set.of("goals", "assists", "contributions").contains(metric)) {
+			throw new org.springframework.web.server.ResponseStatusException(
+					org.springframework.http.HttpStatus.BAD_REQUEST, "지원하지 않는 순위 기준입니다.");
+		}
+		return teamService.getPlayerRankings(metric);
+	}
+
 	// 3-7. 특정 선수 개인 상세 스탯 조회
 	// 예: GET /api/teams/players/{playerId}/stats
 	@GetMapping("/players/{playerId}/stats")

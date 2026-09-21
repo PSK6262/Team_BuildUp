@@ -94,39 +94,112 @@ function isStandingRow(row) {
 }
 
 export function StandingsPage() {
-  const [ season, setSeason ] = useState(() => {
-    const value = Number(new URLSearchParams(window.location.search).get('season'));
-    return [ 2026, 2025, 2024 ].includes(value) ? value : 2026;
+  const tabs = [ ['league', '리그 순위'], ['goals', '득점왕'], ['assists', '도움'], ['contributions', '공격포인트'] ];
+  const [ tab, setTab ] = useState(() => {
+    const value = new URLSearchParams(window.location.search).get('tab');
+    return tabs.some(([ id ]) => id === value) ? value : 'league';
   });
-
-  function changeSeason(event) {
-    const value = Number(event.target.value);
+  function changeTab(value) {
     const url = new URL(window.location.href);
-    url.searchParams.set('season', String(value));
+    url.searchParams.set('tab', value);
+    url.searchParams.delete('season');
     window.history.replaceState(null, '', url);
-    setSeason(value);
+    setTab(value);
   }
 
   return (
     <main className="teams-page-container">
       <div className="teams-page-wrapper">
         <header className="teams-page-header">
-          <span className="teams-page-eyebrow">PREMIER LEAGUE</span>
-          <h1 className="teams-page-title">리그 순위표</h1>
-          <p className="teams-page-desc">공식 리그 순위 데이터에 따른 구단별 경기 기록입니다.</p>
+          <span className="teams-page-eyebrow">PREMIER LEAGUE · 2026/27</span>
+          <h1 className="teams-page-title">리그 & 선수 랭킹</h1>
+          <p className="teams-page-desc">구단 순위부터 득점, 도움, 공격포인트까지 한눈에 확인하세요.</p>
         </header>
-        <div className="standings-toolbar">
-          <label htmlFor="standings-season">시즌</label>
-          <select id="standings-season" value={season} onChange={changeSeason}>
-            {[ 2026, 2025, 2024 ].map((year) => (
-              <option key={year} value={year}>{year}/{String(year + 1).slice(-2)}</option>
-            ))}
-          </select>
+        <div className="ranking-tabs" role="tablist" aria-label="랭킹 종류">
+          {tabs.map(([ id, label ], index) => (
+            <button key={id} id={`ranking-tab-${id}`} type="button" role="tab"
+              aria-selected={tab === id} aria-controls="ranking-panel" tabIndex={tab === id ? 0 : -1}
+              onClick={() => changeTab(id)} onKeyDown={(event) => {
+                const next = event.key === 'ArrowRight' ? (index + 1) % tabs.length
+                  : event.key === 'ArrowLeft' ? (index + tabs.length - 1) % tabs.length
+                    : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : null;
+                if (next == null) return;
+                event.preventDefault();
+                changeTab(tabs[next][0]);
+                document.getElementById(`ranking-tab-${tabs[next][0]}`).focus();
+              }}>{label}</button>
+          ))}
         </div>
-        <StandingsTable key={season} season={season} />
+        <section id="ranking-panel" role="tabpanel" aria-labelledby={`ranking-tab-${tab}`} tabIndex={0}>
+        {tab === 'league' ? <StandingsTable season={2026} />
+          : <PlayerRankings key={tab} metric={tab} label={tabs.find(([ id ]) => id === tab)[1]} />}
+        </section>
       </div>
     </main>
   );
+}
+
+function PlayerRankings({ metric, label }) {
+  const [ result, setResult ] = useState({ status: 'loading', rows: [] });
+  const [ attempt, setAttempt ] = useState(0);
+  const score = (row) => metric === 'contributions' ? (row.goals ?? 0) + (row.assists ?? 0) : row[metric] ?? 0;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    async function load() {
+      try {
+        const response = await fetch(`/api/teams/player-rankings?metric=${metric}`, { signal: controller.signal });
+        if (!response.ok) throw new Error('선수 순위 조회 실패');
+        const rows = await response.json();
+        if (!Array.isArray(rows) || rows.some((row) => !row || !Number.isInteger(row.playerId)
+          || ['goals', 'assists'].some((field) => row[field] != null && (!Number.isInteger(row[field]) || row[field] < 0)))) {
+          throw new Error('잘못된 선수 기록');
+        }
+        if (!controller.signal.aborted) setResult({ status: 'success', rows });
+      } catch {
+        if (!controller.signal.aborted) setResult({ status: 'error', rows: [] });
+      }
+    }
+    load();
+    return () => controller.abort();
+  }, [ metric, attempt ]);
+
+  if (result.status === 'loading') return <p className="standings-message" role="status">{label} 랭킹을 불러오는 중입니다...</p>;
+  if (result.status === 'error') return <div className="standings-message" role="alert">
+    <p>선수 랭킹을 불러오지 못했습니다.</p>
+    <button type="button" onClick={() => { setResult({ status: 'loading', rows: [] }); setAttempt((value) => value + 1); }}>다시 시도</button>
+  </div>;
+  if (!result.rows.length) return <p className="standings-message" role="status">등록된 {label} 기록이 없습니다.</p>;
+
+  const rows = [...result.rows].sort((a, b) => score(b) - score(a)).map((row, _index, sorted) => ({
+    ...row, rank: sorted.findIndex((other) => score(other) === score(row)) + 1,
+  }));
+  const leader = rows[0];
+  return <>
+    <div className="player-ranking-hero">
+      <div><span className="player-ranking-kicker">{label} TOP 20</span>
+        <h2>{leader.playerNameKor || leader.playerName || '선수명 미등록'}</h2>
+        <p>{leader.teamName} · {rows.filter((row) => row.rank === 1).length > 1 ? '공동 1위' : '1위'}</p>
+      </div>
+      <div className="player-ranking-score"><strong>{score(leader)}</strong><span>{metric === 'goals' ? '골' : metric === 'assists' ? '도움' : '공격포인트'}</span></div>
+    </div>
+    <p className="standings-note">현재 저장된 선수 기록 기준 · 공격포인트 = 득점 + 도움 · 동일 기록은 공동 순위로 표시합니다.</p>
+    <div className="standings-scroll" role="region" aria-label={`${label} 순위표, 가로 스크롤 가능`} tabIndex={0}>
+      <table className="standings-table player-rankings-table">
+        <caption>{label} TOP {rows.length}</caption>
+        <thead><tr><th scope="col">순위</th><th scope="col">선수</th><th scope="col">구단</th>
+          <th scope="col">득점</th><th scope="col">도움</th><th scope="col">공격포인트</th></tr></thead>
+        <tbody>{rows.map((row) => <tr key={row.playerId}>
+          <td><span className="standings-rank">{row.rank}</span></td>
+          <th scope="row">{row.playerNameKor || row.playerName || '선수명 미등록'}</th>
+          <td><span className="standings-team">{row.emblemUrl && <img src={row.emblemUrl} alt="" width="28" height="28" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} />}{row.teamName || '구단명 미등록'}</span></td>
+          {['goals', 'assists', 'contributions'].map((field) => <td key={field} className={metric === field ? 'standings-points' : undefined}>
+            {field === 'contributions' ? (row.goals ?? 0) + (row.assists ?? 0) : row[field] ?? '—'}
+          </td>)}
+        </tr>)}</tbody>
+      </table>
+    </div>
+  </>;
 }
 
 function StandingsTable({ season }) {

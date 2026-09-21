@@ -1,3 +1,66 @@
+.ranking-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  margin-bottom: 28px;
+  border-radius: 14px;
+  background: #ece8ee;
+  overflow-x: auto;
+}
+
+.ranking-tabs button {
+  flex: 1;
+  padding: 14px 20px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #62556a;
+  font: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ranking-tabs button[aria-selected="true"] {
+  background: #38003c;
+  color: white;
+  box-shadow: 0 3px 8px #38003c20;
+}
+
+.ranking-tabs button:focus-visible {
+  outline: 3px solid #008a55;
+  outline-offset: -3px;
+}
+
+.player-ranking-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: clamp(24px, 4vw, 40px);
+  border-radius: 18px;
+  background: linear-gradient(120deg, #38003c, #602369);
+  color: white;
+}
+
+.player-ranking-kicker {
+  color: #00ff87;
+  font-weight: 800;
+  letter-spacing: 1px;
+  font-size: 13px;
+}
+
+.player-ranking-hero h2 {
+  margin: 12px 0 8px;
+  font-size: clamp(24px, 4vw, 36px);
+}
+
+.player-ranking-hero p { margin: 0; color: #e2d5e5; }
+.player-ranking-score { display: flex; align-items: baseline; gap: 12px; }
+.player-ranking-score strong { font-size: 56px; line-height: 1; color: #00ff87; }
+.player-rankings-table { min-width: 660px; }
+
 .standings-toolbar {
   display: flex;
   align-items: center;

@@ -34,5 +34,6 @@ public interface TeamDAO {
 	List<TeamStats> findAllTeamStandings(Integer season);
 	void mergePlayerGoalsAndAssists(Long playerId, Long goals, Long assists);
 	List<PlayerStats> findTopScorers(Integer limit);
+	List<PlayerStats> findPlayerRankings(String metric);
 	PlayerStats findPlayerStats(Long playerId);
 }

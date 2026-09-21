@@ -60,6 +60,11 @@ public class TeamServiceImpl implements TeamService {
 	}
 
 	@Override
+	public List<PlayerStats> getPlayerRankings(String metric) {
+		return teamDAO.findPlayerRankings(metric);
+	}
+
+	@Override
 	public PlayerStats getPlayerStats(Long playerId) {
 		return teamDAO.findPlayerStats(playerId);
 	}

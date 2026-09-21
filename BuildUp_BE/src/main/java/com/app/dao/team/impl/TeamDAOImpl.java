@@ -148,7 +148,12 @@ public class TeamDAOImpl implements TeamDAO {
 
 	@Override
 	public List<PlayerStats> findTopScorers(Integer limit) {
-		return sqlSession.selectList("TeamMapper.selectTopScorers", limit);
+		return sqlSession.selectList("TeamMapper.selectTopScorers", Map.of("limit", limit == null ? 20 : limit, "metric", "goals"));
+	}
+
+	@Override
+	public List<PlayerStats> findPlayerRankings(String metric) {
+		return sqlSession.selectList("TeamMapper.selectTopScorers", Map.of("limit", 20, "metric", metric));
 	}
 
 	@Override
