@@ -1,8 +1,7 @@
 package com.app.dto.user;
 
 import java.time.LocalDateTime;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.format.DateTimeFormatter;
 
 import lombok.Data;
 
@@ -11,12 +10,15 @@ public class UserPredicts {
 	private Long userId;
 	private Long predictWin;
 	private Long predictTotal;
-
-	@JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "Asia/Seoul")
 	private LocalDateTime updatedAt;
 
 	// JOIN 및 랭킹 산출용 필드
 	private String nickname;
+	
+    public String getUpdatedAt() {
+        if (this.updatedAt == null) return null;
+        return this.updatedAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+    }
 
 	public Double getWinRate() {
 		if (this.predictTotal == null || this.predictTotal == 0) return 0.0;
@@ -24,3 +26,4 @@ public class UserPredicts {
 		return Math.round(rate * 10.0) / 10.0;
 	}
 }
+

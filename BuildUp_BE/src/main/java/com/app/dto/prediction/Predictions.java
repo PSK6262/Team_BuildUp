@@ -1,8 +1,7 @@
 package com.app.dto.prediction;
 
 import java.time.LocalDateTime;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.format.DateTimeFormatter;
 
 import lombok.Data;
 
@@ -13,8 +12,6 @@ public class Predictions {
     private Long matchId;              // [FK] 대상 경기 식별자
     private String predictResult;      // 예측 결과 (HOME, DRAW, AWAY)
     private String isSuccess;          // 적중 여부 (Y/N/C, 경기 종료 전 NULL)
-
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "Asia/Seoul")
     private LocalDateTime createdAt;   // 예측 제출 일시
 
     // JOIN 결과 바인딩용 필드
@@ -28,7 +25,16 @@ public class Predictions {
     private Integer homeScore;         // 홈팀 스코어
     private Integer awayScore;         // 원정팀 스코어
     private String matchStatus;        // 경기 상태 (SCHEDULED, LIVE, FINISHED 등)
-
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "Asia/Seoul")
     private LocalDateTime matchDate;   // 경기 시작 일시
+    
+    public String getCreatedAt() {
+        if (this.createdAt == null) return null;
+        return this.createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+    }
+
+    public String getMatchDate() {
+        if (this.matchDate == null) return null;
+        return this.matchDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+    }
 }
+

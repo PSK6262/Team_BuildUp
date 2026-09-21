@@ -124,7 +124,7 @@ public class PredictionServiceImpl implements PredictionService {
 		if (!CommonCode.MATCH_SCHEDULED.equals(match.getStatus()) && !CommonCode.MATCH_TIMED.equals(match.getStatus())) {
 			throw new IllegalStateException(MSG_MATCH_ALREADY_CLOSED);
 		}
-		if (match.getMatchDate() != null && match.getMatchDate().isBefore(LocalDateTime.now())) {
+		if (match.getRawMatchDate() != null && match.getRawMatchDate().isBefore(LocalDateTime.now())) {
 			throw new IllegalStateException(MSG_MATCH_TIME_EXPIRED);
 		}
 

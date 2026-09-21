@@ -277,7 +277,7 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
             return 0;
         }
 
-        LocalDateTime matchDateTime = match.getMatchDate();
+        LocalDateTime matchDateTime = match.getRawMatchDate();
         if (matchDateTime == null) {
             log.error("[BigBallsData] MATCH_ID={} 경기의 일자 정보가 없습니다.", matchId);
             return 0;
