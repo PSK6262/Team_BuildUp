@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getTeams } from '../api/teamApi.js';
+import TeamQuizModal from '../components/quiz/TeamQuizModal.jsx';
 import '../css/mainpage.css';
 
 const INTRO_SENTENCES = [
@@ -15,6 +16,7 @@ export default function MainPage() {
   const [introIndex, setIntroIndex] = useState(0);
   const [isTextVisible, setIsTextVisible] = useState(true);
   const [isIntroFinished, setIsIntroFinished] = useState(false);
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
 
   useEffect(() => {
     getTeams().then((data) => setTeams(data));
@@ -301,9 +303,31 @@ export default function MainPage() {
                 );
               })}
             </div>
+
+            {/* 하단 퀴즈 모달 트리거 버튼 */}
+            <div className="mainpage-quiz-trigger-wrap">
+              <button
+                type="button"
+                className="mainpage-quiz-trigger-btn"
+                onClick={() => setIsQuizOpen(true)}
+                aria-haspopup="dialog"
+                aria-expanded={isQuizOpen}
+              >
+                <span className="quiz-btn-flair">⚡</span>
+                <span className="quiz-btn-title">도파민 충전할 내 운명의 팀 찾기</span>
+                <span className="quiz-btn-badge">7문항 밸런스 퀴즈 🎯</span>
+              </button>
+            </div>
           </section>
         )}
       </main>
+
+      {/* 퀴즈 모달 (DB TEAMS 테이블 연동 구단 데이터 전달) */}
+      <TeamQuizModal
+        isOpen={isQuizOpen}
+        onClose={() => setIsQuizOpen(false)}
+        teams={teams}
+      />
     </div>
   );
 }
