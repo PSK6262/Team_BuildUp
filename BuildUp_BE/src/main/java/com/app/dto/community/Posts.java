@@ -39,3 +39,4 @@ public class Posts {
     // 조인용 (Teams): 구단 이름
     private String teamName;
 }
+

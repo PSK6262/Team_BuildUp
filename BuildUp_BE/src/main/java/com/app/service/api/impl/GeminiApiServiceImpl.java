@@ -150,7 +150,7 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		List<TeamStats> currentStandings = managerQuestion && !historicalManagers
 				? teamDAO.findAllTeamStandings(null) : List.of();
 		Set<Long> currentTeamIds = currentStandings.stream()
-				.map(TeamStats::getTeamId).collect(Collectors.toSet());
+				.map(stats -> stats == null ? null : stats.getTeamId()).collect(Collectors.toSet());
 		List<Staffs> managers = historicalManagers ? allManagers : allManagers.stream()
 				.filter(staff -> currentTeamIds.contains(staff.getTeamId())).toList();
 		String nationality = managerQuestion ? findRequestedNationality(trimmedQuestion, allManagers) : null;
@@ -424,7 +424,7 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		}
 		if (matches.isEmpty()) return "DB에 " + date + "의 해당 경기 기록이 없습니다.";
 		Map<Long, Teams> teamsById = teamDAO.findAllTeams().stream()
-				.collect(Collectors.toMap(Teams::getTeamId, team -> team));
+				.collect(Collectors.toMap(team -> team == null ? null : team.getTeamId(), team -> team));
 		boolean scorerQuestion = isScoringEventQuestion(question);
 		StringBuilder answer = new StringBuilder(date + " 경기 " + Math.min(matches.size(), 10) + "건");
 		for (Matches match : matches.stream().limit(10).toList()) {
@@ -532,7 +532,7 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		List<TeamStats> standings = teamDAO.findAllTeamStandings(null);
 		if (standings.isEmpty()) return "현재 시즌 순위 데이터가 없어 선수 순위를 확인할 수 없습니다.";
 		Set<Long> currentTeamIds = standings.stream()
-				.map(TeamStats::getTeamId).collect(Collectors.toSet());
+				.map(stats -> stats == null ? null : stats.getTeamId()).collect(Collectors.toSet());
 		List<PlayerStats> source = redCards ? teamDAO.findTopRedCards(1000)
 				: yellowCards ? teamDAO.findTopYellowCards(1000)
 				: mom ? teamDAO.findTopMomPlayers(1000)
@@ -602,7 +602,7 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		if (matches.isEmpty()) return "DB에 확인되는 " + period + " 경기 일정이 없습니다.";
 
 		Map<Long, Teams> teamsById = teamDAO.findAllTeams().stream()
-				.collect(Collectors.toMap(Teams::getTeamId, team -> team));
+				.collect(Collectors.toMap(team -> team == null ? null : team.getTeamId(), team -> team));
 		StringBuilder answer = new StringBuilder(period).append(" 경기 ")
 				.append(Math.min(matches.size(), 10)).append("건");
 		for (Matches match : matches.stream().limit(10).toList()) {
@@ -815,7 +815,7 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		if (selectedTeams.isEmpty()) {
 			List<TeamStats> standings = teamDAO.findAllTeamStandings(null);
 			if (standings.isEmpty()) return "현재 시즌 순위 데이터가 없어 선수 인원을 확인할 수 없습니다.";
-			Set<Long> teamIds = standings.stream().map(TeamStats::getTeamId).collect(Collectors.toSet());
+			Set<Long> teamIds = standings.stream().map(stats -> stats == null ? null : stats.getTeamId()).collect(Collectors.toSet());
 			players = players.stream().filter(player -> teamIds.contains(player.getTeamId())).toList();
 			scope = standings.get(0).getSeason() + "시즌 PL";
 		} else {

@@ -20,8 +20,19 @@ public class PlayerStats {
     private String nationality;    // 국적
     private Long teamId;           // 소속 구단 ID
     private String teamName;       // 소속 구단명
-    private String teamNameKor;    // 소속 구단 한글명
-    private String emblemUrl;      // 구단 엠블럼 URL
-    private String playerNameKor;  // 선수 한글명
+    private String teamNameKor;    // 소속 구단 한글명 (TEAMS.TEAM_NAME_KOR)
+    private String emblemUrl;      // 구단 엠블럼 URL (TEAMS.EMBLEM_URL)
+    private String playerNameKor;  // 선수 한글명 (PLAYERS.NAME_KOR 또는 PLAYERS_KOR)
+    private String playersKor;     // 선수 한글명 (PLAYERS.PLAYERS_KOR)
     private String nationalityKor; // 선수 한글 국적
+
+    public String getPlayersKor() {
+        if (playersKor != null && !playersKor.isBlank()) return playersKor;
+        return playerNameKor;
+    }
+
+    public String getPlayerNameKor() {
+        if (playerNameKor != null && !playerNameKor.isBlank()) return playerNameKor;
+        return playersKor;
+    }
 }

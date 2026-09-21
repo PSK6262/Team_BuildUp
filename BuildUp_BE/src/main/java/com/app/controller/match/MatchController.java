@@ -31,8 +31,8 @@ public class MatchController {
 	private BigBallsApiService bigBallsApiService;
 
 	// 1. 시즌 경기 일정 DB 일괄 동기화 (초기 1회 적재용)
-	// 예: GET /api/matches/sync-season (최신 시즌 자동) 또는 GET /api/matches/sync-season?season=2026
-	@GetMapping("/sync-season")
+	// 예: GET 또는 POST /api/matches/sync-season?season=2026
+	@RequestMapping(value = "/sync-season", method = {org.springframework.web.bind.annotation.RequestMethod.GET, org.springframework.web.bind.annotation.RequestMethod.POST})
 	public Map<String, Object> syncSeasonMatches(
 			@RequestParam(value = "season", required = false) Integer season) {
 		String seasonDisplay = (season != null) ? season.toString() : "최신 활성 시즌";

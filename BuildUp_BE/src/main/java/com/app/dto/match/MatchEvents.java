@@ -26,10 +26,15 @@ public class MatchEvents {
     @JsonProperty("assistPlayerId")
     private Long assistPlayerId;       // [FK] 도움 선수 식별자 (없으면 NULL)
 
-	// 챗봇 경기 이벤트 표시를 위한 조인 결과입니다.
-	private String eventTypeName;
-	private String playerName;
-	private String assistPlayerName;
+    // 조인 및 표시용 확장 필드
+    private String eventTypeName;      // 이벤트 유형명 (GOAL, YELLOW_CARD 등)
+    private String playerName;         // 선수 영문명
+    private String playerNameKor;      // 선수 한글명
+    private String assistPlayerName;   // 도움 선수 영문명
+    private String assistPlayerNameKor;// 도움 선수 한글명
+    private String teamName;           // 구단 영문명
+    private String teamNameKor;        // 구단 한글명
+    private String teamEmblemUrl;      // 구단 엠블럼 URL
 
     // --- snake_case 호환 Getter (프론트엔드/API snake_case 참조 지원) ---
     @JsonProperty("event_time")
@@ -66,35 +71,5 @@ public class MatchEvents {
     public Long getAssistPlayerIdSnake() {
         return this.assistPlayerId;
     }
-
-    // --- 명시적 Getter / Setter (Lombok 미가동 빌드 환경 대비) ---
-    public Long getEventId() { return eventId; }
-    public void setEventId(Long eventId) { this.eventId = eventId; }
-
-    public Long getMatchId() { return matchId; }
-    public void setMatchId(Long matchId) { this.matchId = matchId; }
-
-    public Long getTeamId() { return teamId; }
-    public void setTeamId(Long teamId) { this.teamId = teamId; }
-
-    public Long getEventTime() { return eventTime; }
-    public void setEventTime(Long eventTime) { this.eventTime = eventTime; }
-
-    public Long getEventType() { return eventType; }
-    public void setEventType(Long eventType) { this.eventType = eventType; }
-
-    public Long getPlayerId() { return playerId; }
-    public void setPlayerId(Long playerId) { this.playerId = playerId; }
-
-    public Long getAssistPlayerId() { return assistPlayerId; }
-    public void setAssistPlayerId(Long assistPlayerId) { this.assistPlayerId = assistPlayerId; }
-
-	public String getEventTypeName() { return eventTypeName; }
-	public void setEventTypeName(String eventTypeName) { this.eventTypeName = eventTypeName; }
-
-	public String getPlayerName() { return playerName; }
-	public void setPlayerName(String playerName) { this.playerName = playerName; }
-
-	public String getAssistPlayerName() { return assistPlayerName; }
-	public void setAssistPlayerName(String assistPlayerName) { this.assistPlayerName = assistPlayerName; }
 }
+

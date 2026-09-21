@@ -22,10 +22,10 @@ public class TeamStats {
 	private Long redCards;     // 퇴장수
 	private LocalDateTime updatedAt;
 	
-	// 순위표 화면 표시용 조인 필드
+	// 순위표 화면 표시용 조인 필드 (TEAMS 테이블 조인)
 	private String teamName;   // 구단명
-	private String teamNameKor; // 순위표 조인용 한글 구단명
-	private String emblemUrl;  // 구단 엠블럼 URL
+	private String teamNameKor; // 구단 한글명 (TEAMS.TEAM_NAME_KOR)
+	private String emblemUrl;  // 구단 엠블럼 URL (TEAMS.EMBLEM_URL)
 	
     public String getUpdatedAt() {
         if (this.updatedAt == null) return null;

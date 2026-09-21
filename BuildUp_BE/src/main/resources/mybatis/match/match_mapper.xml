@@ -31,20 +31,30 @@
 			)
 	</insert>
 
-	<!-- 전체 경기 목록 조회 -->
+	<!-- 전체 경기 목록 조회 (TEAMS 테이블 조인하여 HOME_GROUND_KOR, TEAM_NAME_KOR, EMBLEM_URL 함께 조회) -->
 	<select id="selectAllMatches" resultType="Matches">
 		SELECT 
-			MATCH_ID,
-			MATCH_DATE,
-			HOME_TEAM_ID,
-			AWAY_TEAM_ID,
-			HOME_SCORE,
-			AWAY_SCORE,
-			STATUS,
-			NOTICE,
-			ENDED_AT
-		FROM MATCHES
-		ORDER BY MATCH_DATE ASC
+			m.MATCH_ID,
+			m.MATCH_DATE,
+			m.HOME_TEAM_ID,
+			m.AWAY_TEAM_ID,
+			m.HOME_SCORE,
+			m.AWAY_SCORE,
+			m.STATUS,
+			m.NOTICE,
+			m.ENDED_AT,
+			h.TEAM_NAME AS HOME_TEAM_NAME,
+			h.TEAM_NAME_KOR AS HOME_TEAM_NAME_KOR,
+			h.EMBLEM_URL AS HOME_EMBLEM_URL,
+			h.HOME_GROUND,
+			h.HOME_GROUND_KOR,
+			a.TEAM_NAME AS AWAY_TEAM_NAME,
+			a.TEAM_NAME_KOR AS AWAY_TEAM_NAME_KOR,
+			a.EMBLEM_URL AS AWAY_EMBLEM_URL
+		FROM MATCHES m
+		LEFT JOIN TEAMS h ON h.TEAM_ID = m.HOME_TEAM_ID
+		LEFT JOIN TEAMS a ON a.TEAM_ID = m.AWAY_TEAM_ID
+		ORDER BY m.MATCH_DATE ASC
 	</select>
 
 	<!-- 특정 날짜 범위 경기 조회 -->
@@ -194,25 +204,31 @@
 		)
 	</insert>
 
-	<!-- 경기별 이벤트 목록 조회 (시간순) -->
+	<!-- 경기별 이벤트 목록 조회 (시간순, 선수/팀 정보 조인) -->
 	<select id="selectEventsByMatchId" parameterType="long" resultType="MatchEvents">
 		SELECT 
-			me.EVENT_ID,
-			me.MATCH_ID,
-			me.TEAM_ID,
-			me.EVENT_TIME,
-			me.EVENT_TYPE,
+			e.EVENT_ID,
+			e.MATCH_ID,
+			e.TEAM_ID,
+			e.EVENT_TIME,
+			e.EVENT_TYPE,
 			et.EVENT_TYPE_NAME,
-			me.PLAYER_ID,
-			COALESCE(p.NAME_KOR, p.NAME) AS PLAYER_NAME,
-			me.ASSIST_PLAYER_ID,
-			COALESCE(ap.NAME_KOR, ap.NAME) AS ASSIST_PLAYER_NAME
-		FROM MATCH_EVENTS me
-		JOIN EVENT_TYPE et ON et.EVENT_TYPE_CODE = me.EVENT_TYPE
-		JOIN PLAYERS p ON p.PLAYER_ID = me.PLAYER_ID
-		LEFT JOIN PLAYERS ap ON ap.PLAYER_ID = me.ASSIST_PLAYER_ID
-		WHERE me.MATCH_ID = #{matchId}
-		ORDER BY me.EVENT_TIME ASC, me.EVENT_ID ASC
+			e.PLAYER_ID,
+			e.ASSIST_PLAYER_ID,
+			p.NAME AS PLAYER_NAME,
+			p.NAME_KOR AS PLAYER_NAME_KOR,
+			ap.NAME AS ASSIST_PLAYER_NAME,
+			ap.NAME_KOR AS ASSIST_PLAYER_NAME_KOR,
+			t.TEAM_NAME,
+			t.TEAM_NAME_KOR,
+			t.EMBLEM_URL AS TEAM_EMBLEM_URL
+		FROM MATCH_EVENTS e
+		LEFT JOIN EVENT_TYPE et ON et.EVENT_TYPE_CODE = e.EVENT_TYPE
+		LEFT JOIN PLAYERS p ON p.PLAYER_ID = e.PLAYER_ID
+		LEFT JOIN PLAYERS ap ON ap.PLAYER_ID = e.ASSIST_PLAYER_ID
+		LEFT JOIN TEAMS t ON t.TEAM_ID = e.TEAM_ID
+		WHERE e.MATCH_ID = #{matchId}
+		ORDER BY e.EVENT_TIME ASC, e.EVENT_ID ASC
 	</select>
 
 	<!-- 경기별 이벤트 전체 삭제 (재동기화/갱신용) -->

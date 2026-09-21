@@ -35,11 +35,11 @@ public interface TeamDAO {
 	void mergePlayerGoalsAndAssists(Long playerId, Long goals, Long assists);
 	List<PlayerStats> findTopScorers(Integer limit);
 	List<PlayerStats> findPlayerRankings(String metric);
-	PlayerStats findPlayerStats(Long playerId);
 	List<PlayerStats> findTopAssists(Integer limit);
 	List<PlayerStats> findTopAttackPoints(Integer limit);
 	List<PlayerStats> findTopMomPlayers(Integer limit);
 	List<PlayerStats> findTopYellowCards(Integer limit);
 	List<PlayerStats> findTopRedCards(Integer limit);
 	List<PlayerStats> findUnavailablePlayers();
+	PlayerStats findPlayerStats(Long playerId);
 }

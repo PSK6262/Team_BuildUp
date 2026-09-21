@@ -13,3 +13,23 @@ smtp.properties
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Scripts and Temporary Batch Files
+*.bat
+*.cmd
+
+# Root npm artifacts (FE lives in BuildUp_FE/)
+/package-lock.json
+/package.json
+/node_modules/
+
+# Compiled Java Bytecode in Source folders
+*.class
+
+# IDE & Tooling Metadata
+.project
+.classpath
+.factorypath
+.settings/
+.idea/
+*.iml

@@ -37,3 +37,4 @@ public class Predictions {
         return this.matchDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
     }
 }
+
