@@ -3,8 +3,6 @@ package com.app.dto.match;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import lombok.Data;
 
 @Data
@@ -18,19 +16,6 @@ public class Matches {
     private String notice;             // 경기 중단, 연기, 취소 발생 시 알림
     private LocalDateTime matchDate;   // 경기 시작 일시
     private LocalDateTime endedAt;     // 경기가 끝난 시간 (종료 전 NULL)
-
-    // JOIN 결과 바인딩용 필드
-    private String homeTeamName;       // 홈팀 영문명
-    private String awayTeamName;       // 원정팀 영문명
-    private String homeTeamNameKor;    // 홈팀 한글명
-    private String awayTeamNameKor;    // 원정팀 한글명
-    private String homeEmblemUrl;      // 홈팀 엠블럼
-    private String awayEmblemUrl;      // 원정팀 엠블럼
-
-    @JsonIgnore
-    public LocalDateTime getRawMatchDate() {
-        return this.matchDate;
-    }
     
 	public String getMatchDate() {
         if (this.matchDate == null) return null;

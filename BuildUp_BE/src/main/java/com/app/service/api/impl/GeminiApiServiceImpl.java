@@ -5,8 +5,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,9 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.app.dao.team.TeamDAO;
-import com.app.dao.match.MatchDAO;
-import com.app.dto.match.Matches;
-import com.app.dto.team.TeamStats;
 import com.app.dto.team.Players;
 import com.app.dto.team.Staffs;
 import com.app.dto.team.Teams;
@@ -56,9 +51,6 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	@Autowired
 	private TeamDAO teamDAO;
 
-	@Autowired
-	private MatchDAO matchDAO;
-
 	private final HttpClient httpClient;
 	private final ObjectMapper objectMapper;
 
@@ -67,138 +59,6 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 				.connectTimeout(Duration.ofSeconds(15))
 				.build();
 		this.objectMapper = new ObjectMapper();
-	}
-
-	// EPL 질문만 받아 기존 Gemini 연결로 짧은 한국어 답변을 생성합니다.
-	@Override
-	public String answerEplQuestion(String question, String pagePath) {
-		if (question == null || question.isBlank() || question.length() > 1000) {
-			throw new IllegalArgumentException("질문을 1~1000자로 입력해주세요.");
-		}
-
-		String trimmedQuestion = question.trim();
-		LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
-		List<Teams> selectedTeams = findMentionedTeams(trimmedQuestion);
-		if (selectedTeams.isEmpty() && pagePath != null && pagePath.matches("/plug/team/\\d+")) {
-			Teams pageTeam = teamDAO.findTeamById(Long.parseLong(pagePath.substring("/plug/team/".length())));
-			if (pageTeam != null) selectedTeams.add(pageTeam);
-		}
-
-		Long firstTeamId = selectedTeams.isEmpty() ? null : selectedTeams.get(0).getTeamId();
-		List<Matches> upcoming = matchDAO.findUpcomingMatches(firstTeamId, now,
-				selectedTeams.size() > 1 ? 30 : 5);
-		if (selectedTeams.size() > 1) {
-			Long secondTeamId = selectedTeams.get(1).getTeamId();
-			upcoming = upcoming.stream().filter(match -> secondTeamId.equals(match.getHomeTeamId())
-					|| secondTeamId.equals(match.getAwayTeamId())).limit(5).toList();
-		}
-
-		// 일정 날짜를 묻는 질문에는 DB에 저장된 일시를 그대로 답합니다.
-		if (isScheduleQuestion(trimmedQuestion)) {
-			if (upcoming.isEmpty()) return "DB에 확인되는 향후 예정 경기가 없습니다. 경기 일정 동기화 상태를 확인해주세요.";
-			Matches next = upcoming.get(0);
-			return "DB 기준 가장 가까운 예정 경기: " + next.getMatchDate() + " (한국 시간), "
-					+ next.getHomeTeamName() + " vs " + next.getAwayTeamName() + "입니다.";
-		}
-
-		StringBuilder dbContext = new StringBuilder("DB 조회 시각(한국 시간): ").append(now).append('\n');
-		if (upcoming.isEmpty()) {
-			dbContext.append("확인된 향후 예정 경기 없음\n");
-		} else {
-			dbContext.append("향후 예정 경기:\n");
-			upcoming.stream().limit(5).forEach(match -> dbContext.append("- ")
-					.append(match.getMatchDate()).append(' ').append(match.getHomeTeamName())
-					.append(" vs ").append(match.getAwayTeamName()).append('\n'));
-		}
-
-		if (selectedTeams.isEmpty()) {
-			appendRecentMatches(dbContext, null, 3);
-		} else {
-			for (Teams team : selectedTeams) {
-				if (team == null) continue;
-				TeamStats stats = teamDAO.findTeamStats(team.getTeamId(), null);
-				dbContext.append("팀: ").append(displayTeamName(team)).append('\n');
-				if (stats != null) {
-					dbContext.append("- 시즌 ").append(stats.getSeason())
-						.append(", 순위 ").append(stats.getCurrentRank())
-						.append(", 승점 ").append(stats.getPoints())
-						.append(", ").append(stats.getWins()).append("승 ")
-						.append(stats.getDraws()).append("무 ")
-						.append(stats.getLosses()).append("패\n");
-				}
-				appendRecentMatches(dbContext, team.getTeamId(), 3);
-			}
-		}
-
-		String prompt = "당신은 잉글랜드 프리미어리그(EPL) 안내 챗봇입니다. "
-				+ "EPL 관련 질문에 한국어로 답하세요. 아래 DB 정보를 사실의 기준으로 사용하세요. "
-				+ "DB에 없는 선수나 경기 결과를 만들어내지 마세요. "
-				+ "확인할 수 없는 실시간 경기 결과나 순위는 추측하지 말고 최신 정보 확인이 필요하다고 안내하세요. "
-				+ "EPL과 무관한 질문이면 EPL 관련 질문을 해 달라고 안내하세요. "
-				+ "반드시 {\"answer\":\"답변 내용\"} 형태의 JSON 객체만 반환하세요.\n"
-				+ "DB 정보:\n" + dbContext + "\n질문: " + trimmedQuestion;
-		try {
-			JsonNode result = objectMapper.readTree(callGemini(prompt));
-			String answer = result.path("answer").asText("").trim();
-			if (answer.isEmpty()) {
-				throw new IllegalStateException("Gemini 답변이 비어 있습니다.");
-			}
-			return answer;
-		} catch (Exception exception) {
-			log.warn("[Gemini chat] 답변 생성 실패: {}", exception.getClass().getSimpleName());
-			throw new IllegalStateException("챗봇 답변을 생성하지 못했습니다. 잠시 후 다시 시도해주세요.");
-		}
-	}
-
-	// 질문에 명시된 구단을 DB 이름으로 찾습니다.
-	private List<Teams> findMentionedTeams(String question) {
-		String lower = question.toLowerCase(java.util.Locale.ROOT);
-		List<Teams> result = new ArrayList<>();
-		for (Teams team : teamDAO.findAllTeams()) {
-			String korean = team.getTeamNameKor();
-			String english = team.getTeamName();
-			if (containsTeamName(lower, korean) || containsTeamName(lower, english)) {
-				result.add(team);
-				if (result.size() == 2) break;
-			}
-		}
-		return result;
-	}
-
-	private boolean containsTeamName(String question, String name) {
-		if (name == null) return false;
-		String lower = name.toLowerCase(java.util.Locale.ROOT).trim();
-		String shortName = lower.replaceFirst("(?i)\\s+(fc|afc)$", "");
-		return question.contains(lower) || (shortName.length() >= 3 && question.contains(shortName));
-	}
-
-	private boolean isScheduleQuestion(String question) {
-		String lower = question.toLowerCase(java.util.Locale.ROOT);
-		boolean asksWhen = lower.contains("언제") || lower.contains("예정일")
-				|| lower.contains("경기 일정") || lower.contains("가까운 경기")
-				|| lower.contains("다음 경기") || lower.contains("next match");
-		boolean asksAnalysis = lower.contains("분석")
-				|| lower.contains("전술") || lower.contains("승부") || lower.contains("누가 이길");
-		return asksWhen && !asksAnalysis;
-	}
-
-	private String displayTeamName(Teams team) {
-		return team.getTeamNameKor() != null ? team.getTeamNameKor() : team.getTeamName();
-	}
-
-	private void appendRecentMatches(StringBuilder context, Long teamId, int limit) {
-		List<Matches> recent = matchDAO.findRecentMatches(teamId, limit);
-		if (recent.isEmpty()) {
-			context.append("최근 완료 경기 데이터 없음\n");
-			return;
-		}
-		context.append("최근 완료 경기:\n");
-		for (Matches match : recent) {
-			context.append("- ").append(match.getMatchDate()).append(' ')
-					.append(match.getHomeTeamName()).append(' ')
-					.append(match.getHomeScore()).append(':').append(match.getAwayScore()).append(' ')
-					.append(match.getAwayTeamName()).append('\n');
-		}
 	}
 
 	/**
