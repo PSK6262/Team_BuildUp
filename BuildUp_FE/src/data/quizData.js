@@ -289,52 +289,97 @@ export const CLUBS_DATA = [
 // 하위 호환성용 별칭
 export const CLUB_PROFILES = CLUBS_DATA;
 export const EXTENDED_CLUB_PROFILES = CLUBS_DATA;
-
 /**
- * 기본 7문항에 대한 채점 및 동점 후보군 추출
- * @param {('A'|'B')[]} userAnswers 
+ * 넘어가기(Skip) 반영 퀴즈 결과 및 TOP 1~3 성향 지분 분석
+ * @param {('A'|'B'|'SKIP')[]} userAnswers 
  * @param {Array<any>} liveTeams 
- * @returns {{ highestScore: number, matchPercentage: number, topClubs: Array<any>, allScored: Array<any> }}
+ * @returns {{
+ *   topClub: typeof CLUBS_DATA[0],
+ *   topRate: number,
+ *   subClubs: Array<{ club: typeof CLUBS_DATA[0], matchedCount: number, matchRate: number }>,
+ *   topClubs: Array<typeof CLUBS_DATA[0]>,
+ *   totalValidQuestions: number,
+ *   allScored: Array<any>
+ * }}
  */
-export function evaluateBaseAnswers(userAnswers, liveTeams = []) {
-  if (!Array.isArray(userAnswers) || userAnswers.length === 0) {
-    const firstClub = CLUBS_DATA[0];
-    const dbEmblem = getDbEmblemUrl(firstClub.teamId, liveTeams);
-    return {
-      highestScore: 7,
-      matchPercentage: 100,
-      topClubs: [{ ...firstClub, emblemUrl: dbEmblem || firstClub.emblemUrl }],
-      allScored: []
-    };
-  }
+export function calculateQuizResultWithSkip(userAnswers = [], liveTeams = []) {
+  // 1. 유효 응답 개수(분모) 계산 (SKIP 및 빈 값 제외)
+  const validAnswers = (Array.isArray(userAnswers) ? userAnswers : [])
+    .map((ans, idx) => ({ ans, idx }))
+    .filter((item) => item.ans !== 'SKIP' && item.ans !== undefined && item.ans !== null && item.ans !== '');
 
+  const totalValidQuestions = validAnswers.length;
+  const denominator = totalValidQuestions > 0 ? totalValidQuestions : 1;
+
+  // 2. 20개 구단 전체 일치도 계산
   const scoredClubs = CLUBS_DATA.map((club) => {
     let matchCount = 0;
-    for (let i = 0; i < 7; i++) {
-      if (userAnswers[i] && userAnswers[i] === club.baseAnswers[i]) {
-        matchCount++;
+
+    validAnswers.forEach(({ ans, idx }) => {
+      if (ans === club.baseAnswers[idx]) {
+        matchCount += 1;
       }
-    }
+    });
+
+    const matchRate = totalValidQuestions > 0 ? Math.round((matchCount / denominator) * 100) : 0;
     const dbEmblem = getDbEmblemUrl(club.teamId, liveTeams);
+
     return {
       club: {
         ...club,
         emblemUrl: dbEmblem || club.emblemUrl
       },
-      score: matchCount,
-      percentage: Math.round((matchCount / 7) * 100)
+      matchedCount: matchCount,
+      matchRate
     };
   });
 
-  scoredClubs.sort((a, b) => b.score - a.score);
-  const highestScore = scoredClubs[0].score;
-  const topMatches = scoredClubs.filter((item) => item.score === highestScore).map((item) => item.club);
+  // 3. 일치율 내림차순 정렬 (동률일 경우 기본 순서 유지)
+  scoredClubs.sort((a, b) => b.matchRate - a.matchRate);
+
+  const topResult = scoredClubs[0];
+  const subResults = scoredClubs.slice(1, 4); // 2위, 3위, 4위
+
+  // 공동 1위 후보군 추출 (서든데스 타이브레이커 판정용)
+  const highestRate = topResult.matchRate;
+  const topClubs = scoredClubs
+    .filter((item) => item.matchRate === highestRate)
+    .map((item) => item.club);
 
   return {
-    highestScore,
-    matchPercentage: scoredClubs[0].percentage,
-    topClubs: topMatches,
+    topClub: topResult.club,
+    topRate: topResult.matchRate,
+    subClubs: subResults,
+    topClubs,
+    totalValidQuestions,
     allScored: scoredClubs
+  };
+}
+
+/**
+ * 7문항 사용자 응답 기반 구단 매칭 점수 계산 (호환용)
+ * @param {('A'|'B'|'SKIP')[]} userAnswers 
+ * @param {Array<any>} liveTeams 
+ * @returns {{
+ *   highestScore: number,
+ *   matchPercentage: number,
+ *   topClubs: Array<any>,
+ *   topClub: any,
+ *   subClubs: Array<any>,
+ *   totalValidQuestions: number,
+ *   allScored: Array<any>
+ * }}
+ */
+export function evaluateBaseAnswers(userAnswers, liveTeams = []) {
+  const result = calculateQuizResultWithSkip(userAnswers, liveTeams);
+  return {
+    highestScore: result.topRate,
+    matchPercentage: result.topRate,
+    topClubs: result.topClubs,
+    topClub: result.topClub,
+    subClubs: result.subClubs,
+    totalValidQuestions: result.totalValidQuestions,
+    allScored: result.allScored
   };
 }
 
