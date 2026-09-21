@@ -10,6 +10,7 @@ import PostWrite from './pages/PostWrite.jsx'
 import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
 import MyPage from './pages/MyPage.jsx'
+import ChatbotWidget from './components/ChatbotWidget.jsx'
 import { communityTeams } from './data/communityTeams.js'
 import './App.css'
 
@@ -19,6 +20,8 @@ function App() {
   const isTeamsPage = pathname === '/plug/teams'
   const teamMatch = pathname.match(/^\/plug\/team\/(\d+)$/)
   const postMatch = pathname.match(/^\/plug\/community\/posts\/([^/]+)$/)
+  const showChatbot = isMainPage || isTeamsPage || Boolean(teamMatch)
+    || pathname === '/plug/rankpage'
 
   // 커뮤니티 구단별 게시판 라우팅
   const commuTeam = communityTeams.find((item) => pathname === `/plug/community/teams/${item.slug}`)
@@ -49,6 +52,7 @@ function App() {
           <a href="/plug/community/teams">팀 선택으로 돌아가기</a>
         </main>
       )}
+      {showChatbot && <ChatbotWidget />}
     </>
   )
 }
