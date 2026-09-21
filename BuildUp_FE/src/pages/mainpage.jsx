@@ -4,19 +4,20 @@ import TeamQuizModal from '../components/quiz/TeamQuizModal.jsx';
 import '../css/mainpage.css';
 
 const INTRO_SENTENCES = [
-  "일상에 무료함을 느끼는자들이여",
-  "도파민을 즐기고 싶은가......",
-  "그렇다면 도파민과 희열이 넘치는",
-  "프리미어 리그로 오도록 하거라!!!"
+  "고요를 삼킨 찰나의 순간",
+  "발끝에서 피어오르는 전율",
+  "단 한 번의 함성에 요동치는 심장",
+  "전 세계를 열광케 한 단 하나의 무대",
+  "프리미어리그로!!!"
 ];
 
 export default function MainPage() {
-  const [teams, setTeams] = useState([]);
-  const [hoveredTeam, setHoveredTeam] = useState(null);
-  const [introIndex, setIntroIndex] = useState(0);
-  const [isTextVisible, setIsTextVisible] = useState(true);
-  const [isIntroFinished, setIsIntroFinished] = useState(false);
-  const [isQuizOpen, setIsQuizOpen] = useState(false);
+  const [ teams, setTeams ] = useState([]);
+  const [ hoveredTeam, setHoveredTeam ] = useState(null);
+  const [ introIndex, setIntroIndex ] = useState(0);
+  const [ isTextVisible, setIsTextVisible ] = useState(true);
+  const [ isIntroFinished, setIsIntroFinished ] = useState(false);
+  const [ isQuizOpen, setIsQuizOpen ] = useState(false);
 
   useEffect(() => {
     getTeams().then((data) => setTeams(data));
@@ -43,7 +44,7 @@ export default function MainPage() {
       clearTimeout(fadeOutTimer);
       clearTimeout(nextSentenceTimer);
     };
-  }, [introIndex, isIntroFinished]);
+  }, [ introIndex, isIntroFinished ]);
 
   const handleSkipIntro = () => {
     setIsIntroFinished(true);
@@ -234,11 +235,10 @@ export default function MainPage() {
         {!isIntroFinished ? (
           <div className="mainpage-intro-stage" aria-live="polite">
             <h2
-              className={`mainpage-intro-text ${isTextVisible ? 'is-visible' : ''} ${
-                introIndex === 3 ? 'is-highlight' : ''
-              }`}
+              className={`mainpage-intro-text ${isTextVisible ? 'is-visible' : ''} ${introIndex === 4 ? 'is-highlight' : ''
+                }`}
             >
-              {INTRO_SENTENCES[introIndex]}
+              {INTRO_SENTENCES[ introIndex ]}
             </h2>
             <button
               type="button"
@@ -254,7 +254,7 @@ export default function MainPage() {
             {/* 중앙 고정 문구 영역 */}
             <div className="mainpage-orbit-center">
               <h1 className="mainpage-orbit-title">
-                프리미어리그에 빠질 준비가 되었는가......
+                이 벅찬 환호 속에서<br />함께 날뛸 단 하나의 엠블럼
               </h1>
               <p className="mainpage-orbit-subtitle" aria-live="polite">
                 {hoveredTeam ? (
@@ -263,11 +263,11 @@ export default function MainPage() {
                     <span className="team-details"> ({hoveredTeam.homeGroundKor || hoveredTeam.homeGround})</span>
                   </>
                 ) : (
-                  <span className="team-placeholder">구단 엠블럼에 마우스를 올려보세요</span>
+                  <span className="team-placeholder">마우스를 올려 탐을 만나보거나, 질문을 통해 운명의 팀을 마주해봐</span>
                 )}
               </p>
 
-              {/* 가운데 문구 아래 배치된 퀴즈 모달 트리거 버튼 */}
+              {/* 가운데 문구 아래 항상 고정으로 배치된 퀵 밸런스 게임 모달 트리거 버튼 */}
               <div className="mainpage-quiz-trigger-wrap">
                 <button
                   type="button"
@@ -276,9 +276,7 @@ export default function MainPage() {
                   aria-haspopup="dialog"
                   aria-expanded={isQuizOpen}
                 >
-                  <span className="quiz-btn-flair">⚡</span>
-                  <span className="quiz-btn-title">도파민 충전할 내 운명의 팀 찾기</span>
-                  <span className="quiz-btn-badge">7문항 밸런스 퀴즈 🎯</span>
+                  <span className="quiz-btn-title">함께할 내 운명의 팀 찾기</span>
                 </button>
               </div>
             </div>
@@ -307,10 +305,11 @@ export default function MainPage() {
                         title={`${team.teamNameKor || team.teamName} 상세 보기`}
                       >
                         <img
-                          src={team.emblemUrl}
+                          src={team.emblemUrl ? (team.emblemUrl.includes('/badges/50/') ? team.emblemUrl.replace('/badges/50/', '/badges/') : team.emblemUrl) : ''}
                           alt={`${team.teamNameKor || team.teamName} 로고`}
                           className="emblem-img"
                           loading="eager"
+                          decoding="sync"
                         />
                       </a>
                     </div>
