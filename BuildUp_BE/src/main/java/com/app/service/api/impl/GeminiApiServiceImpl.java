@@ -740,10 +740,11 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	}
 
 	private String answerStandings(String question, List<Teams> selectedTeams) {
+		boolean winRateQuestion = containsSimilarKeyword(question, "승률");
 		boolean standingsQuestion = question.contains("순위") || question.contains("몇위")
 				|| question.contains("몇 위") || question.contains("1위")
 				|| question.contains("꼴찌") || question.contains("승점")
-				|| question.contains("득실차") || question.contains("승무패")
+				|| question.contains("득실차") || question.contains("승무패") || winRateQuestion
 				|| (!selectedTeams.isEmpty() && (question.contains("성적")
 						|| question.contains("몇 승") || question.contains("몇승")
 						|| question.contains("몇 무") || question.contains("몇무")
@@ -758,6 +759,22 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		if (standings.isEmpty()) return "현재 시즌 순위 데이터가 없습니다.";
 		int season = standings.get(0).getSeason();
 		if (teamCount) return season + "시즌 PL 참가 팀은 " + standings.size() + "팀입니다.";
+		if (winRateQuestion) {
+			List<TeamStats> targets = selectedTeams.isEmpty() ? standings : standings.stream()
+					.filter(stats -> selectedTeams.stream()
+							.anyMatch(team -> team.getTeamId().equals(stats.getTeamId())))
+					.toList();
+			if (targets.isEmpty()) return "현재 시즌 순위표에 해당 팀의 기록이 없습니다.";
+			StringBuilder answer = new StringBuilder(season + "시즌 PL 승률");
+			for (TeamStats stats : targets) {
+				long played = value(stats.getMatchesPlayed());
+				long wins = value(stats.getWins());
+				answer.append("\n- ").append(displayStandingName(stats)).append(" · ")
+						.append(formatWinRate(wins, played)).append("% (")
+						.append(played).append("경기 ").append(wins).append("승)");
+			}
+			return answer.toString();
+		}
 		if (!selectedTeams.isEmpty()) {
 			Teams team = selectedTeams.get(0);
 			return standings.stream().filter(stats -> team.getTeamId().equals(stats.getTeamId()))
@@ -1000,8 +1017,9 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	// 질문에 명시된 구단을 DB 이름으로 찾습니다.
 	private List<Teams> findMentionedTeams(String question) {
 		String lower = question.toLowerCase(java.util.Locale.ROOT);
+		List<Teams> allTeams = teamDAO.findAllTeams();
 		List<Teams> result = new ArrayList<>();
-		for (Teams team : teamDAO.findAllTeams()) {
+		for (Teams team : allTeams) {
 			String korean = team.getTeamNameKor();
 			String english = team.getTeamName();
 			if (containsTeamName(lower, korean) || containsTeamName(lower, english)) {
@@ -1009,7 +1027,85 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 				if (result.size() == 2) break;
 			}
 		}
+		if (result.size() == 2) return result;
+
+		// DB 구단명의 각 단어 중 다른 구단과 겹치지 않는 단어를 자동 별칭으로 사용합니다.
+		// 예: "토트넘 홋스퍼 FC"는 "토트넘" 또는 "홋스퍼"로도 찾습니다.
+		Map<String, List<Teams>> aliasOwners = new HashMap<>();
+		for (Teams team : allTeams) {
+			for (String alias : teamAliases(team)) {
+				aliasOwners.computeIfAbsent(alias, key -> new ArrayList<>()).add(team);
+			}
+		}
+		aliasOwners.entrySet().stream()
+				.filter(entry -> entry.getValue().size() == 1 && lower.contains(entry.getKey()))
+				.sorted((left, right) -> Integer.compare(right.getKey().length(), left.getKey().length()))
+				.map(entry -> entry.getValue().get(0))
+				.filter(team -> result.stream().noneMatch(found -> found.getTeamId().equals(team.getTeamId())))
+				.limit(2 - result.size())
+				.forEach(result::add);
 		return result;
+	}
+
+	private Set<String> teamAliases(Teams team) {
+		Set<String> aliases = new java.util.HashSet<>();
+		addTeamAliases(aliases, team.getTeamNameKor());
+		addTeamAliases(aliases, team.getTeamName());
+		return aliases;
+	}
+
+	private void addTeamAliases(Set<String> aliases, String name) {
+		if (name == null || name.isBlank()) return;
+		String normalized = name.toLowerCase(java.util.Locale.ROOT).trim()
+				.replaceFirst("\\s+(fc|afc)$", "");
+		for (String token : normalized.split("[^\\p{L}\\p{N}]+")) {
+			boolean korean = token.matches(".*[가-힣].*");
+			int minimumLength = korean ? 2 : 4;
+			if (token.length() >= minimumLength && !isGenericTeamWord(token)) aliases.add(token);
+		}
+	}
+
+	private boolean isGenericTeamWord(String word) {
+		return Set.of("football", "club", "united", "city", "town", "유나이티드", "시티", "원더러스")
+				.contains(word);
+	}
+
+	// 한글 질문에서 핵심 단어가 한 글자 잘못 입력된 경우까지 같은 의도로 처리합니다.
+	private boolean containsSimilarKeyword(String question, String keyword) {
+		if (question.contains(keyword)) return true;
+		for (String word : question.split("[^가-힣]+")) {
+			if (word.length() == keyword.length() && differentKoreanJamoCount(word, keyword) <= 1) return true;
+		}
+		return false;
+	}
+
+	private int differentKoreanJamoCount(String left, String right) {
+		int count = 0;
+		for (int index = 0; index < left.length(); index++) {
+			char leftCharacter = left.charAt(index);
+			char rightCharacter = right.charAt(index);
+			if (leftCharacter == rightCharacter) continue;
+			if (!isKoreanSyllable(leftCharacter) || !isKoreanSyllable(rightCharacter)) {
+				count++;
+				continue;
+			}
+			int leftCode = leftCharacter - 0xAC00;
+			int rightCode = rightCharacter - 0xAC00;
+			if (leftCode / 588 != rightCode / 588) count++;
+			if ((leftCode % 588) / 28 != (rightCode % 588) / 28) count++;
+			if (leftCode % 28 != rightCode % 28) count++;
+		}
+		return count;
+	}
+
+	private boolean isKoreanSyllable(char character) {
+		return character >= 0xAC00 && character <= 0xD7A3;
+	}
+
+	private String formatWinRate(long wins, long matchesPlayed) {
+		if (matchesPlayed == 0) return "0";
+		double rate = Math.round((wins * 1000.0) / matchesPlayed) / 10.0;
+		return rate == Math.rint(rate) ? Long.toString(Math.round(rate)) : Double.toString(rate);
 	}
 
 	private boolean containsTeamName(String question, String name) {
