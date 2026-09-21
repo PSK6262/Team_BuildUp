@@ -10,6 +10,8 @@ public class Matches {
     private Long matchId;              // [PK] 경기 식별자
     private Long homeTeamId;           // [FK] 홈팀 식별자
     private Long awayTeamId;           // [FK] 원정팀 식별자
+    private String homeTeamName;       // 조인용 홈팀 이름
+    private String awayTeamName;       // 조인용 원정팀 이름
     private Long homeScore;            // 홈팀 최종 득점 수 (경기 전 NULL)
     private Long awayScore;            // 원정팀 최종 득점 수 (경기 전 NULL)
     private String status;             // 경기 상태 (SCHEDULED, LIVE, FINISHED 등)
