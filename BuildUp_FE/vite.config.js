@@ -8,14 +8,9 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-<<<<<<< HEAD
-        target: 'http://localhost:8080',
-=======
-        target: 'http://192.168.0.66:8080',
->>>>>>> aceadb622c4e41c3dd9df3de47e577996a92ee88
+        target: 'http://localhost:8080/',
         changeOrigin: true,
       },
     },
   },
 })
-

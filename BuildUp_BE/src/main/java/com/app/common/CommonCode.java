@@ -26,4 +26,21 @@ public interface CommonCode {
 	public static final String SUCCESS_WIN = "Y";       // 적중
 	public static final String SUCCESS_LOSE = "N";      // 미적중
 	public static final String SUCCESS_CANCEL = "C";    // 경기 취소/무효
+
+	// 6. 경기 진행 상태 (MATCHES.STATUS)
+	public static final String MATCH_SCHEDULED = "SCHEDULED";
+	public static final String MATCH_TIMED = "TIMED";
+	public static final String MATCH_FINISHED = "FINISHED";
+
+	// 7. 승부예측 보상 포인트 및 순위 규칙
+	public static final long PREDICT_POINT_NORMAL = 100L;
+	public static final long PREDICT_POINT_DRAW = 150L;
+	public static final long PREDICT_POINT_UNDERDOG = 250L;
+	public static final int PREDICT_UNDERDOG_RANK_GAP = 4;
+	public static final int PREDICT_MIN_MATCHES_CURRENT_SEASON = 3;
+	public static final int PREDICT_PROMOTED_TEAM_DEFAULT_RANK = 19;
+	public static final int SEASON_CURRENT = 2026;
+	public static final int SEASON_PREV = 2025;
+	public static final int RANK_MIN = 1;
+	public static final int RANK_MAX = 20;
 }
