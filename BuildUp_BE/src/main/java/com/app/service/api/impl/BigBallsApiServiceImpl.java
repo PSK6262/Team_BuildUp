@@ -277,12 +277,12 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
             return 0;
         }
 
-        String dateStr = match.getMatchDate();
-        String matchDate = (dateStr != null && dateStr.length() >= 10) ? dateStr.substring(0, 10) : null;
-        if (matchDate == null) {
+        LocalDateTime matchDateTime = match.getMatchDate();
+        if (matchDateTime == null) {
             log.error("[BigBallsData] MATCH_ID={} 경기의 일자 정보가 없습니다.", matchId);
             return 0;
         }
+        String matchDate = matchDateTime.toLocalDate().toString();
 
         // 해당 일자 EPL 경기 목록 조회
         String url = "https://api.bigballsdata.com/v1/matches?sport=football&league=epl&date=" + matchDate;

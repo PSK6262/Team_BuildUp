@@ -1,7 +1,8 @@
 package com.app.dto.community;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Data;
 
@@ -17,18 +18,11 @@ public class Posts {
     private String isBlind;            // 블라인드 여부 (Y/N)
     private Long categoryId;           // [FK] 카테고리 식별자
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "Asia/Seoul")
     private LocalDateTime createdAt;   // 작성 일시
-    private LocalDateTime updatedAt;   // 수정 일시
-    
-    public String getCreatedAt() {
-        if (this.createdAt == null) return null;
-        return this.createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-    }
 
-    public String getUpdatedAt() {
-        if (this.updatedAt == null) return null;
-        return this.updatedAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-    }
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "Asia/Seoul")
+    private LocalDateTime updatedAt;   // 수정 일시
     
     // 조인용 (Category)
     private String categoryType;
