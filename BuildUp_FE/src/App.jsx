@@ -44,7 +44,7 @@ function App() {
       {/* 회원 인증 및 마이페이지 */}
       {pathname === '/plug/prediction' && <Prediction />}
       {pathname === '/plug/login' && <Login />}
-      {(pathname === '/plug/signin' || pathname === '/plug/signup') && <Signup />}
+      {(pathname === '/plug/signin' || pathname === '/plug/signup' || pathname === '/plug/signup/confirm') && <Signup />}
       {pathname === '/plug/mypage' && <MyPage />}
 
       {/* 커뮤니티 */}

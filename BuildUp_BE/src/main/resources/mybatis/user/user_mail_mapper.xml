@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="UserMailMapper">
+
+	<!-- 회원가입 대기 인증키 및 가입 데이터 저장 (유효기간: 30분) -->
+	<insert id="insertSignupAuthKey" parameterType="map">
+		INSERT INTO EMAIL_VERIFICATIONS (
+			EMAIL,
+			AUTH_KEY,
+			AUTH_TYPE,
+			PAYLOAD,
+			EXPIRED_AT,
+			IS_VERIFIED,
+			CREATED_AT
+		) VALUES (
+			#{email},
+			#{authKey},
+			'SIGNUP',
+			#{payload},
+			SYSTIMESTAMP + INTERVAL '30' MINUTE,
+			'N',
+			SYSTIMESTAMP
+		)
+	</insert>
+
+	<!-- 가입 대기 인증키 조회 (인증 완료 여부 및 만료 상태 포함) -->
+	<select id="selectPendingSignupByAuthKey" parameterType="string" resultType="map">
+		SELECT 
+			AUTH_ID,
+			EMAIL,
+			AUTH_KEY,
+			AUTH_TYPE,
+			PAYLOAD,
+			EXPIRED_AT,
+			IS_VERIFIED,
+			CREATED_AT,
+			CASE WHEN SYSTIMESTAMP &gt; EXPIRED_AT THEN 1 ELSE 0 END AS IS_EXPIRED
+		FROM EMAIL_VERIFICATIONS
+		WHERE AUTH_KEY = #{authKey}
+			AND AUTH_TYPE = 'SIGNUP'
+	</select>
+
+	<!-- 회원가입 인증 완료 처리 -->
+	<update id="completeSignupAuth" parameterType="string">
+		UPDATE EMAIL_VERIFICATIONS
+		SET 
+			IS_VERIFIED = 'Y'
+		WHERE AUTH_KEY = #{authKey}
+	</update>
+
+	<!-- 비밀번호 재설정 인증키 저장 (유효기간: 10분) -->
+	<insert id="insertPasswordResetAuthKey" parameterType="map">
+		INSERT INTO EMAIL_VERIFICATIONS (
+			EMAIL,
+			AUTH_KEY,
+			AUTH_TYPE,
+			EXPIRED_AT,
+			IS_VERIFIED,
+			CREATED_AT
+		) VALUES (
+			#{email},
+			#{authKey},
+			'PASSWORD_RESET',
+			SYSTIMESTAMP + INTERVAL '10' MINUTE,
+			'N',
+			SYSTIMESTAMP
+		)
+	</insert>
+
+	<!-- 비밀번호 재설정 인증키 유효성 검사 -->
+	<select id="checkValidPasswordResetAuthKey" parameterType="map" resultType="int">
+		SELECT COUNT(*)
+		FROM EMAIL_VERIFICATIONS
+		WHERE EMAIL = #{email}
+			AND AUTH_KEY = #{authKey}
+			AND AUTH_TYPE = 'PASSWORD_RESET'
+			AND IS_VERIFIED = 'N'
+			AND SYSTIMESTAMP &lt;= EXPIRED_AT
+	</select>
+
+	<!-- 사용 완료된 인증키 삭제 -->
+	<delete id="deleteUsedAuthKey" parameterType="string">
+		DELETE FROM EMAIL_VERIFICATIONS
+		WHERE AUTH_KEY = #{authKey}
+	</delete>
+
+	<!-- 회원 탈퇴 시 해당 이메일의 인증 내역 전체 삭제 (재가입 테스트 지원) -->
+	<delete id="deleteVerificationsByEmail" parameterType="string">
+		DELETE FROM EMAIL_VERIFICATIONS
+		WHERE EMAIL = #{email}
+	</delete>
+
+</mapper>

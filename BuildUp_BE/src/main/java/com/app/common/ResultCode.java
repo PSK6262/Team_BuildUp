@@ -22,6 +22,9 @@ public enum ResultCode {
     DUPLICATE_EMAIL("REJ_104", "이미 등록된 이메일입니다."),
     INVALID_PASSWORD("REJ_105", "비밀번호가 일치하지 않습니다."),
     PROFILE_UPDATE_FAIL("REJ_106", "회원 정보 수정에 실패했습니다."),
+    INVALID_EMAIL("REJ_107", "올바른 이메일 형식이 아닙니다."),
+    INVALID_AUTH_KEY("REJ_108", "인증 링크가 유효하지 않거나 만료되었습니다."),
+    EMAIL_SEND_FAIL("REJ_109", "인증 메일 발송에 실패했습니다."),
 
     // 커뮤니티 로그인 확인 실패
     COMMUNITY_LOGIN_REQUIRED("REJ_201", "로그인이 필요합니다."),

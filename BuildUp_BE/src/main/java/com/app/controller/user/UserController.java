@@ -3,6 +3,7 @@ package com.app.controller.user;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -85,9 +86,44 @@ public class UserController {
 			}
 			return ApiResponse.success(updated);
 
+		} catch (IllegalArgumentException e) {
+			if (e.getMessage() != null && e.getMessage().contains("이메일")) {
+				return ApiResponse.error(ResultCode.INVALID_EMAIL);
+			}
+			return ApiResponse.error(ResultCode.PROFILE_UPDATE_FAIL);
 		} catch (Exception e) {
 			log.error("[UserController] 프로필 수정 오류: {}", e.getMessage(), e);
 			return ApiResponse.error(ResultCode.PROFILE_UPDATE_FAIL);
+		}
+	}
+
+	/**
+	 * 회원 탈퇴 (회원 데이터 및 연관 활동 데이터 영구 삭제)
+	 */
+	@DeleteMapping("/me")
+	public ApiResponse<Void> withdraw(HttpServletRequest request) {
+		String loginId = resolveLoginId(request);
+		if (loginId == null) {
+			return ApiResponse.error(ResultCode.UNAUTHORIZED);
+		}
+
+		Users currentUser = userDAO.selectUserByLoginId(loginId);
+		if (currentUser == null) {
+			return ApiResponse.error(ResultCode.USER_NOT_FOUND);
+		}
+
+		try {
+			boolean success = userService.withdraw(currentUser.getUserId(), currentUser.getEmail());
+			if (success) {
+				LoginManager.logout(request);
+				log.info("[UserController] 회원 탈퇴 완료 -> userId: {}, loginId: {}", currentUser.getUserId(), loginId);
+				return ApiResponse.success();
+			} else {
+				return ApiResponse.error(ResultCode.FAIL);
+			}
+		} catch (Exception e) {
+			log.error("[UserController] 회원 탈퇴 중 오류: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL);
 		}
 	}
 

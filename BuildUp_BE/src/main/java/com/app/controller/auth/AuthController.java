@@ -6,6 +6,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import java.util.regex.Pattern;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,8 +34,13 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/auth")
 public class AuthController {
 
+	private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9](?!.*\\.\\.)[a-zA-Z0-9._-]{2,28}[a-zA-Z0-9]@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private com.app.service.user.UserMailService userMailService;
 
 	/**
 	 * 로그인 처리 (아이디/비밀번호 검증, 세션 및 JWT 발급)
@@ -69,27 +76,80 @@ public class AuthController {
 	}
 
 	/**
-	 * 신규 회원가입
+	 * 신규 회원가입 요청 (이메일 인증 링크 발송)
 	 */
 	@PostMapping("/signup")
-	public ApiResponse<Users> signup(@RequestBody Users user) {
+	public ApiResponse<Map<String, String>> signup(@RequestBody Users user) {
 		if (user == null) {
+			return ApiResponse.error(ResultCode.INVALID_INPUT);
+		}
+		if (user.getLoginId() == null || user.getLoginId().trim().isEmpty()) {
+			return ApiResponse.error(ResultCode.INVALID_INPUT);
+		}
+		if (!userService.isLoginIdAvailable(user.getLoginId().trim())) {
+			return ApiResponse.error(ResultCode.DUPLICATE_LOGIN_ID);
+		}
+		if (user.getNickname() == null || user.getNickname().trim().isEmpty()) {
+			return ApiResponse.error(ResultCode.INVALID_INPUT);
+		}
+		if (!userService.isNicknameAvailable(user.getNickname().trim())) {
+			return ApiResponse.error(ResultCode.DUPLICATE_NICKNAME);
+		}
+		if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+			return ApiResponse.error(ResultCode.INVALID_INPUT);
+		}
+		if (!EMAIL_PATTERN.matcher(user.getEmail().trim()).matches()) {
+			return ApiResponse.error(ResultCode.INVALID_EMAIL);
+		}
+		if (!userService.isEmailAvailable(user.getEmail().trim())) {
+			return ApiResponse.error(ResultCode.DUPLICATE_EMAIL);
+		}
+		if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
 			return ApiResponse.error(ResultCode.INVALID_INPUT);
 		}
 
 		try {
-			Users registered = userService.signup(user);
-			return ApiResponse.success(registered);
+			userMailService.sendSignupVerificationLink(user);
+			Map<String, String> data = new HashMap<>();
+			data.put("email", user.getEmail().trim());
+			data.put("message", "가입 인증 메일이 발송되었습니다. 이메일에서 링크를 클릭하여 가입을 완료해주세요.");
+			return ApiResponse.success(data);
 
-		} catch (IllegalStateException e) {
-			if (e.getMessage() != null && e.getMessage().contains("아이디")) {
-				return ApiResponse.error(ResultCode.DUPLICATE_LOGIN_ID);
-			}
-			return ApiResponse.error(ResultCode.DUPLICATE_NICKNAME);
 		} catch (IllegalArgumentException e) {
+			if (e.getMessage() != null && e.getMessage().contains("이메일")) {
+				return ApiResponse.error(ResultCode.INVALID_EMAIL);
+			}
 			return ApiResponse.error(ResultCode.INVALID_INPUT);
 		} catch (Exception e) {
-			log.error("[AuthController] 회원가입 오류: {}", e.getMessage(), e);
+			log.error("[AuthController] 회원가입 인증 메일 발송 오류: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.EMAIL_SEND_FAIL);
+		}
+	}
+
+	/**
+	 * 이메일 인증 링크 확인 및 회원가입 최종 완료
+	 */
+	@GetMapping("/confirm-signup")
+	public ApiResponse<Users> confirmSignup(@RequestParam("key") String authKey) {
+		if (authKey == null || authKey.trim().isEmpty()) {
+			return ApiResponse.error(ResultCode.INVALID_INPUT);
+		}
+		try {
+			Users user = userMailService.confirmSignup(authKey.trim());
+			user.setPassword(null);
+			return ApiResponse.success(user);
+		} catch (IllegalArgumentException e) {
+			return ApiResponse.error(ResultCode.INVALID_AUTH_KEY, e.getMessage());
+		} catch (IllegalStateException e) {
+			if (e.getMessage() != null && e.getMessage().contains("아이디")) {
+				return ApiResponse.error(ResultCode.DUPLICATE_LOGIN_ID, e.getMessage());
+			}
+			if (e.getMessage() != null && e.getMessage().contains("닉네임")) {
+				return ApiResponse.error(ResultCode.DUPLICATE_NICKNAME, e.getMessage());
+			}
+			return ApiResponse.error(ResultCode.DUPLICATE_EMAIL, e.getMessage());
+		} catch (Exception e) {
+			log.error("[AuthController] 회원가입 인증 확인 오류: {}", e.getMessage(), e);
 			return ApiResponse.error(ResultCode.FAIL);
 		}
 	}
@@ -123,6 +183,26 @@ public class AuthController {
 		boolean available = userService.isNicknameAvailable(nickname.trim());
 		if (!available) {
 			return ApiResponse.error(ResultCode.DUPLICATE_NICKNAME);
+		}
+
+		return ApiResponse.success(true);
+	}
+
+	/**
+	 * 이메일 중복 확인
+	 */
+	@GetMapping("/check-email")
+	public ApiResponse<Boolean> checkEmail(@RequestParam("email") String email) {
+		if (email == null || email.trim().isEmpty()) {
+			return ApiResponse.error(ResultCode.INVALID_INPUT);
+		}
+		if (!EMAIL_PATTERN.matcher(email.trim()).matches()) {
+			return ApiResponse.error(ResultCode.INVALID_EMAIL);
+		}
+
+		boolean available = userService.isEmailAvailable(email.trim());
+		if (!available) {
+			return ApiResponse.error(ResultCode.DUPLICATE_EMAIL);
 		}
 
 		return ApiResponse.success(true);

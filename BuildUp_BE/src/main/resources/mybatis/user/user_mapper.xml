@@ -94,6 +94,13 @@
 		WHERE NICKNAME = #{nickname}
 	</select>
 
+	<!-- 이메일 중복 개수 확인 -->
+	<select id="countByEmail" parameterType="string" resultType="int">
+		SELECT COUNT(*)
+		FROM USERS
+		WHERE EMAIL = #{email}
+	</select>
+
 	<!-- 회원 기본 정보 수정 (닉네임, 이메일, 선호구단) -->
 	<update id="updateUser" parameterType="Users">
 		UPDATE USERS
@@ -110,6 +117,58 @@
 		UPDATE USERS
 		SET 
 			PASSWORD = #{newPassword},
+			UPDATED_AT = SYSTIMESTAMP
+		WHERE USER_ID = #{userId}
+	</update>
+
+	<!-- 회원 탈퇴: 포인트 변동 내역 삭제 -->
+	<delete id="deletePointHistoryByUserId" parameterType="long">
+		DELETE FROM POINT_HISTORY
+		WHERE USER_ID = #{userId}
+	</delete>
+
+	<!-- 회원 탈퇴: 경기 승부예측 내역 삭제 -->
+	<delete id="deletePredictionsByUserId" parameterType="long">
+		DELETE FROM PREDICTIONS
+		WHERE USER_ID = #{userId}
+	</delete>
+
+	<!-- 회원 탈퇴: 승부예측 1:1 통계 삭제 -->
+	<delete id="deleteUserPredictsByUserId" parameterType="long">
+		DELETE FROM USER_PREDICTS
+		WHERE USER_ID = #{userId}
+	</delete>
+
+	<!-- 회원 탈퇴: 커스텀 팀 AI 매치 내역 삭제 -->
+	<delete id="deleteAiMatchesByUserId" parameterType="long">
+		DELETE FROM AI_MATCHES
+		WHERE HOME_TEAM_ID IN (SELECT CUSTOM_TEAM_ID FROM CUSTOM_TEAMS WHERE USER_ID = #{userId})
+		   OR AWAY_TEAM_ID IN (SELECT CUSTOM_TEAM_ID FROM CUSTOM_TEAMS WHERE USER_ID = #{userId})
+	</delete>
+
+	<!-- 회원 탈퇴: 커스텀 팀 스쿼드 선수 슬롯 삭제 -->
+	<delete id="deleteCustomSquadsByUserId" parameterType="long">
+		DELETE FROM CUSTOM_SQUADS
+		WHERE CUSTOM_TEAM_ID IN (SELECT CUSTOM_TEAM_ID FROM CUSTOM_TEAMS WHERE USER_ID = #{userId})
+	</delete>
+
+	<!-- 회원 탈퇴: 나만의 팀 삭제 -->
+	<delete id="deleteCustomTeamsByUserId" parameterType="long">
+		DELETE FROM CUSTOM_TEAMS
+		WHERE USER_ID = #{userId}
+	</delete>
+
+	<!-- 회원 탈퇴: 회원 정보 익명화 및 비활성화 (ROLE_CODE=7 탈퇴회원, 게시글 및 댓글은 보존) -->
+	<update id="anonymizeUser" parameterType="long">
+		UPDATE USERS
+		SET 
+			LOGIN_ID = SUBSTR('wd_' || USER_ID || '_' || LOGIN_ID, 1, 50),
+			NICKNAME = '(탈퇴회원#' || USER_ID || ')',
+			EMAIL = SUBSTR('wd_' || USER_ID || '_' || EMAIL, 1, 100),
+			PASSWORD = '*WITHDRAWN*',
+			ROLE_CODE = 7,
+			POINT = 0,
+			FAVORITE_TEAM_ID = NULL,
 			UPDATED_AT = SYSTIMESTAMP
 		WHERE USER_ID = #{userId}
 	</update>

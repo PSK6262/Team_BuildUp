@@ -1,4 +1,4 @@
-/* BuildUp - Auth & MyPage Common Styles */
+/* PLUGIN - Auth & MyPage Common Styles */
 .auth-container, .mypage-container {
   display: flex;
   justify-content: center;
@@ -338,5 +338,153 @@
 }
 
 .mypage-logout-btn:hover, .mypage-cancel-btn:hover {
+  background-color: #e5e7eb;
+}
+
+/* 회원 탈퇴 경고 모달 */
+.withdraw-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+  backdrop-filter: blur(3px);
+}
+
+.withdraw-modal-content {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 580px;
+  padding: 28px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: fadeInModal 0.2s ease-out;
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.withdraw-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 2px solid #fee2e2;
+  padding-bottom: 12px;
+}
+
+.withdraw-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #b91c1c;
+}
+
+.withdraw-warning-box {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.withdraw-warning-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.withdraw-item-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #991b1b;
+  margin: 0;
+}
+
+.withdraw-item-desc {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: #374151;
+  word-break: keep-all;
+}
+
+.withdraw-item-desc strong {
+  color: #991b1b;
+  font-weight: 700;
+}
+
+.withdraw-agree-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1f2937;
+  cursor: pointer;
+  padding: 4px 2px;
+}
+
+.withdraw-agree-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #dc2626;
+  cursor: pointer;
+}
+
+.withdraw-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.withdraw-confirm-btn {
+  flex: 1;
+  height: 44px;
+  background-color: #dc2626;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.withdraw-confirm-btn:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+.withdraw-confirm-btn:disabled {
+  background-color: #fca5a5;
+  cursor: not-allowed;
+}
+
+.withdraw-cancel-modal-btn {
+  flex: 1;
+  height: 44px;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.withdraw-cancel-modal-btn:hover {
   background-color: #e5e7eb;
 }

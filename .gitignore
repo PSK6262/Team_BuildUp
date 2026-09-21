@@ -1,6 +1,8 @@
 # Properties files containing sensitive keys or environment configurations
 *.properties
 **/*.properties
+smtp.properties
+**/smtp.properties
 
 # Environment variables
 .env
