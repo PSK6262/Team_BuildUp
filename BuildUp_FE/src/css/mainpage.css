@@ -180,12 +180,15 @@
 /* Center Text Container */
 .mainpage-orbit-center {
   position: absolute;
-  z-index: 2;
+  z-index: 10;
   text-align: center;
   max-width: min(90vw, 440px);
   padding: 0 16px;
   pointer-events: none;
   user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .mainpage-orbit-title {
@@ -358,68 +361,66 @@
 }
 
 /* --------------------------------------------------------
-   Quiz Trigger Button (눈에 띄는 하단 도파민 충전 버튼)
+   Quiz Trigger Button (가운데 문구 아래 콤팩트 배치)
    -------------------------------------------------------- */
 .mainpage-quiz-trigger-wrap {
-  position: absolute;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 30;
+  margin-top: 18px;
   display: flex;
   justify-content: center;
   width: auto;
+  pointer-events: auto;
 }
 
 .mainpage-quiz-trigger-btn {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 13px 28px;
+  gap: 8px;
+  padding: 8px 18px;
   background: linear-gradient(135deg, rgba(62, 9, 78, 0.9) 0%, rgba(28, 2, 36, 0.95) 100%);
   border: 1.5px solid #00ff87;
   border-radius: 999px;
   color: #ffffff;
-  font-size: 16px;
+  font-size: 13.5px;
   font-weight: 800;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.2px;
   cursor: pointer;
   backdrop-filter: blur(8px);
   box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.55),
-    0 0 25px rgba(0, 255, 135, 0.35),
-    inset 0 0 14px rgba(0, 255, 135, 0.15);
-  transition: all 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+    0 6px 18px rgba(0, 0, 0, 0.55),
+    0 0 18px rgba(0, 255, 135, 0.3),
+    inset 0 0 10px rgba(0, 255, 135, 0.15);
+  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
   animation: quizBtnGlowPulse 3s ease-in-out infinite;
+  pointer-events: auto;
 }
 
 @keyframes quizBtnGlowPulse {
   0%, 100% {
     box-shadow:
-      0 8px 24px rgba(0, 0, 0, 0.55),
-      0 0 20px rgba(0, 255, 135, 0.3),
-      inset 0 0 10px rgba(0, 255, 135, 0.1);
+      0 6px 18px rgba(0, 0, 0, 0.55),
+      0 0 16px rgba(0, 255, 135, 0.3),
+      inset 0 0 8px rgba(0, 255, 135, 0.1);
   }
   50% {
     box-shadow:
-      0 10px 30px rgba(0, 0, 0, 0.65),
-      0 0 36px rgba(0, 255, 135, 0.6),
-      inset 0 0 18px rgba(0, 255, 135, 0.25);
+      0 8px 24px rgba(0, 0, 0, 0.65),
+      0 0 24px rgba(0, 255, 135, 0.55),
+      inset 0 0 12px rgba(0, 255, 135, 0.25);
   }
 }
 
 .mainpage-quiz-trigger-btn:hover {
-  transform: scale(1.06) translateY(-3px);
+  transform: scale(1.05) translateY(-2px);
   background: linear-gradient(135deg, rgba(88, 14, 110, 0.95) 0%, rgba(38, 4, 48, 0.98) 100%);
   border-color: #00ff87;
   box-shadow:
-    0 12px 35px rgba(0, 0, 0, 0.75),
-    0 0 45px rgba(0, 255, 135, 0.75),
-    inset 0 0 20px rgba(0, 255, 135, 0.35);
+    0 8px 26px rgba(0, 0, 0, 0.75),
+    0 0 30px rgba(0, 255, 135, 0.7),
+    inset 0 0 14px rgba(0, 255, 135, 0.35);
 }
 
 .quiz-btn-flair {
-  font-size: 20px;
+  font-size: 15px;
   animation: flairBounce 1.5s ease-in-out infinite;
 }
 
@@ -428,24 +429,24 @@
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-3px) scale(1.15);
+    transform: translateY(-2px) scale(1.12);
   }
 }
 
 .quiz-btn-title {
-  font-size: 16px;
+  font-size: 13.5px;
   font-weight: 800;
   color: #ffffff;
-  text-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
 }
 
 .quiz-btn-badge {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: #00ff87;
   background: rgba(0, 255, 135, 0.15);
   border: 1px solid rgba(0, 255, 135, 0.4);
-  padding: 3px 10px;
+  padding: 2px 7px;
   border-radius: 999px;
   letter-spacing: 0.2px;
 }
@@ -472,21 +473,25 @@
   }
 
   .mainpage-quiz-trigger-wrap {
-    bottom: 12px;
+    margin-top: 12px;
   }
 
   .mainpage-quiz-trigger-btn {
-    padding: 10px 18px;
-    gap: 8px;
+    padding: 6px 14px;
+    gap: 6px;
+  }
+
+  .quiz-btn-flair {
+    font-size: 13px;
   }
 
   .quiz-btn-title {
-    font-size: 14px;
+    font-size: 12px;
   }
 
   .quiz-btn-badge {
-    font-size: 11px;
-    padding: 2px 8px;
+    font-size: 10px;
+    padding: 1px 6px;
   }
 }
 

@@ -13,13 +13,7 @@ public class Matches {
     private Long homeTeamId;           // [FK] 홈팀 식별자
     private Long awayTeamId;           // [FK] 원정팀 식별자
     private String homeTeamName;       // 조인용 홈팀 이름
-    private String homeTeamNameKor;    // 조인용 홈팀 한글명 (TEAMS.TEAM_NAME_KOR)
-    private String homeEmblemUrl;      // 조인용 홈팀 엠블럼 URL (TEAMS.EMBLEM_URL)
-    private String homeGround;         // 조인용 홈 경기장 영문명 (TEAMS.HOME_GROUND)
-    private String homeGroundKor;      // 조인용 홈 경기장 한글명 (TEAMS.HOME_GROUND_KOR)
     private String awayTeamName;       // 조인용 원정팀 이름
-    private String awayTeamNameKor;    // 조인용 원정팀 한글명 (TEAMS.TEAM_NAME_KOR)
-    private String awayEmblemUrl;      // 조인용 원정팀 엠블럼 URL (TEAMS.EMBLEM_URL)
     private Long homeScore;            // 홈팀 최종 득점 수 (경기 전 NULL)
     private Long awayScore;            // 원정팀 최종 득점 수 (경기 전 NULL)
     private String status;             // 경기 상태 (SCHEDULED, LIVE, FINISHED 등)

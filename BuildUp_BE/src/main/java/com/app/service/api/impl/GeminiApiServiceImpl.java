@@ -5,8 +5,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,9 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.app.dao.team.TeamDAO;
-import com.app.dao.match.MatchDAO;
-import com.app.dto.match.Matches;
-import com.app.dto.team.TeamStats;
 import com.app.dto.team.Players;
 import com.app.dto.team.Staffs;
 import com.app.dto.team.Teams;
@@ -56,9 +51,6 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	@Autowired
 	private TeamDAO teamDAO;
 
-	@Autowired
-	private MatchDAO matchDAO;
-
 	private final HttpClient httpClient;
 	private final ObjectMapper objectMapper;
 
@@ -67,138 +59,6 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 				.connectTimeout(Duration.ofSeconds(15))
 				.build();
 		this.objectMapper = new ObjectMapper();
-	}
-
-	// EPL 질문만 받아 기존 Gemini 연결로 짧은 한국어 답변을 생성합니다.
-	@Override
-	public String answerEplQuestion(String question, String pagePath) {
-		if (question == null || question.isBlank() || question.length() > 1000) {
-			throw new IllegalArgumentException("질문을 1~1000자로 입력해주세요.");
-		}
-
-		String trimmedQuestion = question.trim();
-		LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
-		List<Teams> selectedTeams = findMentionedTeams(trimmedQuestion);
-		if (selectedTeams.isEmpty() && pagePath != null && pagePath.matches("/plug/team/\\d+")) {
-			Teams pageTeam = teamDAO.findTeamById(Long.parseLong(pagePath.substring("/plug/team/".length())));
-			if (pageTeam != null) selectedTeams.add(pageTeam);
-		}
-
-		Long firstTeamId = selectedTeams.isEmpty() ? null : selectedTeams.get(0).getTeamId();
-		List<Matches> upcoming = matchDAO.findUpcomingMatches(firstTeamId, now,
-				selectedTeams.size() > 1 ? 30 : 5);
-		if (selectedTeams.size() > 1) {
-			Long secondTeamId = selectedTeams.get(1).getTeamId();
-			upcoming = upcoming.stream().filter(match -> secondTeamId.equals(match.getHomeTeamId())
-					|| secondTeamId.equals(match.getAwayTeamId())).limit(5).toList();
-		}
-
-		// 일정 날짜를 묻는 질문에는 DB에 저장된 일시를 그대로 답합니다.
-		if (isScheduleQuestion(trimmedQuestion)) {
-			if (upcoming.isEmpty()) return "DB에 확인되는 향후 예정 경기가 없습니다. 경기 일정 동기화 상태를 확인해주세요.";
-			Matches next = upcoming.get(0);
-			return "DB 기준 가장 가까운 예정 경기: " + next.getMatchDate() + " (한국 시간), "
-					+ next.getHomeTeamName() + " vs " + next.getAwayTeamName() + "입니다.";
-		}
-
-		StringBuilder dbContext = new StringBuilder("DB 조회 시각(한국 시간): ").append(now).append('\n');
-		if (upcoming.isEmpty()) {
-			dbContext.append("확인된 향후 예정 경기 없음\n");
-		} else {
-			dbContext.append("향후 예정 경기:\n");
-			upcoming.stream().limit(5).forEach(match -> dbContext.append("- ")
-					.append(match.getMatchDate()).append(' ').append(match.getHomeTeamName())
-					.append(" vs ").append(match.getAwayTeamName()).append('\n'));
-		}
-
-		if (selectedTeams.isEmpty()) {
-			appendRecentMatches(dbContext, null, 3);
-		} else {
-			for (Teams team : selectedTeams) {
-				if (team == null) continue;
-				TeamStats stats = teamDAO.findTeamStats(team.getTeamId(), null);
-				dbContext.append("팀: ").append(displayTeamName(team)).append('\n');
-				if (stats != null) {
-					dbContext.append("- 시즌 ").append(stats.getSeason())
-						.append(", 순위 ").append(stats.getCurrentRank())
-						.append(", 승점 ").append(stats.getPoints())
-						.append(", ").append(stats.getWins()).append("승 ")
-						.append(stats.getDraws()).append("무 ")
-						.append(stats.getLosses()).append("패\n");
-				}
-				appendRecentMatches(dbContext, team.getTeamId(), 3);
-			}
-		}
-
-		String prompt = "당신은 잉글랜드 프리미어리그(EPL) 안내 챗봇입니다. "
-				+ "EPL 관련 질문에 한국어로 답하세요. 아래 DB 정보를 사실의 기준으로 사용하세요. "
-				+ "DB에 없는 선수나 경기 결과를 만들어내지 마세요. "
-				+ "확인할 수 없는 실시간 경기 결과나 순위는 추측하지 말고 최신 정보 확인이 필요하다고 안내하세요. "
-				+ "EPL과 무관한 질문이면 EPL 관련 질문을 해 달라고 안내하세요. "
-				+ "반드시 {\"answer\":\"답변 내용\"} 형태의 JSON 객체만 반환하세요.\n"
-				+ "DB 정보:\n" + dbContext + "\n질문: " + trimmedQuestion;
-		try {
-			JsonNode result = objectMapper.readTree(callGemini(prompt));
-			String answer = result.path("answer").asText("").trim();
-			if (answer.isEmpty()) {
-				throw new IllegalStateException("Gemini 답변이 비어 있습니다.");
-			}
-			return answer;
-		} catch (Exception exception) {
-			log.warn("[Gemini chat] 답변 생성 실패: {}", exception.getClass().getSimpleName());
-			throw new IllegalStateException("챗봇 답변을 생성하지 못했습니다. 잠시 후 다시 시도해주세요.");
-		}
-	}
-
-	// 질문에 명시된 구단을 DB 이름으로 찾습니다.
-	private List<Teams> findMentionedTeams(String question) {
-		String lower = question.toLowerCase(java.util.Locale.ROOT);
-		List<Teams> result = new ArrayList<>();
-		for (Teams team : teamDAO.findAllTeams()) {
-			String korean = team.getTeamNameKor();
-			String english = team.getTeamName();
-			if (containsTeamName(lower, korean) || containsTeamName(lower, english)) {
-				result.add(team);
-				if (result.size() == 2) break;
-			}
-		}
-		return result;
-	}
-
-	private boolean containsTeamName(String question, String name) {
-		if (name == null) return false;
-		String lower = name.toLowerCase(java.util.Locale.ROOT).trim();
-		String shortName = lower.replaceFirst("(?i)\\s+(fc|afc)$", "");
-		return question.contains(lower) || (shortName.length() >= 3 && question.contains(shortName));
-	}
-
-	private boolean isScheduleQuestion(String question) {
-		String lower = question.toLowerCase(java.util.Locale.ROOT);
-		boolean asksWhen = lower.contains("언제") || lower.contains("예정일")
-				|| lower.contains("경기 일정") || lower.contains("가까운 경기")
-				|| lower.contains("다음 경기") || lower.contains("next match");
-		boolean asksAnalysis = lower.contains("분석")
-				|| lower.contains("전술") || lower.contains("승부") || lower.contains("누가 이길");
-		return asksWhen && !asksAnalysis;
-	}
-
-	private String displayTeamName(Teams team) {
-		return team.getTeamNameKor() != null ? team.getTeamNameKor() : team.getTeamName();
-	}
-
-	private void appendRecentMatches(StringBuilder context, Long teamId, int limit) {
-		List<Matches> recent = matchDAO.findRecentMatches(teamId, limit);
-		if (recent.isEmpty()) {
-			context.append("최근 완료 경기 데이터 없음\n");
-			return;
-		}
-		context.append("최근 완료 경기:\n");
-		for (Matches match : recent) {
-			context.append("- ").append(match.getMatchDate()).append(' ')
-					.append(match.getHomeTeamName()).append(' ')
-					.append(match.getHomeScore()).append(':').append(match.getAwayScore()).append(' ')
-					.append(match.getAwayTeamName()).append('\n');
-		}
 	}
 
 	/**
@@ -968,5 +828,105 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		log.info("[Gemini AI] 전체 구단 선수 세부 포지션 AI 동기화 최종 완료! (총 {}명 반영)", totalUpdated);
 		log.info("======================================================================");
 		return totalUpdated;
+	}
+
+	/**
+	 * EPL 챗봇 질문 답변용 자연어 텍스트 Gemini 호출
+	 */
+	private String callGeminiText(String promptText) throws Exception {
+		if (apiKey == null || apiKey.trim().isEmpty() || "apikey".equalsIgnoreCase(apiKey.trim())) {
+			throw new IllegalStateException("application.properties에 유효한 gemini.api.key가 설정되지 않았습니다.");
+		}
+
+		Map<String, Object> textPart = new HashMap<>();
+		textPart.put("text", promptText);
+
+		List<Map<String, Object>> parts = new ArrayList<>();
+		parts.add(textPart);
+
+		Map<String, Object> contentMap = new HashMap<>();
+		contentMap.put("parts", parts);
+
+		List<Map<String, Object>> contents = new ArrayList<>();
+		contents.add(contentMap);
+
+		Map<String, Object> requestBody = new HashMap<>();
+		requestBody.put("contents", contents);
+
+		String requestJson = objectMapper.writeValueAsString(requestBody);
+
+		String[] modelsToTry = (verifiedModel != null) 
+				? new String[]{verifiedModel} 
+				: CANDIDATE_MODELS;
+
+		String lastError = null;
+		for (String modelName : modelsToTry) {
+			String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + modelName + ":generateContent";
+
+			HttpRequest request = HttpRequest.newBuilder()
+					.uri(URI.create(apiUrl))
+					.header("Content-Type", "application/json; charset=utf-8")
+					.header("x-goog-api-key", apiKey.trim())
+					.timeout(Duration.ofSeconds(30))
+					.POST(HttpRequest.BodyPublishers.ofString(requestJson))
+					.build();
+
+			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+			if (response.statusCode() == 200) {
+				if (verifiedModel == null) {
+					verifiedModel = modelName;
+					log.info("[Gemini API] 챗봇용 모델 연동 성공: {}", modelName);
+				}
+
+				JsonNode rootNode = objectMapper.readTree(response.body());
+				JsonNode candidates = rootNode.path("candidates");
+				if (candidates.isArray() && candidates.size() > 0) {
+					JsonNode textNode = candidates.get(0).path("content").path("parts").get(0).path("text");
+					return textNode.asText();
+				}
+			} else {
+				lastError = "모델 [" + modelName + "] 호출 실패 (HTTP " + response.statusCode() + "): " + response.body();
+				log.warn("[Gemini API] {}", lastError);
+				if (verifiedModel != null) {
+					verifiedModel = null;
+					return callGeminiText(promptText);
+				}
+			}
+		}
+
+		throw new RuntimeException("모든 Gemini 모델 호출 실패: " + lastError);
+	}
+
+	@Override
+	public String answerEplQuestion(String question, String pagePath) {
+		if (question == null || question.isBlank()) {
+			return "질문 내용을 입력해주세요.";
+		}
+
+		StringBuilder prompt = new StringBuilder();
+		prompt.append("당신은 대한민국 최고의 잉글랜드 프리미어리그(EPL) 전문 축구 어시스턴트 '플러그(PLUGIN) AI'입니다.\n");
+		prompt.append("사용자의 질문에 대해 한국어로 친절하고 흥미로우며 전문적으로 답변해주세요.\n\n");
+		if (pagePath != null && !pagePath.isBlank()) {
+			prompt.append("[참고: 사용자가 현재 보고 있는 웹페이지 경로: ").append(pagePath).append("]\n");
+		}
+		prompt.append("[사용자 질문]:\n").append(question).append("\n\n");
+		prompt.append("[답변 지침]:\n");
+		prompt.append("1. 프리미어리그의 역사, 경기 규칙, 현재 및 역대 구단, 유명 선수, 감독, 경기 결과, 전술 등에 대해 정확하게 설명하세요.\n");
+		prompt.append("2. 가독성을 위해 적절한 줄바꿈과 글머리 기호(마크다운 형식)를 사용하여 깔끔하게 작성하세요.\n");
+		prompt.append("3. 만약 프리미어리그나 축구와 완전히 무관한 질문이라면, 정중하게 프리미어리그 관련 질문을 유도해주세요.\n");
+		prompt.append("4. 존댓말(해요체 또는 하십시오체)을 사용하고, 축구 팬들과 대화하듯 생동감 있게 답변하세요.");
+
+		try {
+			String answer = callGeminiText(prompt.toString());
+			if (answer != null && !answer.isBlank()) {
+				return answer.trim();
+			}
+		} catch (Exception e) {
+			log.error("[Gemini AI 챗봇] 답변 생성 실패: {}", e.getMessage(), e);
+			throw new IllegalStateException("Gemini API 호출 중 오류가 발생했습니다: " + e.getMessage(), e);
+		}
+
+		return "죄송합니다. 현재 일시적으로 답변을 생성할 수 없습니다. 잠시 후 다시 질문해주세요!";
 	}
 }

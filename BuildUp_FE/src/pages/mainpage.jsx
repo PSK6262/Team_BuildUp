@@ -266,6 +266,21 @@ export default function MainPage() {
                   <span className="team-placeholder">구단 엠블럼에 마우스를 올려보세요</span>
                 )}
               </p>
+
+              {/* 가운데 문구 아래 배치된 퀴즈 모달 트리거 버튼 */}
+              <div className="mainpage-quiz-trigger-wrap">
+                <button
+                  type="button"
+                  className="mainpage-quiz-trigger-btn"
+                  onClick={() => setIsQuizOpen(true)}
+                  aria-haspopup="dialog"
+                  aria-expanded={isQuizOpen}
+                >
+                  <span className="quiz-btn-flair">⚡</span>
+                  <span className="quiz-btn-title">도파민 충전할 내 운명의 팀 찾기</span>
+                  <span className="quiz-btn-badge">7문항 밸런스 퀴즈 🎯</span>
+                </button>
+              </div>
             </div>
 
             {/* 20개 엠블럼 원형 회전 링 */}
@@ -302,21 +317,6 @@ export default function MainPage() {
                   </div>
                 );
               })}
-            </div>
-
-            {/* 하단 퀴즈 모달 트리거 버튼 */}
-            <div className="mainpage-quiz-trigger-wrap">
-              <button
-                type="button"
-                className="mainpage-quiz-trigger-btn"
-                onClick={() => setIsQuizOpen(true)}
-                aria-haspopup="dialog"
-                aria-expanded={isQuizOpen}
-              >
-                <span className="quiz-btn-flair">⚡</span>
-                <span className="quiz-btn-title">도파민 충전할 내 운명의 팀 찾기</span>
-                <span className="quiz-btn-badge">7문항 밸런스 퀴즈 🎯</span>
-              </button>
             </div>
           </section>
         )}

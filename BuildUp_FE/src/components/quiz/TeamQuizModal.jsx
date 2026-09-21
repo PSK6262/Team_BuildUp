@@ -53,20 +53,6 @@ export default function TeamQuizModal({ isOpen, onClose, teams = [] }) {
     }
   }, [teams]);
 
-  // ESC 키 입력 시 닫기
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
-
   // 모달 열릴 때 body 스크롤 차단
   useEffect(() => {
     if (isOpen) {
@@ -268,14 +254,12 @@ export default function TeamQuizModal({ isOpen, onClose, teams = [] }) {
   return (
     <div
       className="team-quiz-backdrop"
-      onClick={handleClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="quiz-modal-title"
     >
       <div
         className={`team-quiz-card ${isTieBreakerActive || isTieBreakerBanner ? 'is-tie-breaker-mode' : ''}`}
-        onClick={(e) => e.stopPropagation()}
       >
         {/* 상단 닫기 버튼 */}
         <button

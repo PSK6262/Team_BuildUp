@@ -11,9 +11,6 @@ import java.util.Map;
  */
 public interface GeminiApiService {
 
-	// 프리미어리그 질문에 대한 챗봇 답변을 생성합니다.
-	String answerEplQuestion(String question, String pagePath);
-
 	/**
 	 * 20개 구단 한글 명칭, 홈 경기장 한글 명칭 및 구단 역사 일괄 생성 및 DB 적재
 	 * @return 갱신된 구단 수
@@ -69,4 +66,12 @@ public interface GeminiApiService {
 	 * @return 갱신된 총 선수 수
 	 */
 	int syncAllPlayersDetailPositions();
+
+	/**
+	 * 사용자의 프리미어리그(EPL) 관련 질문에 대해 Gemini AI를 통해 친절하고 전문적인 답변을 생성합니다.
+	 * @param question 사용자 질문
+	 * @param pagePath 현재 사용자가 접속 중인 페이지 경로 (맥락 참조용)
+	 * @return Gemini AI 축구 전문 답변
+	 */
+	String answerEplQuestion(String question, String pagePath);
 }
