@@ -23,6 +23,8 @@
 		<typeAlias type="com.app.dto.match.MatchEvents" alias="MatchEvents"/>
 		<typeAlias type="com.app.dto.user.Users" alias="Users"/>
 		<typeAlias type="com.app.dto.user.UserPredicts" alias="UserPredicts"/>
+		<typeAlias type="com.app.dto.prediction.Predictions" alias="Predictions"/>
+		<typeAlias type="com.app.dto.prediction.PointHistory" alias="PointHistory"/>
 	</typeAliases>
 	
 </configuration>

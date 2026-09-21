@@ -64,6 +64,51 @@
 		ORDER BY MATCH_DATE ASC
 	</select>
 
+	<!-- 예정 경기와 양 팀 이름을 가까운 일정부터 조회 -->
+	<select id="selectUpcomingMatches" parameterType="map" resultType="Matches">
+		SELECT
+			m.MATCH_ID,
+			m.MATCH_DATE,
+			m.HOME_TEAM_ID,
+			COALESCE(h.TEAM_NAME_KOR, h.TEAM_NAME) AS HOME_TEAM_NAME,
+			m.AWAY_TEAM_ID,
+			COALESCE(a.TEAM_NAME_KOR, a.TEAM_NAME) AS AWAY_TEAM_NAME,
+			m.STATUS
+		FROM MATCHES m
+		JOIN TEAMS h ON h.TEAM_ID = m.HOME_TEAM_ID
+		JOIN TEAMS a ON a.TEAM_ID = m.AWAY_TEAM_ID
+		WHERE m.MATCH_DATE &gt;= #{fromDate}
+		AND m.STATUS IN ('SCHEDULED', 'TIMED')
+		<if test="teamId != null">
+			AND (m.HOME_TEAM_ID = #{teamId} OR m.AWAY_TEAM_ID = #{teamId})
+		</if>
+		ORDER BY m.MATCH_DATE ASC, m.MATCH_ID ASC
+		FETCH FIRST #{limit} ROWS ONLY
+	</select>
+
+	<!-- 종료된 경기와 양 팀 이름, 점수를 최근 순으로 조회 -->
+	<select id="selectRecentMatches" parameterType="map" resultType="Matches">
+		SELECT
+			m.MATCH_ID,
+			m.MATCH_DATE,
+			m.HOME_TEAM_ID,
+			COALESCE(h.TEAM_NAME_KOR, h.TEAM_NAME) AS HOME_TEAM_NAME,
+			m.AWAY_TEAM_ID,
+			COALESCE(a.TEAM_NAME_KOR, a.TEAM_NAME) AS AWAY_TEAM_NAME,
+			m.HOME_SCORE,
+			m.AWAY_SCORE,
+			m.STATUS
+		FROM MATCHES m
+		JOIN TEAMS h ON h.TEAM_ID = m.HOME_TEAM_ID
+		JOIN TEAMS a ON a.TEAM_ID = m.AWAY_TEAM_ID
+		WHERE m.STATUS = 'FINISHED'
+		<if test="teamId != null">
+			AND (m.HOME_TEAM_ID = #{teamId} OR m.AWAY_TEAM_ID = #{teamId})
+		</if>
+		ORDER BY m.MATCH_DATE DESC, m.MATCH_ID DESC
+		FETCH FIRST #{limit} ROWS ONLY
+	</select>
+
 	<!-- 단건 경기 상세 조회 -->
 	<select id="selectMatchById" parameterType="long" resultType="Matches">
 		SELECT 
