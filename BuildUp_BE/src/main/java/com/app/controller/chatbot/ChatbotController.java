@@ -25,7 +25,10 @@ public class ChatbotController {
     // EPL 질문을 받아 Gemini 답변을 공통 JSON 형식으로 반환합니다.
     @PostMapping("/ask")
     public ResponseEntity<ApiResponse<String>> ask(@RequestBody Map<String, String> body) {
-        String question = body == null ? null : body.get("question");
+        if (body == null) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(ResultCode.INVALID_INPUT));
+        }
+        String question = body.get("question");
         if (question == null || question.isBlank() || question.length() > 1000) {
             return ResponseEntity.badRequest().body(ApiResponse.error(ResultCode.INVALID_INPUT));
         }
