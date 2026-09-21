@@ -299,9 +299,10 @@
   background: #ffffff;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
-  padding: 20px 32px;
+  border-left: 4px solid #38003c;
+  padding: 18px 28px;
   display: grid;
-  grid-template-columns: 180px 1fr 140px;
+  grid-template-columns: 140px 1fr 190px;
   align-items: center;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
@@ -311,6 +312,19 @@
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
   border-color: #cbd5e1;
+}
+
+.match-card--result {
+  border-left-color: #6d28d9;
+}
+
+.match-card--live {
+  border-left-color: #dc2626;
+  background: linear-gradient(to right, #ffffff, #fff5f5);
+}
+
+.match-card--scheduled {
+  border-left-color: #00ff85;
 }
 
 /* 경기 시간/날짜 정보 */
@@ -326,19 +340,21 @@
   color: #38003c;
   background: #f3e8ff;
   display: inline-block;
-  padding: 2px 7px;
+  padding: 2px 8px;
   border-radius: 4px;
   width: fit-content;
+  letter-spacing: 0.3px;
 }
 
 .match-card__date {
   font-size: 14px;
   font-weight: 700;
-  color: #334155;
+  color: #1e293b;
 }
 
 .match-card__time {
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 500;
   color: #64748b;
 }
 
@@ -347,7 +363,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
+  gap: 20px;
 }
 
 .match-team {
@@ -367,17 +383,70 @@
   text-align: left;
 }
 
-.match-team__name {
-  font-size: 16px;
+.match-team__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.match-team--home .match-team__info {
+  align-items: flex-end;
+}
+
+.match-team--away .match-team__info {
+  align-items: flex-start;
+}
+
+.match-team__name-kor {
+  font-size: 15px;
   font-weight: 800;
-  color: #1e293b;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.3;
+}
+
+.match-team__name-eng {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  line-height: 1.2;
+}
+
+.match-team__emblem-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+  padding: 5px;
+  transition: transform 0.2s ease;
+}
+
+.match-card:hover .match-team__emblem-wrap {
+  transform: scale(1.05);
 }
 
 .match-team__emblem {
-  width: 36px;
-  height: 36px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
-  flex-shrink: 0;
+}
+
+.match-win-badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: #ffffff;
+  background: #10b981;
+  padding: 1px 5px;
+  border-radius: 4px;
+  line-height: 1.2;
 }
 
 /* 스코어 & 경기 상태 배지 */
@@ -385,8 +454,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  min-width: 90px;
+  gap: 5px;
+  min-width: 96px;
 }
 
 .match-score {
@@ -394,15 +463,28 @@
   font-weight: 900;
   color: #0f172a;
   letter-spacing: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.match-score--large {
+  font-size: 24px;
+}
+
+.match-score__divider {
+  color: #94a3b8;
+  font-weight: 700;
 }
 
 .match-score--vs {
-  font-size: 14px;
-  font-weight: 700;
-  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 800;
+  color: #64748b;
   background: #f1f5f9;
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: 8px;
+  letter-spacing: 1px;
 }
 
 .match-badge {
@@ -431,7 +513,6 @@
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 1;
@@ -445,8 +526,26 @@
 /* 경기장 정보 */
 .match-card__ground {
   text-align: right;
-  font-size: 13px;
-  color: #64748b;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.match-ground-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 /* 경기 일정 없음 안내 */
@@ -577,10 +676,20 @@
 }
 
 /* --------------------------------------------------------
-   경기 결과 전용 카드 및 스코어 강조
+   경기 상태별 카드 테두리 및 스코어 강조
    -------------------------------------------------------- */
 .match-card--result {
   border-left: 4px solid #38003c;
+  background: #ffffff;
+}
+
+.match-card--live {
+  border-left: 4px solid #dc2626;
+  background: #fff8f8;
+}
+
+.match-card--scheduled {
+  border-left: 4px solid #cbd5e1;
   background: #ffffff;
 }
 
