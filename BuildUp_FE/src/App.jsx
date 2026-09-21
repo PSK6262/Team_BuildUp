@@ -21,7 +21,6 @@ function App() {
   const teamMatch = pathname.match(/^\/plug\/team\/(\d+)$/)
   const postMatch = pathname.match(/^\/plug\/community\/posts\/([^/]+)$/)
   const showChatbot = isMainPage || isTeamsPage || Boolean(teamMatch)
-    || pathname === '/plug/rankpage'
 
   // 커뮤니티 구단별 게시판 라우팅
   const commuTeam = communityTeams.find((item) => pathname === `/plug/community/teams/${item.slug}`)

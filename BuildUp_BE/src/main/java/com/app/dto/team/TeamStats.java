@@ -24,6 +24,7 @@ public class TeamStats {
 	
 	// 순위표 화면 표시용 조인 필드
 	private String teamName;   // 구단명
+	private String teamNameKor; // 순위표 조인용 한글 구단명
 	private String emblemUrl;  // 구단 엠블럼 URL
 	
     public String getUpdatedAt() {
