@@ -963,19 +963,21 @@ export default function Match() {
                     </div>
                   </div>
 
-                  {/* 홈 경기장 안내 및 감독모드 텍스트 중계 버튼 */}
+                  {/* 홈 경기장 안내 및 감독모드 텍스트 중계 버튼 (종료된 경기 및 진행 중 LIVE 경기에만 노출) */}
                   <div className="match-card__ground">
                     <span className="match-ground-pill">
                       📍 {match.displayHomeGround || match.homeGroundKor || homeTeam.homeGroundKor || getStadiumNameKor(match.homeGround || homeTeam.homeGround, match.homeTeamId)}
                     </span>
-                    <button
-                      type="button"
-                      className="match-manager-mode-btn"
-                      onClick={() => setActiveMatchForModal(match)}
-                      title="FC 온라인 감독모드 스타일 2D 피치 & 문자 중계 열기"
-                    >
-                      🎮 감독모드 중계
-                    </button>
+                    {(isFinished || isLive) && (
+                      <button
+                        type="button"
+                        className="match-manager-mode-btn"
+                        onClick={() => setActiveMatchForModal(match)}
+                        title="FC 온라인 감독모드 스타일 2D 피치 & 문자 중계 열기"
+                      >
+                        🎮 감독모드 중계
+                      </button>
+                    )}
                   </div>
                 </article>
               )
