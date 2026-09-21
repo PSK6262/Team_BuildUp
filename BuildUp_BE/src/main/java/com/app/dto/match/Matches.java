@@ -14,8 +14,6 @@ public class Matches {
     private Integer round;             // 라운드 (1~38R - DB MATCHES 컬럼 아님)
     private Long homeTeamId;           // [FK] 홈팀 식별자
     private Long awayTeamId;           // [FK] 원정팀 식별자
-    private String homeTeamName;       // 조인용 홈팀 이름
-    private String awayTeamName;       // 조인용 원정팀 이름
     private Long homeScore;            // 홈팀 최종 득점 수 (경기 전 NULL)
     private Long awayScore;            // 원정팀 최종 득점 수 (경기 전 NULL)
     private String status;             // 경기 상태 (SCHEDULED, LIVE, FINISHED 등)
@@ -23,12 +21,14 @@ public class Matches {
     private LocalDateTime matchDate;   // 경기 시작 일시
     private LocalDateTime endedAt;     // 경기가 끝난 시간 (종료 전 NULL)
 
-    // JOIN 결과 바인딩용 필드
+    // JOIN 결과 바인딩용 필드 (TEAMS 테이블)
     private String homeTeamName;       // 홈팀 영문명
-    private String awayTeamName;       // 원정팀 영문명
     private String homeTeamNameKor;    // 홈팀 한글명
-    private String awayTeamNameKor;    // 원정팀 한글명
     private String homeEmblemUrl;      // 홈팀 엠블럼
+    private String homeGround;         // 홈 경기장 영문명
+    private String homeGroundKor;      // 홈 경기장 한글명
+    private String awayTeamName;       // 원정팀 영문명
+    private String awayTeamNameKor;    // 원정팀 한글명
     private String awayEmblemUrl;      // 원정팀 엠블럼
 
     @JsonIgnore
