@@ -57,6 +57,9 @@ public class FootballApiServiceImpl implements FootballApiService {
     @Autowired
     private MatchDAO matchDAO;
 
+    @Autowired(required = false)
+    private com.app.service.prediction.PredictionService predictionService;
+
     private ObjectMapper objectMapper = new ObjectMapper();
 
     private HttpClient createInsecureHttpClient() throws Exception {
@@ -303,6 +306,16 @@ public class FootballApiServiceImpl implements FootballApiService {
         match.setEndedAt(endedAt);
 
         matchDAO.mergeMatch(match);
+
+        // 경기가 종료되고 스코어가 확정되면 승부예측 결과 자동 정산
+        if ("FINISHED".equalsIgnoreCase(status) && homeScore != null && awayScore != null && predictionService != null) {
+            try {
+                predictionService.settleMatchPredictions(matchId);
+            } catch (Exception e) {
+                log.warn("[FootballApiService] 경기(ID: {}) 승부예측 자동 정산 중 예외 발생: {}", matchId, e.getMessage());
+            }
+        }
+
         return true;
     }
 
