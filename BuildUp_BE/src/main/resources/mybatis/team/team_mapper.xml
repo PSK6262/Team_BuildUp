@@ -419,7 +419,7 @@
 	</select>
 
 	<!-- 프리미어리그 득점 랭킹 조회 (득점 내림차순, 기본 상위 20명) -->
-	<select id="selectTopScorers" parameterType="Integer" resultType="PlayerStats">
+	<select id="selectTopScorers" parameterType="map" resultType="PlayerStats">
 		SELECT 
 			ps.PLAYER_ID,
 			p.NAME AS PLAYER_NAME,
@@ -440,8 +440,20 @@
 		FROM PLAYER_STATS ps
 		JOIN PLAYERS p ON ps.PLAYER_ID = p.PLAYER_ID
 		JOIN TEAMS t ON p.TEAM_ID = t.TEAM_ID
-		WHERE ps.GOALS > 0
-		ORDER BY ps.GOALS DESC, ps.ASSISTS DESC, p.NAME ASC
+		<choose>
+			<when test="metric == 'assists'">
+				WHERE ps.ASSISTS > 0
+				ORDER BY ps.ASSISTS DESC, p.NAME ASC, ps.PLAYER_ID ASC
+			</when>
+			<when test="metric == 'contributions'">
+				WHERE NVL(ps.GOALS, 0) + NVL(ps.ASSISTS, 0) > 0
+				ORDER BY (NVL(ps.GOALS, 0) + NVL(ps.ASSISTS, 0)) DESC, p.NAME ASC, ps.PLAYER_ID ASC
+			</when>
+			<otherwise>
+				WHERE ps.GOALS > 0
+				ORDER BY ps.GOALS DESC, ps.ASSISTS DESC, p.NAME ASC
+			</otherwise>
+		</choose>
 		FETCH FIRST NVL(#{limit, jdbcType=NUMERIC}, 20) ROWS ONLY
 	</select>
 
