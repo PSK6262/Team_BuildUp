@@ -5,12 +5,17 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,9 +24,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.app.dao.team.TeamDAO;
 import com.app.dao.match.MatchDAO;
+import com.app.dto.match.MatchEvents;
 import com.app.dto.match.Matches;
 import com.app.dto.team.TeamStats;
 import com.app.dto.team.Players;
+import com.app.dto.team.PlayerStats;
 import com.app.dto.team.Staffs;
 import com.app.dto.team.Teams;
 import com.app.service.api.GeminiApiService;
@@ -39,6 +46,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class GeminiApiServiceImpl implements GeminiApiService {
+	private static final Pattern SCORE_PATTERN = Pattern.compile("(?<!\\d)(\\d{1,2})\\s*(?:대|:)\\s*(\\d{1,2})(?!\\d)");
+	private static final Pattern NATIONALITY_PATTERN = Pattern.compile("([가-힣]{2,12})\\s*국적");
+	private static final Pattern KOREAN_DATE_PATTERN = Pattern.compile("(20\\d{2})년\\s*(\\d{1,2})월\\s*(\\d{1,2})일");
+	private static final Pattern ISO_DATE_PATTERN = Pattern.compile("(?<!\\d)(20\\d{2})-(\\d{1,2})-(\\d{1,2})(?!\\d)");
+	private static final Pattern SEASON_PATTERN = Pattern.compile("(?<!\\d)(20\\d{2})(?:년|시즌)?(?!\\s*[월.-]\\s*\\d)");
 
 	// 사용자 API 키로 100% 검증 완료된 최신 공식 Gemini 모델
 	private static final String[] CANDIDATE_MODELS = {
@@ -49,6 +61,9 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 
 	// 연결 성공이 확인된 모델을 캐싱하여 재사용
 	private volatile String verifiedModel = null;
+	private volatile String verifiedSearchModel = null;
+
+	private record GeminiCallResult(String text, List<String> sources) {}
 
 	@Value("${gemini.api.key}")
 	private String apiKey;
@@ -71,7 +86,8 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 
 	// EPL 질문만 받아 기존 Gemini 연결로 짧은 한국어 답변을 생성합니다.
 	@Override
-	public String answerEplQuestion(String question, String pagePath) {
+	public String answerEplQuestion(String question, String pagePath, String scoreContext,
+			String conversationContext) {
 		if (question == null || question.isBlank() || question.length() > 1000) {
 			throw new IllegalArgumentException("질문을 1~1000자로 입력해주세요.");
 		}
@@ -79,10 +95,132 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		String trimmedQuestion = question.trim();
 		LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 		List<Teams> selectedTeams = findMentionedTeams(trimmedQuestion);
+		boolean namedTeam = !selectedTeams.isEmpty();
 		if (selectedTeams.isEmpty() && pagePath != null && pagePath.matches("/plug/team/\\d+")) {
 			Teams pageTeam = teamDAO.findTeamById(Long.parseLong(pagePath.substring("/plug/team/".length())));
 			if (pageTeam != null) selectedTeams.add(pageTeam);
 		}
+		if (selectedTeams.isEmpty() && conversationContext != null
+				&& needsConversationContext(trimmedQuestion)) {
+			selectedTeams.addAll(findMentionedTeams(conversationContext));
+		}
+		String contextualQuestion = buildContextualMatchQuestion(trimmedQuestion, conversationContext);
+		if (contextualQuestion == null) {
+			return "어느 경기인지 확인할 수 없습니다. 팀 이름이나 경기 날짜를 함께 알려주세요.";
+		}
+		String datedAnswer = answerMatchesOnDate(contextualQuestion, selectedTeams);
+		if (datedAnswer != null) return datedAnswer;
+		String relativeScheduleAnswer = answerRelativeSchedules(trimmedQuestion, selectedTeams, now.toLocalDate());
+		if (relativeScheduleAnswer != null) return relativeScheduleAnswer;
+
+		// 점수가 명시된 질문과 그 점수를 이어 묻는 질문은 정확한 경기 결과를 조회합니다.
+		long[] score = parseScore(trimmedQuestion);
+		if (score == null && isScoreFollowUp(trimmedQuestion)) score = parseScore(scoreContext);
+		if (score != null) {
+			Long teamId = selectedTeams.isEmpty() ? null : selectedTeams.get(0).getTeamId();
+			Long opponentTeamId = selectedTeams.size() > 1 ? selectedTeams.get(1).getTeamId() : null;
+			List<Matches> matches = matchDAO.findFinishedMatchesByScore(
+					score[0], score[1], teamId, opponentTeamId, 5);
+			if (matches.isEmpty()) {
+				return "DB에서 " + score[0] + "대" + score[1] + "으로 끝난 경기를 찾지 못했습니다.";
+			}
+			StringBuilder answer = new StringBuilder()
+					.append(score[0]).append("대").append(score[1])
+					.append(" 경기 · 최근 ").append(matches.size()).append("건");
+			for (Matches match : matches) {
+				answer.append("\n- ").append(match.getMatchDate()).append(' ')
+						.append(match.getHomeTeamName()).append(' ')
+						.append(match.getHomeScore()).append(':').append(match.getAwayScore()).append(' ')
+						.append(match.getAwayTeamName());
+				if (score[0] != score[1]) {
+					answer.append(" (승리: ")
+							.append(score[0] > score[1] ? match.getHomeTeamName() : match.getAwayTeamName())
+							.append(')');
+				}
+			}
+			return answer.toString();
+		}
+
+		// 감독 수 질문은 STAFFS의 국적과 직책을 기준으로 직접 셉니다.
+		boolean managerQuestion = isManagerQuestion(trimmedQuestion);
+		List<Staffs> allManagers = managerQuestion ? teamDAO.findAllStaffs().stream()
+				.filter(staff -> "감독".equals(staff.getRoleName()))
+				.toList() : List.of();
+		boolean historicalManagers = trimmedQuestion.contains("역대") || trimmedQuestion.contains("과거");
+		List<TeamStats> currentStandings = managerQuestion && !historicalManagers
+				? teamDAO.findAllTeamStandings(null) : List.of();
+		Set<Long> currentTeamIds = currentStandings.stream()
+				.map(TeamStats::getTeamId).collect(Collectors.toSet());
+		List<Staffs> managers = historicalManagers ? allManagers : allManagers.stream()
+				.filter(staff -> currentTeamIds.contains(staff.getTeamId())).toList();
+		String nationality = managerQuestion ? findRequestedNationality(trimmedQuestion, allManagers) : null;
+		if (managerQuestion && nationality == null && isCountQuestion(trimmedQuestion)) {
+			if (!historicalManagers && currentStandings.isEmpty()) {
+				return "현재 시즌 순위 데이터가 없어 감독 인원을 확인할 수 없습니다.";
+			}
+			List<Staffs> scopedManagers = namedTeam ? managers.stream()
+					.filter(staff -> selectedTeams.stream()
+							.anyMatch(team -> team.getTeamId().equals(staff.getTeamId()))).toList()
+					: managers;
+			if (!trimmedQuestion.contains("국적별")) {
+				return "DB 기준 감독은 " + scopedManagers.size() + "명입니다.";
+			}
+			Map<String, Long> counts = scopedManagers.stream()
+					.collect(Collectors.groupingBy(this::displayNationality, Collectors.counting()));
+			StringBuilder answer = new StringBuilder("감독 국적별 인원");
+			counts.entrySet().stream().sorted(Map.Entry.comparingByKey())
+					.forEach(entry -> answer.append("\n- ").append(entry.getKey())
+							.append(" · ").append(entry.getValue()).append("명"));
+			return answer.toString();
+		}
+		if (nationality != null && isCountQuestion(trimmedQuestion)) {
+			if (!historicalManagers && currentStandings.isEmpty()) {
+				return "현재 시즌 순위 데이터가 없어 감독 인원을 확인할 수 없습니다.";
+			}
+			List<Staffs> matchingManagers = managers.stream()
+					.filter(staff -> matchesNationality(staff, nationality))
+					.filter(staff -> !namedTeam || selectedTeams.stream()
+							.anyMatch(team -> team.getTeamId().equals(staff.getTeamId())))
+					.toList();
+			String displayNationality = allManagers.stream()
+					.filter(staff -> matchesNationality(staff, nationality))
+					.findFirst().map(this::displayNationality).orElse(nationality);
+			String scope = historicalManagers ? "DB에 저장된 전체 팀 기준 "
+					: currentStandings.get(0).getSeason() + "시즌 PL 팀 기준 ";
+			return scope + displayNationality + " 국적 감독은 "
+					+ matchingManagers.size() + "명입니다.";
+		}
+		if (nationality != null && (trimmedQuestion.contains("누구") || trimmedQuestion.contains("이름"))) {
+			if (!historicalManagers && currentStandings.isEmpty()) {
+				return "현재 시즌 순위 데이터가 없어 감독 명단을 확인할 수 없습니다.";
+			}
+			List<Staffs> matchingManagers = managers.stream()
+					.filter(staff -> matchesNationality(staff, nationality))
+					.filter(staff -> !namedTeam || selectedTeams.stream()
+							.anyMatch(team -> team.getTeamId().equals(staff.getTeamId())))
+					.toList();
+			if (matchingManagers.isEmpty()) return "DB에 해당 국적 감독이 없습니다.";
+			StringBuilder answer = new StringBuilder(displayNationality(matchingManagers.get(0)))
+					.append(" 국적 감독 ").append(matchingManagers.size()).append("명");
+			for (Staffs manager : matchingManagers) {
+				Teams team = teamDAO.findTeamById(manager.getTeamId());
+				answer.append("\n- ")
+						.append(manager.getNameKor() != null ? manager.getNameKor() : manager.getName())
+						.append(" · ").append(team != null ? displayTeamName(team) : "소속 팀 미상");
+			}
+			return answer.toString();
+		}
+		String directAnswer = answerTeamManager(trimmedQuestion, selectedTeams);
+		if (directAnswer == null) directAnswer = answerPlayerRankings(trimmedQuestion);
+		if (directAnswer == null) directAnswer = answerStandings(trimmedQuestion, selectedTeams);
+		if (directAnswer == null) directAnswer = answerPlayerCount(trimmedQuestion, selectedTeams);
+		if (directAnswer == null) directAnswer = answerPlayerDetails(trimmedQuestion);
+		if (directAnswer == null) directAnswer = answerUnavailablePlayers(trimmedQuestion, selectedTeams);
+		if (directAnswer == null) directAnswer = answerTeamRoster(trimmedQuestion, selectedTeams);
+		if (directAnswer == null) directAnswer = answerTeamFacts(trimmedQuestion, selectedTeams);
+		if (directAnswer == null) directAnswer = answerHeadToHead(trimmedQuestion, selectedTeams);
+		if (directAnswer == null) directAnswer = answerRecentResults(trimmedQuestion, selectedTeams);
+		if (directAnswer != null) return directAnswer;
 
 		Long firstTeamId = selectedTeams.isEmpty() ? null : selectedTeams.get(0).getTeamId();
 		List<Matches> upcoming = matchDAO.findUpcomingMatches(firstTeamId, now,
@@ -96,6 +234,16 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		// 일정 날짜를 묻는 질문에는 DB에 저장된 일시를 그대로 답합니다.
 		if (isScheduleQuestion(trimmedQuestion)) {
 			if (upcoming.isEmpty()) return "DB에 확인되는 향후 예정 경기가 없습니다. 경기 일정 동기화 상태를 확인해주세요.";
+			boolean asksClosest = trimmedQuestion.contains("가까운") || trimmedQuestion.contains("다음 경기")
+					|| trimmedQuestion.contains("예정일") || trimmedQuestion.contains("언제");
+			if (!asksClosest) {
+				StringBuilder answer = new StringBuilder("DB 기준 향후 예정 경기 ")
+						.append(Math.min(upcoming.size(), 5)).append("건");
+				upcoming.stream().limit(5).forEach(match -> answer.append("\n- ")
+						.append(match.getMatchDate()).append(' ').append(match.getHomeTeamName())
+						.append(" vs ").append(match.getAwayTeamName()));
+				return answer.toString();
+			}
 			Matches next = upcoming.get(0);
 			return "DB 기준 가장 가까운 예정 경기: " + next.getMatchDate() + " (한국 시간), "
 					+ next.getHomeTeamName() + " vs " + next.getAwayTeamName() + "입니다.";
@@ -118,36 +266,735 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 				if (team == null) continue;
 				TeamStats stats = teamDAO.findTeamStats(team.getTeamId(), null);
 				dbContext.append("팀: ").append(displayTeamName(team)).append('\n');
+				dbContext.append("- 홈구장: ")
+						.append(team.getHomeGroundKor() != null ? team.getHomeGroundKor() : team.getHomeGround())
+						.append(", 창단: ").append(team.getFoundedYear()).append('\n');
+				if (team.getHistory() != null && !team.getHistory().isBlank()) {
+					dbContext.append("- 소개: ")
+							.append(team.getHistory(), 0, Math.min(team.getHistory().length(), 500))
+							.append('\n');
+				}
 				if (stats != null) {
 					dbContext.append("- 시즌 ").append(stats.getSeason())
 						.append(", 순위 ").append(stats.getCurrentRank())
 						.append(", 승점 ").append(stats.getPoints())
+						.append(", 경기 ").append(stats.getMatchesPlayed())
 						.append(", ").append(stats.getWins()).append("승 ")
 						.append(stats.getDraws()).append("무 ")
-						.append(stats.getLosses()).append("패\n");
+						.append(stats.getLosses()).append("패")
+						.append(", 득점 ").append(stats.getGoalsFor())
+						.append(", 실점 ").append(stats.getGoalsAgainst())
+						.append(", 득실차 ").append(stats.getGoalDiff()).append('\n');
 				}
 				appendRecentMatches(dbContext, team.getTeamId(), 3);
 			}
 		}
+		if (managerQuestion) {
+			dbContext.append("감독 명단과 국적:\n");
+			for (Staffs manager : managers) {
+				dbContext.append("- ")
+						.append(manager.getNameKor() != null ? manager.getNameKor() : manager.getName())
+						.append(": ").append(displayNationality(manager)).append('\n');
+			}
+		}
+		if (isPlayerQuestion(trimmedQuestion) || containsMentionedPlayer(trimmedQuestion)) {
+			appendPlayerContext(dbContext, trimmedQuestion, selectedTeams);
+		}
 
+		String recentConversation = conversationContext == null ? ""
+				: conversationContext.substring(0, Math.min(conversationContext.length(), 5000));
 		String prompt = "당신은 잉글랜드 프리미어리그(EPL) 안내 챗봇입니다. "
 				+ "EPL 관련 질문에 한국어로 답하세요. 아래 DB 정보를 사실의 기준으로 사용하세요. "
-				+ "DB에 없는 선수나 경기 결과를 만들어내지 마세요. "
+				+ "DB에 있는 경기 결과, 일정, 순위, 선수 기록은 DB 값을 우선하세요. "
+				+ "DB에 없는 선수 개인 프로필, 경력, 이적, 부상, 최신 소식은 Google 검색으로 확인하세요. "
+				+ "검색 결과가 서로 다르거나 확인되지 않으면 내용을 만들어내지 마세요. "
 				+ "확인할 수 없는 실시간 경기 결과나 순위는 추측하지 말고 최신 정보 확인이 필요하다고 안내하세요. "
 				+ "EPL과 무관한 질문이면 EPL 관련 질문을 해 달라고 안내하세요. "
 				+ "반드시 {\"answer\":\"답변 내용\"} 형태의 JSON 객체만 반환하세요.\n"
-				+ "DB 정보:\n" + dbContext + "\n질문: " + trimmedQuestion;
+				+ "DB 정보:\n" + dbContext
+				+ (recentConversation.isBlank() ? "" : "\n최근 대화:\n" + recentConversation)
+				+ "\n질문: " + trimmedQuestion;
 		try {
-			JsonNode result = objectMapper.readTree(callGemini(prompt));
+			GeminiCallResult groundedResult;
+			try {
+				groundedResult = callGeminiWithSearch(prompt);
+			} catch (Exception searchException) {
+				log.warn("[Gemini chat] Google 검색 연동 실패, 일반 답변으로 재시도: {}",
+						searchException.getClass().getSimpleName());
+				String fallbackPrompt = prompt
+						+ "\n현재 Google 검색 도구를 사용할 수 없습니다. 검색했다고 표현하지 말고, "
+						+ "확실한 일반 정보만 답하며 최신 정보는 확인이 필요하다고 명시하세요.";
+				groundedResult = new GeminiCallResult(callGemini(fallbackPrompt), List.of());
+			}
+			JsonNode result = objectMapper.readTree(groundedResult.text());
 			String answer = result.path("answer").asText("").trim();
 			if (answer.isEmpty()) {
 				throw new IllegalStateException("Gemini 답변이 비어 있습니다.");
 			}
-			return answer;
+			if (groundedResult.sources().isEmpty()) return answer;
+			StringBuilder groundedAnswer = new StringBuilder(answer).append("\n\n검색 출처");
+			groundedResult.sources().forEach(source -> groundedAnswer.append("\n- ").append(source));
+			return groundedAnswer.toString();
 		} catch (Exception exception) {
 			log.warn("[Gemini chat] 답변 생성 실패: {}", exception.getClass().getSimpleName());
 			throw new IllegalStateException("챗봇 답변을 생성하지 못했습니다. 잠시 후 다시 시도해주세요.");
 		}
+	}
+
+	private long[] parseScore(String text) {
+		if (text == null) return null;
+		Matcher matcher = SCORE_PATTERN.matcher(text);
+		if (!matcher.find()) return null;
+		long home = Long.parseLong(matcher.group(1));
+		long away = Long.parseLong(matcher.group(2));
+		return home <= 20 && away <= 20 ? new long[] {home, away} : null;
+	}
+
+	// 득점자 후속 질문에는 직전 답변의 경기 날짜를 이어 붙여 같은 경기를 다시 조회합니다.
+	private String buildContextualMatchQuestion(String question, String conversationContext) {
+		boolean scoringDetail = isScoringEventQuestion(question);
+		boolean resultDetail = question.contains("누가 이겼") || question.contains("승리 팀")
+				|| question.contains("승리팀") || question.contains("이긴 팀")
+				|| question.contains("몇 대 몇") || question.contains("몇대몇");
+		boolean timeFollowUp = conversationContext != null && question.contains("언제")
+				&& !question.contains("다음") && !question.contains("예정");
+		boolean matchFollowUp = scoringDetail || resultDetail || timeFollowUp;
+		if (!matchFollowUp) return question;
+		if (KOREAN_DATE_PATTERN.matcher(question).find() || ISO_DATE_PATTERN.matcher(question).find()) {
+			return question.contains("경기") ? question : question + " 경기";
+		}
+		if (conversationContext == null || conversationContext.isBlank()) return null;
+		List<String> dates = new ArrayList<>();
+		Matcher koreanDate = KOREAN_DATE_PATTERN.matcher(conversationContext);
+		while (koreanDate.find()) {
+			String date = koreanDate.group();
+			if (!dates.contains(date)) dates.add(date);
+		}
+		Matcher isoDate = ISO_DATE_PATTERN.matcher(conversationContext);
+		while (isoDate.find()) {
+			String date = isoDate.group();
+			if (!dates.contains(date)) dates.add(date);
+		}
+		if (dates.size() != 1) return null;
+		return question + " 경기 " + dates.get(0);
+	}
+
+	private boolean isScoringEventQuestion(String question) {
+		return question.contains("득점자") || question.contains("골 넣")
+				|| question.contains("골을 넣") || question.contains("누가 득점")
+				|| question.contains("몇 분에") || question.contains("몇분에")
+				|| question.contains("도움 누구") || question.contains("도움은 누구")
+				|| question.contains("어시스트 누구") || question.contains("어시스트는 누구");
+	}
+
+	private boolean needsConversationContext(String question) {
+		boolean implicitMatch = isScoringEventQuestion(question) || question.contains("누가 이겼")
+				|| question.contains("몇 대 몇") || question.contains("몇대몇")
+				|| question.contains("그 경기") || question.contains("해당 경기")
+				|| question.contains("언제 했") || question.contains("언제 열린");
+		boolean implicitTeam = question.contains("그 팀") || question.contains("해당 팀")
+				|| question.contains("거기");
+		return implicitMatch || implicitTeam;
+	}
+
+	private String answerMatchesOnDate(String question, List<Teams> selectedTeams) {
+		if (!question.contains("경기") && !question.contains("일정") && !question.contains("결과")) return null;
+		Matcher dateMatch = KOREAN_DATE_PATTERN.matcher(question);
+		if (!dateMatch.find()) {
+			dateMatch = ISO_DATE_PATTERN.matcher(question);
+			if (!dateMatch.find()) return null;
+		}
+		LocalDate date;
+		try {
+			date = LocalDate.of(Integer.parseInt(dateMatch.group(1)),
+					Integer.parseInt(dateMatch.group(2)), Integer.parseInt(dateMatch.group(3)));
+		} catch (RuntimeException exception) {
+			return "올바른 날짜를 입력해주세요.";
+		}
+		List<Matches> matches = matchDAO.findMatchesByDateRange(date.atStartOfDay(),
+				date.plusDays(1).atStartOfDay().minusNanos(1));
+		long[] score = question.contains("대") || question.contains("점수") || question.contains("스코어")
+				? parseScore(question) : null;
+		if (score != null) matches = matches.stream()
+				.filter(match -> match.getHomeScore() != null && match.getAwayScore() != null
+						&& match.getHomeScore() == score[0] && match.getAwayScore() == score[1]).toList();
+		for (Teams team : selectedTeams) {
+			matches = matches.stream().filter(match -> team.getTeamId().equals(match.getHomeTeamId())
+					|| team.getTeamId().equals(match.getAwayTeamId())).toList();
+		}
+		if (matches.isEmpty()) return "DB에 " + date + "의 해당 경기 기록이 없습니다.";
+		Map<Long, Teams> teamsById = teamDAO.findAllTeams().stream()
+				.collect(Collectors.toMap(Teams::getTeamId, team -> team));
+		boolean scorerQuestion = isScoringEventQuestion(question);
+		StringBuilder answer = new StringBuilder(date + " 경기 " + Math.min(matches.size(), 10) + "건");
+		for (Matches match : matches.stream().limit(10).toList()) {
+			Teams home = teamsById.get(match.getHomeTeamId());
+			Teams away = teamsById.get(match.getAwayTeamId());
+			answer.append("\n- ").append(match.getMatchDate()).append(' ')
+					.append(home != null ? displayTeamName(home) : "홈팀 미상").append(' ')
+					.append(match.getHomeScore() != null && match.getAwayScore() != null
+							? match.getHomeScore() + ":" + match.getAwayScore() : "vs")
+					.append(' ').append(away != null ? displayTeamName(away) : "원정팀 미상");
+			if (scorerQuestion) appendScoringEvents(answer, match.getMatchId());
+		}
+		return answer.toString();
+	}
+
+	// 선택된 경기의 골·페널티킥 골·자책골 이벤트와 도움 선수를 표시합니다.
+	private void appendScoringEvents(StringBuilder answer, Long matchId) {
+		List<MatchEvents> scoringEvents = matchDAO.findEventsByMatchId(matchId).stream()
+				.filter(event -> event.getEventType() != null && event.getEventType() >= 1
+						&& event.getEventType() <= 3)
+				.toList();
+		if (scoringEvents.isEmpty()) {
+			answer.append("\n  ㄴ DB에 득점자 이벤트가 없습니다.");
+			return;
+		}
+		for (MatchEvents event : scoringEvents) {
+			answer.append("\n  ㄴ ").append(event.getEventTime()).append("분 · ")
+					.append(event.getPlayerName()).append(" · ").append(event.getEventTypeName());
+			if (event.getAssistPlayerName() != null) {
+				answer.append(" (도움: ").append(event.getAssistPlayerName()).append(')');
+			}
+		}
+	}
+
+	private boolean isScoreFollowUp(String question) {
+		return question.contains("그때") || question.contains("딴때")
+				|| question.contains("다른 경기") || question.contains("또 있")
+				|| question.contains("더 있");
+	}
+
+	private boolean isManagerQuestion(String question) {
+		String lower = question.toLowerCase(java.util.Locale.ROOT);
+		return question.contains("감독") || lower.contains("manager") || lower.contains("head coach");
+	}
+
+	private boolean isCountQuestion(String question) {
+		String lower = question.toLowerCase(java.util.Locale.ROOT);
+		return question.contains("몇") || question.contains("인원")
+				|| question.contains("감독 수") || question.contains("감독의 수")
+				|| question.contains("팀 수") || question.contains("구단 수")
+				|| lower.contains("how many");
+	}
+
+	private String findRequestedNationality(String question, List<Staffs> managers) {
+		String normalized = question.replace("스패인", "스페인")
+				.toLowerCase(java.util.Locale.ROOT).replace("spanish", "spain");
+		for (Staffs manager : managers) {
+			String english = manager.getNationality();
+			String korean = manager.getNationalityKor();
+			if ((english != null && normalized.contains(english.toLowerCase(java.util.Locale.ROOT)))
+					|| (korean != null && normalized.contains(korean.toLowerCase(java.util.Locale.ROOT)))) {
+				return english != null ? english : korean;
+			}
+		}
+		return explicitNationality(normalized);
+	}
+
+	private String explicitNationality(String question) {
+		Matcher matcher = NATIONALITY_PATTERN.matcher(question);
+		if (!matcher.find()) return null;
+		String country = matcher.group(1);
+		return country.equals("어느") || country.equals("어떤") || country.equals("무슨")
+				|| country.equals("감독") || country.equals("선수") || country.equals("팀")
+				? null : country;
+	}
+
+	private boolean matchesNationality(Staffs staff, String nationality) {
+		return nationality.equalsIgnoreCase(staff.getNationality())
+				|| nationality.equals(staff.getNationalityKor());
+	}
+
+	private String displayNationality(Staffs staff) {
+		if (staff.getNationalityKor() != null && !staff.getNationalityKor().isBlank()) {
+			return staff.getNationalityKor();
+		}
+		return staff.getNationality() != null ? staff.getNationality() : "미상";
+	}
+
+	private String answerPlayerRankings(String question) {
+		boolean goals = question.contains("득점왕") || question.contains("골 순위")
+				|| (question.contains("득점") && (question.contains("순위")
+				|| question.contains("상위") || question.contains("많이")));
+		boolean assists = question.contains("도움왕") || (question.contains("도움")
+				&& (question.contains("순위") || question.contains("상위") || question.contains("많이")));
+		boolean attackPoints = question.contains("공격포인트") || question.contains("공포 순위");
+		boolean mom = question.toUpperCase(java.util.Locale.ROOT).contains("MOM")
+				|| question.contains("최우수 선수");
+		boolean yellowCards = question.contains("경고") && (question.contains("순위")
+				|| question.contains("상위") || question.contains("많이"));
+		boolean redCards = question.contains("퇴장") && (question.contains("순위")
+				|| question.contains("상위") || question.contains("많이"));
+		if (!goals && !assists && !attackPoints && !mom && !yellowCards && !redCards) {
+			return null;
+		}
+		List<TeamStats> standings = teamDAO.findAllTeamStandings(null);
+		if (standings.isEmpty()) return "현재 시즌 순위 데이터가 없어 선수 순위를 확인할 수 없습니다.";
+		Set<Long> currentTeamIds = standings.stream()
+				.map(TeamStats::getTeamId).collect(Collectors.toSet());
+		List<PlayerStats> source = redCards ? teamDAO.findTopRedCards(1000)
+				: yellowCards ? teamDAO.findTopYellowCards(1000)
+				: mom ? teamDAO.findTopMomPlayers(1000)
+				: attackPoints ? teamDAO.findTopAttackPoints(1000)
+				: assists ? teamDAO.findTopAssists(1000) : teamDAO.findTopScorers(1000);
+		List<PlayerStats> rankings = source.stream()
+				.filter(player -> currentTeamIds.contains(player.getTeamId()))
+				.limit(5).toList();
+		if (rankings.isEmpty()) return "DB에 등록된 해당 선수 기록이 없습니다.";
+		String title = redCards ? "퇴장" : yellowCards ? "경고" : mom ? "MOM"
+				: attackPoints ? "공격포인트" : assists ? "도움" : "득점";
+		StringBuilder answer = new StringBuilder(title + " 상위 ").append(rankings.size()).append("명");
+		for (PlayerStats player : rankings) {
+			answer.append("\n- ")
+					.append(player.getPlayerNameKor() != null ? player.getPlayerNameKor() : player.getPlayerName())
+					.append(" · ");
+			if (redCards) answer.append(value(player.getRedCards())).append("회");
+			else if (yellowCards) answer.append(value(player.getYellowCards())).append("회");
+			else if (mom) answer.append(value(player.getMomCount())).append("회");
+			else if (attackPoints) answer.append(value(player.getGoals()) + value(player.getAssists()))
+					.append("P (").append(value(player.getGoals())).append("골 ")
+					.append(value(player.getAssists())).append("도움)");
+			else if (assists) answer.append(value(player.getAssists())).append("도움");
+			else answer.append(value(player.getGoals())).append("골");
+			answer.append(" · ").append(player.getTeamNameKor() != null
+					? player.getTeamNameKor() : player.getTeamName());
+		}
+		return answer.toString();
+	}
+
+	// 오늘·내일·이번 주처럼 상대적인 날짜 표현을 실제 DB 경기 일정으로 조회합니다.
+	private String answerRelativeSchedules(String question, List<Teams> selectedTeams, LocalDate today) {
+		if (!question.contains("경기") && !question.contains("일정")) return null;
+		LocalDate startDate;
+		LocalDate endDate;
+		String period;
+		if (question.contains("오늘")) {
+			startDate = today;
+			endDate = today.plusDays(1);
+			period = "오늘(" + today + ")";
+		} else if (question.contains("내일")) {
+			startDate = today.plusDays(1);
+			endDate = today.plusDays(2);
+			period = "내일(" + startDate + ")";
+		} else if (question.contains("어제")) {
+			startDate = today.minusDays(1);
+			endDate = today;
+			period = "어제(" + startDate + ")";
+		} else if (question.replace(" ", "").contains("지난주")) {
+			endDate = today.minusDays(today.getDayOfWeek().getValue() - 1L);
+			startDate = endDate.minusDays(7);
+			period = "지난 주(" + startDate + "~" + endDate.minusDays(1) + ")";
+		} else if (question.replace(" ", "").contains("이번주")) {
+			startDate = today.minusDays(today.getDayOfWeek().getValue() - 1L);
+			endDate = startDate.plusDays(7);
+			period = "이번 주(" + startDate + "~" + endDate.minusDays(1) + ")";
+		} else {
+			return null;
+		}
+
+		List<Matches> matches = matchDAO.findMatchesByDateRange(
+				startDate.atStartOfDay(), endDate.atStartOfDay().minusNanos(1));
+		for (Teams team : selectedTeams) {
+			matches = matches.stream().filter(match -> team.getTeamId().equals(match.getHomeTeamId())
+					|| team.getTeamId().equals(match.getAwayTeamId())).toList();
+		}
+		if (matches.isEmpty()) return "DB에 확인되는 " + period + " 경기 일정이 없습니다.";
+
+		Map<Long, Teams> teamsById = teamDAO.findAllTeams().stream()
+				.collect(Collectors.toMap(Teams::getTeamId, team -> team));
+		StringBuilder answer = new StringBuilder(period).append(" 경기 ")
+				.append(Math.min(matches.size(), 10)).append("건");
+		for (Matches match : matches.stream().limit(10).toList()) {
+			Teams home = teamsById.get(match.getHomeTeamId());
+			Teams away = teamsById.get(match.getAwayTeamId());
+			answer.append("\n- ").append(match.getMatchDate()).append(' ')
+					.append(home != null ? displayTeamName(home) : "홈팀 미상")
+					.append(match.getHomeScore() != null && match.getAwayScore() != null
+							? " " + match.getHomeScore() + ":" + match.getAwayScore() + " " : " vs ")
+					.append(away != null ? displayTeamName(away) : "원정팀 미상");
+		}
+		if (matches.size() > 10) answer.append("\n- 외 ").append(matches.size() - 10).append("경기");
+		return answer.toString();
+	}
+
+	private long value(Long number) {
+		return number == null ? 0 : number;
+	}
+
+	private String answerTeamManager(String question, List<Teams> selectedTeams) {
+		if (!isManagerQuestion(question) || selectedTeams.isEmpty()) return null;
+		Teams team = selectedTeams.get(0);
+		return teamDAO.findStaffsByTeamId(team.getTeamId()).stream()
+				.filter(staff -> "감독".equals(staff.getRoleName()))
+				.findFirst().map(manager -> displayTeamName(team) + "의 감독은 "
+						+ (manager.getNameKor() != null ? manager.getNameKor() : manager.getName())
+						+ "이며 국적은 " + displayNationality(manager) + "입니다.")
+				.orElse(displayTeamName(team) + "의 감독 정보가 DB에 없습니다.");
+	}
+
+	private String answerPlayerDetails(String question) {
+		boolean detailQuestion = isPlayerQuestion(question) || question.contains("득점")
+				|| question.contains("골") || question.contains("도움") || question.contains("부상")
+				|| question.contains("징계")
+				|| question.contains("소속") || question.contains("어느 팀")
+				|| question.contains("어떤 팀") || question.contains("어디 팀")
+				|| question.contains("어디팀") || question.contains("국적");
+		if (!detailQuestion) return null;
+		String lower = question.toLowerCase(java.util.Locale.ROOT);
+		Players player = teamDAO.findAllPlayers().stream().filter(item ->
+				(item.getNameKor() != null && question.contains(item.getNameKor()))
+						|| (item.getName() != null && lower.contains(
+								item.getName().toLowerCase(java.util.Locale.ROOT)))).findFirst().orElse(null);
+		if (player == null) return null;
+		PlayerStats stats = teamDAO.findPlayerStats(player.getPlayerId());
+		Teams team = teamDAO.findTeamById(player.getTeamId());
+		StringBuilder answer = new StringBuilder(player.getNameKor() != null
+				? player.getNameKor() : player.getName());
+		answer.append(" · ").append(team != null ? displayTeamName(team) : "소속 팀 미상")
+				.append(" · ").append(player.getDetailPosition() != null
+						? player.getDetailPosition() : player.getMainPosition())
+				.append(" · ").append(player.getNationalityKor() != null
+						? player.getNationalityKor() : player.getNationality());
+		if (stats != null) {
+			answer.append("\n- ").append(value(stats.getGoals())).append("골 · ")
+					.append(value(stats.getAssists())).append("도움")
+					.append(" · 경고 ").append(value(stats.getYellowCards()))
+					.append(" · 퇴장 ").append(value(stats.getRedCards()));
+			if ("Y".equals(stats.getIsInjured())) answer.append("\n- 부상: ")
+					.append(stats.getInjuryNote() != null ? stats.getInjuryNote() : "상세 정보 없음");
+			if ("Y".equals(stats.getIsSuspended())) answer.append("\n- 출장 정지 상태");
+		}
+		return answer.toString();
+	}
+
+	private String answerTeamRoster(String question, List<Teams> selectedTeams) {
+		String position = requestedPosition(question);
+		String detailPosition = requestedDetailPosition(question);
+		boolean asksList = question.contains("명단") || question.contains("스쿼드")
+				|| question.contains("선수 누구") || question.contains("선수들")
+				|| ((position != null || detailPosition != null)
+						&& (!selectedTeams.isEmpty() || question.contains("누구")
+								|| question.contains("어디") || question.contains("알려")
+								|| question.contains("있어")));
+		if (!asksList) return null;
+		List<Players> allPlayers = teamDAO.findAllPlayers();
+		List<Players> players = allPlayers;
+		String nationality = findPlayerNationality(question, allPlayers);
+		String title = "선수 명단";
+		if (!selectedTeams.isEmpty()) {
+			Teams team = selectedTeams.get(0);
+			players = allPlayers.stream().filter(player -> team.getTeamId().equals(player.getTeamId())).toList();
+			title = displayTeamName(team) + " 선수 명단";
+		} else {
+			if (nationality == null) {
+				return "어느 팀의 선수인지 확인할 수 없습니다. 팀 이름을 함께 알려주세요.";
+			}
+			players = allPlayers.stream().filter(player -> nationality.equalsIgnoreCase(player.getNationality())
+					|| nationality.equals(player.getNationalityKor())).toList();
+			title = players.isEmpty() ? nationality + " 국적 선수"
+					: (players.get(0).getNationalityKor() != null
+							? players.get(0).getNationalityKor() : nationality) + " 국적 선수";
+		}
+		if (nationality != null) players = players.stream()
+				.filter(player -> nationality.equalsIgnoreCase(player.getNationality())
+						|| nationality.equals(player.getNationalityKor())).toList();
+		if (position != null) players = players.stream()
+				.filter(player -> position.equals(player.getMainPosition())).toList();
+		if (detailPosition != null) players = players.stream()
+				.filter(player -> detailPosition.equalsIgnoreCase(player.getDetailPosition())).toList();
+		if (players.isEmpty()) return "DB에 조건에 맞는 선수가 없습니다.";
+		StringBuilder answer = new StringBuilder(title).append(" · ").append(players.size()).append("명");
+		players.stream().limit(30).forEach(player -> answer.append("\n- ")
+				.append(player.getNameKor() != null ? player.getNameKor() : player.getName())
+				.append(" · ").append(player.getDetailPosition() != null
+						? player.getDetailPosition() : player.getMainPosition()));
+		if (players.size() > 30) answer.append("\n- 외 ").append(players.size() - 30).append("명");
+		return answer.toString();
+	}
+
+	// 부상 및 출장 정지 선수 질문을 PLAYER_STATS 상태값으로 조회합니다.
+	private String answerUnavailablePlayers(String question, List<Teams> selectedTeams) {
+		boolean injury = question.contains("부상");
+		boolean suspension = question.contains("출장 정지") || question.contains("출장정지")
+				|| question.contains("징계");
+		if ((!injury && !suspension) || (!question.contains("선수") && selectedTeams.isEmpty())) return null;
+		List<PlayerStats> players = teamDAO.findUnavailablePlayers().stream()
+				.filter(player -> selectedTeams.isEmpty() || selectedTeams.stream()
+						.anyMatch(team -> team.getTeamId().equals(player.getTeamId())))
+				.filter(player -> !injury || "Y".equals(player.getIsInjured()))
+				.filter(player -> !suspension || "Y".equals(player.getIsSuspended()))
+				.toList();
+		String condition = injury && suspension ? "부상·출장 정지" : injury ? "부상" : "출장 정지";
+		if (players.isEmpty()) return "DB에 확인되는 " + condition + " 선수가 없습니다.";
+		StringBuilder answer = new StringBuilder(condition).append(" 선수 ").append(players.size()).append("명");
+		players.stream().limit(30).forEach(player -> {
+			answer.append("\n- ").append(player.getPlayerNameKor() != null
+					? player.getPlayerNameKor() : player.getPlayerName())
+					.append(" · ").append(player.getTeamNameKor() != null
+							? player.getTeamNameKor() : player.getTeamName());
+			if (injury && player.getInjuryNote() != null) answer.append(" · ").append(player.getInjuryNote());
+		});
+		if (players.size() > 30) answer.append("\n- 외 ").append(players.size() - 30).append("명");
+		return answer.toString();
+	}
+
+	private String answerStandings(String question, List<Teams> selectedTeams) {
+		boolean standingsQuestion = question.contains("순위") || question.contains("몇위")
+				|| question.contains("몇 위") || question.contains("1위")
+				|| question.contains("꼴찌") || question.contains("승점")
+				|| question.contains("득실차") || question.contains("승무패")
+				|| (!selectedTeams.isEmpty() && (question.contains("성적")
+						|| question.contains("몇 승") || question.contains("몇승")
+						|| question.contains("몇 무") || question.contains("몇무")
+						|| question.contains("몇 패") || question.contains("몇패")));
+		boolean teamCount = selectedTeams.isEmpty() && isCountQuestion(question)
+				&& (question.contains("팀") || question.contains("구단"))
+				&& !isPlayerQuestion(question) && !isManagerQuestion(question);
+		if (!standingsQuestion && !teamCount) return null;
+		Matcher seasonMatcher = SEASON_PATTERN.matcher(question);
+		Integer requestedSeason = seasonMatcher.find() ? Integer.valueOf(seasonMatcher.group(1)) : null;
+		List<TeamStats> standings = teamDAO.findAllTeamStandings(requestedSeason);
+		if (standings.isEmpty()) return "현재 시즌 순위 데이터가 없습니다.";
+		int season = standings.get(0).getSeason();
+		if (teamCount) return season + "시즌 PL 참가 팀은 " + standings.size() + "팀입니다.";
+		if (!selectedTeams.isEmpty()) {
+			Teams team = selectedTeams.get(0);
+			return standings.stream().filter(stats -> team.getTeamId().equals(stats.getTeamId()))
+					.findFirst().map(stats -> season + "시즌 " + displayTeamName(team)
+							+ "은 " + stats.getCurrentRank() + "위, 승점 " + stats.getPoints()
+							+ "점, " + stats.getWins() + "승 " + stats.getDraws() + "무 "
+							+ stats.getLosses() + "패, 득실차 " + stats.getGoalDiff() + "입니다.")
+						.orElse("현재 시즌 순위표에 " + displayTeamName(team) + " 기록이 없습니다.");
+		}
+		if (question.contains("1위")) {
+			TeamStats leader = standings.get(0);
+			return season + "시즌 PL 1위는 " + displayStandingName(leader)
+					+ "이며 승점은 " + leader.getPoints() + "점입니다.";
+		}
+		if (question.contains("꼴찌")) {
+			TeamStats last = standings.get(standings.size() - 1);
+			return season + "시즌 PL 최하위는 " + displayStandingName(last)
+					+ "이며 승점은 " + last.getPoints() + "점입니다.";
+		}
+		StringBuilder answer = new StringBuilder(season + "시즌 PL 상위 10팀");
+		standings.stream().limit(10).forEach(stats -> answer.append("\n- ")
+				.append(stats.getCurrentRank()).append("위 ").append(displayStandingName(stats))
+				.append(" · 승점 ").append(stats.getPoints()).append('점'));
+		return answer.toString();
+	}
+
+	private String displayStandingName(TeamStats stats) {
+		return stats.getTeamNameKor() != null ? stats.getTeamNameKor() : stats.getTeamName();
+	}
+
+	private String answerPlayerCount(String question, List<Teams> selectedTeams) {
+		if (!isPlayerQuestion(question) || !isCountQuestion(question)
+				|| question.contains("득점") || question.contains("도움")) return null;
+		List<Players> allPlayers = teamDAO.findAllPlayers();
+		List<Players> players = selectedTeams.isEmpty() ? allPlayers : allPlayers.stream()
+				.filter(player -> selectedTeams.get(0).getTeamId().equals(player.getTeamId())).toList();
+		String scope;
+		if (selectedTeams.isEmpty()) {
+			List<TeamStats> standings = teamDAO.findAllTeamStandings(null);
+			if (standings.isEmpty()) return "현재 시즌 순위 데이터가 없어 선수 인원을 확인할 수 없습니다.";
+			Set<Long> teamIds = standings.stream().map(TeamStats::getTeamId).collect(Collectors.toSet());
+			players = players.stream().filter(player -> teamIds.contains(player.getTeamId())).toList();
+			scope = standings.get(0).getSeason() + "시즌 PL";
+		} else {
+			scope = displayTeamName(selectedTeams.get(0));
+		}
+		String nationality = findPlayerNationality(question, allPlayers);
+		String position = requestedPosition(question);
+		long count = players.stream()
+				.filter(player -> nationality == null || nationality.equalsIgnoreCase(player.getNationality())
+						|| nationality.equals(player.getNationalityKor()))
+				.filter(player -> position == null || position.equals(player.getMainPosition()))
+				.count();
+		String nationalityLabel = nationality == null ? null : allPlayers.stream()
+				.filter(player -> nationality.equalsIgnoreCase(player.getNationality())
+						|| nationality.equals(player.getNationalityKor()))
+				.findFirst().map(player -> player.getNationalityKor() != null
+						? player.getNationalityKor() : nationality).orElse(nationality);
+		String description = (nationalityLabel == null ? "" : nationalityLabel + " 국적 ")
+				+ (position == null ? "" : positionName(position) + " ") + "선수";
+		return scope + "의 " + description + "는 " + count + "명입니다.";
+	}
+
+	private boolean isPlayerQuestion(String question) {
+		return question.contains("선수") || question.contains("골키퍼")
+				|| question.contains("수비수") || question.contains("미드필더")
+				|| question.contains("공격수") || question.contains("포지션");
+	}
+
+	private String findPlayerNationality(String question, List<Players> players) {
+		String normalized = question.replace("스패인", "스페인")
+				.toLowerCase(java.util.Locale.ROOT).replace("spanish", "spain");
+		for (Players player : players) {
+			String english = player.getNationality();
+			String korean = player.getNationalityKor();
+			if ((english != null && normalized.contains(english.toLowerCase(java.util.Locale.ROOT)))
+					|| (korean != null && normalized.contains(korean.toLowerCase(java.util.Locale.ROOT)))) {
+				return english != null ? english : korean;
+			}
+		}
+		return explicitNationality(normalized);
+	}
+
+	private String requestedPosition(String question) {
+		String upper = question.toUpperCase(java.util.Locale.ROOT);
+		if (question.contains("골키퍼") || question.contains("키퍼") || upper.contains("GK")) return "GK";
+		if (question.contains("수비수") || question.contains("풀백") || question.contains("센터백")
+				|| upper.contains("DF")) return "DF";
+		if (question.contains("미드필더") || upper.contains("MF")) return "MF";
+		if (question.contains("공격수") || question.contains("윙어")
+				|| question.contains("스트라이커") || upper.contains("FW")) return "FW";
+		return null;
+	}
+
+	private String positionName(String position) {
+		return switch (position) {
+			case "GK" -> "골키퍼";
+			case "DF" -> "수비수";
+			case "MF" -> "미드필더";
+			case "FW" -> "공격수";
+			default -> position;
+		};
+	}
+
+	private String answerTeamFacts(String question, List<Teams> selectedTeams) {
+		if (selectedTeams.isEmpty()) return null;
+		Teams team = selectedTeams.get(0);
+		if (question.contains("홈구장") || question.contains("경기장")) {
+			String ground = team.getHomeGroundKor() != null ? team.getHomeGroundKor() : team.getHomeGround();
+			return ground == null ? "DB에 홈구장 정보가 없습니다."
+					: displayTeamName(team) + "의 홈구장은 " + ground + "입니다.";
+		}
+		if (question.contains("창단")) {
+			return team.getFoundedYear() == null ? "DB에 창단일 정보가 없습니다."
+					: displayTeamName(team) + "의 창단일은 " + team.getFoundedYear() + "입니다.";
+		}
+		if (question.contains("역사") || question.contains("구단 소개") || question.contains("팀 소개")) {
+			return team.getHistory() == null || team.getHistory().isBlank()
+					? "DB에 구단 소개 정보가 없습니다."
+					: displayTeamName(team) + " 소개\n- " + team.getHistory();
+		}
+		if (question.contains("응원가") || question.contains("구단가") || question.contains("앤섬")) {
+			return team.getAnthemUrl() == null || team.getAnthemUrl().isBlank()
+					? "DB에 응원가 주소가 없습니다."
+					: displayTeamName(team) + " 응원가\n- " + team.getAnthemUrl();
+		}
+		return null;
+	}
+
+	private String requestedDetailPosition(String question) {
+		String upper = question.toUpperCase(java.util.Locale.ROOT);
+		if (question.contains("스트라이커") || upper.matches(".*\\bST\\b.*")) return "ST";
+		if (question.contains("왼쪽 윙") || question.contains("좌측 윙")
+				|| upper.matches(".*\\bLW\\b.*")) return "LW";
+		if (question.contains("오른쪽 윙") || question.contains("우측 윙")
+				|| upper.matches(".*\\bRW\\b.*")) return "RW";
+		if (question.contains("센터백") || upper.matches(".*\\bCB\\b.*")) return "CB";
+		if (question.contains("레프트백") || question.contains("왼쪽 풀백")
+				|| upper.matches(".*\\bLB\\b.*")) return "LB";
+		if (question.contains("라이트백") || question.contains("오른쪽 풀백")
+				|| upper.matches(".*\\bRB\\b.*")) return "RB";
+		if (question.contains("수비형 미드필더") || upper.matches(".*\\bCDM\\b.*")) return "CDM";
+		if (question.contains("공격형 미드필더") || upper.matches(".*\\bCAM\\b.*")) return "CAM";
+		if (question.contains("중앙 미드필더") || upper.matches(".*\\bCM\\b.*")) return "CM";
+		return null;
+	}
+
+	// 두 팀 이름과 상대 전적 표현이 함께 들어오면 최근 맞대결 결과를 조회합니다.
+	private String answerHeadToHead(String question, List<Teams> selectedTeams) {
+		boolean headToHead = question.contains("상대 전적") || question.contains("맞대결")
+				|| question.contains("전적 알려") || question.contains("전적은");
+		if (!headToHead || selectedTeams.size() < 2) return null;
+		Teams first = selectedTeams.get(0);
+		Teams second = selectedTeams.get(1);
+		List<Matches> matches = matchDAO.findHeadToHeadMatches(
+				first.getTeamId(), second.getTeamId(), 5);
+		if (matches.isEmpty()) {
+			return "DB에 " + displayTeamName(first) + "와 " + displayTeamName(second)
+					+ "의 완료된 맞대결 기록이 없습니다.";
+		}
+		long firstWins = 0;
+		long secondWins = 0;
+		long draws = 0;
+		for (Matches match : matches) {
+			if (match.getHomeScore() == null || match.getAwayScore() == null) continue;
+			if (match.getHomeScore().equals(match.getAwayScore())) {
+				draws++;
+			} else {
+				Long winnerId = match.getHomeScore() > match.getAwayScore()
+						? match.getHomeTeamId() : match.getAwayTeamId();
+				if (first.getTeamId().equals(winnerId)) firstWins++;
+				else secondWins++;
+			}
+		}
+		StringBuilder answer = new StringBuilder("최근 맞대결 ").append(matches.size()).append("경기 · ")
+				.append(displayTeamName(first)).append(' ').append(firstWins).append("승 · 무승부 ")
+				.append(draws).append("회 · ").append(displayTeamName(second)).append(' ')
+				.append(secondWins).append("승");
+		for (Matches match : matches) {
+			answer.append("\n- ").append(match.getMatchDate()).append(' ')
+					.append(match.getHomeTeamName()).append(' ')
+					.append(match.getHomeScore() != null && match.getAwayScore() != null
+							? match.getHomeScore() + ":" + match.getAwayScore() : "vs")
+					.append(' ')
+					.append(match.getAwayTeamName());
+		}
+		return answer.toString();
+	}
+
+	private String answerRecentResults(String question, List<Teams> selectedTeams) {
+		boolean recentResults = (question.contains("최근 경기") || question.contains("마지막 경기")
+				|| question.contains("경기 결과") || question.contains("경기결과"))
+				&& !question.contains("일정") && !question.contains("예정");
+		if (!recentResults) return null;
+		Long teamId = selectedTeams.isEmpty() ? null : selectedTeams.get(0).getTeamId();
+		List<Matches> matches = matchDAO.findRecentMatches(teamId, 5);
+		if (matches.isEmpty()) return "DB에 완료된 경기 결과가 없습니다.";
+		StringBuilder answer = new StringBuilder("최근 완료 경기 ").append(matches.size()).append("건");
+		for (Matches match : matches) {
+			answer.append("\n- ").append(match.getMatchDate()).append(' ')
+					.append(match.getHomeTeamName()).append(' ')
+					.append(match.getHomeScore()).append(':').append(match.getAwayScore()).append(' ')
+					.append(match.getAwayTeamName());
+		}
+		return answer.toString();
+	}
+
+	private void appendPlayerContext(StringBuilder context, String question, List<Teams> selectedTeams) {
+		List<Players> players = selectedTeams.isEmpty() ? teamDAO.findAllPlayers()
+				: teamDAO.findPlayersByTeamId(selectedTeams.get(0).getTeamId());
+		String lower = question.toLowerCase(java.util.Locale.ROOT);
+		List<Players> named = players.stream().filter(player ->
+				(player.getNameKor() != null && question.contains(player.getNameKor()))
+						|| (player.getName() != null && lower.contains(
+								player.getName().toLowerCase(java.util.Locale.ROOT)))).toList();
+		if (!named.isEmpty()) players = named;
+		else if (selectedTeams.isEmpty()) {
+			String nationality = findPlayerNationality(question, players);
+			if (nationality == null) return;
+			players = players.stream().filter(player -> nationality.equalsIgnoreCase(player.getNationality())
+					|| nationality.equals(player.getNationalityKor())).toList();
+		}
+		context.append("선수 정보:\n");
+		players.stream().limit(20).forEach(player -> context.append("- ")
+				.append(player.getNameKor() != null ? player.getNameKor() : player.getName())
+				.append(", 국적 ").append(player.getNationalityKor() != null
+						? player.getNationalityKor() : player.getNationality())
+				.append(", 포지션 ").append(player.getDetailPosition() != null
+						? player.getDetailPosition() : player.getMainPosition()).append('\n'));
+	}
+
+	private boolean containsMentionedPlayer(String question) {
+		String lower = question.toLowerCase(java.util.Locale.ROOT);
+		return teamDAO.findAllPlayers().stream().anyMatch(player ->
+				(player.getNameKor() != null && question.contains(player.getNameKor()))
+						|| (player.getName() != null
+								&& lower.contains(player.getName().toLowerCase(java.util.Locale.ROOT))));
 	}
 
 	// 질문에 명시된 구단을 DB 이름으로 찾습니다.
@@ -169,7 +1016,8 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		if (name == null) return false;
 		String lower = name.toLowerCase(java.util.Locale.ROOT).trim();
 		String shortName = lower.replaceFirst("(?i)\\s+(fc|afc)$", "");
-		return question.contains(lower) || (shortName.length() >= 3 && question.contains(shortName));
+		int minimumLength = shortName.matches(".*[가-힣].*") ? 2 : 3;
+		return question.contains(lower) || (shortName.length() >= minimumLength && question.contains(shortName));
 	}
 
 	private boolean isScheduleQuestion(String question) {
@@ -205,6 +1053,14 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	 * Gemini API 호출 공통 메서드 (최신 모델 자동 탐색 및 JSON 응답 보장)
 	 */
 	private String callGemini(String promptText) throws Exception {
+		return callGeminiRequest(promptText, false).text();
+	}
+
+	private GeminiCallResult callGeminiWithSearch(String promptText) throws Exception {
+		return callGeminiRequest(promptText, true);
+	}
+
+	private GeminiCallResult callGeminiRequest(String promptText, boolean googleSearch) throws Exception {
 		if (apiKey == null || apiKey.trim().isEmpty() || "apikey".equalsIgnoreCase(apiKey.trim())) {
 			throw new IllegalStateException("application.properties에 유효한 gemini.api.key가 설정되지 않았습니다.");
 		}
@@ -228,13 +1084,22 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		Map<String, Object> requestBody = new HashMap<>();
 		requestBody.put("contents", contents);
 		requestBody.put("generationConfig", genConfig);
+		if (googleSearch) {
+			requestBody.put("tools", List.of(Map.of("google_search", Map.of())));
+		}
 
 		String requestJson = objectMapper.writeValueAsString(requestBody);
 
 		// 이미 검증된 모델이 있으면 우선 사용, 없으면 후보 순차 시도
-		String[] modelsToTry = (verifiedModel != null) 
-				? new String[]{verifiedModel} 
-				: CANDIDATE_MODELS;
+		String cachedModel = googleSearch ? verifiedSearchModel : verifiedModel;
+		String[] searchCandidates = {
+			"gemini-3.1-flash-lite",
+			"gemini-flash-latest",
+			"gemini-flash-lite-latest"
+		};
+		String[] modelsToTry = cachedModel != null
+				? new String[]{cachedModel}
+				: googleSearch ? searchCandidates : CANDIDATE_MODELS;
 
 		String lastError = null;
 		for (String modelName : modelsToTry) {
@@ -251,29 +1116,47 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
 			if (response.statusCode() == 200) {
-				if (verifiedModel == null) {
-					verifiedModel = modelName;
-					log.info("[Gemini API] 최신 모델 연동 성공: {}", modelName);
-				}
+				if (googleSearch) verifiedSearchModel = modelName;
+				else verifiedModel = modelName;
+				log.info("[Gemini API] 모델 연동 성공: {} (Google 검색: {})", modelName, googleSearch);
 
 				JsonNode rootNode = objectMapper.readTree(response.body());
 				JsonNode candidates = rootNode.path("candidates");
 				if (candidates.isArray() && candidates.size() > 0) {
-					JsonNode textNode = candidates.get(0).path("content").path("parts").get(0).path("text");
-					return textNode.asText();
+					JsonNode candidate = candidates.get(0);
+					for (JsonNode part : candidate.path("content").path("parts")) {
+						String text = part.path("text").asText("");
+						if (!text.isBlank()) {
+							return new GeminiCallResult(text, extractGroundingSources(candidate));
+						}
+					}
 				}
 			} else {
 				lastError = "모델 [" + modelName + "] 호출 실패 (HTTP " + response.statusCode() + "): " + response.body();
 				log.warn("[Gemini API] {}", lastError);
-				// 만약 verifiedModel이 실패한 경우 리셋하고 다른 모델 시도
-				if (verifiedModel != null) {
-					verifiedModel = null;
-					return callGemini(promptText);
+				// 캐시된 모델이 실패하면 전체 후보를 다시 확인합니다.
+				if (cachedModel != null) {
+					if (googleSearch) verifiedSearchModel = null;
+					else verifiedModel = null;
+					return callGeminiRequest(promptText, googleSearch);
 				}
 			}
 		}
 
 		throw new RuntimeException("모든 Gemini 모델 호출 실패: " + lastError);
+	}
+
+	private List<String> extractGroundingSources(JsonNode candidate) {
+		List<String> sources = new ArrayList<>();
+		for (JsonNode chunk : candidate.path("groundingMetadata").path("groundingChunks")) {
+			JsonNode web = chunk.path("web");
+			String uri = web.path("uri").asText("");
+			if (uri.isBlank() || sources.stream().anyMatch(source -> source.endsWith(uri))) continue;
+			String title = web.path("title").asText("검색 결과");
+			sources.add(title + " · " + uri);
+			if (sources.size() == 3) break;
+		}
+		return sources;
 	}
 
 	/**

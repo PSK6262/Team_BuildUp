@@ -26,6 +26,11 @@ public class MatchEvents {
     @JsonProperty("assistPlayerId")
     private Long assistPlayerId;       // [FK] 도움 선수 식별자 (없으면 NULL)
 
+	// 챗봇 경기 이벤트 표시를 위한 조인 결과입니다.
+	private String eventTypeName;
+	private String playerName;
+	private String assistPlayerName;
+
     // --- snake_case 호환 Getter (프론트엔드/API snake_case 참조 지원) ---
     @JsonProperty("event_time")
     public Long getEventTimeSnake() {
@@ -83,4 +88,13 @@ public class MatchEvents {
 
     public Long getAssistPlayerId() { return assistPlayerId; }
     public void setAssistPlayerId(Long assistPlayerId) { this.assistPlayerId = assistPlayerId; }
+
+	public String getEventTypeName() { return eventTypeName; }
+	public void setEventTypeName(String eventTypeName) { this.eventTypeName = eventTypeName; }
+
+	public String getPlayerName() { return playerName; }
+	public void setPlayerName(String playerName) { this.playerName = playerName; }
+
+	public String getAssistPlayerName() { return assistPlayerName; }
+	public void setAssistPlayerName(String assistPlayerName) { this.assistPlayerName = assistPlayerName; }
 }
