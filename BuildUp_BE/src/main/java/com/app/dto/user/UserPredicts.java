@@ -14,7 +14,6 @@ public class UserPredicts {
 
 	// JOIN 및 랭킹 산출용 필드
 	private String nickname;
-	private Double winRate;
 	
     public String getUpdatedAt() {
         if (this.updatedAt == null) return null;

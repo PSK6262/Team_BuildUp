@@ -12,7 +12,13 @@ import java.util.Map;
 public interface GeminiApiService {
 
 	// 프리미어리그 질문에 대한 챗봇 답변을 생성합니다.
-	String answerEplQuestion(String question, String pagePath);
+	String answerEplQuestion(String question, String pagePath, String scoreContext,
+			String conversationContext);
+
+	// 기존 호출 코드에서는 대화 문맥 없이도 사용할 수 있습니다.
+	default String answerEplQuestion(String question, String pagePath, String scoreContext) {
+		return answerEplQuestion(question, pagePath, scoreContext, null);
+	}
 
 	/**
 	 * 20개 구단 한글 명칭, 홈 경기장 한글 명칭 및 구단 역사 일괄 생성 및 DB 적재

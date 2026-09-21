@@ -34,75 +34,42 @@ public class MatchEvents {
     @JsonAlias({"assist_player_id", "ASSIST_PLAYER_ID"})
     private Long assistPlayerId;       // [FK] 도움 선수 식별자 (없으면 NULL)
 
-    // --- 조인용 확장 필드 (선수명, 팀명, 엠블럼) ---
+    // 조인 및 표시용 확장 필드
+    @JsonProperty("eventTypeName")
+    @JsonAlias({"event_type_name", "EVENT_TYPE_NAME"})
+    private String eventTypeName;      // 이벤트 유형명 (GOAL, YELLOW_CARD 등)
+
     @JsonProperty("playerName")
     @JsonAlias({"player_name", "PLAYER_NAME"})
-    private String playerName;
+    private String playerName;         // 선수 영문명
 
     @JsonProperty("playerNameKor")
     @JsonAlias({"player_name_kor", "PLAYER_NAME_KOR"})
-    private String playerNameKor;
+    private String playerNameKor;      // 선수 한글명
 
     @JsonProperty("assistPlayerName")
     @JsonAlias({"assist_player_name", "ASSIST_PLAYER_NAME"})
-    private String assistPlayerName;
+    private String assistPlayerName;   // 도움 선수 영문명
 
     @JsonProperty("assistPlayerNameKor")
     @JsonAlias({"assist_player_name_kor", "ASSIST_PLAYER_NAME_KOR"})
-    private String assistPlayerNameKor;
+    private String assistPlayerNameKor;// 도움 선수 한글명
 
     @JsonProperty("teamName")
     @JsonAlias({"team_name", "TEAM_NAME"})
-    private String teamName;
+    private String teamName;           // 구단 영문명
 
     @JsonProperty("teamNameKor")
     @JsonAlias({"team_name_kor", "TEAM_NAME_KOR"})
-    private String teamNameKor;
+    private String teamNameKor;        // 구단 한글명
 
     @JsonProperty("teamEmblemUrl")
     @JsonAlias({"team_emblem_url", "TEAM_EMBLEM_URL"})
-    private String teamEmblemUrl;
+    private String teamEmblemUrl;      // 구단 엠블럼 URL
 
-    // --- 명시적 Getter / Setter (Lombok 미가동 빌드 환경 대비 안전장치) ---
-    public Long getEventId() { return eventId; }
-    public void setEventId(Long eventId) { this.eventId = eventId; }
-
-    public Long getMatchId() { return matchId; }
-    public void setMatchId(Long matchId) { this.matchId = matchId; }
-
-    public Long getTeamId() { return teamId; }
-    public void setTeamId(Long teamId) { this.teamId = teamId; }
-
-    public Long getEventTime() { return eventTime; }
-    public void setEventTime(Long eventTime) { this.eventTime = eventTime; }
-
-    public Long getEventType() { return eventType; }
-    public void setEventType(Long eventType) { this.eventType = eventType; }
-
-    public Long getPlayerId() { return playerId; }
-    public void setPlayerId(Long playerId) { this.playerId = playerId; }
-
-    public Long getAssistPlayerId() { return assistPlayerId; }
-    public void setAssistPlayerId(Long assistPlayerId) { this.assistPlayerId = assistPlayerId; }
-
-    public String getPlayerName() { return playerName; }
-    public void setPlayerName(String playerName) { this.playerName = playerName; }
-
-    public String getPlayerNameKor() { return playerNameKor; }
-    public void setPlayerNameKor(String playerNameKor) { this.playerNameKor = playerNameKor; }
-
-    public String getAssistPlayerName() { return assistPlayerName; }
-    public void setAssistPlayerName(String assistPlayerName) { this.assistPlayerName = assistPlayerName; }
-
-    public String getAssistPlayerNameKor() { return assistPlayerNameKor; }
-    public void setAssistPlayerNameKor(String assistPlayerNameKor) { this.assistPlayerNameKor = assistPlayerNameKor; }
-
-    public String getTeamName() { return teamName; }
-    public void setTeamName(String teamName) { this.teamName = teamName; }
-
-    public String getTeamNameKor() { return teamNameKor; }
-    public void setTeamNameKor(String teamNameKor) { this.teamNameKor = teamNameKor; }
-
-    public String getTeamEmblemUrl() { return teamEmblemUrl; }
-    public void setTeamEmblemUrl(String teamEmblemUrl) { this.teamEmblemUrl = teamEmblemUrl; }
+    // --- snake_case 호환 Getter ---
+    @JsonProperty("event_time")
+    public Long getEventTimeSnake() {
+        return this.eventTime;
+    }
 }

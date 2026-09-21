@@ -458,6 +458,94 @@
 		FETCH FIRST NVL(#{limit, jdbcType=NUMERIC}, 20) ROWS ONLY
 	</select>
 
+	<!-- 프리미어리그 도움 상위 선수 조회 -->
+	<select id="selectTopAssists" parameterType="Integer" resultType="PlayerStats">
+		SELECT
+			ps.PLAYER_ID,
+			p.NAME AS PLAYER_NAME,
+			p.NAME_KOR AS PLAYER_NAME_KOR,
+			t.TEAM_ID,
+			t.TEAM_NAME,
+			t.TEAM_NAME_KOR,
+			ps.GOALS,
+			ps.ASSISTS
+		FROM PLAYER_STATS ps
+		JOIN PLAYERS p ON ps.PLAYER_ID = p.PLAYER_ID
+		JOIN TEAMS t ON p.TEAM_ID = t.TEAM_ID
+		WHERE ps.ASSISTS &gt; 0
+		ORDER BY ps.ASSISTS DESC, ps.GOALS DESC, p.NAME ASC
+		FETCH FIRST NVL(#{limit, jdbcType=NUMERIC}, 20) ROWS ONLY
+	</select>
+
+	<!-- 프리미어리그 공격포인트 상위 선수 조회 -->
+	<select id="selectTopAttackPoints" parameterType="Integer" resultType="PlayerStats">
+		SELECT
+			ps.PLAYER_ID,
+			p.NAME AS PLAYER_NAME,
+			p.NAME_KOR AS PLAYER_NAME_KOR,
+			t.TEAM_ID,
+			t.TEAM_NAME,
+			t.TEAM_NAME_KOR,
+			ps.GOALS,
+			ps.ASSISTS
+		FROM PLAYER_STATS ps
+		JOIN PLAYERS p ON ps.PLAYER_ID = p.PLAYER_ID
+		JOIN TEAMS t ON p.TEAM_ID = t.TEAM_ID
+		WHERE NVL(ps.GOALS, 0) + NVL(ps.ASSISTS, 0) &gt; 0
+		ORDER BY NVL(ps.GOALS, 0) + NVL(ps.ASSISTS, 0) DESC,
+			ps.GOALS DESC,
+			p.NAME ASC
+		FETCH FIRST NVL(#{limit, jdbcType=NUMERIC}, 20) ROWS ONLY
+	</select>
+
+	<!-- MOM 선정 횟수 상위 선수 조회 -->
+	<select id="selectTopMomPlayers" parameterType="Integer" resultType="PlayerStats">
+		SELECT ps.PLAYER_ID, p.NAME AS PLAYER_NAME, p.NAME_KOR AS PLAYER_NAME_KOR,
+			t.TEAM_ID, t.TEAM_NAME, t.TEAM_NAME_KOR, ps.MOM_COUNT
+		FROM PLAYER_STATS ps
+		JOIN PLAYERS p ON p.PLAYER_ID = ps.PLAYER_ID
+		JOIN TEAMS t ON t.TEAM_ID = p.TEAM_ID
+		WHERE ps.MOM_COUNT &gt; 0
+		ORDER BY ps.MOM_COUNT DESC, p.NAME ASC
+		FETCH FIRST NVL(#{limit, jdbcType=NUMERIC}, 20) ROWS ONLY
+	</select>
+
+	<!-- 경고 누적 상위 선수 조회 -->
+	<select id="selectTopYellowCards" parameterType="Integer" resultType="PlayerStats">
+		SELECT ps.PLAYER_ID, p.NAME AS PLAYER_NAME, p.NAME_KOR AS PLAYER_NAME_KOR,
+			t.TEAM_ID, t.TEAM_NAME, t.TEAM_NAME_KOR, ps.YELLOW_CARDS
+		FROM PLAYER_STATS ps
+		JOIN PLAYERS p ON p.PLAYER_ID = ps.PLAYER_ID
+		JOIN TEAMS t ON t.TEAM_ID = p.TEAM_ID
+		WHERE ps.YELLOW_CARDS &gt; 0
+		ORDER BY ps.YELLOW_CARDS DESC, p.NAME ASC
+		FETCH FIRST NVL(#{limit, jdbcType=NUMERIC}, 20) ROWS ONLY
+	</select>
+
+	<!-- 퇴장 누적 상위 선수 조회 -->
+	<select id="selectTopRedCards" parameterType="Integer" resultType="PlayerStats">
+		SELECT ps.PLAYER_ID, p.NAME AS PLAYER_NAME, p.NAME_KOR AS PLAYER_NAME_KOR,
+			t.TEAM_ID, t.TEAM_NAME, t.TEAM_NAME_KOR, ps.RED_CARDS
+		FROM PLAYER_STATS ps
+		JOIN PLAYERS p ON p.PLAYER_ID = ps.PLAYER_ID
+		JOIN TEAMS t ON t.TEAM_ID = p.TEAM_ID
+		WHERE ps.RED_CARDS &gt; 0
+		ORDER BY ps.RED_CARDS DESC, p.NAME ASC
+		FETCH FIRST NVL(#{limit, jdbcType=NUMERIC}, 20) ROWS ONLY
+	</select>
+
+	<!-- 현재 부상 또는 출장 정지 상태인 선수 조회 -->
+	<select id="selectUnavailablePlayers" resultType="PlayerStats">
+		SELECT ps.PLAYER_ID, p.NAME AS PLAYER_NAME, p.NAME_KOR AS PLAYER_NAME_KOR,
+			t.TEAM_ID, t.TEAM_NAME, t.TEAM_NAME_KOR,
+			ps.IS_INJURED, ps.INJURY_NOTE, ps.IS_SUSPENDED
+		FROM PLAYER_STATS ps
+		JOIN PLAYERS p ON p.PLAYER_ID = ps.PLAYER_ID
+		JOIN TEAMS t ON t.TEAM_ID = p.TEAM_ID
+		WHERE ps.IS_INJURED = 'Y' OR ps.IS_SUSPENDED = 'Y'
+		ORDER BY t.TEAM_NAME, p.NAME
+	</select>
+
 	<!-- 특정 선수 개인 상세 스탯 조회 -->
 	<select id="selectPlayerStatsByPlayerId" parameterType="long" resultType="PlayerStats">
 		SELECT 

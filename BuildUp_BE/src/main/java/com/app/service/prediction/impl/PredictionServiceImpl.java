@@ -36,7 +36,6 @@ public class PredictionServiceImpl implements PredictionService {
 	private static final String MSG_INVALID_PREDICT_RESULT = "예측 결과는 HOME, DRAW, AWAY 중 하나여야 합니다.";
 	private static final String MSG_MATCH_ALREADY_CLOSED = "이미 시작되었거나 종료된 경기에는 예측에 참여할 수 없습니다.";
 	private static final String MSG_MATCH_TIME_EXPIRED = "경기 시작 시간이 경과하여 투표가 마감되었습니다.";
-	private static final String MSG_ALREADY_PREDICTED = "이미 예측에 참여한 경기입니다. (중복 투표 불가)";
 	private static final String MSG_MATCH_NOT_FINISHED = "경기가 아직 종료(FINISHED)되지 않아 정산할 수 없습니다.";
 	private static final String MSG_SCORE_NOT_CONFIRMED = "경기 최종 스코어가 확정되지 않아 정산할 수 없습니다.";
 

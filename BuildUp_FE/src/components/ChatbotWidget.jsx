@@ -4,9 +4,19 @@ import '../css/ChatbotWidget.css'
 const BUTTON_SIZE = 56
 const EDGE = 16
 const STORAGE_KEY = 'plugin_chatbot_position'
+const SCORE_PATTERN = /\d{1,2}\s*(?:대|:)\s*\d{1,2}/
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
+}
+
+// 검색 답변에 포함된 출처 주소를 새 탭에서 열 수 있는 링크로 표시합니다.
+function renderTextWithLinks(text) {
+  return text.split(/(https?:\/\/[^\s]+)/g).map((part, index) =>
+    /^https?:\/\//.test(part)
+      ? <a key={index} href={part} target="_blank" rel="noreferrer">출처 보기</a>
+      : part,
+  )
 }
 
 function initialPosition() {
@@ -28,8 +38,42 @@ function initialPosition() {
   return fallback
 }
 
+// 여러 경기 결과를 날짜·점수·승리 팀으로 나누어 표시합니다.
+function renderMessageContent(text) {
+  const lines = text.split('\n')
+  if (lines.length < 2 || !lines.slice(1).every((line) => line.startsWith('- '))) {
+    return renderTextWithLinks(text)
+  }
+
+  return <>
+    <strong className="chatbot-widget__result-title">{lines[0]}</strong>
+    <ul className="chatbot-widget__result-list">
+      {lines.slice(1).map((line, index) => {
+        const item = line.slice(2)
+        const dated = item.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2})\s+(.+)$/)
+        const date = dated?.[1]
+        const detail = dated?.[2] || item
+        const winner = detail.match(/\s+\(승리:\s*(.+)\)$/)
+        const matchup = winner ? detail.slice(0, winner.index) : detail
+        return <li key={index}>
+          {date && <time dateTime={date.replace(' ', 'T')}>{date}</time>}
+          <span className="chatbot-widget__result-match">
+            {matchup.split(/(\d{1,2}:\d{1,2})/).map((part, partIndex) =>
+              /^\d{1,2}:\d{1,2}$/.test(part)
+                ? <b key={partIndex}>{part}</b>
+                : <span key={partIndex}>{part}</span>,
+            )}
+          </span>
+          {winner && <small>승리 · {winner[1]}</small>}
+        </li>
+      })}
+    </ul>
+  </>
+}
+
 export default function ChatbotWidget() {
   const [position, setPosition] = useState(initialPosition)
+  const [panelOffset, setPanelOffset] = useState({ x: 0, y: 0 })
   const [viewport, setViewport] = useState({ width: window.innerWidth, height: window.innerHeight })
   const [open, setOpen] = useState(false)
   const [question, setQuestion] = useState('')
@@ -39,6 +83,7 @@ export default function ChatbotWidget() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const drag = useRef(null)
+  const panelDrag = useRef(null)
   const ignoreClick = useRef(false)
   const bottomRef = useRef(null)
 
@@ -70,6 +115,8 @@ export default function ChatbotWidget() {
       startY: event.clientY,
       x: position.x,
       y: position.y,
+      left: panelLeft,
+      top: panelTop,
       moved: false,
     }
   }
@@ -81,17 +128,22 @@ export default function ChatbotWidget() {
     const dy = event.clientY - current.startY
     if (!current.moved && Math.hypot(dx, dy) < 6) return
     current.moved = true
-    setPosition({
-      x: clamp(current.x + dx, EDGE, Math.max(EDGE, viewport.width - BUTTON_SIZE - EDGE)),
-      y: clamp(current.y + dy, EDGE, Math.max(EDGE, viewport.height - BUTTON_SIZE - EDGE)),
-    })
+    if (open) {
+      moveTogether(current, dx, dy)
+    } else {
+      setPosition({
+        x: clamp(current.x + dx, EDGE, Math.max(EDGE, viewport.width - BUTTON_SIZE - EDGE)),
+        y: clamp(current.y + dy, EDGE, Math.max(EDGE, viewport.height - BUTTON_SIZE - EDGE)),
+      })
+    }
   }
 
   const onPointerUp = (event) => {
     const current = drag.current
     if (!current || current.pointerId !== event.pointerId) return
     if (current.moved) {
-      const next = {
+      const next = open ? moveTogether(current,
+        event.clientX - current.startX, event.clientY - current.startY) : {
         x: clamp(current.x + event.clientX - current.startX, EDGE, Math.max(EDGE, viewport.width - BUTTON_SIZE - EDGE)),
         y: clamp(current.y + event.clientY - current.startY, EDGE, Math.max(EDGE, viewport.height - BUTTON_SIZE - EDGE)),
       }
@@ -123,10 +175,22 @@ export default function ChatbotWidget() {
     setError('')
     setLoading(true)
     try {
+      const scoreContext = messages.filter((message) => message.role === 'user')
+        .slice(-4).reverse().map((message) => message.text.match(SCORE_PATTERN)?.[0])
+        .find(Boolean) || ''
+      const conversationContext = messages.slice(-2).reverse()
+        .map((message) => `${message.role === 'user' ? '사용자' : '챗봇'}: ${message.text}`)
+        .join('\n')
+        .slice(0, 5000)
       const response = await fetch('/api/chatbot/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: text, pagePath: window.location.pathname }),
+        body: JSON.stringify({
+          question: text,
+          pagePath: window.location.pathname,
+          scoreContext,
+          conversationContext,
+        }),
       })
       const isJson = response.headers.get('content-type')?.includes('application/json')
       const result = isJson ? await response.json() : null
@@ -143,10 +207,68 @@ export default function ChatbotWidget() {
 
   const panelWidth = Math.min(360, viewport.width - 24)
   const panelHeight = Math.min(480, viewport.height - 100)
-  const panelLeft = clamp(position.x + BUTTON_SIZE - panelWidth, 12, viewport.width - panelWidth - 12)
-  const panelTop = position.y >= panelHeight + 12
+  const basePanelLeft = clamp(position.x + BUTTON_SIZE - panelWidth, 12, viewport.width - panelWidth - 12)
+  const basePanelTop = position.y >= panelHeight + 12
     ? position.y - panelHeight - 12
     : clamp(position.y + BUTTON_SIZE + 12, 12, viewport.height - panelHeight - 12)
+  const panelLeft = clamp(basePanelLeft + panelOffset.x, 12, viewport.width - panelWidth - 12)
+  const panelTop = clamp(basePanelTop + panelOffset.y, 12, viewport.height - panelHeight - 12)
+
+  // 열린 창과 X 버튼을 같은 거리만큼 함께 이동합니다.
+  const moveTogether = (current, deltaX, deltaY) => {
+    const dx = clamp(deltaX,
+      Math.max(EDGE - current.x, 12 - current.left),
+      Math.min(viewport.width - BUTTON_SIZE - EDGE - current.x,
+        viewport.width - panelWidth - 12 - current.left))
+    const dy = clamp(deltaY,
+      Math.max(EDGE - current.y, 12 - current.top),
+      Math.min(viewport.height - BUTTON_SIZE - EDGE - current.y,
+        viewport.height - panelHeight - 12 - current.top))
+    const next = { x: current.x + dx, y: current.y + dy }
+    const nextBaseLeft = clamp(next.x + BUTTON_SIZE - panelWidth, 12, viewport.width - panelWidth - 12)
+    const nextBaseTop = next.y >= panelHeight + 12
+      ? next.y - panelHeight - 12
+      : clamp(next.y + BUTTON_SIZE + 12, 12, viewport.height - panelHeight - 12)
+    setPosition(next)
+    setPanelOffset({
+      x: current.left + dx - nextBaseLeft,
+      y: current.top + dy - nextBaseTop,
+    })
+    return next
+  }
+
+  // 열린 창의 제목 표시줄을 끌면 창을 화면 안에서 이동합니다.
+  const onPanelPointerDown = (event) => {
+    if (event.button !== 0 || event.target.closest('button')) return
+    event.currentTarget.setPointerCapture(event.pointerId)
+    panelDrag.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      left: panelLeft,
+      top: panelTop,
+      x: position.x,
+      y: position.y,
+    }
+  }
+
+  const movePanel = (event) => {
+    const current = panelDrag.current
+    if (!current || current.pointerId !== event.pointerId) return
+    return moveTogether(current, event.clientX - current.startX, event.clientY - current.startY)
+  }
+
+  const onPanelPointerUp = (event) => {
+    const next = movePanel(event)
+    if (next) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+      } catch {
+        // 저장이 차단돼도 현재 페이지의 이동 위치는 유지합니다.
+      }
+    }
+    panelDrag.current = null
+  }
 
   return <>
     {open && <section
@@ -154,15 +276,21 @@ export default function ChatbotWidget() {
       style={{ left: panelLeft, top: panelTop, width: panelWidth, height: panelHeight }}
       aria-label="EPL 챗봇"
     >
-      <header className="chatbot-widget__header">
+      <header
+        className="chatbot-widget__header"
+        onPointerDown={onPanelPointerDown}
+        onPointerMove={movePanel}
+        onPointerUp={onPanelPointerUp}
+        onPointerCancel={() => { panelDrag.current = null }}
+      >
         <div><strong>EPL 챗봇</strong><small>프리미어리그 질문을 해보세요</small></div>
         <button type="button" onClick={() => setOpen(false)} aria-label="챗봇 닫기">×</button>
       </header>
       <div className="chatbot-widget__messages" aria-live="polite">
-        {messages.map((message, index) => <p
-          className={`chatbot-widget__message chatbot-widget__message--${message.role}`}
+        {messages.map((message, index) => <div
+          className={`chatbot-widget__message chatbot-widget__message--${message.role}${message.role === 'assistant' && message.text.includes('\n- ') ? ' chatbot-widget__message--list' : ''}`}
           key={index}
-        >{message.text}</p>)}
+        >{renderMessageContent(message.text)}</div>)}
         {loading && <p className="chatbot-widget__pending">답변을 작성하고 있습니다...</p>}
         <div ref={bottomRef} />
       </div>

@@ -119,6 +119,56 @@
 		FETCH FIRST #{limit} ROWS ONLY
 	</select>
 
+	<!-- 두 구단의 맞대결 결과를 최근 경기부터 조회 -->
+	<select id="selectHeadToHeadMatches" parameterType="map" resultType="Matches">
+		SELECT
+			m.MATCH_ID,
+			m.MATCH_DATE,
+			m.HOME_TEAM_ID,
+			COALESCE(h.TEAM_NAME_KOR, h.TEAM_NAME) AS HOME_TEAM_NAME,
+			m.AWAY_TEAM_ID,
+			COALESCE(a.TEAM_NAME_KOR, a.TEAM_NAME) AS AWAY_TEAM_NAME,
+			m.HOME_SCORE,
+			m.AWAY_SCORE,
+			m.STATUS
+		FROM MATCHES m
+		JOIN TEAMS h ON h.TEAM_ID = m.HOME_TEAM_ID
+		JOIN TEAMS a ON a.TEAM_ID = m.AWAY_TEAM_ID
+		WHERE m.STATUS = 'FINISHED'
+		AND ((m.HOME_TEAM_ID = #{firstTeamId} AND m.AWAY_TEAM_ID = #{secondTeamId})
+			OR (m.HOME_TEAM_ID = #{secondTeamId} AND m.AWAY_TEAM_ID = #{firstTeamId}))
+		ORDER BY m.MATCH_DATE DESC, m.MATCH_ID DESC
+		FETCH FIRST #{limit} ROWS ONLY
+	</select>
+
+	<!-- 정확한 최종 점수와 양 팀 이름을 최근 순으로 조회 -->
+	<select id="selectFinishedMatchesByScore" parameterType="map" resultType="Matches">
+		SELECT
+			m.MATCH_ID,
+			m.MATCH_DATE,
+			m.HOME_TEAM_ID,
+			COALESCE(h.TEAM_NAME_KOR, h.TEAM_NAME) AS HOME_TEAM_NAME,
+			m.AWAY_TEAM_ID,
+			COALESCE(a.TEAM_NAME_KOR, a.TEAM_NAME) AS AWAY_TEAM_NAME,
+			m.HOME_SCORE,
+			m.AWAY_SCORE,
+			m.STATUS
+		FROM MATCHES m
+		JOIN TEAMS h ON h.TEAM_ID = m.HOME_TEAM_ID
+		JOIN TEAMS a ON a.TEAM_ID = m.AWAY_TEAM_ID
+		WHERE m.STATUS = 'FINISHED'
+		AND m.HOME_SCORE = #{homeScore}
+		AND m.AWAY_SCORE = #{awayScore}
+		<if test="teamId != null">
+			AND (m.HOME_TEAM_ID = #{teamId} OR m.AWAY_TEAM_ID = #{teamId})
+		</if>
+		<if test="opponentTeamId != null">
+			AND (m.HOME_TEAM_ID = #{opponentTeamId} OR m.AWAY_TEAM_ID = #{opponentTeamId})
+		</if>
+		ORDER BY m.MATCH_DATE DESC, m.MATCH_ID DESC
+		FETCH FIRST #{limit} ROWS ONLY
+	</select>
+
 	<!-- 단건 경기 상세 조회 -->
 	<select id="selectMatchById" parameterType="long" resultType="Matches">
 		SELECT 
@@ -162,6 +212,7 @@
 			e.TEAM_ID,
 			e.EVENT_TIME,
 			e.EVENT_TYPE,
+			et.EVENT_TYPE_NAME,
 			e.PLAYER_ID,
 			e.ASSIST_PLAYER_ID,
 			p.NAME AS PLAYER_NAME,
@@ -172,6 +223,7 @@
 			t.TEAM_NAME_KOR,
 			t.EMBLEM_URL AS TEAM_EMBLEM_URL
 		FROM MATCH_EVENTS e
+		LEFT JOIN EVENT_TYPE et ON et.EVENT_TYPE_CODE = e.EVENT_TYPE
 		LEFT JOIN PLAYERS p ON p.PLAYER_ID = e.PLAYER_ID
 		LEFT JOIN PLAYERS ap ON ap.PLAYER_ID = e.ASSIST_PLAYER_ID
 		LEFT JOIN TEAMS t ON t.TEAM_ID = e.TEAM_ID

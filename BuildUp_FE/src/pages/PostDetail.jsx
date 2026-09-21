@@ -4,6 +4,30 @@ import { communityTeams } from '../data/communityTeams.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
 import '../css/Community.css'
 
+// StrictMode가 개발 환경에서 같은 상세 조회를 두 번 실행해도 서버 요청은 한 번만 보냅니다.
+const pendingPostRequests = new Map()
+
+function requestPost(postId) {
+  const key = String(postId)
+  const pending = pendingPostRequests.get(key)
+  if (pending) return pending
+
+  const request = (async () => {
+    try {
+      const response = await fetch(`/api/communities/${encodeURIComponent(postId)}`)
+      const result = await response.json()
+      if (!response.ok || !result.data) {
+        throw new Error(result.message || '게시글을 불러오지 못했습니다.')
+      }
+      return result.data
+    } finally {
+      pendingPostRequests.delete(key)
+    }
+  })()
+  pendingPostRequests.set(key, request)
+  return request
+}
+
 export default function PostDetail({ postId }) {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn)
   const user = useSelector((state) => state.auth.user)
@@ -38,21 +62,19 @@ export default function PostDetail({ postId }) {
 
   // 게시글 번호로 실제 상세 데이터를 조회합니다.
   useEffect(() => {
+    let active = true
     const fetchPost = async () => {
       try {
-        const response = await fetch(`/api/communities/${encodeURIComponent(postId)}`)
-        const result = await response.json()
-        if (!response.ok || !result.data) {
-          throw new Error(result.message || '게시글을 불러오지 못했습니다.')
-        }
-        setPost(result.data)
+        const data = await requestPost(postId)
+        if (active) setPost(data)
       } catch (exception) {
-        setError(exception.message || '게시글을 불러오지 못했습니다.')
+        if (active) setError(exception.message || '게시글을 불러오지 못했습니다.')
       } finally {
-        setLoading(false)
+        if (active) setLoading(false)
       }
     }
     fetchPost()
+    return () => { active = false }
   }, [postId])
 
   // 로그인한 사용자가 이 게시글을 추천했는지 확인합니다.
