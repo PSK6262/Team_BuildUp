@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateUser } from '../store/authSlice.js';
-import { getTeams } from '../api/teamApi.js';
-import { useDispatch, useSelector } from 'react-redux';
 import { fetchTeams } from '../store/teamSlice.js';
 import TeamQuizModal from '../components/quiz/TeamQuizModal.jsx';
 import { getTeamTheme } from '../constants/teamTheme.js';
@@ -31,8 +29,7 @@ export default function MainPage() {
         }
       })();
 
-  const [ teams, setTeams ] = useState([]);
-  const team = useSelector((state) => state.team.teams);
+  const teams = useSelector((state) => state.team?.teams || []);
   const [ hoveredTeam, setHoveredTeam ] = useState(null);
   const [ introIndex, setIntroIndex ] = useState(0);
   const [ isTextVisible, setIsTextVisible ] = useState(true);
