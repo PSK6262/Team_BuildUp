@@ -34,7 +34,11 @@ function App() {
   const isTeamsPage = pathname === '/plug/teams'
   const teamMatch = pathname.match(/^\/plug\/team\/(\d+)$/)
   const postMatch = pathname.match(/^\/plug\/community\/posts\/([^/]+)$/)
-  const showChatbot = isMainPage || isTeamsPage || Boolean(teamMatch)
+  const showChatbot = isMainPage
+    || isTeamsPage
+    || Boolean(teamMatch)
+    || pathname === '/plug/rankpage'
+    || pathname === '/plug/myteam'
 
   // 커뮤니티 구단별 게시판 라우팅
   const commuTeam = communityTeams.find((item) => pathname === `/plug/community/teams/${item.slug}`)
@@ -58,7 +62,7 @@ function App() {
 
     lastRefreshTimeRef.current = now
     dispatch(silentRefresh())
-  }, [dispatch, isLoggedIn, pathname])
+  }, [ dispatch, isLoggedIn, pathname ])
 
   // 2. 미활동 장시간 방치 감지: 탭을 열어두고 30분 이상 방치 시 자동 만료 처리
   useEffect(() => {
@@ -72,7 +76,7 @@ function App() {
     }, 30000) // 30초마다 세션 만료 체크
 
     return () => clearInterval(interval)
-  }, [dispatch, isLoggedIn])
+  }, [ dispatch, isLoggedIn ])
 
   return (
     <>
