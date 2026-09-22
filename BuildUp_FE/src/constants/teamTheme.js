@@ -3,7 +3,13 @@ export const TEAM_GLOW_COLORS = {
   LIVERPOOL: { hex: '#C8102E', glow: 'rgba(200, 16, 46, 0.7)' },
   MAN_CITY: { hex: '#6CABDD', glow: 'rgba(108, 171, 221, 0.8)' },
   MAN_UTD: { hex: '#DA291C', glow: 'rgba(218, 41, 28, 0.7)' },
-  NEWCASTLE: { hex: '#C0C0C0', glow: 'rgba(192, 192, 192, 0.75)' },
+  NEWCASTLE: {
+    hex: '#C0C0C0',
+    glow: 'rgba(192, 192, 192, 0.75)',
+    textStroke: '#000000',
+    textGlow: 'rgba(0, 0, 0, 0.95)',
+    isDarkNeon: true,
+  },
   NOTTINGHAM: { hex: '#FF3B30', glow: 'rgba(255, 59, 48, 0.7)' },
   SUNDERLAND: { hex: '#E5A823', glow: 'rgba(229, 168, 35, 0.75)' },
   TOTTENHAM: { hex: '#001C58', glow: 'rgba(26, 68, 155, 0.8)' },
@@ -16,10 +22,28 @@ export const TEAM_GLOW_COLORS = {
   COVENTRY: { hex: '#41B6E6', glow: 'rgba(65, 182, 230, 0.8)' },
   PALACE: { hex: '#1B458F', glow: 'rgba(27, 69, 143, 0.8)' },
   EVERTON: { hex: '#003399', glow: 'rgba(0, 51, 153, 0.8)' },
-  FULHAM: { hex: '#FFFFFF', glow: 'rgba(255, 255, 255, 0.75)' },
-  WOLVES: { hex: '#FDB913', glow: 'rgba(253, 185, 19, 0.8)' },
+  FULHAM: {
+    hex: '#FFFFFF',
+    glow: 'rgba(255, 255, 255, 0.75)',
+    textStroke: '#000000',
+    textGlow: 'rgba(0, 0, 0, 0.95)',
+    isDarkNeon: true,
+  },
+  WOLVES: {
+    hex: '#FDB913',
+    glow: 'rgba(253, 185, 19, 0.8)',
+    textStroke: '#000000',
+    textGlow: 'rgba(0, 0, 0, 0.95)',
+    isDarkNeon: true,
+  },
   IPSWICH: { hex: '#002B7F', glow: 'rgba(0, 43, 127, 0.85)' },
-  LEEDS: { hex: '#FFCD00', glow: 'rgba(255, 205, 0, 0.8)' },
+  LEEDS: {
+    hex: '#FFCD00',
+    glow: 'rgba(255, 205, 0, 0.8)',
+    textStroke: '#000000',
+    textGlow: 'rgba(0, 0, 0, 0.95)',
+    isDarkNeon: true,
+  },
 };
 
 const TEAM_ID_MAP = {

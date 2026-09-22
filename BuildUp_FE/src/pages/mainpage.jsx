@@ -31,6 +31,7 @@ export default function MainPage() {
 
   const teams = useSelector((state) => state.team?.teams || []);
   const [ hoveredTeam, setHoveredTeam ] = useState(null);
+  const hoveredTheme = hoveredTeam ? getTeamTheme(hoveredTeam) : null;
   const [ introIndex, setIntroIndex ] = useState(0);
   const [ isTextVisible, setIsTextVisible ] = useState(true);
   const [ isIntroFinished, setIsIntroFinished ] = useState(false);
@@ -267,10 +268,12 @@ export default function MainPage() {
                 {hoveredTeam ? (
                   <>
                     <strong
-                      className="team-highlight"
+                      className={`team-highlight ${hoveredTheme?.isDarkNeon ? 'is-dark-neon' : ''}`}
                       style={{
-                        color: getTeamTheme(hoveredTeam).hex,
-                        textShadow: `0 0 16px ${getTeamTheme(hoveredTeam).glow}`
+                        '--team-color': hoveredTheme?.hex,
+                        '--team-glow': hoveredTheme?.glow,
+                        '--text-stroke': hoveredTheme?.textStroke || '#ffffff',
+                        '--text-glow': hoveredTheme?.textGlow || 'rgba(255, 255, 255, 0.85)'
                       }}
                     >
                       {hoveredTeam.teamNameKor || hoveredTeam.teamName}

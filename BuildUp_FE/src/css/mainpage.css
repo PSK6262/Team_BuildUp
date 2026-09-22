@@ -215,9 +215,35 @@
 }
 
 .mainpage-orbit-subtitle .team-highlight {
-  color: #00ff87;
-  font-weight: 800;
-  text-shadow: 0 0 14px rgba(0, 255, 135, 0.8);
+  color: var(--team-color, #00ff87);
+  font-weight: 900;
+  -webkit-text-stroke: 1px var(--text-stroke, #ffffff);
+  paint-order: stroke fill;
+  text-shadow:
+    -1px -1px 0 var(--text-stroke, #ffffff),
+     1px -1px 0 var(--text-stroke, #ffffff),
+    -1px  1px 0 var(--text-stroke, #ffffff),
+     1px  1px 0 var(--text-stroke, #ffffff),
+     0 0 6px var(--text-stroke, #ffffff),
+     0 0 14px var(--text-glow, rgba(255, 255, 255, 0.85)),
+     0 0 25px var(--team-glow, rgba(0, 255, 135, 0.8));
+  display: inline-block;
+  transition: color 0.25s ease, text-shadow 0.25s ease;
+}
+
+/* 풀럼/뉴캐슬/헐시티/리즈: 밝은 텍스트(화이트/실버/옐로우) 특성에 맞춰 어두운 계열의 네온라이트 테두리 및 딥 다크 섀도 적용 */
+.mainpage-orbit-subtitle .team-highlight.is-dark-neon {
+  color: var(--team-color, #ffffff);
+  -webkit-text-stroke: 1.4px #000000;
+  paint-order: stroke fill;
+  text-shadow:
+    -1.5px -1.5px 0 #000000,
+     1.5px -1.5px 0 #000000,
+    -1.5px  1.5px 0 #000000,
+     1.5px  1.5px 0 #000000,
+     0 0 8px #000000,
+     0 0 16px rgba(0, 0, 0, 0.95),
+     0 0 28px rgba(0, 0, 0, 0.9);
 }
 
 .mainpage-orbit-subtitle .team-details {
