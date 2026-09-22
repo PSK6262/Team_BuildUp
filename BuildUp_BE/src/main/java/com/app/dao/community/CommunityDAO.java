@@ -10,6 +10,8 @@ import com.app.dto.community.Posts;
 public interface CommunityDAO {
     // 커뮤니티 카테고리 목록을 조회합니다.
     List<CommunityCategory> findCategories();
+    // 카테고리 번호로 카테고리 정보를 조회합니다.
+    CommunityCategory findCategoryById(Long categoryId);
     // 검색 조건에 맞는 전체 게시글 수를 조회합니다.
     long countPosts(Map<String, Object> params);
     // 현재 페이지의 게시글 목록을 조회합니다.

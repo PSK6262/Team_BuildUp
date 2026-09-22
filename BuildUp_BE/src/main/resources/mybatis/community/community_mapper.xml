@@ -13,6 +13,15 @@
 		ORDER BY CATEGORY_ID
 	</select>
 
+	<!-- 카테고리 번호로 카테고리 정보 조회 -->
+	<select id="findCategoryById" parameterType="long" resultType="CommunityCategory">
+		SELECT
+			CATEGORY_ID,
+			CATEGORY_TYPE
+		FROM CATEGORY
+		WHERE CATEGORY_ID = #{categoryId}
+	</select>
+
 	<!-- 로그인한 사용자의 게시글 등록 -->
 	<insert id="insertPost" parameterType="Posts" useGeneratedKeys="true" keyProperty="postId" keyColumn="POST_ID">
 		INSERT INTO POSTS (
@@ -41,6 +50,7 @@
 		WHERE POST_ID = #{postId}
 		AND USER_ID = #{userId}
 		AND IS_BLIND = 'N'
+		AND IS_DELETED = 'N'
 	</update>
 
 	<!-- 작성자의 게시글 숨김 처리 -->
@@ -51,6 +61,7 @@
 		WHERE POST_ID = #{postId}
 		AND USER_ID = #{userId}
 		AND IS_BLIND = 'N'
+		AND IS_DELETED = 'N'
 	</update>
 
 	<!-- 작성자의 게시글 삭제 처리 -->
@@ -95,6 +106,7 @@
 		SET LIKE_COUNT = LIKE_COUNT + 1
 		WHERE POST_ID = #{postId}
 		AND IS_BLIND = 'N'
+		AND IS_DELETED = 'N'
 	</update>
 
 	<!-- 게시글 추천수 감소 -->
@@ -103,6 +115,7 @@
 		SET LIKE_COUNT = GREATEST(LIKE_COUNT - 1, 0)
 		WHERE POST_ID = #{postId}
 		AND IS_BLIND = 'N'
+		AND IS_DELETED = 'N'
 	</update>
 
 	<!-- 게시글의 댓글과 대댓글 목록 조회 -->
@@ -283,6 +296,7 @@
 		JOIN CATEGORY c ON c.CATEGORY_ID = p.CATEGORY_ID
 		LEFT JOIN TEAMS t ON t.TEAM_ID = p.TEAM_ID
 		WHERE p.POST_ID = #{postId}
+		AND p.IS_DELETED = 'N'
 	</select>
 
 	<!-- 공개 게시글 조회수 증가 -->
@@ -290,6 +304,7 @@
 		UPDATE POSTS
 		SET VIEW_COUNT = VIEW_COUNT + 1
 		WHERE POST_ID = #{postId}
+		AND IS_DELETED = 'N'
 	</update>
 
 	<!-- 검색 조건에 맞는 전체 게시글 수 조회 -->
@@ -300,6 +315,7 @@
 		JOIN CATEGORY c ON c.CATEGORY_ID = p.CATEGORY_ID
 		LEFT JOIN TEAMS t ON t.TEAM_ID = p.TEAM_ID
 		WHERE 1=1
+		AND p.IS_DELETED = 'N'
 		AND p.CATEGORY_ID IN
 		<foreach collection="categoryIds" item="categoryId" open="(" separator="," close=")">
 			#{categoryId}
@@ -339,6 +355,7 @@
 		JOIN CATEGORY c ON c.CATEGORY_ID = p.CATEGORY_ID
 		LEFT JOIN TEAMS t ON t.TEAM_ID = p.TEAM_ID
 		WHERE 1=1
+		AND p.IS_DELETED = 'N'
 		AND p.CATEGORY_ID IN
 		<foreach collection="categoryIds" item="categoryId" open="(" separator="," close=")">
 			#{categoryId}

@@ -74,6 +74,11 @@ public class AdminDAOImpl implements AdminDAO {
 	}
 
 	@Override
+	public int deletePost(Long postId) {
+		return sqlSession.update("AdminMapper.deletePost", postId);
+	}
+
+	@Override
 	public List<Comments> selectAdminComments(Map<String, Object> params) {
 		return sqlSession.selectList("AdminMapper.selectAdminComments", params);
 	}

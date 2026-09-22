@@ -19,6 +19,10 @@ public class CommunityDAOImpl implements CommunityDAO {
     public List<CommunityCategory> findCategories() {
         return sqlSession.selectList("CommunityMapper.findCategories");
     }
+    // 카테고리 상세 조회 SQL을 실행합니다.
+    public CommunityCategory findCategoryById(Long categoryId) {
+        return sqlSession.selectOne("CommunityMapper.findCategoryById", categoryId);
+    }
     // 게시글 개수 조회 SQL을 실행합니다.
     public long countPosts(Map<String, Object> params) {
         return sqlSession.selectOne("CommunityMapper.countPosts", params);

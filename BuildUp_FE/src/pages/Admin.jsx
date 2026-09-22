@@ -492,7 +492,29 @@ export default function Admin() {
     }
   }
 
-  // 5. 댓글 블라인드 토글
+  // 5. 관리자가 작성자와 관계없이 게시글을 삭제 처리합니다.
+  const handleDeletePost = async (postId, title) => {
+    if (!window.confirm(`'${title}' 게시글을 삭제하시겠습니까?`)) return
+    try {
+      const res = await fetch(`/api/admin/community/posts/${postId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+      })
+      const json = await res.json()
+      if (json.code === 'SUC_001') {
+        showAlert('게시글이 삭제 처리되었습니다.')
+        fetchPosts()
+        fetchSummary()
+      } else {
+        showAlert(json.message || '게시글 삭제에 실패했습니다.', 'error')
+      }
+    } catch (e) {
+      showAlert('게시글 삭제 중 통신 오류가 발생했습니다.', 'error')
+    }
+  }
+
+  // 6. 댓글 블라인드 토글
   const handleToggleCommentBlind = async (commentId, currentBlind) => {
     const nextBlind = currentBlind === 'Y' ? 'N' : 'Y'
     try {
@@ -515,7 +537,7 @@ export default function Admin() {
     }
   }
 
-  // 6. 회원 권한 변경
+  // 7. 회원 권한 변경
   const handleSaveRole = async () => {
     if (!roleModal) return
     try {
@@ -538,7 +560,7 @@ export default function Admin() {
     }
   }
 
-  // 7. 포인트 조정
+  // 8. 포인트 조정
   const handleSavePoints = async () => {
     if (!pointModal || !pointModal.amount) return
     try {
@@ -565,7 +587,7 @@ export default function Admin() {
     }
   }
 
-  // 8. 데이터 동기화 트리거
+  // 9. 데이터 동기화 트리거
   const handleTriggerSync = async (endpoint, paramKey = null, paramVal = null, label = '') => {
     try {
       setSyncLoading(true)
@@ -1260,7 +1282,7 @@ export default function Admin() {
                           <td>{p.likeCount} / {p.viewCount}</td>
                           <td>
                             {p.isDeleted === 'Y' ? (
-                              <span className="badge badge--gray">🗑️ 작성자 삭제</span>
+                              <span className="badge badge--gray">🗑️ 삭제됨</span>
                             ) : p.isBlind === 'Y' ? (
                               <span className="badge badge--red">🚨 제재됨 (Y)</span>
                             ) : (
@@ -1275,13 +1297,22 @@ export default function Admin() {
                                   삭제됨 (증거보존)
                                 </span>
                               ) : (
-                                <button
-                                  type="button"
-                                  className={`btn-action ${p.isBlind === 'Y' ? 'btn-action--outline' : 'btn-action--danger'}`}
-                                  onClick={() => handleTogglePostBlind(p.postId, p.isBlind)}
-                                >
-                                  {p.isBlind === 'Y' ? '제재 해제' : '블라인드 처리'}
-                                </button>
+                                <>
+                                  <button
+                                    type="button"
+                                    className={`btn-action ${p.isBlind === 'Y' ? 'btn-action--outline' : 'btn-action--danger'}`}
+                                    onClick={() => handleTogglePostBlind(p.postId, p.isBlind)}
+                                  >
+                                    {p.isBlind === 'Y' ? '제재 해제' : '블라인드 처리'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn-action btn-action--danger"
+                                    onClick={() => handleDeletePost(p.postId, p.title)}
+                                  >
+                                    게시글 삭제
+                                  </button>
+                                </>
                               )}
                               <button
                                 type="button"

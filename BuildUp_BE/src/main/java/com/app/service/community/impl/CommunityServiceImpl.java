@@ -118,6 +118,7 @@ public class CommunityServiceImpl implements CommunityService {
         // 세션 또는 JWT에서 확인한 로그인 아이디로 실제 회원을 조회합니다.
         Users user = findLoginUser(loginId);
         validatePost(post);
+        validatePostCategory(post.getCategoryId(), null);
 
         // 요청에서 받은 userId는 사용하지 않고 로그인 회원 번호를 작성자로 지정합니다.
         post.setUserId(user.getUserId());
@@ -140,6 +141,7 @@ public class CommunityServiceImpl implements CommunityService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Post owner required");
         }
         validatePost(post);
+        validatePostCategory(post.getCategoryId(), savedPost);
 
         post.setPostId(postId);
         post.setUserId(user.getUserId());
@@ -521,6 +523,29 @@ public class CommunityServiceImpl implements CommunityService {
         if (content.codePointCount(0, content.length()) > POST_CONTENT_MAX_LENGTH) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Post content too long");
         }
+    }
+
+    // 존재하는 카테고리인지 확인하고 새 뉴스 게시글 작성을 차단합니다.
+    private void validatePostCategory(Long categoryId, Posts savedPost) {
+        CommunityCategory category = communityDAO.findCategoryById(categoryId);
+        if (category == null || category.getCategoryType() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid post");
+        }
+        boolean newsCategory = isNewsCategoryType(category.getCategoryType());
+        boolean editingExistingNews = savedPost != null
+            && categoryId.equals(savedPost.getCategoryId())
+            && isNewsCategoryType(savedPost.getCategoryType());
+        if (newsCategory && !editingExistingNews) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "News writing disabled");
+        }
+    }
+
+    private boolean isNewsCategoryType(String categoryType) {
+        if (categoryType == null) {
+            return false;
+        }
+        String normalized = categoryType.trim();
+        return "뉴스".equals(normalized) || "NEWS".equalsIgnoreCase(normalized);
     }
 
     // 추천 처리에 사용할 사용자와 게시글 번호를 구성합니다.
