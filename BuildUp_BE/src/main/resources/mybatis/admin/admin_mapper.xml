@@ -20,20 +20,16 @@
 						  SELECT COUNT(*)
 						  FROM MATCH_EVENTS me
 						  WHERE me.MATCH_ID = m.MATCH_ID
-						    AND (
-							    (me.TEAM_ID = m.HOME_TEAM_ID AND me.EVENT_TYPE IN (1, 2))
-							    OR (me.TEAM_ID = m.AWAY_TEAM_ID AND me.EVENT_TYPE = 3)
-						    )
+						    AND me.TEAM_ID = m.HOME_TEAM_ID
+						    AND me.EVENT_TYPE IN (1, 2, 3)
 					  )
 					  OR
 					  NVL(m.AWAY_SCORE, 0) != (
 						  SELECT COUNT(*)
 						  FROM MATCH_EVENTS me
 						  WHERE me.MATCH_ID = m.MATCH_ID
-						    AND (
-							    (me.TEAM_ID = m.AWAY_TEAM_ID AND me.EVENT_TYPE IN (1, 2))
-							    OR (me.TEAM_ID = m.HOME_TEAM_ID AND me.EVENT_TYPE = 3)
-						    )
+						    AND me.TEAM_ID = m.AWAY_TEAM_ID
+						    AND me.EVENT_TYPE IN (1, 2, 3)
 					  )
 				  )
 			) AS MISMATCH_MATCHES,
@@ -67,19 +63,15 @@
 				SELECT COUNT(*)
 				FROM MATCH_EVENTS me
 				WHERE me.MATCH_ID = m.MATCH_ID
-				  AND (
-					  (me.TEAM_ID = m.HOME_TEAM_ID AND me.EVENT_TYPE IN (1, 2))
-					  OR (me.TEAM_ID = m.AWAY_TEAM_ID AND me.EVENT_TYPE = 3)
-				  )
+				  AND me.TEAM_ID = m.HOME_TEAM_ID
+				  AND me.EVENT_TYPE IN (1, 2, 3)
 			) AS HOME_GOAL_EVENTS,
 			(
 				SELECT COUNT(*)
 				FROM MATCH_EVENTS me
 				WHERE me.MATCH_ID = m.MATCH_ID
-				  AND (
-					  (me.TEAM_ID = m.AWAY_TEAM_ID AND me.EVENT_TYPE IN (1, 2))
-					  OR (me.TEAM_ID = m.HOME_TEAM_ID AND me.EVENT_TYPE = 3)
-				  )
+				  AND me.TEAM_ID = m.AWAY_TEAM_ID
+				  AND me.EVENT_TYPE IN (1, 2, 3)
 			) AS AWAY_GOAL_EVENTS,
 			(
 				SELECT COUNT(*)
@@ -100,20 +92,16 @@
 						SELECT COUNT(*)
 						FROM MATCH_EVENTS me
 						WHERE me.MATCH_ID = m.MATCH_ID
-						  AND (
-							  (me.TEAM_ID = m.HOME_TEAM_ID AND me.EVENT_TYPE IN (1, 2))
-							  OR (me.TEAM_ID = m.AWAY_TEAM_ID AND me.EVENT_TYPE = 3)
-						  )
+						  AND me.TEAM_ID = m.HOME_TEAM_ID
+						  AND me.EVENT_TYPE IN (1, 2, 3)
 					)
 					OR
 					NVL(m.AWAY_SCORE, 0) != (
 						SELECT COUNT(*)
 						FROM MATCH_EVENTS me
 						WHERE me.MATCH_ID = m.MATCH_ID
-						  AND (
-							  (me.TEAM_ID = m.AWAY_TEAM_ID AND me.EVENT_TYPE IN (1, 2))
-							  OR (me.TEAM_ID = m.HOME_TEAM_ID AND me.EVENT_TYPE = 3)
-						  )
+						  AND me.TEAM_ID = m.AWAY_TEAM_ID
+						  AND me.EVENT_TYPE IN (1, 2, 3)
 					)
 				)
 			</if>

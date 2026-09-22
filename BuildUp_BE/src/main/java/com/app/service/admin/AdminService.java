@@ -52,4 +52,5 @@ public interface AdminService {
 	int syncScorers(Integer limit);
 	int syncSeasonMatches(Integer season);
 	int syncTeamsAndPlayers();
+	int resyncMismatchedEvents();
 }

@@ -398,5 +398,22 @@ public class AdminController {
 			return ApiResponse.error(ResultCode.FAIL, "구단/선수단 동기화 중 오류가 발생했습니다: " + e.getMessage());
 		}
 	}
+
+	// 22. 스코어-이벤트 불일치 경기 정밀 재동기화 (1차 룰 + 2차 Gemini AI 교차 검증)
+	@PostMapping("/sync/mismatched-events")
+	public ApiResponse<Map<String, Object>> resyncMismatchedEvents(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		try {
+			int count = adminService.resyncMismatchedEvents();
+			Map<String, Object> data = new HashMap<>();
+			data.put("resyncedMatches", count);
+			return ApiResponse.success(data);
+		} catch (Exception e) {
+			log.error("[AdminController] 불일치 경기 재동기화 실패: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "불일치 경기 재동기화 중 오류가 발생했습니다: " + e.getMessage());
+		}
+	}
 }
 

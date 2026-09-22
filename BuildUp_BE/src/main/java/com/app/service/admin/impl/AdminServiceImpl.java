@@ -204,4 +204,9 @@ public class AdminServiceImpl implements AdminService {
 	public int syncTeamsAndPlayers() {
 		return footballApiService.syncAllPremierLeagueTeamsAndPlayers();
 	}
+
+	@Override
+	public int resyncMismatchedEvents() {
+		return bigBallsApiService.resyncAllMismatchedFinishedMatches();
+	}
 }
