@@ -55,7 +55,7 @@ function App() {
 
     lastRefreshTimeRef.current = now
     dispatch(silentRefresh())
-  }, [dispatch, isLoggedIn, pathname])
+  }, [ dispatch, isLoggedIn, pathname ])
 
   // 2. 미활동 장시간 방치 감지: 탭을 열어두고 30분 이상 방치 시 자동 만료 처리
   useEffect(() => {
@@ -69,7 +69,7 @@ function App() {
     }, 30000) // 30초마다 세션 만료 체크
 
     return () => clearInterval(interval)
-  }, [dispatch, isLoggedIn])
+  }, [ dispatch, isLoggedIn ])
 
   return (
     <>

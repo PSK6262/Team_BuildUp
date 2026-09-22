@@ -10,6 +10,8 @@
 	</settings>
 
 	<typeAliases>
+        <typeAlias type="com.app.dto.custom.CustomTeams" alias="CustomTeams"/>
+        <typeAlias type="com.app.dto.custom.CustomSquads" alias="CustomSquads"/>
 		<typeAlias type="com.app.dto.community.Posts" alias="Posts"/>
 		<typeAlias type="com.app.dto.community.PostLikes" alias="PostLikes"/>
 		<typeAlias type="com.app.dto.community.CommunityCategory" alias="CommunityCategory"/>
