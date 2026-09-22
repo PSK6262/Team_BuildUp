@@ -2,12 +2,32 @@ import { useState, useRef, useEffect } from 'react'
 import '../css/PenaltyKick.css'
 
 const DIFFICULTIES = [
-  { label: '하', key: 'easy',   hintMs: 3000, aiPredictRate: 0.35, color: '#2ecc71' },
-  { label: '중', key: 'normal', hintMs: 2000, aiPredictRate: 0.60, color: '#f39c12' },
-  { label: '상', key: 'hard',   hintMs: 1000, aiPredictRate: 0.85, color: '#e74c3c' },
+  { label: '하', key: 'easy',   hintMs: 3000, cursorMs: 2400, saveX: 12, saveY: 17, color: '#2ecc71' },
+  { label: '중', key: 'normal', hintMs: 2000, cursorMs: 1700, saveX: 8, saveY: 12, color: '#f39c12' },
+  { label: '상', key: 'hard',   hintMs: 1000, cursorMs: 1100, saveX: 5, saveY: 8, color: '#e74c3c' },
 ]
 
 const WIN = 3
+const SHOT_LIMIT_MS = 5000
+const SAVE_REBOUND_DELAY_MS = 1020
+const SHOT_RESULT_DELAY_MS = 1600
+const CROWD_COLORS = ['#ef4444', '#2563eb', '#facc15', '#f8fafc', '#16a34a', '#f97316', '#a855f7']
+const CROWD = Array.from({ length: 56 }, (_, index) => ({
+  color: CROWD_COLORS[index % CROWD_COLORS.length],
+  delay: `${(index % 8) * -0.11}s`,
+}))
+const RARE_EVENTS = [
+  { key: 'mosquito', label: '모기 난입', phase: 'meter', rate: 0.012, chanceMultiplier: 0.85, cursorJitter: 4 },
+  { key: 'fake-whistle', label: '관중의 가짜 휘슬', phase: 'meter', rate: 0.008, chanceMultiplier: 0.8, speedMultiplier: 1.4 },
+  { key: 'camera-flash', label: '카메라 플래시', phase: 'meter', rate: 0.006, chanceMultiplier: 0.9 },
+  { key: 'rain', label: '갑작스러운 빗방울', phase: 'meter', rate: 0.009, chanceMultiplier: 0.88, speedMultiplier: 1.12 },
+  { key: 'scoreboard-glitch', label: '전광판 오류', phase: 'meter', rate: 0.005, chanceMultiplier: 0.78 },
+  { key: 'bird', label: '버드 스트라이크', phase: 'shot', rate: 0.01, chanceMultiplier: 0, forcedMissType: 'wide' },
+  { key: 'wind', label: '갑작스러운 돌풍', phase: 'shot', rate: 0.022, chanceMultiplier: 0.7 },
+  { key: 'sprinkler', label: '스프링클러 오작동', phase: 'shot', rate: 0.01, chanceMultiplier: 0, forcedMissType: 'wide' },
+  { key: 'beach-ball', label: '비치볼 난입', phase: 'shot', rate: 0.012, chanceMultiplier: 0, forcedMissType: 'post' },
+  { key: 'blackout', label: '조명 깜빡임', phase: 'shot', rate: 0.0085, chanceMultiplier: 0.55 },
+]
 
 const P = {
   INTRO:        'INTRO',
@@ -23,23 +43,42 @@ const P = {
 
 function rnd(a, b) { return a + Math.random() * (b - a) }
 
+function pickRareEvent(phase) {
+  const roll = Math.random()
+  let accumulatedRate = 0
+
+  for (const event of RARE_EVENTS.filter((item) => item.phase === phase)) {
+    accumulatedRate += event.rate
+    if (roll < accumulatedRate) return event
+  }
+
+  return null
+}
+
 export default function PenaltyKick() {
   const [phase, setPhase]         = useState(P.INTRO)
   const [score, setScore]         = useState({ p: 0, ai: 0 })
   const [msg, setMsg]             = useState({ text: '', isGoal: false })
   const [winner, setWinner]       = useState(null)
   const [countdown, setCountdown] = useState(3)
+  const [difficulty, setDifficulty] = useState(DIFFICULTIES[1])
+  const [rareEvent, setRareEvent] = useState(null)
 
   // 조준점 & 키커 도움닫기 방향 ('left' | 'right')
   const [hover, setHover]               = useState(null)
   const [kickerStance, setKickerStance] = useState('left')
 
-  // 파워 게이지
-  const [power, setPower]           = useState(0)
-  const [isCharging, setIsCharging] = useState(false)
-  const powerDirRef                 = useRef(1)
-  const powerAnimRef                = useRef(null)
-  const aimLockRef                  = useRef(null)
+  // 5초 타이밍 게이지
+  const [meterPosition, setMeterPosition] = useState(0)
+  const [shotTimeLeft, setShotTimeLeft]   = useState(5)
+  const [isMeterActive, setIsMeterActive] = useState(false)
+  const meterPositionRef                  = useRef(0)
+  const meterStartedAtRef                 = useRef(0)
+  const meterElapsedRef                   = useRef(0)
+  const meterActiveRef                    = useRef(false)
+  const meterAnimRef                      = useRef(null)
+  const shotTimeoutRef                    = useRef(null)
+  const aimLockRef                        = useRef(null)
 
   // AI 힌트 점
   const [dot, setDot] = useState(null)
@@ -52,7 +91,10 @@ export default function PenaltyKick() {
   const [ball, setBall] = useState({
     x: 50,
     y: 82,
+    startX: 50,
+    startY: 82,
     curveClass: '',
+    outcomeClass: '',
   })
 
   // 심판 휘슬
@@ -64,39 +106,42 @@ export default function PenaltyKick() {
   const aiAimRef    = useRef(null)
   const diffRef     = useRef(DIFFICULTIES[1])
   const scoreRef    = useRef({ p: 0, ai: 0 })
+  const rareEventRef = useRef(null)
 
   useEffect(() => {
     return () => {
       clearTimeout(timerRef.current)
-      cancelAnimationFrame(powerAnimRef.current)
+      clearTimeout(shotTimeoutRef.current)
+      cancelAnimationFrame(meterAnimRef.current)
     }
   }, [])
 
-  // 파워 게이지 왕복 루프
+  // 실제 경과 시간을 기준으로 커서를 일정한 속도로 왕복시킨다.
   useEffect(() => {
-    if (!isCharging) {
-      cancelAnimationFrame(powerAnimRef.current)
+    if (!isMeterActive) {
+      cancelAnimationFrame(meterAnimRef.current)
       return
     }
 
-    function loop() {
-      setPower((prev) => {
-        let next = prev + powerDirRef.current * 2.8
-        if (next >= 100) {
-          next = 100
-          powerDirRef.current = -1
-        } else if (next <= 0) {
-          next = 0
-          powerDirRef.current = 1
-        }
-        return next
-      })
-      powerAnimRef.current = requestAnimationFrame(loop)
+    function moveCursor(now) {
+      const elapsed = now - meterStartedAtRef.current
+      meterElapsedRef.current = elapsed
+      const event = rareEventRef.current
+      const cursorMs = diffRef.current.cursorMs / (event?.speedMultiplier ?? 1)
+      const cycle = (elapsed % cursorMs) / cursorMs
+      const basePosition = cycle <= 0.5 ? cycle * 200 : (1 - cycle) * 200
+      const jitter = event?.cursorJitter ? Math.sin(elapsed / 34) * event.cursorJitter : 0
+      const next = Math.max(0, Math.min(100, basePosition + jitter))
+
+      meterPositionRef.current = next
+      setMeterPosition(next)
+      setShotTimeLeft(Math.max(0, (SHOT_LIMIT_MS - elapsed) / 1000))
+      meterAnimRef.current = requestAnimationFrame(moveCursor)
     }
 
-    powerAnimRef.current = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(powerAnimRef.current)
-  }, [isCharging])
+    meterAnimRef.current = requestAnimationFrame(moveCursor)
+    return () => cancelAnimationFrame(meterAnimRef.current)
+  }, [isMeterActive])
 
   function getGoalPct(e) {
     if (!goalRef.current) return { x: 50, y: 50 }
@@ -120,6 +165,7 @@ export default function PenaltyKick() {
   // ─── 게임 시작 ───────────────────────────────────────────────
   function startGame(diff) {
     diffRef.current = diff
+    setDifficulty(diff)
     const s = { p: 0, ai: 0 }
     scoreRef.current = s
     setScore(s)
@@ -130,131 +176,248 @@ export default function PenaltyKick() {
 
   function resetField() {
     clearTimeout(timerRef.current)
-    cancelAnimationFrame(powerAnimRef.current)
+    clearTimeout(shotTimeoutRef.current)
+    cancelAnimationFrame(meterAnimRef.current)
     setMsg({ text: '', isGoal: false })
     setDot(null)
     setHover(null)
-    setIsCharging(false)
-    setPower(0)
+    meterActiveRef.current = false
+    setIsMeterActive(false)
+    setMeterPosition(0)
+    setShotTimeLeft(5)
     setKeeper({ x: 50, y: 70 })
     setKeeperDive('')
-    setBall({ x: 50, y: 82, curveClass: '' })
+    setBall({ x: 50, y: 82, startX: 50, startY: 82, curveClass: '', outcomeClass: '' })
     setWhistle(false)
+    setRareEvent(null)
+    rareEventRef.current = null
   }
 
   // ─── 마우스 조준 이동 (키커 스탠스 연동) ────────────────────
   function handleGoalMouseMove(e) {
-    if (phase !== P.PLAYER_AIM || isCharging) return
+    if (phase !== P.PLAYER_AIM || isMeterActive) return
     const pt = getGoalPct(e)
     setHover(pt)
     // 조준 위치가 우측이면 키커는 좌측 뒤에서 도움닫기 준비 (대각선 각도)
     setKickerStance(pt.x >= 50 ? 'left' : 'right')
   }
 
-  // ─── 마우스 누름 (MouseDown: 파워 차징 시작) ───────────────
-  function handleGoalMouseDown(e) {
+  function getMeterZone(position) {
+    if (position >= 42 && position <= 58) return { key: 'green', label: '정확', chance: 0.95 }
+    if ((position >= 27 && position < 42) || (position > 58 && position <= 73)) {
+      return { key: 'orange', label: '주의', chance: 0.55 }
+    }
+    return { key: 'red', label: '위험', chance: 0.15 }
+  }
+
+  // 첫 클릭은 조준과 게이지 시작, 두 번째 클릭은 현재 위치에서 슛한다.
+  function handleGoalClick(e) {
     if (phase !== P.PLAYER_AIM) return
+
+    if (meterActiveRef.current) {
+      finishPlayerShot(false)
+      return
+    }
+
     const pt = getGoalPct(e)
     aimLockRef.current = pt
     setHover(pt)
-    setPower(0)
-    powerDirRef.current = 1
-    setIsCharging(true)
+    meterPositionRef.current = 0
+    meterStartedAtRef.current = e.timeStamp
+    meterElapsedRef.current = 0
+    meterActiveRef.current = true
+    const selectedDistraction = pickRareEvent('meter')
+    rareEventRef.current = selectedDistraction
+    setRareEvent(selectedDistraction)
+    setMeterPosition(0)
+    setShotTimeLeft(5)
+    setIsMeterActive(true)
+    shotTimeoutRef.current = setTimeout(() => finishPlayerShot(true), SHOT_LIMIT_MS)
   }
 
-  // ─── 마우스 뗌 (MouseUp: 슛 발사) ─────────────────────────
-  function handleGoalMouseUp() {
-    if (phase !== P.PLAYER_AIM || !isCharging) return
-    setIsCharging(false)
-    cancelAnimationFrame(powerAnimRef.current)
+  function finishPlayerShot(timedOut) {
+    if (!meterActiveRef.current) return
 
-    const currentAim = aimLockRef.current || { x: 50, y: 50 }
-    const currentPower = power
+    meterActiveRef.current = false
+    setIsMeterActive(false)
+    clearTimeout(shotTimeoutRef.current)
+    cancelAnimationFrame(meterAnimRef.current)
 
-    executePlayerShoot(currentAim, currentPower)
+    const elapsed = meterElapsedRef.current
+    const zone = getMeterZone(meterPositionRef.current)
+    const latePenalty = elapsed <= 3500 ? 1 : Math.max(0.55, 1 - ((elapsed - 3500) / 1500) * 0.45)
+    const chance = timedOut ? 0 : zone.chance * latePenalty
+
+    executePlayerShoot(aimLockRef.current || { x: 50, y: 50 }, {
+      chance,
+      timedOut,
+      zone: zone.key,
+    })
+  }
+
+  // 골키퍼에게 막힌 공을 충돌 지점에서 경기장 앞으로 튕겨낸다.
+  function reboundSavedBall(hitPoint, aimX) {
+    const horizontalDirection = aimX < 50 ? 1 : -1
+
+    setTimeout(() => {
+      setBall({
+        x: Math.max(12, Math.min(88, hitPoint.x + horizontalDirection * rnd(6, 11))),
+        y: Math.min(78, hitPoint.y + rnd(22, 28)),
+        startX: hitPoint.x,
+        startY: hitPoint.y,
+        curveClass: 'pk__ball--rebound',
+        outcomeClass: 'pk__soccer-ball--saved',
+      })
+    }, SAVE_REBOUND_DELAY_MS)
   }
 
   // ─── 플레이어 슛 실행 ─────────────────────────────────────────
-  function executePlayerShoot(aim, shotPower) {
-    // 1단계: 대각선 도움닫기 러닝 (0.6초)
+  function executePlayerShoot(aim, shot) {
+    // 1단계: 대각선 도움닫기
     setPhase(P.PLAYER_RUNUP)
 
     setTimeout(() => {
-      // 2단계: 임팩트 및 슛 궤적 연출
       setPhase(P.PLAYER_KICK)
 
-      const isOverPower = shotPower > 88 // 너무 세서 홈런/골대 맞음
-      const isPerfect   = shotPower >= 65 && shotPower <= 88 // 완벽한 파워
-      const isWeak      = shotPower < 65 // 약한 파워
+      const selectedEvent = shot.timedOut
+        ? rareEventRef.current
+        : rareEventRef.current ?? pickRareEvent('shot')
+      const adjustedChance = shot.chance * (selectedEvent?.chanceMultiplier ?? 1)
+      const scored = !shot.timedOut
+        && !selectedEvent?.forcedMissType
+        && Math.random() < adjustedChance
 
-      // 구석 모서리 판정 (가로 끝 20% 이내, 세로 25% 이내)
-      const isCorner = (aim.x < 22 || aim.x > 78) && (aim.y < 30 || aim.y > 70)
-
-      // AI 골키퍼 난이도별 예측
-      const predictRate = diffRef.current.aiPredictRate
-      const aiPredicted = Math.random() < predictRate
+      setRareEvent(selectedEvent)
+      rareEventRef.current = selectedEvent
 
       let kx = 50
       let ky = 70
       let saved = false
-      let hitPost = false
+      let missType = ''
+      let actualAim = { ...aim }
 
-      if (isOverPower) {
-        // 홈런 또는 크로스바 강타 (실축)
-        hitPost = true
-        saved = false
-        // 공이 골대 위로 솟구침
-        aim = { x: aim.x + rnd(-8, 8), y: -15 }
-        kx = aim.x < 50 ? 30 : 70
-        ky = 30
-      } else if (aiPredicted) {
-        // AI가 방향을 읽음!
-        kx = aim.x + rnd(-6, 6)
-        ky = aim.y + rnd(-5, 5)
+      if (scored) {
+        if (selectedEvent?.key === 'wind') {
+          actualAim.x = Math.max(4, Math.min(96, aim.x + rnd(-10, 10)))
+        }
+        kx = aim.x > 50 ? rnd(15, 34) : rnd(66, 85)
+        ky = rnd(34, 72)
+      } else if (selectedEvent?.key === 'wind') {
+        missType = 'wind'
+        actualAim = {
+          x: aim.x < 50 ? rnd(101, 108) : rnd(-8, -1),
+          y: Math.max(15, aim.y + rnd(-12, 12)),
+        }
+        kx = aim.x < 50 ? 28 : 72
+        ky = 48
+      } else if (selectedEvent?.forcedMissType) {
+        missType = selectedEvent.key
 
-        if (isPerfect && isCorner) {
-          // 완벽한 파워로 구석을 찌른 경우: 골키퍼가 읽어도 손끝 스치며 GOAL!
-          saved = false
-        } else if (isWeak) {
-          // 약한 슛이면 방향 맞췄을 때 100% 선방
-          saved = true
+        if (selectedEvent.forcedMissType === 'post') {
+          actualAim = { x: aim.x < 50 ? 1 : 99, y: Math.max(8, aim.y) }
+          kx = aim.x < 50 ? 24 : 76
+          ky = aim.y
         } else {
-          // 적당한 파워: 구석이 아니면 대부분 선방
-          saved = !isCorner || Math.random() < 0.75
+          actualAim = {
+            x: aim.x < 50 ? rnd(101, 108) : rnd(-8, -1),
+            y: selectedEvent.key === 'bird' ? Math.max(12, aim.y) : Math.max(58, aim.y),
+          }
+          kx = aim.x < 50 ? 30 : 70
+          ky = 52
         }
       } else {
-        // AI가 역동작에 걸림 (반대편으로 뜀)
-        kx = aim.x > 50 ? rnd(15, 35) : rnd(65, 85)
-        ky = rnd(30, 80)
-        saved = false
+        const missRoll = shot.timedOut ? 0.5 : Math.random()
+        if (missRoll < 0.46) {
+          missType = 'saved'
+          saved = true
+          kx = aim.x + rnd(-4, 4)
+          ky = aim.y + rnd(-4, 4)
+          actualAim = { x: kx, y: ky }
+        } else if (missRoll < 0.72) {
+          missType = 'over'
+          actualAim = { x: aim.x + rnd(-7, 7), y: -18 }
+          kx = aim.x < 50 ? 35 : 65
+          ky = 35
+        } else if (missRoll < 0.92) {
+          missType = 'wide'
+          actualAim = { x: aim.x < 50 ? -8 : 108, y: Math.max(18, aim.y) }
+          kx = aim.x < 50 ? 28 : 72
+          ky = 55
+        } else {
+          missType = 'post'
+          actualAim = { x: aim.x < 50 ? 1 : 99, y: Math.max(8, aim.y) }
+          kx = aim.x < 50 ? 24 : 76
+          ky = aim.y
+        }
       }
 
       setKeeper({ x: kx, y: ky })
       setKeeperDive(kx < 40 ? 'left' : kx > 60 ? 'right' : 'center')
 
       // 공 포물선 궤적
-      const curve = aim.x < 45 ? 'pk__ball--arc-left' : aim.x > 55 ? 'pk__ball--arc-right' : 'pk__ball--arc-center'
-      const t = goalToScene(aim.x, aim.y)
+      const curve = actualAim.x < 45 ? 'pk__ball--arc-left' : actualAim.x > 55 ? 'pk__ball--arc-right' : 'pk__ball--arc-center'
+      const t = goalToScene(actualAim.x, actualAim.y)
 
       setBall({
         x: t.x,
         y: t.y,
+        startX: 50,
+        startY: 82,
         curveClass: curve,
+        outcomeClass: saved
+          ? 'pk__soccer-ball--saved'
+          : scored
+            ? 'pk__soccer-ball--goal'
+            : `pk__soccer-ball--miss-${selectedEvent?.forcedMissType ?? missType}`,
       })
+
+      if (saved) reboundSavedBall(t, actualAim.x)
 
       // 3단계: 판정 메시지
       setTimeout(() => {
         let msgText = ''
         let isGoal = false
 
-        if (hitPost) {
-          msgText = '🚀 홈런 실축! 골대 위로 벗어남!'
-          isGoal = false
-        } else if (saved) {
-          msgText = isWeak ? '🧤 파워 부족! 골키퍼 정면 선방!' : '🧤 AI 골키퍼 슈퍼세이브에 막힘!'
-          isGoal = false
+        if (shot.timedOut) {
+          msgText = '⏱️ 시간 초과! 집중력이 흐트러져 실축했습니다.'
+        } else if (missType === 'bird') {
+          msgText = '🐦 버드 스트라이크! 날아든 새 떼에 공이 굴절됐습니다.'
+        } else if (missType === 'sprinkler') {
+          msgText = '💦 스프링클러 오작동! 미끄러진 슛이 빗나갔습니다.'
+        } else if (missType === 'beach-ball') {
+          msgText = '🏖️ 비치볼과 충돌! 공이 골대를 맞고 나왔습니다.'
+        } else if (selectedEvent?.key === 'wind') {
+          msgText = '🌬️ 갑작스러운 돌풍에 슛 궤적이 틀어졌습니다!'
+        } else if (selectedEvent?.key === 'blackout') {
+          msgText = '💡 조명이 깜빡이는 순간 타이밍을 놓쳤습니다!'
+        } else if (selectedEvent?.key === 'mosquito') {
+          msgText = '🦟 모기가 시야를 가려 슛 타이밍이 흔들렸습니다!'
+        } else if (selectedEvent?.key === 'fake-whistle') {
+          msgText = '📣 가짜 휘슬에 속아 타이밍을 놓쳤습니다!'
+        } else if (selectedEvent?.key === 'camera-flash') {
+          msgText = '📸 카메라 플래시에 순간적으로 시야를 잃었습니다!'
+        } else if (selectedEvent?.key === 'rain') {
+          msgText = '🌧️ 갑작스러운 빗방울에 발이 미끄러졌습니다!'
+        } else if (selectedEvent?.key === 'scoreboard-glitch') {
+          msgText = '📺 전광판 오류로 게이지를 잘못 읽었습니다!'
+        } else if (missType === 'saved' || saved) {
+          msgText = '🧤 골키퍼가 방향을 읽고 막았습니다!'
+        } else if (missType === 'over') {
+          msgText = '🚀 공이 크로스바 위로 날아갔습니다!'
+        } else if (missType === 'wide') {
+          msgText = '💨 공이 골문 옆으로 벗어났습니다!'
+        } else if (missType === 'post') {
+          msgText = '🥅 골대를 맞고 튕겨 나왔습니다!'
         } else {
-          msgText = isPerfect && isCorner ? '🔥 완벽한 궤적의 원더골 GOAL!!' : '⚽ GOAL! 득점 성공!'
+          if (selectedEvent?.key === 'wind') {
+            msgText = '🌬️ 돌풍을 뚫어낸 원더골 GOAL!!'
+          } else if (selectedEvent?.key === 'blackout') {
+            msgText = '💡 조명 혼란 속에서도 침착하게 GOAL!!'
+          } else if (selectedEvent) {
+            msgText = `✨ ${selectedEvent.label} 방해를 이겨내고 GOAL!!`
+          } else {
+            msgText = shot.zone === 'green' ? '🔥 정확한 타이밍! GOAL!!' : '⚽ GOAL! 득점 성공!'
+          }
           isGoal = true
         }
 
@@ -267,8 +430,8 @@ export default function PenaltyKick() {
         setPhase(P.ROUND_RESULT)
 
         setTimeout(() => checkNextTurn(next, 'player'), 1300)
-      }, 950)
-    }, 600)
+      }, SHOT_RESULT_DELAY_MS)
+    }, 760)
   }
 
   // ─── AI 턴 준비 (3, 2, 1 카운트다운) ──────────────────────
@@ -305,7 +468,7 @@ export default function PenaltyKick() {
   }
 
   // ─── 플레이어 선방 클릭 ──────────────────────────────────
-  function handlePlayerSave(click, directHit = false) {
+  function handlePlayerSave(click) {
     clearTimeout(timerRef.current)
     setDot(null)
     const aim = aiAimRef.current
@@ -313,7 +476,10 @@ export default function PenaltyKick() {
 
     const dx = Math.abs(click.x - aim.x)
     const dy = Math.abs(click.y - aim.y)
-    const saved = directHit || (dx <= 25 && dy <= 35)
+    const saveX = diffRef.current.saveX
+    const saveY = diffRef.current.saveY
+    const isInsideSaveArea = ((dx / saveX) ** 2) + ((dy / saveY) ** 2) <= 1
+    const saved = isInsideSaveArea
 
     resolveAiKick(click, aim, null, saved)
   }
@@ -332,8 +498,13 @@ export default function PenaltyKick() {
     setBall({
       x: t.x,
       y: t.y,
+      startX: 50,
+      startY: 82,
       curveClass: curve,
+      outcomeClass: saved ? 'pk__soccer-ball--saved' : 'pk__soccer-ball--goal',
     })
+
+    if (saved) reboundSavedBall(t, aim.x)
 
     const base = scoreOverride ?? scoreRef.current
     const next = saved ? base : { ...base, ai: base.ai + 1 }
@@ -344,7 +515,7 @@ export default function PenaltyKick() {
     setTimeout(() => {
       setPhase(P.ROUND_RESULT)
       setTimeout(() => checkNextTurn(next, 'ai'), 1300)
-    }, 950)
+    }, SHOT_RESULT_DELAY_MS)
   }
 
   function checkNextTurn(s, lastTurn) {
@@ -364,7 +535,8 @@ export default function PenaltyKick() {
 
   function restartGame() {
     clearTimeout(timerRef.current)
-    cancelAnimationFrame(powerAnimRef.current)
+    clearTimeout(shotTimeoutRef.current)
+    cancelAnimationFrame(meterAnimRef.current)
     setPhase(P.INTRO)
     setWinner(null)
     setScore({ p: 0, ai: 0 })
@@ -379,12 +551,15 @@ export default function PenaltyKick() {
   const isPlayerTurn = phase === P.PLAYER_AIM || phase === P.PLAYER_RUNUP || phase === P.PLAYER_KICK
 
   const ballStyle = {
-    left: `${ball.x}%`,
-    top:  `${ball.y}%`,
+    '--ball-end-x': `${ball.x}%`,
+    '--ball-end-y': `${ball.y}%`,
+    '--ball-start-x': `${ball.startX}%`,
+    '--ball-start-y': `${ball.startY}%`,
   }
+  const meterZone = getMeterZone(meterPosition)
 
   return (
-    <main className="pk" onMouseUp={handleGoalMouseUp}>
+    <main className="pk">
       {/* 상단 스코어보드 */}
       <header className="pk__topbar">
         <a className="pk__back" href="/plug/minigames">← 미니게임</a>
@@ -407,8 +582,9 @@ export default function PenaltyKick() {
           <h2 className="pk__intro-heading">실력 기반 승부차기 1:1</h2>
           <p className="pk__intro-desc">
             3골을 먼저 득점하면 승리합니다!<br />
-            <strong>[슛하는 법]</strong> 골대를 클릭한 채로 <strong>초록색 파워(적정 힘)</strong>에 맞춰 떼세요!<br />
-            (너무 세면 홈런, 너무 약하면 AI 골키퍼에게 잡힙니다)<br />
+            <strong>[슛하는 법]</strong> 코스를 클릭하면 5초 타이밍 바가 시작됩니다.<br />
+            초록색 95% · 주황색 55% · 빨간색 15% 구간에서 다시 클릭하세요.<br />
+            경기 중에는 낮은 확률로 예상하지 못한 돌발 상황이 발생합니다.<br />
             <strong>[막는 법]</strong> 3, 2, 1 카운트 후 뜨는 <span className="pk__intro-dot">●</span> 힌트 점을 찰나에 클릭!
           </p>
           <div className="pk__diff-row">
@@ -420,7 +596,7 @@ export default function PenaltyKick() {
                 onClick={() => startGame(d)}
               >
                 <span className="pk__diff-lv">{d.label}</span>
-                <span className="pk__diff-time">{d.hintMs / 1000}초 선방 / AI {Math.round(d.aiPredictRate * 100)}% 예측</span>
+                <span className="pk__diff-time">커서 {d.cursorMs / 1000}초 왕복 / 선방 힌트 {d.hintMs / 1000}초</span>
               </button>
             ))}
           </div>
@@ -446,16 +622,25 @@ export default function PenaltyKick() {
 
       {/* 와이드 축구 경기장 씬 */}
       {isPlaying && (
-        <div className="pk__stadium" ref={sceneRef}>
+        <div className={`pk__stadium ${rareEvent ? `pk__stadium--event-${rareEvent.key}` : ''}`} ref={sceneRef}>
           {/* 관중석 및 조명 */}
           <div className="pk__crowd" aria-hidden="true">
             <div className="pk__stadium-light pk__stadium-light--left" />
             <div className="pk__stadium-light pk__stadium-light--right" />
             <div className="pk__crowd-stand" />
+            <div className="pk__spectators">
+              {CROWD.map((person, index) => (
+                <span
+                  className="pk__spectator"
+                  key={index}
+                  style={{ '--shirt': person.color, '--delay': person.delay }}
+                />
+              ))}
+            </div>
             <div className="pk__ad-boards">
               <span>PREMIER LEAGUE</span>
               <span>PL:UG FOOTBALL</span>
-              <span>BUILDUP STADIUM</span>
+              <span>PLUGIN STADIUM</span>
               <span>PREMIER LEAGUE</span>
             </div>
           </div>
@@ -470,6 +655,34 @@ export default function PenaltyKick() {
               <div className="pk__penalty-arc" />
             </div>
           </div>
+
+          {/* 낮은 확률로 나타나는 경기장 돌발 상황 */}
+          {rareEvent && (
+            <div className={`pk__rare-event pk__rare-event--${rareEvent.key}`} aria-hidden="true">
+              <div className="pk__rare-event-label">⚠ SPECIAL EVENT · {rareEvent.label}</div>
+              {rareEvent.key === 'bird' && (
+                <div className="pk__bird-flock"><span /><span /><span /><span /></div>
+              )}
+              {rareEvent.key === 'wind' && (
+                <>
+                  <div className="pk__hurricane"><span>🌪️</span><i /><i /><i /></div>
+                  <div className="pk__wind-lines"><span /><span /><span /><span /></div>
+                </>
+              )}
+              {rareEvent.key === 'sprinkler' && (
+                <div className="pk__sprinkler"><span /><span /><span /><span /></div>
+              )}
+              {rareEvent.key === 'beach-ball' && <div className="pk__beach-ball" />}
+              {rareEvent.key === 'blackout' && <div className="pk__blackout-flash" />}
+              {rareEvent.key === 'mosquito' && <div className="pk__mosquito">🦟</div>}
+              {rareEvent.key === 'fake-whistle' && <div className="pk__fake-whistle">삐익?!</div>}
+              {rareEvent.key === 'camera-flash' && <div className="pk__camera-flash" />}
+              {rareEvent.key === 'rain' && (
+                <div className="pk__rain"><span /><span /><span /><span /><span /><span /></div>
+              )}
+              {rareEvent.key === 'scoreboard-glitch' && <div className="pk__scoreboard-glitch">88:88</div>}
+            </div>
+          )}
 
           {/* 심판 */}
           <div className={`pk__referee ${whistle ? 'pk__referee--whistle' : ''}`} aria-hidden="true">
@@ -493,8 +706,7 @@ export default function PenaltyKick() {
                 isAiHint ? 'pk__goal-target--defend' : '',
               ].filter(Boolean).join(' ')}
               onMouseMove={handleGoalMouseMove}
-              onMouseDown={handleGoalMouseDown}
-              onClick={isAiHint ? (e) => handlePlayerSave(getGoalPct(e)) : undefined}
+              onClick={isAiHint ? (e) => handlePlayerSave(getGoalPct(e)) : handleGoalClick}
             >
               {/* 조준 크로스헤어 */}
               {hover && isAiming && (
@@ -511,11 +723,11 @@ export default function PenaltyKick() {
                   style={{
                     left: `${dot.x}%`,
                     top:  `${dot.y}%`,
-                    animationDuration: `${diffRef.current?.hintMs ?? 2000}ms`,
+                    animationDuration: `${difficulty.hintMs}ms`,
                   }}
                   onClick={(e) => {
                     e.stopPropagation()
-                    handlePlayerSave(dot, true)
+                    handlePlayerSave(getGoalPct(e))
                   }}
                   role="button"
                   aria-label="선방하기"
@@ -549,7 +761,7 @@ export default function PenaltyKick() {
 
           {/* 축구공 */}
           <div
-            className={`pk__soccer-ball ${ball.curveClass}`}
+            className={`pk__soccer-ball ${ball.curveClass} ${ball.outcomeClass}`}
             style={ballStyle}
             aria-hidden="true"
           >
@@ -579,23 +791,26 @@ export default function PenaltyKick() {
             </div>
           )}
 
-          {/* 파워 게이지 바 (마우스 누르는 동안 노출) */}
-          {isCharging && (
+          {/* 5초 타이밍 게이지 */}
+          {isMeterActive && (
             <div className="pk__power-meter">
               <div className="pk__power-label">
-                <span>POWER GAUGE</span>
-                <span className={power > 88 ? 'pk__power-txt--over' : power >= 65 ? 'pk__power-txt--perfect' : ''}>
-                  {power > 88 ? 'OVER!' : power >= 65 ? 'PERFECT!' : `${Math.round(power)}%`}
+                <span>SHOT TIMING</span>
+                <span className={shotTimeLeft <= 1.5 ? 'pk__power-txt--over' : ''}>
+                  {shotTimeLeft.toFixed(1)}초
                 </span>
               </div>
-              <div className="pk__power-track">
-                <div
-                  className={`pk__power-fill ${power > 88 ? 'pk__power-fill--over' : power >= 65 ? 'pk__power-fill--perfect' : 'pk__power-fill--normal'}`}
-                  style={{ width: `${power}%` }}
-                />
-                <div className="pk__power-sweetspot" title="Perfect Zone" />
+              <div className="pk__power-track" aria-label="슛 정확도 타이밍 바">
+                <div className="pk__meter-zone pk__meter-zone--red-left" />
+                <div className="pk__meter-zone pk__meter-zone--orange-left" />
+                <div className="pk__meter-zone pk__meter-zone--green" />
+                <div className="pk__meter-zone pk__meter-zone--orange-right" />
+                <div className="pk__meter-zone pk__meter-zone--red-right" />
+                <div className="pk__meter-cursor" style={{ left: `${meterPosition}%` }} />
               </div>
-              <div className="pk__power-hint">초록색 구간에서 마우스를 떼세요!</div>
+              <div className={`pk__power-hint pk__power-hint--${meterZone.key}`}>
+                {shotTimeLeft <= 1.5 ? '집중력 저하! 지금 클릭하세요.' : `${meterZone.label} 구간 · 골대를 다시 클릭해 슛`}
+              </div>
             </div>
           )}
 
@@ -622,8 +837,8 @@ export default function PenaltyKick() {
 
           {/* 하단 상태 가이드 */}
           <div className="pk__status-bar">
-            {isAiming && !isCharging && '🖱️ 원하는 코스를 [클릭한 채로 유지]하여 파워 게이지를 모으세요!'}
-            {isCharging && '⚡ 초록색 PERFECT 구간에 마우스를 떼어 슛을 날리세요!'}
+            {isAiming && !isMeterActive && '🎯 골대에서 원하는 코스를 한 번 클릭하세요.'}
+            {isMeterActive && '⚡ 5초 안에 초록색 구간을 노려 골대를 다시 클릭하세요!'}
             {phase === P.PLAYER_RUNUP && '🏃 키커가 도움닫기 전진 후 슛을 날립니다!'}
             {isCountdown && '⚠️ 집중하세요! 3초 후 AI가 강력한 슛을 날립니다!'}
             {isAiHint && '🧤 지금이다! 빨간 점을 클릭해 선방하세요!'}
