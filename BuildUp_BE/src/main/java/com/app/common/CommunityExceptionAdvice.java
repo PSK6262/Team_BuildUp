@@ -9,6 +9,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 
 
@@ -30,19 +31,52 @@ public class CommunityExceptionAdvice {
     public ResponseEntity<ApiResponse<Void>> invalidRequest(ResponseStatusException exception) {
         ResultCode code;
         if (exception.getStatus() == HttpStatus.BAD_REQUEST) {
-            code = ResultCode.INVALID_INPUT;
+            if ("Post title too long".equals(exception.getReason())) {
+                code = ResultCode.COMMUNITY_POST_TITLE_TOO_LONG;
+            } else if ("Post content too long".equals(exception.getReason())) {
+                code = ResultCode.COMMUNITY_POST_TOO_LONG;
+            } else if ("Comment too long".equals(exception.getReason())) {
+                code = ResultCode.COMMUNITY_COMMENT_TOO_LONG;
+            } else if ("Attachment limit exceeded".equals(exception.getReason())) {
+                code = ResultCode.COMMUNITY_ATTACHMENT_LIMIT;
+            } else if ("Attachment too large".equals(exception.getReason())) {
+                code = ResultCode.COMMUNITY_ATTACHMENT_TOO_LARGE;
+            } else if ("Invalid attachment".equals(exception.getReason())) {
+                code = ResultCode.COMMUNITY_ATTACHMENT_INVALID;
+            } else {
+                code = ResultCode.INVALID_INPUT;
+            }
         } else if (exception.getStatus() == HttpStatus.UNAUTHORIZED) {
             code = ResultCode.COMMUNITY_LOGIN_REQUIRED;
         } else if (exception.getStatus() == HttpStatus.NOT_FOUND) {
-            code = "Comment not found".equals(exception.getReason())
-                ? ResultCode.COMMUNITY_COMMENT_NOT_FOUND : ResultCode.COMMUNITY_POST_NOT_FOUND;
+            if ("Comment not found".equals(exception.getReason())) {
+                code = ResultCode.COMMUNITY_COMMENT_NOT_FOUND;
+            } else if ("Attachment not found".equals(exception.getReason())) {
+                code = ResultCode.COMMUNITY_ATTACHMENT_NOT_FOUND;
+            } else {
+                code = ResultCode.COMMUNITY_POST_NOT_FOUND;
+            }
         } else if (exception.getStatus() == HttpStatus.FORBIDDEN) {
-            code = "Comment owner required".equals(exception.getReason())
-                ? ResultCode.COMMUNITY_COMMENT_FORBIDDEN : ResultCode.COMMUNITY_POST_FORBIDDEN;
+            if ("Comment owner required".equals(exception.getReason())) {
+                code = ResultCode.COMMUNITY_COMMENT_FORBIDDEN;
+            } else if ("Attachment owner required".equals(exception.getReason())) {
+                code = ResultCode.COMMUNITY_ATTACHMENT_FORBIDDEN;
+            } else {
+                code = ResultCode.COMMUNITY_POST_FORBIDDEN;
+            }
+        } else if ("Attachment storage failed".equals(exception.getReason())) {
+            code = ResultCode.COMMUNITY_ATTACHMENT_STORAGE_FAIL;
         } else {
             code = ResultCode.FAIL;
         }
         return ResponseEntity.status(exception.getStatus()).body(ApiResponse.error(code));
+    }
+
+    // web.xml의 multipart 요청 크기 제한을 초과한 경우를 처리합니다.
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> uploadTooLarge(MaxUploadSizeExceededException exception) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+            .body(ApiResponse.error(ResultCode.COMMUNITY_ATTACHMENT_TOO_LARGE));
     }
 
     // 처리하지 못한 서버 오류를 기록하고 실패 응답을 반환합니다.

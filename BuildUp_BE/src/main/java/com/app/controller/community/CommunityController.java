@@ -1,8 +1,13 @@
 package com.app.controller.community;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import com.app.common.ResultCode;
 import com.app.common.ApiResponse;
@@ -18,7 +23,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import com.app.dto.community.PostListResponse;
+import com.app.dto.community.PostAttachments;
 import com.app.dto.community.Posts;
 import com.app.service.community.CommunityService;
 import com.app.util.JwtProvider;
@@ -194,6 +201,86 @@ public class CommunityController {
         }
         communityService.deleteComment(loginId, postId, commentId);
         return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    // 게시글에 등록된 첨부파일 목록을 반환합니다.
+    @GetMapping("/api/communities/{postId}/attachments")
+    public ApiResponse<List<PostAttachments>> communityAttachments(
+            @PathVariable("postId") Long postId) {
+        List<PostAttachments> attachments = communityService.findPostAttachments(postId);
+        if (attachments.isEmpty()) {
+            return ApiResponse.response(ResultCode.SUC_EMPTY, attachments);
+        }
+        return ApiResponse.success(attachments);
+    }
+
+    // 로그인한 작성자의 게시글에 첨부파일을 등록합니다.
+    @PostMapping(value = "/api/communities/{postId}/attachments",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<List<PostAttachments>>> uploadCommunityAttachments(
+            @PathVariable("postId") Long postId,
+            @RequestParam("files") List<MultipartFile> files,
+            HttpServletRequest request) {
+        String loginId = resolveLoginId(request);
+        if (loginId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(ResultCode.COMMUNITY_LOGIN_REQUIRED));
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(
+            communityService.uploadPostAttachments(loginId, postId, files)));
+    }
+
+    // 이미지 미리보기에 사용할 첨부파일 내용을 반환합니다.
+    @GetMapping("/api/communities/attachments/{attachmentId}/content")
+    public ResponseEntity<Resource> communityAttachmentContent(
+            @PathVariable("attachmentId") Long attachmentId) {
+        return attachmentFileResponse(attachmentId, false);
+    }
+
+    // 사용자가 저장할 수 있도록 원본 파일명으로 첨부파일을 반환합니다.
+    @GetMapping("/api/communities/attachments/{attachmentId}/download")
+    public ResponseEntity<Resource> downloadCommunityAttachment(
+            @PathVariable("attachmentId") Long attachmentId) {
+        return attachmentFileResponse(attachmentId, true);
+    }
+
+    // 로그인한 작성자의 게시글 첨부파일을 삭제합니다.
+    @DeleteMapping("/api/communities/{postId}/attachments/{attachmentId}")
+    public ResponseEntity<ApiResponse<Void>> deleteCommunityAttachment(
+            @PathVariable("postId") Long postId,
+            @PathVariable("attachmentId") Long attachmentId,
+            HttpServletRequest request) {
+        String loginId = resolveLoginId(request);
+        if (loginId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(ResultCode.COMMUNITY_LOGIN_REQUIRED));
+        }
+        communityService.deletePostAttachment(loginId, postId, attachmentId);
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    private ResponseEntity<Resource> attachmentFileResponse(Long attachmentId, boolean download) {
+        PostAttachments attachment = communityService.findPostAttachment(attachmentId);
+        if (!download && !attachment.isImage()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");
+        }
+        Resource resource = communityService.loadPostAttachmentFile(attachment);
+        MediaType mediaType;
+        try {
+            mediaType = MediaType.parseMediaType(attachment.getContentType());
+        } catch (IllegalArgumentException exception) {
+            mediaType = MediaType.APPLICATION_OCTET_STREAM;
+        }
+        ContentDisposition disposition = (download
+            ? ContentDisposition.attachment() : ContentDisposition.inline())
+            .filename(attachment.getOriginalName(), StandardCharsets.UTF_8)
+            .build();
+        return ResponseEntity.ok()
+            .contentType(mediaType)
+            .contentLength(attachment.getFileSize())
+            .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+            .header("X-Content-Type-Options", "nosniff")
+            .body(resource);
     }
 
     // 세션을 먼저 확인하고 세션이 없으면 JWT에서 로그인 아이디를 확인합니다.

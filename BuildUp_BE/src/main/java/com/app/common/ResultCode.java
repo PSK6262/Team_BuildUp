@@ -31,7 +31,16 @@ public enum ResultCode {
     COMMUNITY_POST_NOT_FOUND("REJ_202", "게시글을 찾을 수 없습니다."),
     COMMUNITY_POST_FORBIDDEN("REJ_203", "작성자만 게시글을 변경할 수 있습니다."),
     COMMUNITY_COMMENT_NOT_FOUND("REJ_204", "댓글을 찾을 수 없습니다."),
-    COMMUNITY_COMMENT_FORBIDDEN("REJ_205", "작성자만 댓글을 변경할 수 있습니다.");
+    COMMUNITY_COMMENT_FORBIDDEN("REJ_205", "작성자만 댓글을 변경할 수 있습니다."),
+    COMMUNITY_COMMENT_TOO_LONG("REJ_206", "댓글은 100자까지 입력할 수 있습니다."),
+    COMMUNITY_ATTACHMENT_INVALID("REJ_207", "허용되지 않는 첨부파일입니다."),
+    COMMUNITY_ATTACHMENT_LIMIT("REJ_208", "첨부파일은 게시글당 5개까지 등록할 수 있습니다."),
+    COMMUNITY_ATTACHMENT_NOT_FOUND("REJ_209", "첨부파일을 찾을 수 없습니다."),
+    COMMUNITY_ATTACHMENT_FORBIDDEN("REJ_210", "작성자만 첨부파일을 변경할 수 있습니다."),
+    COMMUNITY_ATTACHMENT_TOO_LARGE("REJ_211", "첨부파일 크기 제한을 초과했습니다."),
+    COMMUNITY_ATTACHMENT_STORAGE_FAIL("REJ_212", "첨부파일 저장 중 오류가 발생했습니다."),
+    COMMUNITY_POST_TOO_LONG("REJ_213", "게시글 내용은 1000자까지 입력할 수 있습니다."),
+    COMMUNITY_POST_TITLE_TOO_LONG("REJ_214", "게시글 제목은 50자까지 입력할 수 있습니다.");
 
     private final String code;
     private final String message;
