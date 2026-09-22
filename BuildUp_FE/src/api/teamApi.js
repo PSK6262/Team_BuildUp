@@ -234,3 +234,25 @@ export async function getTeamPlayersWithStats(teamId) {
   });
 }
 
+/**
+ * 9. 프리미어리그 전체 선수 목록 조회 (나만의 팀 / 포메이션 빌더용)
+ * - 팀 엠블럼, 팀 한글명 및 선수 정보를 통합하여 반환
+ */
+export async function getAllPremierLeaguePlayers() {
+  const teams = await getTeams();
+  const teamMap = new Map((teams || []).map((t) => [t.teamId, t]));
+
+  const rawPlayers = fallbackBundle.players || [];
+  return rawPlayers
+    .filter((p) => !isExcludedTeam(p.teamId))
+    .map((p) => {
+      const t = teamMap.get(p.teamId) || {};
+      return {
+        ...p,
+        teamName: t.teamName || 'Premier League',
+        teamNameKor: t.teamNameKor || t.teamName || '프리미어리그',
+        teamEmblem: t.emblemUrl || null,
+      };
+    });
+}
+
