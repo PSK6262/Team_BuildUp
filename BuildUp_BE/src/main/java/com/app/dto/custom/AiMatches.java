@@ -73,6 +73,7 @@ public class AiMatches {
     @Data
     public static class Event {
         private int minute;
+        private Long playerId;
         private Integer side;
         private String type;
         private String label;

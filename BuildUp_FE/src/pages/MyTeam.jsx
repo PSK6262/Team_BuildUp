@@ -122,6 +122,10 @@ function AiMatchTimeline({ match }) {
   }, [playing, selectedIndex, match]);
 
   const event = match.events[Math.min(selectedIndex, match.events.length - 1)];
+  const bookedPlayers = useMemo(() => new Set(match.events
+    .slice(0, selectedIndex + 1)
+    .filter((item) => item.type === 'yellow' && item.playerId != null)
+    .map((item) => `${item.side}-${item.playerId}`)), [match.events, selectedIndex]);
   const neutral = ['period', 'yellow', 'red'].includes(event.type);
   const attacking = !neutral && (event.type === 'save' ? event.side === 0 : event.side === 1);
   const phase = neutral ? '기본 대형' : attacking ? '공격 전개' : '수비 복귀';
@@ -319,6 +323,7 @@ function AiMatchTimeline({ match }) {
               { side: 1, fullLineup: match.opponent.lineup, activeLineup: lineup },
               { side: 0, fullLineup: match.home, activeLineup: homeLineup },
             ].flatMap(({ side, fullLineup, activeLineup }) => activeLineup.map(({ pos, player }) => {
+              const isBooked = bookedPlayers.has(`${side}-${player.playerId}`);
               const originalRow = fullLineup.filter((slot) => slot.pos === pos);
               const teamAttacking = !neutral && (event.type === 'save' ? event.side !== side : event.side === side);
               const localBall = side === 1 ? baseBallPos : { ...baseBallPos, x: 360 - baseBallPos.x, y: 440 - baseBallPos.y };
@@ -407,6 +412,7 @@ function AiMatchTimeline({ match }) {
                   >
                     <title>
                       {side === 0 ? match.homeName : match.opponentName} · {player.nameKor || player.name} · {pos}
+                      {isBooked ? ' · 경고 1회' : ''}
                       {isKicker ? (isCorner ? ' (코너킥 전담)' : isPk ? ' (PK 전담)' : ' (프리킥 전담)') : ''}
                     </title>
                     <circle
@@ -416,6 +422,12 @@ function AiMatchTimeline({ match }) {
                       strokeWidth={isKicker ? 2 : 1}
                     />
                     <text textAnchor="middle" y="3" fontSize="7" fill="#17212b" fontWeight="800">{pos}</text>
+                    {isBooked && (
+                      <rect x={isKicker ? 5 : 4.5} y={isKicker ? -15 : -13.5}
+                        width={isKicker ? 7 : 6.3} height={isKicker ? 10 : 9}
+                        rx="1" fill="#facc15" stroke="#713f12" strokeWidth="0.7"
+                        role="img" aria-label="옐로카드" />
+                    )}
                     <text textAnchor="middle" y="20" fontSize="7.5" fill="#fff" fontWeight={isKicker ? '700' : 'normal'}>
                       {kickerBadge}{player.nameKor || player.name}
                     </text>
