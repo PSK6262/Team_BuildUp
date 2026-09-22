@@ -10,6 +10,7 @@ import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -203,7 +204,19 @@ public class AdminController {
 		return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
 	}
 
-	// 10. 커뮤니티 댓글 목록 조회 (블라인드/삭제/검색 필터)
+	// 10. 관리자가 작성자와 관계없이 게시글을 삭제 처리
+	@DeleteMapping("/community/posts/{postId}")
+	public ApiResponse<Void> deletePost(
+			@PathVariable("postId") Long postId,
+			HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		boolean success = adminService.deletePost(postId);
+		return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
+	}
+
+	// 11. 커뮤니티 댓글 목록 조회 (블라인드/삭제/검색 필터)
 	@GetMapping("/community/comments")
 	public ApiResponse<List<Comments>> getAdminComments(
 			@RequestParam(value = "isBlind", required = false) String isBlind,
@@ -216,7 +229,7 @@ public class AdminController {
 		return ApiResponse.success(adminService.getAdminComments(isBlind, isDeleted, keyword));
 	}
 
-	// 11. 댓글 블라인드 상태 수정 (Y/N 토글)
+	// 12. 댓글 블라인드 상태 수정 (Y/N 토글)
 	@PutMapping("/community/comments/{commentId}/blind")
 	public ApiResponse<Void> toggleCommentBlind(
 			@PathVariable("commentId") Long commentId,
@@ -230,7 +243,7 @@ public class AdminController {
 		return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
 	}
 
-	// 12. 회원 목록 조회
+	// 13. 회원 목록 조회
 	@GetMapping("/users")
 	public ApiResponse<List<Users>> getAdminUsers(
 			@RequestParam(value = "keyword", required = false) String keyword,
@@ -242,7 +255,7 @@ public class AdminController {
 		return ApiResponse.success(adminService.getAdminUsers(keyword, roleCode));
 	}
 
-	// 13. 회원 권한 등급 변경
+	// 14. 회원 권한 등급 변경
 	@PutMapping("/users/{userId}/role")
 	public ApiResponse<Void> updateUserRole(
 			@PathVariable("userId") Long userId,
@@ -259,7 +272,7 @@ public class AdminController {
 		return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
 	}
 
-	// 14. 회원 포인트 직권 지급/차감
+	// 15. 회원 포인트 직권 지급/차감
 	@PostMapping("/users/{userId}/points")
 	public ApiResponse<Void> adjustUserPoints(
 			@PathVariable("userId") Long userId,
@@ -278,7 +291,7 @@ public class AdminController {
 		return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
 	}
 
-	// 15. 최근 포인트 변동 이력 조회
+	// 16. 최근 포인트 변동 이력 조회
 	@GetMapping("/points/recent")
 	public ApiResponse<List<PointHistory>> getRecentPointHistories(HttpServletRequest request) {
 		if (!isAdmin(request)) {
@@ -287,7 +300,7 @@ public class AdminController {
 		return ApiResponse.success(adminService.getRecentPointHistories());
 	}
 
-	// 16. 외부 축구 경기 일정/스코어 수동 동기화 트리거
+	// 17. 외부 축구 경기 일정/스코어 수동 동기화 트리거
 	@PostMapping("/sync/matches")
 	public ApiResponse<Map<String, Object>> syncMatches(
 			@RequestParam(value = "date", required = false) String date,
@@ -306,7 +319,7 @@ public class AdminController {
 		}
 	}
 
-	// 17. 경기 타임라인 상세 이벤트 수동 동기화 트리거
+	// 18. 경기 타임라인 상세 이벤트 수동 동기화 트리거
 	@PostMapping("/sync/events")
 	public ApiResponse<Map<String, Object>> syncEvents(
 			@RequestParam(value = "date", required = false) String date,
@@ -325,7 +338,7 @@ public class AdminController {
 		}
 	}
 
-	// 18. 프리미어리그 순위표 수동 동기화
+	// 19. 프리미어리그 순위표 수동 동기화
 	@PostMapping("/sync/standings")
 	public ApiResponse<Map<String, Object>> syncStandings(
 			@RequestParam(value = "season", required = false) Integer season,
@@ -344,7 +357,7 @@ public class AdminController {
 		}
 	}
 
-	// 19. 득점 순위 수동 동기화
+	// 20. 득점 순위 수동 동기화
 	@PostMapping("/sync/scorers")
 	public ApiResponse<Map<String, Object>> syncScorers(
 			@RequestParam(value = "limit", required = false, defaultValue = "50") Integer limit,
@@ -363,7 +376,7 @@ public class AdminController {
 		}
 	}
 
-	// 20. 특정 시즌 전체 380경기 일괄 동기화
+	// 21. 특정 시즌 전체 380경기 일괄 동기화
 	@PostMapping("/sync/season-matches")
 	public ApiResponse<Map<String, Object>> syncSeasonMatches(
 			@RequestParam(value = "season", required = false) Integer season,
@@ -382,7 +395,7 @@ public class AdminController {
 		}
 	}
 
-	// 21. 전체 20개 구단 및 선수단 일괄 동기화
+	// 22. 전체 20개 구단 및 선수단 일괄 동기화
 	@PostMapping("/sync/teams-and-players")
 	public ApiResponse<Map<String, Object>> syncTeamsAndPlayers(HttpServletRequest request) {
 		if (!isAdmin(request)) {
@@ -399,7 +412,7 @@ public class AdminController {
 		}
 	}
 
-	// 22. 스코어-이벤트 불일치 경기 정밀 재동기화 (1차 룰 + 2차 Gemini AI 교차 검증)
+	// 23. 스코어-이벤트 불일치 경기 정밀 재동기화 (1차 룰 + 2차 Gemini AI 교차 검증)
 	@PostMapping("/sync/mismatched-events")
 	public ApiResponse<Map<String, Object>> resyncMismatchedEvents(HttpServletRequest request) {
 		if (!isAdmin(request)) {

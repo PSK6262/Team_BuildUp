@@ -27,6 +27,7 @@ public interface AdminDAO {
 	// 커뮤니티 게시글/댓글 관리
 	List<Posts> selectAdminPosts(Map<String, Object> params);
 	int updatePostBlind(Long postId, String isBlind);
+	int deletePost(Long postId);
 	List<Comments> selectAdminComments(Map<String, Object> params);
 	int updateCommentBlind(Long commentId, String isBlind);
 

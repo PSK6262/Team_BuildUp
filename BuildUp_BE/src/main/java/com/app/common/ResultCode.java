@@ -40,7 +40,8 @@ public enum ResultCode {
     COMMUNITY_ATTACHMENT_TOO_LARGE("REJ_211", "첨부파일 크기 제한을 초과했습니다."),
     COMMUNITY_ATTACHMENT_STORAGE_FAIL("REJ_212", "첨부파일 저장 중 오류가 발생했습니다."),
     COMMUNITY_POST_TOO_LONG("REJ_213", "게시글 내용은 1000자까지 입력할 수 있습니다."),
-    COMMUNITY_POST_TITLE_TOO_LONG("REJ_214", "게시글 제목은 50자까지 입력할 수 있습니다.");
+    COMMUNITY_POST_TITLE_TOO_LONG("REJ_214", "게시글 제목은 50자까지 입력할 수 있습니다."),
+    COMMUNITY_NEWS_WRITE_DISABLED("REJ_215", "뉴스 게시글 작성은 현재 사용할 수 없습니다.");
 
     private final String code;
     private final String message;
