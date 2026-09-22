@@ -33,6 +33,7 @@ import com.app.dto.user.Users;
 import com.app.service.community.CommunityService;
 @Service
 public class CommunityServiceImpl implements CommunityService {
+    private static final int POST_TITLE_MAX_LENGTH = 50;
     private static final int POST_CONTENT_MAX_LENGTH = 1000;
     private static final int COMMENT_MAX_LENGTH = 100;
     private static final int POST_ATTACHMENT_MAX_COUNT = 5;
@@ -507,11 +508,14 @@ public class CommunityServiceImpl implements CommunityService {
     // 게시글 제목, 본문, 카테고리와 팀 값을 검사합니다.
     private void validatePost(Posts post) {
         if (post == null || post.getTitle() == null || post.getTitle().isBlank()
-                || post.getTitle().trim().length() > 255
                 || post.getContent() == null || post.getContent().isBlank()
                 || post.getCategoryId() == null || post.getCategoryId() < 1
                 || (post.getTeamId() != null && post.getTeamId() < 1)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid post");
+        }
+        String title = post.getTitle().trim();
+        if (title.codePointCount(0, title.length()) > POST_TITLE_MAX_LENGTH) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Post title too long");
         }
         String content = post.getContent().trim();
         if (content.codePointCount(0, content.length()) > POST_CONTENT_MAX_LENGTH) {

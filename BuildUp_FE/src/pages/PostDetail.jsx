@@ -7,6 +7,7 @@ import '../css/Community.css'
 // StrictMode가 개발 환경에서 같은 상세 조회를 두 번 실행해도 서버 요청은 한 번만 보냅니다.
 const pendingPostRequests = new Map()
 const COMMENT_MAX_LENGTH = 100
+const POST_TITLE_MAX_LENGTH = 50
 const POST_CONTENT_MAX_LENGTH = 1000
 const MAX_ATTACHMENT_COUNT = 5
 const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024
@@ -16,6 +17,8 @@ const FILE_ATTACHMENT_PATTERN = /\.(pdf|txt|docx|xlsx|zip)$/i
 
 const commentLength = (value) => Array.from(value).length
 const limitComment = (value) => Array.from(value).slice(0, COMMENT_MAX_LENGTH).join('')
+const titleLength = (value) => Array.from(value).length
+const limitTitle = (value) => Array.from(value).slice(0, POST_TITLE_MAX_LENGTH).join('')
 const contentLength = (value) => Array.from(value).length
 const limitContent = (value) => Array.from(value).slice(0, POST_CONTENT_MAX_LENGTH).join('')
 
@@ -185,6 +188,10 @@ export default function PostDetail({ postId }) {
     setActionError('')
     if (!categoryId || !title.trim() || !content.trim()) {
       setActionError('카테고리, 제목, 내용을 모두 입력해주세요.')
+      return
+    }
+    if (titleLength(title.trim()) > POST_TITLE_MAX_LENGTH) {
+      setActionError(`제목은 ${POST_TITLE_MAX_LENGTH}자까지 입력할 수 있습니다.`)
       return
     }
     if (contentLength(content.trim()) > POST_CONTENT_MAX_LENGTH) {
@@ -606,7 +613,8 @@ export default function PostDetail({ postId }) {
         </select>
       </label>
       <label>제목
-        <input type="text" maxLength="255" value={title} onChange={(event) => setTitle(event.target.value)} disabled={actionLoading} />
+        <input type="text" value={title} onChange={(event) => setTitle(limitTitle(event.target.value))} disabled={actionLoading} />
+        <small className="community__character-count">{titleLength(title)} / {POST_TITLE_MAX_LENGTH}</small>
       </label>
       <label>내용
         <textarea rows="14" value={content} onChange={(event) => setContent(limitContent(event.target.value))} disabled={actionLoading} />

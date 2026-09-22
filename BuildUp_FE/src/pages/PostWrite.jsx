@@ -4,11 +4,14 @@ import CommunityNavigation from './CommunityNavigation.jsx'
 import '../css/Community.css'
 
 const MAX_ATTACHMENT_COUNT = 5
+const POST_TITLE_MAX_LENGTH = 50
 const POST_CONTENT_MAX_LENGTH = 1000
 const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024
 const MAX_ATTACHMENT_TOTAL_SIZE = 20 * 1024 * 1024
 const IMAGE_ATTACHMENT_PATTERN = /\.(jpe?g|png|gif|webp)$/i
 const FILE_ATTACHMENT_PATTERN = /\.(pdf|txt|docx|xlsx|zip)$/i
+const titleLength = (value) => Array.from(value).length
+const limitTitle = (value) => Array.from(value).slice(0, POST_TITLE_MAX_LENGTH).join('')
 const contentLength = (value) => Array.from(value).length
 const limitContent = (value) => Array.from(value).slice(0, POST_CONTENT_MAX_LENGTH).join('')
 
@@ -97,6 +100,7 @@ export default function PostWrite() {
     if (!categoryId) return setError('카테고리를 선택해주세요.')
     if (board === 'team' && !teamId) return setError('팀별 게시글의 구단을 선택해주세요.')
     if (!title.trim()) return setError('제목을 입력해주세요.')
+    if (titleLength(title.trim()) > POST_TITLE_MAX_LENGTH) return setError(`제목은 ${POST_TITLE_MAX_LENGTH}자까지 입력할 수 있습니다.`)
     if (!content.trim()) return setError('내용을 입력해주세요.')
     if (contentLength(content.trim()) > POST_CONTENT_MAX_LENGTH) return setError(`내용은 ${POST_CONTENT_MAX_LENGTH}자까지 입력할 수 있습니다.`)
 
@@ -189,7 +193,8 @@ export default function PostWrite() {
       </label>}
 
       <label>제목
-        <input type="text" maxLength="255" value={title} onChange={(event) => setTitle(event.target.value)} disabled={loading || submitting} />
+        <input type="text" value={title} onChange={(event) => setTitle(limitTitle(event.target.value))} disabled={loading || submitting} />
+        <small className="community__character-count">{titleLength(title)} / {POST_TITLE_MAX_LENGTH}</small>
       </label>
 
       <label>내용
