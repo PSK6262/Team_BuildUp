@@ -223,4 +223,41 @@
 		FETCH FIRST 10 ROWS ONLY
 	</select>
 
+	<!-- 특정 회원의 승부예측 누적 전적 조회 -->
+	<select id="selectUserPredictsByUserId" parameterType="long" resultType="UserPredicts">
+		SELECT
+			up.USER_ID,
+			up.PREDICT_WIN,
+			up.PREDICT_TOTAL,
+			up.UPDATED_AT,
+			u.NICKNAME
+		FROM USER_PREDICTS up
+		JOIN USERS u ON up.USER_ID = u.USER_ID
+		WHERE up.USER_ID = #{userId}
+	</select>
+
+	<!-- 특정 회원의 승부예측 적중 보상 누적 획득 포인트 합계 -->
+	<select id="selectUserTotalHitPoints" parameterType="long" resultType="Long">
+		SELECT
+			NVL(SUM(AMOUNT), 0)
+		FROM POINT_HISTORY
+		WHERE USER_ID = #{userId}
+		  AND PREDICTION_ID IS NOT NULL
+		  AND AMOUNT > 0
+	</select>
+
+	<!-- 특정 회원의 승부예측 전체 랭킹 순위 조회 -->
+	<select id="selectUserPredictionRank" parameterType="long" resultType="Integer">
+		SELECT ranking FROM (
+			SELECT
+				USER_ID,
+				DENSE_RANK() OVER (
+					ORDER BY PREDICT_WIN DESC, (PREDICT_WIN / NULLIF(PREDICT_TOTAL, 0)) DESC, UPDATED_AT ASC
+				) AS ranking
+			FROM USER_PREDICTS
+			WHERE PREDICT_TOTAL >= 1
+		)
+		WHERE USER_ID = #{userId}
+	</select>
+
 </mapper>

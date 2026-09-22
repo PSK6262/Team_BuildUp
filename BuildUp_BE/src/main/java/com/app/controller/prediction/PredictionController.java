@@ -178,6 +178,38 @@ public class PredictionController {
 	}
 
 	/**
+	 * 로그인 회원의 승부예측 종합 전적/통계/포인트 집계 조회
+	 * GET /api/predictions/my/stats
+	 */
+	@GetMapping("/my/stats")
+	public ResponseEntity<Map<String, Object>> getMyPredictionStats(HttpServletRequest request) {
+		Users user = resolveLoginUser(request);
+		if (user == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(failResponse(MSG_LOGIN_REQUIRED));
+		}
+
+		Map<String, Object> stats = predictionService.getUserPredictionStats(user.getUserId());
+		return ResponseEntity.ok(Map.of(
+			KEY_STATUS, STATUS_SUCCESS,
+			"stats", stats
+		));
+	}
+
+	/**
+	 * 특정 회원의 승부예측 전적/통계/포인트 집계 조회 (프로필/랭킹 연동)
+	 * GET /api/predictions/users/{userId}/stats
+	 */
+	@GetMapping("/users/{userId}/stats")
+	public ResponseEntity<Map<String, Object>> getUserPredictionStats(@PathVariable("userId") Long userId) {
+		Map<String, Object> stats = predictionService.getUserPredictionStats(userId);
+		return ResponseEntity.ok(Map.of(
+			KEY_STATUS, STATUS_SUCCESS,
+			"stats", stats
+		));
+	}
+
+	/**
 	 * 승부예측 Top 10 적중 랭킹 조회
 	 * GET /api/predictions/rankings
 	 */

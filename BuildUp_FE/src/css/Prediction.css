@@ -41,9 +41,7 @@
   font-weight: 900;
   margin: 0 0 10px;
   letter-spacing: -0.5px;
-  background: linear-gradient(180deg, #ffffff 0%, #e2d9e6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #ffffff;
 }
 
 .prediction-header__desc {
@@ -420,4 +418,129 @@
   padding: 60px 0;
   color: #baa8c2;
   font-size: 0.95rem;
+}
+
+/* ==========================================================================
+   나의 승부예측 성적 대시보드 (My Prediction Stats Dashboard)
+   ========================================================================== */
+.prediction-stats-dashboard {
+  background: rgba(255, 255, 255, 0.05);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(0, 255, 135, 0.25);
+  border-radius: 18px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.prediction-stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.prediction-stats-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.prediction-stats-badge {
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(0, 255, 135, 0.15);
+  color: #00ff87;
+  border: 1px solid rgba(0, 255, 135, 0.3);
+}
+
+.prediction-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.prediction-stat-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.prediction-stat-box:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(0, 255, 135, 0.4);
+  transform: translateY(-2px);
+}
+
+.prediction-stat-box__label {
+  font-size: 0.78rem;
+  color: #baa8c2;
+  font-weight: 600;
+}
+
+.prediction-stat-box__val {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.prediction-stat-box__val.highlight-green {
+  color: #00ff87;
+  text-shadow: 0 0 12px rgba(0, 255, 135, 0.35);
+}
+
+.prediction-stat-box__val.highlight-gold {
+  color: #f59e0b;
+}
+
+.prediction-stat-box__val.highlight-pink {
+  color: #ff2882;
+}
+
+.prediction-stat-box__sub {
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+/* 경기 필터 버튼 */
+.prediction-match-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.prediction-filter-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #baa8c2;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.prediction-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.prediction-filter-btn.is-active {
+  background: rgba(0, 255, 135, 0.2);
+  border-color: #00ff87;
+  color: #00ff87;
 }

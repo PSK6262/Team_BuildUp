@@ -91,4 +91,19 @@ public class PredictionDAOImpl implements PredictionDAO {
 	public List<UserPredicts> selectTopPredictors() {
 		return sqlSession.selectList(NAMESPACE + "selectTopPredictors");
 	}
+
+	@Override
+	public UserPredicts selectUserPredictsByUserId(Long userId) {
+		return sqlSession.selectOne(NAMESPACE + "selectUserPredictsByUserId", userId);
+	}
+
+	@Override
+	public Long selectUserTotalHitPoints(Long userId) {
+		return sqlSession.selectOne(NAMESPACE + "selectUserTotalHitPoints", userId);
+	}
+
+	@Override
+	public Integer selectUserPredictionRank(Long userId) {
+		return sqlSession.selectOne(NAMESPACE + "selectUserPredictionRank", userId);
+	}
 }

@@ -37,4 +37,9 @@ public interface PredictionService {
 	 * 경기 종료 스코어 기반 승부예측 결과 정산 (배당금 지급 트랜잭션)
 	 */
 	Map<String, Object> settleMatchPredictions(Long matchId);
+
+	/**
+	 * 회원의 승부예측 종합 통계 (성공률, 전적, 적중 포인트 등) 조회
+	 */
+	Map<String, Object> getUserPredictionStats(Long userId);
 }
