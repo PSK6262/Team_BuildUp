@@ -11,6 +11,7 @@ import TeamBoards from './pages/TeamBoards.jsx'
 import PostDetail from './pages/PostDetail.jsx'
 import PostWrite from './pages/PostWrite.jsx'
 import Prediction from './pages/Prediction.jsx'
+import MyTeam from './pages/MyTeam.jsx'
 import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
 import MyPage from './pages/MyPage.jsx'
@@ -85,6 +86,7 @@ function App() {
 
       {/* 회원 인증 및 마이페이지 */}
       {pathname === '/plug/prediction' && <Prediction />}
+      {pathname === '/plug/myteam' && <MyTeam />}
       {pathname === '/plug/login' && <Login />}
       {(pathname === '/plug/signin' || pathname === '/plug/signup' || pathname === '/plug/signup/confirm') && <Signup />}
       {pathname === '/plug/mypage' && <MyPage />}
