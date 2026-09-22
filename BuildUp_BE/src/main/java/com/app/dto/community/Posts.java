@@ -15,6 +15,7 @@ public class Posts {
     private Long viewCount;            // 조회수
     private Long likeCount;            // 추천수
     private String isBlind;            // 블라인드 여부 (Y/N)
+    private String isDeleted;          // 작성자 삭제 여부 (Y/N)
     private Long categoryId;           // [FK] 카테고리 식별자
 
     private LocalDateTime createdAt;   // 작성 일시

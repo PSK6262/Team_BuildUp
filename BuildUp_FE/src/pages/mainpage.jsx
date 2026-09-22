@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getTeams } from '../api/teamApi.js';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchTeams } from '../store/teamSlice.js';
 import TeamQuizModal from '../components/quiz/TeamQuizModal.jsx';
 import '../css/mainpage.css';
 
@@ -12,7 +13,8 @@ const INTRO_SENTENCES = [
 ];
 
 export default function MainPage() {
-  const [ teams, setTeams ] = useState([]);
+  const dispatch = useDispatch();
+  const teams = useSelector((state) => state.team.teams);
   const [ hoveredTeam, setHoveredTeam ] = useState(null);
   const [ introIndex, setIntroIndex ] = useState(0);
   const [ isTextVisible, setIsTextVisible ] = useState(true);
@@ -20,8 +22,8 @@ export default function MainPage() {
   const [ isQuizOpen, setIsQuizOpen ] = useState(false);
 
   useEffect(() => {
-    getTeams().then((data) => setTeams(data));
-  }, []);
+    dispatch(fetchTeams());
+  }, [dispatch]);
 
   useEffect(() => {
     if (isIntroFinished || introIndex >= INTRO_SENTENCES.length) return;

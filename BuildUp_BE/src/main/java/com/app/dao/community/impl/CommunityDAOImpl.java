@@ -49,6 +49,13 @@ public class CommunityDAOImpl implements CommunityDAO {
         params.put("userId", userId);
         return sqlSession.update("CommunityMapper.blindPost", params);
     }
+    // 게시글 삭제(소프트 딜리트) SQL을 실행합니다.
+    public int deletePost(Long postId, Long userId) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("postId", postId);
+        params.put("userId", userId);
+        return sqlSession.update("CommunityMapper.deletePost", params);
+    }
     // 사용자의 게시글 추천 여부 조회 SQL을 실행합니다.
     public int countPostLike(PostLikes postLike) {
         return sqlSession.selectOne("CommunityMapper.countPostLike", postLike);
@@ -91,5 +98,12 @@ public class CommunityDAOImpl implements CommunityDAO {
         params.put("commentId", commentId);
         params.put("userId", userId);
         return sqlSession.update("CommunityMapper.blindComment", params);
+    }
+    // 댓글 삭제(소프트 딜리트) SQL을 실행합니다.
+    public int deleteComment(Long commentId, Long userId) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("commentId", commentId);
+        params.put("userId", userId);
+        return sqlSession.update("CommunityMapper.deleteComment", params);
     }
 }

@@ -1,42 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { getTeams, getInitialTeams } from '../api/teamApi.js';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchTeams } from '../store/teamSlice.js';
 import TeamCard from '../components/team/TeamCard.jsx';
 import '../css/teams.css';
 
 export default function TeamsPage() {
-  const [ teams, setTeams ] = useState(() => getInitialTeams());
-  const [ loading, setLoading ] = useState(false);
-  const [ error, setError ] = useState(null);
+  const dispatch = useDispatch();
+  const { teams, teamsLoading: loading, teamsError: error } = useSelector((state) => state.team);
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function loadTeams() {
-      try {
-        setLoading(true);
-        const data = await getTeams();
-        if (isMounted) {
-          setTeams(data);
-          setError(null);
-        }
-      } catch (err) {
-        if (isMounted) {
-          console.error('[TeamsPage] 구단 목록 로드 오류:', err);
-          setError('구단 데이터를 불러오는 중 오류가 발생했습니다.');
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadTeams();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    dispatch(fetchTeams());
+  }, [dispatch]);
 
   return (
     <div className="teams-page-container">
