@@ -1,71 +1,119 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import '../css/PenaltyKick.css'
 
 const DIFFICULTIES = [
-  { label: '하', key: 'easy',   hintMs: 1000, color: '#2ecc71' },
-  { label: '중', key: 'normal', hintMs: 500,  color: '#f39c12' },
-  { label: '상', key: 'hard',   hintMs: 250,  color: '#e74c3c' },
+  { label: '하', key: 'easy',   hintMs: 3000, aiPredictRate: 0.35, color: '#2ecc71' },
+  { label: '중', key: 'normal', hintMs: 2000, aiPredictRate: 0.60, color: '#f39c12' },
+  { label: '상', key: 'hard',   hintMs: 1000, aiPredictRate: 0.85, color: '#e74c3c' },
 ]
 
 const WIN = 3
-const HIT_R = 13   // % 반경 — 이 안에 클릭하면 선방
 
 const P = {
   INTRO:        'INTRO',
   PLAYER_AIM:   'PLAYER_AIM',
-  PLAYER_KICK:  'PLAYER_KICK',
-  AI_HINT:      'AI_HINT',
-  AI_RESOLVE:   'AI_RESOLVE',
+  PLAYER_RUNUP: 'PLAYER_RUNUP', // 대각선 도움닫기 러닝
+  PLAYER_KICK:  'PLAYER_KICK',  // 임팩트 및 공 비행
+  AI_COUNTDOWN: 'AI_COUNTDOWN', // 3, 2, 1 카운트다운
+  AI_HINT:      'AI_HINT',      // AI 킥 & 빨간 원 점멸
+  AI_RESOLVE:   'AI_RESOLVE',   // 결과 판정 및 골키퍼 다이빙
   ROUND_RESULT: 'ROUND_RESULT',
   GAME_OVER:    'GAME_OVER',
 }
 
 function rnd(a, b) { return a + Math.random() * (b - a) }
-function dist(x1, y1, x2, y2) { return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2) }
 
 export default function PenaltyKick() {
-  const [phase, setPhase]   = useState(P.INTRO)
-  const [score, setScore]   = useState({ p: 0, ai: 0 })
-  const [msg, setMsg]       = useState({ text: '', isGoal: false })
-  const [winner, setWinner] = useState(null)
+  const [phase, setPhase]         = useState(P.INTRO)
+  const [score, setScore]         = useState({ p: 0, ai: 0 })
+  const [msg, setMsg]             = useState({ text: '', isGoal: false })
+  const [winner, setWinner]       = useState(null)
+  const [countdown, setCountdown] = useState(3)
 
-  // 골대 호버 크로스헤어
-  const [hover, setHover] = useState(null)   // { x, y } % within goal-inside
+  // 조준점 & 키커 도움닫기 방향 ('left' | 'right')
+  const [hover, setHover]               = useState(null)
+  const [kickerStance, setKickerStance] = useState('left')
 
-  // AI 킥 힌트 점
-  const [dot, setDot] = useState(null)       // { x, y } % within goal-inside
+  // 파워 게이지
+  const [power, setPower]           = useState(0)
+  const [isCharging, setIsCharging] = useState(false)
+  const powerDirRef                 = useRef(1)
+  const powerAnimRef                = useRef(null)
+  const aimLockRef                  = useRef(null)
 
-  // 골키퍼 (goal-inside 내부 % 위치)
-  const [keeper, setKeeper]         = useState({ x: 50, y: 65 })
-  const [keeperAnim, setKeeperAnim] = useState(false)
+  // AI 힌트 점
+  const [dot, setDot] = useState(null)
 
-  // 공: x/y = scene % 기준
-  const [ball, setBall] = useState({ x: 50, y: 74, scale: 1, tr: false })
+  // 골키퍼 위치 및 상태
+  const [keeper, setKeeper]         = useState({ x: 50, y: 70 })
+  const [keeperDive, setKeeperDive] = useState('')
 
-  const sceneRef = useRef(null)
-  const goalRef  = useRef(null)
-  const hintRef  = useRef(null)
-  const aiAimRef = useRef(null)
-  const diffRef  = useRef(null)
-  const scoreRef = useRef({ p: 0, ai: 0 })
+  // 공 비행 상태
+  const [ball, setBall] = useState({
+    x: 50,
+    y: 82,
+    curveClass: '',
+  })
 
-  // ─── 좌표 변환 헬퍼 ─────────────────────────────────────────
+  // 심판 휘슬
+  const [whistle, setWhistle] = useState(false)
+
+  const sceneRef    = useRef(null)
+  const goalRef     = useRef(null)
+  const timerRef    = useRef(null)
+  const aiAimRef    = useRef(null)
+  const diffRef     = useRef(DIFFICULTIES[1])
+  const scoreRef    = useRef({ p: 0, ai: 0 })
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(timerRef.current)
+      cancelAnimationFrame(powerAnimRef.current)
+    }
+  }, [])
+
+  // 파워 게이지 왕복 루프
+  useEffect(() => {
+    if (!isCharging) {
+      cancelAnimationFrame(powerAnimRef.current)
+      return
+    }
+
+    function loop() {
+      setPower((prev) => {
+        let next = prev + powerDirRef.current * 2.8
+        if (next >= 100) {
+          next = 100
+          powerDirRef.current = -1
+        } else if (next <= 0) {
+          next = 0
+          powerDirRef.current = 1
+        }
+        return next
+      })
+      powerAnimRef.current = requestAnimationFrame(loop)
+    }
+
+    powerAnimRef.current = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(powerAnimRef.current)
+  }, [isCharging])
+
   function getGoalPct(e) {
+    if (!goalRef.current) return { x: 50, y: 50 }
     const r = goalRef.current.getBoundingClientRect()
     return {
-      x: Math.max(3, Math.min(97, (e.clientX - r.left) / r.width  * 100)),
-      y: Math.max(3, Math.min(97, (e.clientY - r.top)  / r.height * 100)),
+      x: Math.max(2, Math.min(98, ((e.clientX - r.left) / r.width) * 100)),
+      y: Math.max(2, Math.min(98, ((e.clientY - r.top) / r.height) * 100)),
     }
   }
 
-  // goal-inside 내 % → scene 전체 % 변환 (공 비행 target 계산용)
   function goalToScene(gx, gy) {
-    if (!goalRef.current || !sceneRef.current) return { x: 50, y: 20 }
+    if (!goalRef.current || !sceneRef.current) return { x: 50, y: 22 }
     const gr = goalRef.current.getBoundingClientRect()
     const sr = sceneRef.current.getBoundingClientRect()
     return {
-      x: ((gr.left - sr.left) + gx / 100 * gr.width)  / sr.width  * 100,
-      y: ((gr.top  - sr.top)  + gy / 100 * gr.height) / sr.height * 100,
+      x: ((gr.left - sr.left) + (gx / 100) * gr.width) / sr.width * 100,
+      y: ((gr.top - sr.top) + (gy / 100) * gr.height) / sr.height * 100,
     }
   }
 
@@ -76,123 +124,247 @@ export default function PenaltyKick() {
     scoreRef.current = s
     setScore(s)
     setWinner(null)
-    clearRound()
+    resetField()
     setPhase(P.PLAYER_AIM)
   }
 
-  function clearRound() {
-    clearTimeout(hintRef.current)
+  function resetField() {
+    clearTimeout(timerRef.current)
+    cancelAnimationFrame(powerAnimRef.current)
     setMsg({ text: '', isGoal: false })
     setDot(null)
     setHover(null)
-    setKeeper({ x: 50, y: 65 })
-    setKeeperAnim(false)
-    setBall({ x: 50, y: 74, scale: 1, tr: false })
+    setIsCharging(false)
+    setPower(0)
+    setKeeper({ x: 50, y: 70 })
+    setKeeperDive('')
+    setBall({ x: 50, y: 82, curveClass: '' })
+    setWhistle(false)
   }
 
-  // ─── 골대 클릭 핸들러 ─────────────────────────────────────────
-  function onGoalClick(e) {
-    if (phase === P.PLAYER_AIM) doPlayerShoot(getGoalPct(e))
-    else if (phase === P.AI_HINT) doPlayerSave(getGoalPct(e))
+  // ─── 마우스 조준 이동 (키커 스탠스 연동) ────────────────────
+  function handleGoalMouseMove(e) {
+    if (phase !== P.PLAYER_AIM || isCharging) return
+    const pt = getGoalPct(e)
+    setHover(pt)
+    // 조준 위치가 우측이면 키커는 좌측 뒤에서 도움닫기 준비 (대각선 각도)
+    setKickerStance(pt.x >= 50 ? 'left' : 'right')
   }
 
-  // ─── 플레이어 슛 ─────────────────────────────────────────────
-  function doPlayerShoot(aim) {
-    // AI 골키퍼 랜덤 다이빙
-    const kx = rnd(10, 90)
-    const ky = rnd(15, 85)
-    const saved = dist(aim.x, aim.y, kx, ky) < 22
+  // ─── 마우스 누름 (MouseDown: 파워 차징 시작) ───────────────
+  function handleGoalMouseDown(e) {
+    if (phase !== P.PLAYER_AIM) return
+    const pt = getGoalPct(e)
+    aimLockRef.current = pt
+    setHover(pt)
+    setPower(0)
+    powerDirRef.current = 1
+    setIsCharging(true)
+  }
 
-    setHover(null)
-    setPhase(P.PLAYER_KICK)
-    setKeeper({ x: kx, y: ky })
-    setKeeperAnim(true)
+  // ─── 마우스 뗌 (MouseUp: 슛 발사) ─────────────────────────
+  function handleGoalMouseUp() {
+    if (phase !== P.PLAYER_AIM || !isCharging) return
+    setIsCharging(false)
+    cancelAnimationFrame(powerAnimRef.current)
 
-    // 공이 goal aim 위치로 날아감
-    const t = goalToScene(aim.x, aim.y)
-    setBall({ x: t.x, y: t.y, scale: 0.26, tr: true })
+    const currentAim = aimLockRef.current || { x: 50, y: 50 }
+    const currentPower = power
+
+    executePlayerShoot(currentAim, currentPower)
+  }
+
+  // ─── 플레이어 슛 실행 ─────────────────────────────────────────
+  function executePlayerShoot(aim, shotPower) {
+    // 1단계: 대각선 도움닫기 러닝 (0.6초)
+    setPhase(P.PLAYER_RUNUP)
 
     setTimeout(() => {
-      setKeeperAnim(false)
-      const goal = !saved
-      const next = goal
-        ? { ...scoreRef.current, p: scoreRef.current.p + 1 }
-        : { ...scoreRef.current }
-      scoreRef.current = next
-      setScore(next)
-      setMsg({ text: goal ? '⚽ 골!' : '🧤 막혔다!', isGoal: goal })
-      setPhase(P.ROUND_RESULT)
-      setTimeout(() => advanceFrom(next, 'player'), 1100)
-    }, 950)
+      // 2단계: 임팩트 및 슛 궤적 연출
+      setPhase(P.PLAYER_KICK)
+
+      const isOverPower = shotPower > 88 // 너무 세서 홈런/골대 맞음
+      const isPerfect   = shotPower >= 65 && shotPower <= 88 // 완벽한 파워
+      const isWeak      = shotPower < 65 // 약한 파워
+
+      // 구석 모서리 판정 (가로 끝 20% 이내, 세로 25% 이내)
+      const isCorner = (aim.x < 22 || aim.x > 78) && (aim.y < 30 || aim.y > 70)
+
+      // AI 골키퍼 난이도별 예측
+      const predictRate = diffRef.current.aiPredictRate
+      const aiPredicted = Math.random() < predictRate
+
+      let kx = 50
+      let ky = 70
+      let saved = false
+      let hitPost = false
+
+      if (isOverPower) {
+        // 홈런 또는 크로스바 강타 (실축)
+        hitPost = true
+        saved = false
+        // 공이 골대 위로 솟구침
+        aim = { x: aim.x + rnd(-8, 8), y: -15 }
+        kx = aim.x < 50 ? 30 : 70
+        ky = 30
+      } else if (aiPredicted) {
+        // AI가 방향을 읽음!
+        kx = aim.x + rnd(-6, 6)
+        ky = aim.y + rnd(-5, 5)
+
+        if (isPerfect && isCorner) {
+          // 완벽한 파워로 구석을 찌른 경우: 골키퍼가 읽어도 손끝 스치며 GOAL!
+          saved = false
+        } else if (isWeak) {
+          // 약한 슛이면 방향 맞췄을 때 100% 선방
+          saved = true
+        } else {
+          // 적당한 파워: 구석이 아니면 대부분 선방
+          saved = !isCorner || Math.random() < 0.75
+        }
+      } else {
+        // AI가 역동작에 걸림 (반대편으로 뜀)
+        kx = aim.x > 50 ? rnd(15, 35) : rnd(65, 85)
+        ky = rnd(30, 80)
+        saved = false
+      }
+
+      setKeeper({ x: kx, y: ky })
+      setKeeperDive(kx < 40 ? 'left' : kx > 60 ? 'right' : 'center')
+
+      // 공 포물선 궤적
+      const curve = aim.x < 45 ? 'pk__ball--arc-left' : aim.x > 55 ? 'pk__ball--arc-right' : 'pk__ball--arc-center'
+      const t = goalToScene(aim.x, aim.y)
+
+      setBall({
+        x: t.x,
+        y: t.y,
+        curveClass: curve,
+      })
+
+      // 3단계: 판정 메시지
+      setTimeout(() => {
+        let msgText = ''
+        let isGoal = false
+
+        if (hitPost) {
+          msgText = '🚀 홈런 실축! 골대 위로 벗어남!'
+          isGoal = false
+        } else if (saved) {
+          msgText = isWeak ? '🧤 파워 부족! 골키퍼 정면 선방!' : '🧤 AI 골키퍼 슈퍼세이브에 막힘!'
+          isGoal = false
+        } else {
+          msgText = isPerfect && isCorner ? '🔥 완벽한 궤적의 원더골 GOAL!!' : '⚽ GOAL! 득점 성공!'
+          isGoal = true
+        }
+
+        const next = isGoal
+          ? { ...scoreRef.current, p: scoreRef.current.p + 1 }
+          : { ...scoreRef.current }
+        scoreRef.current = next
+        setScore(next)
+        setMsg({ text: msgText, isGoal })
+        setPhase(P.ROUND_RESULT)
+
+        setTimeout(() => checkNextTurn(next, 'player'), 1300)
+      }, 950)
+    }, 600)
   }
 
-  // ─── AI 킥 시작 ──────────────────────────────────────────────
-  function doAiKick(s) {
-    clearRound()
-    const aim = { x: rnd(10, 90), y: rnd(10, 85) }
+  // ─── AI 턴 준비 (3, 2, 1 카운트다운) ──────────────────────
+  function startAiTurn(s) {
+    resetField()
+    setPhase(P.AI_COUNTDOWN)
+    setCountdown(3)
+    setWhistle(true)
+
+    let count = 3
+    const interval = setInterval(() => {
+      count -= 1
+      if (count > 0) {
+        setCountdown(count)
+      } else {
+        clearInterval(interval)
+        setWhistle(false)
+        launchAiKick(s)
+      }
+    }, 700)
+  }
+
+  // ─── AI 킥 발사 & 빨간 점 노출 ───────────────────────────
+  function launchAiKick(s) {
+    const aim = { x: rnd(15, 85), y: rnd(18, 78) }
     aiAimRef.current = aim
     setDot(aim)
     setPhase(P.AI_HINT)
 
-    hintRef.current = setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       setDot(null)
       resolveAiKick(null, aim, s, false)
-    }, diffRef.current?.hintMs ?? 500)
+    }, diffRef.current?.hintMs ?? 2000)
   }
 
-  // ─── 플레이어 선방 클릭 ───────────────────────────────────────
-  function doPlayerSave(click) {
-    clearTimeout(hintRef.current)
+  // ─── 플레이어 선방 클릭 ──────────────────────────────────
+  function handlePlayerSave(click, directHit = false) {
+    clearTimeout(timerRef.current)
     setDot(null)
     const aim = aiAimRef.current
-    const saved = dist(click.x, click.y, aim.x, aim.y) < HIT_R
+    if (!aim) return
+
+    const dx = Math.abs(click.x - aim.x)
+    const dy = Math.abs(click.y - aim.y)
+    const saved = directHit || (dx <= 25 && dy <= 35)
+
     resolveAiKick(click, aim, null, saved)
   }
 
-  // ─── AI 킥 결과 처리 ─────────────────────────────────────────
+  // ─── AI 킥 결과 처리 ─────────────────────────────────────
   function resolveAiKick(click, aim, scoreOverride, saved) {
-    // 골키퍼가 클릭한 위치로 다이빙
+    setPhase(P.AI_RESOLVE)
+
     if (click) {
       setKeeper(click)
-      setKeeperAnim(true)
+      setKeeperDive(click.x < 45 ? 'left' : click.x > 55 ? 'right' : 'center')
     }
 
-    // 공 — AI aim 위치로 날아가는 애니메이션 적용
     const t = goalToScene(aim.x, aim.y)
-    setBall({ x: t.x, y: t.y, scale: 0.28, tr: true })
+    const curve = aim.x < 45 ? 'pk__ball--arc-left' : aim.x > 55 ? 'pk__ball--arc-right' : 'pk__ball--arc-center'
+    setBall({
+      x: t.x,
+      y: t.y,
+      curveClass: curve,
+    })
 
-    setPhase(P.AI_RESOLVE)
     const base = scoreOverride ?? scoreRef.current
     const next = saved ? base : { ...base, ai: base.ai + 1 }
     scoreRef.current = next
     setScore(next)
-    setMsg({ text: saved ? '🧤 선방!' : '⚽ AI 득점!', isGoal: !saved })
+    setMsg({ text: saved ? '🧤 슈퍼세이브 선방 성공!' : '⚽ AI 득점 허용...', isGoal: !saved })
 
     setTimeout(() => {
-      setKeeperAnim(false)
       setPhase(P.ROUND_RESULT)
-      setTimeout(() => advanceFrom(next, 'ai'), 1100)
+      setTimeout(() => checkNextTurn(next, 'ai'), 1300)
     }, 950)
   }
 
-  // ─── 다음 단계 분기 ──────────────────────────────────────────
-  function advanceFrom(s, lastTurn) {
+  function checkNextTurn(s, lastTurn) {
     if (s.p >= WIN || s.ai >= WIN) {
       setWinner(s.p >= WIN ? 'player' : 'ai')
       setPhase(P.GAME_OVER)
       return
     }
+
     if (lastTurn === 'player') {
-      doAiKick(s)
+      startAiTurn(s)
     } else {
-      clearRound()
+      resetField()
       setPhase(P.PLAYER_AIM)
     }
   }
 
-  // ─── 재시작 ──────────────────────────────────────────────────
-  function restart() {
-    clearTimeout(hintRef.current)
+  function restartGame() {
+    clearTimeout(timerRef.current)
+    cancelAnimationFrame(powerAnimRef.current)
     setPhase(P.INTRO)
     setWinner(null)
     setScore({ p: 0, ai: 0 })
@@ -200,49 +372,45 @@ export default function PenaltyKick() {
     setMsg({ text: '', isGoal: false })
   }
 
-  // ─── 파생 플래그 ─────────────────────────────────────────────
-  const isAiming  = phase === P.PLAYER_AIM
-  const isAiHint  = phase === P.AI_HINT
-  const isKicking = phase === P.PLAYER_KICK
-  const isKeeping = isAiHint || phase === P.AI_RESOLVE
-  const isPlaying = phase !== P.INTRO && phase !== P.GAME_OVER
+  const isAiming     = phase === P.PLAYER_AIM
+  const isAiHint     = phase === P.AI_HINT
+  const isCountdown  = phase === P.AI_COUNTDOWN
+  const isPlaying    = phase !== P.INTRO && phase !== P.GAME_OVER
+  const isPlayerTurn = phase === P.PLAYER_AIM || phase === P.PLAYER_RUNUP || phase === P.PLAYER_KICK
 
   const ballStyle = {
-    left:      `${ball.x}%`,
-    top:       `${ball.y}%`,
-    transform: `translate(-50%, -50%) scale(${ball.scale})`,
-    transition: ball.tr
-      ? 'left 0.72s ease-in, top 0.72s ease-in, transform 0.72s ease-in'
-      : 'none',
+    left: `${ball.x}%`,
+    top:  `${ball.y}%`,
   }
 
   return (
-    <main className="pk">
-      {/* ── 상단 바 ── */}
-      <div className="pk__topbar">
+    <main className="pk" onMouseUp={handleGoalMouseUp}>
+      {/* 상단 스코어보드 */}
+      <header className="pk__topbar">
         <a className="pk__back" href="/plug/minigames">← 미니게임</a>
-        <h1 className="pk__title">⚽ 패널티킥</h1>
+        <h1 className="pk__title">⚽ 승부차기 패널티킥</h1>
         {isPlaying && (
           <div className="pk__score">
-            <span>나</span>
-            <strong>{score.p}</strong>
+            <span className="pk__score-team">YOU</span>
+            <strong className="pk__score-num">{score.p}</strong>
             <span className="pk__score-sep">:</span>
-            <strong>{score.ai}</strong>
-            <span>AI</span>
+            <strong className="pk__score-num">{score.ai}</strong>
+            <span className="pk__score-team">AI</span>
           </div>
         )}
-      </div>
+      </header>
 
-      {/* ── 난이도 선택 ── */}
+      {/* 난이도 선택 */}
       {phase === P.INTRO && (
         <div className="pk__intro">
+          <div className="pk__intro-badge">PENALTY SHOOTOUT</div>
+          <h2 className="pk__intro-heading">실력 기반 승부차기 1:1</h2>
           <p className="pk__intro-desc">
-            3골을 먼저 넣으면 승리!<br />
-            AI 킥 시 골대에 뜨는{' '}
-            <span className="pk__intro-dot">●</span>{' '}
-            빨간 점을 클릭해서 막으세요.
+            3골을 먼저 득점하면 승리합니다!<br />
+            <strong>[슛하는 법]</strong> 골대를 클릭한 채로 <strong>초록색 파워(적정 힘)</strong>에 맞춰 떼세요!<br />
+            (너무 세면 홈런, 너무 약하면 AI 골키퍼에게 잡힙니다)<br />
+            <strong>[막는 법]</strong> 3, 2, 1 카운트 후 뜨는 <span className="pk__intro-dot">●</span> 힌트 점을 찰나에 클릭!
           </p>
-          <p className="pk__intro-sub">난이도 선택</p>
           <div className="pk__diff-row">
             {DIFFICULTIES.map((d) => (
               <button
@@ -252,98 +420,81 @@ export default function PenaltyKick() {
                 onClick={() => startGame(d)}
               >
                 <span className="pk__diff-lv">{d.label}</span>
-                <span className="pk__diff-time">{d.hintMs / 1000}초</span>
+                <span className="pk__diff-time">{d.hintMs / 1000}초 선방 / AI {Math.round(d.aiPredictRate * 100)}% 예측</span>
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* ── 게임 종료 ── */}
+      {/* 게임 종료 */}
       {phase === P.GAME_OVER && (
         <div className="pk__over">
           <div className={`pk__over-badge pk__over-badge--${winner === 'player' ? 'win' : 'lose'}`}>
-            {winner === 'player' ? '🏆 승리!' : '😞 패배...'}
+            {winner === 'player' ? '🏆 VICTORY!' : '😞 DEFEAT'}
           </div>
+          <p className="pk__over-desc">
+            {winner === 'player' ? '치열한 승부 끝에 AI를 꺾고 승리했습니다!' : '아쉽습니다! AI 골키퍼의 벽을 넘지 못했습니다.'}
+          </p>
           <div className="pk__over-score">{score.p} : {score.ai}</div>
           <div className="pk__over-btns">
-            <button className="pk__over-btn pk__over-btn--retry" onClick={restart}>
-              다시하기
-            </button>
-            <a className="pk__over-btn pk__over-btn--home" href="/plug/minigames">
-              목록으로
-            </a>
+            <button className="pk__over-btn pk__over-btn--retry" onClick={restartGame}>다시 대결하기</button>
+            <a className="pk__over-btn pk__over-btn--home" href="/plug/minigames">미니게임 목록</a>
           </div>
         </div>
       )}
 
-      {/* ── 게임 씬 ── */}
+      {/* 와이드 축구 경기장 씬 */}
       {isPlaying && (
-        <div className="pk__scene" ref={sceneRef}>
-
-          {/* 배경: 하늘 + 필드 */}
-          <div className="pk__sky" aria-hidden="true" />
-          <div className="pk__ground" aria-hidden="true" />
-
-          {/* 피치 원근선 (SVG) */}
-          <svg
-            className="pk__pitch"
-            viewBox="0 0 560 510"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            {/* 소실점 방사선 */}
-            <line x1="280" y1="38"  x2="0"   y2="510" stroke="rgba(255,255,255,0.07)" strokeWidth="1.5"/>
-            <line x1="280" y1="38"  x2="560" y2="510" stroke="rgba(255,255,255,0.07)" strokeWidth="1.5"/>
-            <line x1="280" y1="38"  x2="140" y2="510" stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
-            <line x1="280" y1="38"  x2="420" y2="510" stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
-            {/* 수평 원근선 */}
-            <line x1="152" y1="152" x2="408" y2="152" stroke="rgba(255,255,255,0.1)"  strokeWidth="1"/>
-            <line x1="62"  y1="268" x2="498" y2="268" stroke="rgba(255,255,255,0.1)"  strokeWidth="1"/>
-            <line x1="0"   y1="390" x2="560" y2="390" stroke="rgba(255,255,255,0.07)" strokeWidth="1"/>
-            {/* 페널티 에어리어 */}
-            <line x1="172" y1="78"  x2="388" y2="78"  stroke="rgba(255,255,255,0.22)" strokeWidth="1.5"/>
-            <line x1="172" y1="78"  x2="138" y2="190" stroke="rgba(255,255,255,0.22)" strokeWidth="1.5"/>
-            <line x1="388" y1="78"  x2="422" y2="190" stroke="rgba(255,255,255,0.22)" strokeWidth="1.5"/>
-            <line x1="138" y1="190" x2="422" y2="190" stroke="rgba(255,255,255,0.22)" strokeWidth="1.5"/>
-            {/* 페널티 스팟 */}
-            <circle cx="280" cy="128" r="4.5" fill="rgba(255,255,255,0.3)"/>
-            {/* 페널티 아크 */}
-            <path d="M 208 190 Q 280 250 352 190" fill="none"
-              stroke="rgba(255,255,255,0.22)" strokeWidth="1.5"/>
-          </svg>
-
-          {/* ── 골대 ── */}
-          <div className="pk__goal-wrap">
-            {/* 그물 배경 */}
-            <div className="pk__net" aria-hidden="true">
-              <svg width="100%" height="100%" preserveAspectRatio="none">
-                {[0,1,2,3,4,5,6,7,8,9,10].map(i => (
-                  <line key={`v${i}`}
-                    x1={`${i * 10}%`} y1="0"
-                    x2={`${i * 10}%`} y2="100%"
-                    stroke="rgba(210,210,210,0.2)" strokeWidth="0.7"/>
-                ))}
-                {[0,1,2,3,4,5,6].map(i => (
-                  <line key={`h${i}`}
-                    x1="0" y1={`${i * 16.6}%`}
-                    x2="100%" y2={`${i * 16.6}%`}
-                    stroke="rgba(210,210,210,0.2)" strokeWidth="0.7"/>
-                ))}
-              </svg>
+        <div className="pk__stadium" ref={sceneRef}>
+          {/* 관중석 및 조명 */}
+          <div className="pk__crowd" aria-hidden="true">
+            <div className="pk__stadium-light pk__stadium-light--left" />
+            <div className="pk__stadium-light pk__stadium-light--right" />
+            <div className="pk__crowd-stand" />
+            <div className="pk__ad-boards">
+              <span>PREMIER LEAGUE</span>
+              <span>PL:UG FOOTBALL</span>
+              <span>BUILDUP STADIUM</span>
+              <span>PREMIER LEAGUE</span>
             </div>
+          </div>
 
-            {/* 클릭 가능한 골대 내부 */}
+          {/* 잔디 피치 */}
+          <div className="pk__pitch-ground" aria-hidden="true">
+            <div className="pk__grass-stripes" />
+            <div className="pk__pitch-lines">
+              <div className="pk__penalty-box" />
+              <div className="pk__goal-area" />
+              <div className="pk__penalty-spot" />
+              <div className="pk__penalty-arc" />
+            </div>
+          </div>
+
+          {/* 심판 */}
+          <div className={`pk__referee ${whistle ? 'pk__referee--whistle' : ''}`} aria-hidden="true">
+            <div className="pk__referee-head" />
+            <div className="pk__referee-body" />
+            <div className="pk__referee-arm" />
+            <div className="pk__referee-legs" />
+            {whistle && <div className="pk__referee-sound">삐-익!!</div>}
+          </div>
+
+          {/* 골대 */}
+          <div className="pk__goal-frame">
+            <div className="pk__goal-net" aria-hidden="true" />
+
+            {/* 골대 내부 조준 및 클릭 영역 */}
             <div
               ref={goalRef}
               className={[
-                'pk__goal-inside',
-                isAiming ? 'pk__goal-inside--aim' : '',
-                isAiHint ? 'pk__goal-inside--defend' : '',
+                'pk__goal-target',
+                isAiming ? 'pk__goal-target--aim' : '',
+                isAiHint ? 'pk__goal-target--defend' : '',
               ].filter(Boolean).join(' ')}
-              onClick={isAiming || isAiHint ? onGoalClick : undefined}
-              onMouseMove={isAiming ? (e) => setHover(getGoalPct(e)) : undefined}
-              onMouseLeave={isAiming ? () => setHover(null) : undefined}
+              onMouseMove={handleGoalMouseMove}
+              onMouseDown={handleGoalMouseDown}
+              onClick={isAiHint ? (e) => handlePlayerSave(getGoalPct(e)) : undefined}
             >
               {/* 조준 크로스헤어 */}
               {hover && isAiming && (
@@ -356,78 +507,128 @@ export default function PenaltyKick() {
               {/* AI 힌트 점 */}
               {dot && (
                 <div
-                  className="pk__dot"
+                  className="pk__hint-dot"
                   style={{
                     left: `${dot.x}%`,
                     top:  `${dot.y}%`,
-                    animationDuration: `${diffRef.current?.hintMs ?? 500}ms`,
+                    animationDuration: `${diffRef.current?.hintMs ?? 2000}ms`,
                   }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handlePlayerSave(dot, true)
+                  }}
+                  role="button"
+                  aria-label="선방하기"
                 />
               )}
 
-              {/* 골키퍼 (골대 안 작은 캐릭터) */}
+              {/* 골키퍼 */}
               <div
-                className="pk__keeper"
+                className={`pk__goalkeeper ${keeperDive ? `pk__goalkeeper--dive-${keeperDive}` : 'pk__goalkeeper--ready'}`}
                 style={{
                   left: `${keeper.x}%`,
                   top:  `${keeper.y}%`,
-                  transition: keeperAnim
-                    ? 'left 0.42s ease-out, top 0.42s ease-out'
-                    : 'none',
                 }}
                 aria-hidden="true"
               >
-                <div className="pk__keeper-head" />
-                <div className="pk__keeper-body" />
+                <div className="pk__gk-gloves pk__gk-gloves--left" />
+                <div className="pk__gk-gloves pk__gk-gloves--right" />
+                <div className="pk__gk-head" />
+                <div className="pk__gk-body" />
+                <div className="pk__gk-legs">
+                  <div className="pk__gk-leg pk__gk-leg--l" />
+                  <div className="pk__gk-leg pk__gk-leg--r" />
+                </div>
               </div>
             </div>
 
-            {/* 골대 기둥 */}
-            <div className="pk__post pk__post--left"     aria-hidden="true" />
-            <div className="pk__post pk__post--right"    aria-hidden="true" />
-            <div className="pk__post pk__post--crossbar" aria-hidden="true" />
+            <div className="pk__post-bar pk__post-bar--top" />
+            <div className="pk__post-bar pk__post-bar--left" />
+            <div className="pk__post-bar pk__post-bar--right" />
           </div>
 
-          {/* ── 공 ── */}
-          <div className="pk__ball" style={ballStyle} aria-hidden="true" />
-
-          {/* ── 선수 (등 뒤 시점) ── */}
+          {/* 축구공 */}
           <div
-            className={[
-              'pk__player',
-              isKicking ? 'pk__player--kick'   : '',
-              isKeeping ? 'pk__player--keeper' : '',
-            ].filter(Boolean).join(' ')}
+            className={`pk__soccer-ball ${ball.curveClass}`}
+            style={ballStyle}
             aria-hidden="true"
           >
-            <div className="pk__pl-head" />
-            <div className="pk__pl-neck" />
-            <div className="pk__pl-shoulders" />
-            <div className="pk__pl-jersey" />
-            <div className="pk__pl-shorts" />
-            <div className="pk__pl-legs">
-              <div className="pk__pl-leg pk__pl-leg--l" />
-              <div className="pk__pl-leg pk__pl-leg--r" />
-            </div>
+            <div className="pk__ball-pattern" />
           </div>
 
-          {/* ── 라운드 메시지 ── */}
+          {/* 키커 (조준 방향에 따른 대각선 스탠스 & 도움닫기 러닝 슛) */}
+          {isPlayerTurn && (
+            <div
+              className={[
+                'pk__kicker',
+                `pk__kicker--stance-${kickerStance}`,
+                phase === P.PLAYER_RUNUP ? 'pk__kicker--runup' : '',
+                phase === P.PLAYER_KICK  ? 'pk__kicker--kick'  : '',
+              ].filter(Boolean).join(' ')}
+              aria-hidden="true"
+            >
+              <div className="pk__kicker-head" />
+              <div className="pk__kicker-jersey">
+                <span className="pk__kicker-num">10</span>
+              </div>
+              <div className="pk__kicker-shorts" />
+              <div className="pk__kicker-legs">
+                <div className="pk__kicker-leg pk__kicker-leg--support" />
+                <div className="pk__kicker-leg pk__kicker-leg--kick" />
+              </div>
+            </div>
+          )}
+
+          {/* 파워 게이지 바 (마우스 누르는 동안 노출) */}
+          {isCharging && (
+            <div className="pk__power-meter">
+              <div className="pk__power-label">
+                <span>POWER GAUGE</span>
+                <span className={power > 88 ? 'pk__power-txt--over' : power >= 65 ? 'pk__power-txt--perfect' : ''}>
+                  {power > 88 ? 'OVER!' : power >= 65 ? 'PERFECT!' : `${Math.round(power)}%`}
+                </span>
+              </div>
+              <div className="pk__power-track">
+                <div
+                  className={`pk__power-fill ${power > 88 ? 'pk__power-fill--over' : power >= 65 ? 'pk__power-fill--perfect' : 'pk__power-fill--normal'}`}
+                  style={{ width: `${power}%` }}
+                />
+                <div className="pk__power-sweetspot" title="Perfect Zone" />
+              </div>
+              <div className="pk__power-hint">초록색 구간에서 마우스를 떼세요!</div>
+            </div>
+          )}
+
+          {/* AI 턴 3, 2, 1 카운트다운 */}
+          {isCountdown && (
+            <div className="pk__countdown-overlay">
+              <div className="pk__countdown-title">AI SHOOT INCOMING!</div>
+              <div className="pk__countdown-number" key={countdown}>
+                {countdown}
+              </div>
+              <div className="pk__countdown-sub">골대를 주시하고 점을 막아내세요!</div>
+            </div>
+          )}
+
+          {/* 판정 배너 */}
           {msg.text && (
             <div
               key={phase + msg.text}
-              className={`pk__msg pk__msg--${msg.isGoal ? 'goal' : 'save'}`}
+              className={`pk__round-banner pk__round-banner--${msg.isGoal ? 'goal' : 'save'}`}
             >
               {msg.text}
             </div>
           )}
 
-          {/* ── 안내 바 ── */}
-          {(isAiming || isAiHint) && (
-            <div className={`pk__bar${isAiHint ? ' pk__bar--urgent' : ''}`}>
-              {isAiming && '골대 안을 클릭해서 슛!'}
-              {isAiHint && '⚡ 빨간 점을 클릭해서 막아라!'}
-            </div>
-          )}
+          {/* 하단 상태 가이드 */}
+          <div className="pk__status-bar">
+            {isAiming && !isCharging && '🖱️ 원하는 코스를 [클릭한 채로 유지]하여 파워 게이지를 모으세요!'}
+            {isCharging && '⚡ 초록색 PERFECT 구간에 마우스를 떼어 슛을 날리세요!'}
+            {phase === P.PLAYER_RUNUP && '🏃 키커가 도움닫기 전진 후 슛을 날립니다!'}
+            {isCountdown && '⚠️ 집중하세요! 3초 후 AI가 강력한 슛을 날립니다!'}
+            {isAiHint && '🧤 지금이다! 빨간 점을 클릭해 선방하세요!'}
+            {phase === P.ROUND_RESULT && '라운드 종료'}
+          </div>
         </div>
       )}
     </main>
