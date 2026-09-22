@@ -23,6 +23,8 @@ public interface CommunityDAO {
     int updatePost(Posts post);
     // 작성자의 게시글을 숨김 처리합니다.
     int blindPost(Long postId, Long userId);
+    // 작성자의 게시글을 삭제(소프트 딜리트) 처리합니다.
+    int deletePost(Long postId, Long userId);
     // 사용자의 게시글 추천 여부를 조회합니다.
     int countPostLike(PostLikes postLike);
     // 게시글 추천 내역을 등록합니다.
@@ -43,4 +45,6 @@ public interface CommunityDAO {
     int updateComment(Comments comment);
     // 작성자의 댓글 또는 대댓글을 숨김 처리합니다.
     int blindComment(Long commentId, Long userId);
+    // 작성자의 댓글 또는 대댓글을 삭제(소프트 딜리트) 처리합니다.
+    int deleteComment(Long commentId, Long userId);
 }

@@ -16,6 +16,7 @@ public class Comments {
 	 private Long pCommentId;           // [FK] 부모 댓글 식별자 (원댓글 NULL)
 	 private String content;            // 댓글 내용
 	 private String isBlind;            // 블라인드 여부 (Y/N)
+	 private String isDeleted;          // 작성자 삭제 여부 (Y/N)
 	 private String nickname;           // 조인용 댓글 작성자 닉네임
 	 
 	 private LocalDateTime createdAt;   // 작성 일시

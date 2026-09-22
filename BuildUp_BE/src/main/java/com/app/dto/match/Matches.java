@@ -31,6 +31,11 @@ public class Matches {
     private String awayTeamNameKor;    // 원정팀 한글명
     private String awayEmblemUrl;      // 원정팀 엠블럼
 
+    // 이벤트 검증용 필드 (MATCH_EVENTS 집계)
+    private Integer homeGoalEvents;    // 홈팀 골 이벤트 수 (일반골/PK골 + 상대 자책골)
+    private Integer awayGoalEvents;    // 원정팀 골 이벤트 수 (일반골/PK골 + 상대 자책골)
+    private Integer totalEvents;       // 경기 총 이벤트 수
+
     @JsonIgnore
     public LocalDateTime getRawMatchDate() {
         return this.matchDate;

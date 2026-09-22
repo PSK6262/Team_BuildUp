@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchTeams, fetchCategories } from '../store/teamSlice.js'
 import useBoardState from './useBoardState.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
 import '../css/Community.css'
@@ -6,18 +8,19 @@ import '../css/Community.css'
 const PAGE_SIZE = 10
 
 export default function Community({ selectedTeam = null }) {
+  const dispatch = useDispatch()
+  const { teams, categories, teamsLoaded, categoriesLoaded } = useSelector((state) => state.team)
+  const optionsLoading = !teamsLoaded || !categoriesLoaded
+
   const [input, setInput] = useBoardState('input', '')
   const [keyword, setKeyword] = useBoardState('keyword', '')
   const [board, setBoard] = useBoardState('board', 'all')
   const [teamId, setTeamId] = useBoardState('teamId', '')
   const [sort, setSort] = useBoardState('sort', 'latest')
   const [page, setPage] = useBoardState('page', 1)
-  const [categories, setCategories] = useState([])
-  const [teams, setTeams] = useState([])
   const [posts, setPosts] = useState([])
   const [totalCount, setTotalCount] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
-  const [optionsLoading, setOptionsLoading] = useState(true)
   const [postsLoading, setPostsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -27,29 +30,11 @@ export default function Community({ selectedTeam = null }) {
   const selectedTeamName = selectedDbTeam?.teamNameKor || selectedDbTeam?.teamName || selectedTeam?.name || ''
   const teamMatchMissing = Boolean(selectedTeam && !optionsLoading && !selectedDbTeam)
 
-  // 목록 검색에 필요한 실제 카테고리와 구단 정보를 조회합니다.
+  // 목록 검색에 필요한 실제 카테고리와 구단 정보를 Redux Thunk로 로드합니다.
   useEffect(() => {
-    const loadOptions = async () => {
-      try {
-        const [categoryResponse, teamResponse] = await Promise.all([
-          fetch('/api/communities/categories'),
-          fetch('/api/teams'),
-        ])
-        const categoryResult = await categoryResponse.json()
-        const teamResult = await teamResponse.json()
-        if (!categoryResponse.ok || !teamResponse.ok) {
-          throw new Error('게시판 정보를 불러오지 못했습니다.')
-        }
-        setCategories(Array.isArray(categoryResult.data) ? categoryResult.data : [])
-        setTeams(Array.isArray(teamResult) ? teamResult : [])
-      } catch (exception) {
-        setError(exception.message || '게시판 정보를 불러오지 못했습니다.')
-      } finally {
-        setOptionsLoading(false)
-      }
-    }
-    loadOptions()
-  }, [])
+    dispatch(fetchTeams())
+    dispatch(fetchCategories())
+  }, [dispatch])
 
   // 검색, 게시판, 구단, 정렬 및 페이지 조건으로 실제 게시글 목록을 조회합니다.
   useEffect(() => {
@@ -139,7 +124,18 @@ export default function Community({ selectedTeam = null }) {
             {posts.map((post) => <tr key={post.postId}>
               <td className="community__number">{post.postId}</td>
               <td><span className={`community__badge ${post.teamId != null ? 'community__badge--team' : ''}`}>{post.teamName || post.categoryType}</span></td>
-              <td className="community__title"><a className="community__post-link" href={`/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.pathname)}`}>{post.title}</a></td><td>{post.viewCount}</td><td>{post.likeCount}</td>
+              <td className="community__title">
+                {post.isBlind === 'Y' && (
+                  <span className="community__badge community__badge--blind" style={{ marginRight: 6 }}>
+                    블라인드
+                  </span>
+                )}
+                <a className="community__post-link" href={`/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.pathname)}`}>
+                  {post.title}
+                </a>
+              </td>
+              <td>{post.viewCount}</td>
+              <td>{post.likeCount}</td>
             </tr>)}
             {!postsLoading && !posts.length && <tr><td colSpan={5} className="community__empty">등록된 게시글이 없습니다.</td></tr>}
           </tbody>

@@ -1,33 +1,22 @@
-import { useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { logout } from '../store/authSlice.js'
 import '../css/AllUseNav.css'
 
-const links = [['팀소개', 'teams'], ['경기 일정', 'match'], ['커뮤니티', 'community/teams'], ['랭킹', 'rankpage'], ['예측', 'prediction']]
+const links = [
+  ['팀소개', 'teams'],
+  ['경기 일정', 'match'],
+  ['커뮤니티', 'community/teams'],
+  ['나만의 팀', 'myteam'],
+  ['랭킹', 'rankpage'],
+  ['예측', 'prediction'],
+]
 
 export default function AllUseNav() {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn)
+  const user = useSelector((state) => state.auth.user)
   const dispatch = useDispatch()
-  const teamMenu = useRef(null)
   const pathname = window.location.pathname.replace(/\/$/, '')
-
-  useEffect(() => {
-    const closeOutside = (event) => {
-      if (!teamMenu.current?.contains(event.target)) teamMenu.current?.removeAttribute('open')
-    }
-    const closeOnEscape = (event) => {
-      if (event.key === 'Escape' && teamMenu.current?.open) {
-        teamMenu.current.removeAttribute('open')
-        teamMenu.current.querySelector('summary').focus()
-      }
-    }
-    document.addEventListener('pointerdown', closeOutside)
-    document.addEventListener('keydown', closeOnEscape)
-    return () => {
-      document.removeEventListener('pointerdown', closeOutside)
-      document.removeEventListener('keydown', closeOnEscape)
-    }
-  }, [])
+  const isAdmin = user && Number(user.roleCode) === 9
 
   const renderLink = ([label, path]) => (
     <a
@@ -63,22 +52,26 @@ export default function AllUseNav() {
           <span className="user-nav__logo-ug">UG</span>
         </a>
         <div className="user-nav__links">
-          {links.slice(0, 3).map(renderLink)}
-          <details className="user-nav__team" ref={teamMenu} onBlur={(event) => {
-            if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.removeAttribute('open')
-          }}>
-            <summary className={['/plug/myteam', '/plug/myteamrank'].includes(pathname) ? 'is-active' : undefined}>
-              나만의팀 <span aria-hidden="true">⌄</span>
-            </summary>
-            <div className="user-nav__dropdown">
-              {renderLink(['내 팀', 'myteam'])}
-              {renderLink(['내팀 순위', 'myteamrank'])}
-            </div>
-          </details>
-          {links.slice(3).map(renderLink)}
+          {links.map(renderLink)}
         </div>
         <div className="user-nav__account">
           {isLoggedIn ? <>
+            {isAdmin && (
+              <a
+                href="/plug/admin"
+                style={{
+                  background: '#38003c',
+                  color: '#fff',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  textDecoration: 'none',
+                }}
+              >
+                관리자
+              </a>
+            )}
             <button type="button" onClick={handleLogout}>로그아웃</button>
             <a className="user-nav__primary" href="/plug/mypage">마이페이지</a>
           </> : <>

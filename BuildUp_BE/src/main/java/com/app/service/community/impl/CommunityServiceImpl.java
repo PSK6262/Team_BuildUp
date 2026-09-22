@@ -125,7 +125,7 @@ public class CommunityServiceImpl implements CommunityService {
         if (!savedPost.getUserId().equals(user.getUserId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Post owner required");
         }
-        if (communityDAO.blindPost(postId, user.getUserId()) != 1) {
+        if (communityDAO.deletePost(postId, user.getUserId()) != 1) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
         }
     }
@@ -228,7 +228,7 @@ public class CommunityServiceImpl implements CommunityService {
         if (!savedComment.getUserId().equals(user.getUserId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Comment owner required");
         }
-        if (communityDAO.blindComment(commentId, user.getUserId()) != 1) {
+        if (communityDAO.deleteComment(commentId, user.getUserId()) != 1) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found");
         }
     }

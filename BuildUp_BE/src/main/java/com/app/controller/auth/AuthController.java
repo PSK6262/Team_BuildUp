@@ -240,4 +240,29 @@ public class AuthController {
 
 		return ApiResponse.success(data);
 	}
+
+	/**
+	 * 토큰 갱신 (Sliding Session: 사용자가 사이트에 들어오거나 활동할 때마다 30분 연장)
+	 */
+	@PostMapping("/refresh")
+	public ApiResponse<Map<String, Object>> refreshToken(HttpServletRequest request) {
+		String token = JwtProvider.extractToken(request);
+		if (token != null && JwtProvider.isValidToken(token)) {
+			String loginId = JwtProvider.getLoginIdFromToken(token);
+			if (loginId != null) {
+				Users user = userService.getUserByLoginId(loginId);
+				if (user != null) {
+					String newToken = JwtProvider.createAccessToken(user);
+					LoginManager.setSessionLoginUserId(request, user.getLoginId());
+					request.getSession().setAttribute(CommonCode.SESSION_LOGIN_USER, user);
+
+					Map<String, Object> data = new HashMap<>();
+					data.put("token", newToken);
+					data.put("user", user);
+					return ApiResponse.success(data);
+				}
+			}
+		}
+		return ApiResponse.error(ResultCode.UNAUTHORIZED);
+	}
 }

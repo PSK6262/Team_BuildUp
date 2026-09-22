@@ -24,8 +24,8 @@ public class JwtProvider {
 	//비밀키 설정
 	private static final String SECRET_KEY = "thisissecretkeyforjwtreactconnectwithspringserver123456123";
 	
-	// token 만료시간 설정
-	private static final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 30; //30분 
+	// token 만료시간 설정 (30분 슬라이딩 세션 기준)
+	private static final long ACCESS_TOKEN_EXPIRATION = 1000L * 60 * 30; // 30분 
 	
 	
 	//시크릿키 생성   (비밀키 변환 -> 인코딩 -> 키 생성) 
@@ -128,8 +128,6 @@ public class JwtProvider {
 	// request 에서 토큰값 추출
 	public static String extractToken(HttpServletRequest request) {
 		String bearerToken = request.getHeader("Authorization");
-		// "Bearer 토큰값"
-		System.out.println(bearerToken);
 		
 		if( bearerToken != null && bearerToken.startsWith("Bearer ")) {
 			return bearerToken.substring(7);

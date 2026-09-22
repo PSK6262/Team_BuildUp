@@ -1948,4 +1948,77 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		log.info("======================================================================");
 		return totalUpdated;
 	}
+
+	@Override
+	public List<Integer> identifyDisallowedGoalMinutes(
+			String matchDate,
+			String homeTeam,
+			String awayTeam,
+			String targetTeam,
+			int officialGoals,
+			List<Map<String, Object>> candidateGoals) {
+		if (candidateGoals == null || candidateGoals.isEmpty() || candidateGoals.size() <= officialGoals) {
+			return List.of();
+		}
+
+		int excessCount = candidateGoals.size() - officialGoals;
+		log.info("[Gemini AI] 경기 VAR 취소골 AI 정밀 판별 요청: [{} vs {} ({})] {} 공식 {}골 vs 수신 {}골 (초과: {}골)",
+				homeTeam, awayTeam, matchDate, targetTeam, officialGoals, candidateGoals.size(), excessCount);
+
+		try {
+			String goalsJson = objectMapper.writeValueAsString(candidateGoals);
+			StringBuilder prompt = new StringBuilder();
+			prompt.append("당신은 전 세계 축구 리그 공식 경기 리포트 및 VAR 판정 데이터 분석가입니다.\n");
+			prompt.append("아래 프리미어리그 경기 정보를 바탕으로, 해당 경기에서 '").append(targetTeam).append("'이(가) 기록한 골 후보들 중\n");
+			prompt.append("실제로는 VAR 판정(오프사이드, 파울, 핸드볼 등)으로 취소(Disallowed)되었거나 무효 처리되어 공식 득점으로 인정되지 않은 골의 'minute(발생 분)'을 정확히 찾아내주세요.\n\n");
+			prompt.append("[경기 기본 정보]\n");
+			prompt.append("- 경기 일시: ").append(matchDate).append("\n");
+			prompt.append("- 매치업: ").append(homeTeam).append(" vs ").append(awayTeam).append("\n");
+			prompt.append("- 대상 팀: ").append(targetTeam).append("\n");
+			prompt.append("- 해당 팀 공식 인정 최종 득점 수: ").append(officialGoals).append("골\n");
+			prompt.append("- API에서 전달된 골 후보 목록(총 ").append(candidateGoals.size()).append("골):\n").append(goalsJson).append("\n\n");
+			prompt.append("[판별 및 응답 규칙]\n");
+			prompt.append("1. Google 검색을 통해 해당 경기의 공식 프리미어리그 매치 리포트(Premier League Match Centre, BBC Sport, Sky Sports 등)를 반드시 크로스체킹하세요.\n");
+			prompt.append("2. 취소된 골은 정확히 ").append(excessCount).append("개여야 합니다.\n");
+			prompt.append("3. 반드시 아래와 같은 순수 JSON 객체 형식으로만 응답하세요:\n");
+			prompt.append("{\n");
+			prompt.append("  \"disallowedGoalMinutes\": [90],\n");
+			prompt.append("  \"reason\": \"90분 반헤케의 골은 VAR 오프사이드 판정으로 취소됨\"\n");
+			prompt.append("}\n");
+
+			GeminiCallResult callResult = callGeminiWithSearch(prompt.toString());
+			String resultText = callResult.text();
+			JsonNode rootNode = objectMapper.readTree(resultText);
+
+			List<Integer> disallowedMinutes = new ArrayList<>();
+			JsonNode minutesNode = rootNode.path("disallowedGoalMinutes");
+			if (minutesNode.isArray()) {
+				for (JsonNode m : minutesNode) {
+					disallowedMinutes.add(m.asInt());
+				}
+			}
+
+			String reason = rootNode.path("reason").asText("");
+			log.info("[Gemini AI] VAR 취소골 판별 성공: 취소 시간 분={}, 사유='{}'", disallowedMinutes, reason);
+
+			if (!disallowedMinutes.isEmpty()) {
+				return disallowedMinutes;
+			}
+		} catch (Exception e) {
+			log.warn("[Gemini AI] VAR 취소골 AI 판별 중 예외 발생: {} -> 안전 Fallback(후반부 초과골 제외) 적용", e.getMessage());
+		}
+
+		// Fallback: AI 호출 실패 시 시간순으로 가장 늦은 시간의 초과분 제외
+		List<Integer> fallbackList = new ArrayList<>();
+		List<Map<String, Object>> sorted = new ArrayList<>(candidateGoals);
+		sorted.sort((a, b) -> Integer.compare(
+				((Number) b.getOrDefault("minute", 0)).intValue(),
+				((Number) a.getOrDefault("minute", 0)).intValue()));
+
+		for (int i = 0; i < excessCount && i < sorted.size(); i++) {
+			fallbackList.add(((Number) sorted.get(i).get("minute")).intValue());
+		}
+		log.info("[Gemini AI Fallback] 시간순 후반부 초과골 {}건 제외: {}", excessCount, fallbackList);
+		return fallbackList;
+	}
 }

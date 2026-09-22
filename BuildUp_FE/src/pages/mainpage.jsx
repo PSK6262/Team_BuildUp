@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateUser } from '../store/authSlice.js';
-import { getTeams } from '../api/teamApi.js';
+import { fetchTeams } from '../store/teamSlice.js';
 import TeamQuizModal from '../components/quiz/TeamQuizModal.jsx';
 import { getTeamTheme } from '../constants/teamTheme.js';
 import '../css/mainpage.css';
@@ -29,7 +29,7 @@ export default function MainPage() {
         }
       })();
 
-  const [ teams, setTeams ] = useState([]);
+  const teams = useSelector((state) => state.team?.teams || []);
   const [ hoveredTeam, setHoveredTeam ] = useState(null);
   const [ introIndex, setIntroIndex ] = useState(0);
   const [ isTextVisible, setIsTextVisible ] = useState(true);
@@ -56,8 +56,8 @@ export default function MainPage() {
   }, [isLoggedIn, dispatch]);
 
   useEffect(() => {
-    getTeams().then((data) => setTeams(data));
-  }, []);
+    dispatch(fetchTeams());
+  }, [dispatch]);
 
   useEffect(() => {
     if (isIntroFinished || introIndex >= INTRO_SENTENCES.length) return;
