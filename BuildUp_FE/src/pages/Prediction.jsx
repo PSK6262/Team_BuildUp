@@ -5,11 +5,9 @@ import '../css/Prediction.css';
 export default function Prediction() {
   const isLoggedIn = useSelector((state) => state.auth?.isLoggedIn);
   const [activeTab, setActiveTab] = useState('matches'); // 'matches' | 'my'
-  const [statusFilter, setStatusFilter] = useState('UPCOMING'); // 'UPCOMING' | 'ALL' | 'FINISHED'
   const [matches, setMatches] = useState([]);
   const [oddsData, setOddsData] = useState({});
   const [myVotes, setMyVotes] = useState({});
-  const [myStats, setMyStats] = useState(null);
   const [rankings, setRankings] = useState([]);
   const [myHistory, setMyHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,25 +21,6 @@ export default function Prediction() {
       headers['Authorization'] = `Bearer ${token}`;
     }
     return headers;
-  };
-
-  // 내 승부예측 종합 전적 & 포인트 통계 조회
-  const fetchMyStats = async () => {
-    try {
-      const headers = getAuthHeaders();
-      const res = await fetch('/api/predictions/my/stats', {
-        headers,
-        credentials: 'include',
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.status === 'SUCCESS' && json.stats) {
-          setMyStats(json.stats);
-        }
-      }
-    } catch (e) {
-      console.error('[Prediction] 종합 전적 로드 실패:', e);
-    }
   };
 
   // 내 예측 내역 비동기 조회
@@ -81,12 +60,20 @@ export default function Prediction() {
         if (matchRes.ok) {
           const matchList = await matchRes.json();
           if (isMounted && Array.isArray(matchList)) {
-            // 시간순 정렬
-            const sortedList = [...matchList].sort((a, b) => (a.matchDate || '').localeCompare(b.matchDate || ''));
-            setMatches(sortedList);
+            // 다가오는 경기(SCHEDULED/TIMED) 위주로 정렬하여 상위 10경기 노출
+            const upcoming = matchList
+              .filter((m) => m.status === 'SCHEDULED' || m.status === 'TIMED')
+              .slice(0, 10);
+            
+            // 만약 예정된 경기가 적다면 최근 경기 일부 포함
+            const displayList = upcoming.length > 0 
+              ? upcoming 
+              : matchList.slice(0, 10);
+
+            setMatches(displayList);
 
             // 각 경기의 배당률/보상 정보 비동기 로드
-            sortedList.forEach(async (m) => {
+            displayList.forEach(async (m) => {
               try {
                 const oddsRes = await fetch(`/api/predictions/matches/${m.matchId}/odds`);
                 if (oddsRes.ok) {
@@ -111,9 +98,9 @@ export default function Prediction() {
           }
         }
 
-        // (3) 로그인한 경우 내 예측 내역 및 성적 통계 조회
+        // (3) 로그인한 경우 내 예측 내역 조회
         if (isLoggedIn || localStorage.getItem('buildup_token')) {
-          await Promise.all([fetchMyPredictions(), fetchMyStats()]);
+          await fetchMyPredictions();
         }
       } catch (err) {
         console.error('[Prediction] 데이터 로드 실패:', err);
@@ -156,8 +143,8 @@ export default function Prediction() {
       if (res.ok && json.status === 'SUCCESS') {
         alert(json.message);
 
-        // 내 예측 내역 및 투표 상태, 종합 성적 즉시 동기화
-        await Promise.all([fetchMyPredictions(), fetchMyStats()]);
+        // 내 예측 내역 및 투표 상태 즉시 동기화
+        await fetchMyPredictions();
 
         // 배당률/투표율 재조회
         const oddsRes = await fetch(`/api/predictions/matches/${matchId}/odds`);
@@ -180,54 +167,13 @@ export default function Prediction() {
       <div className="prediction-page-wrapper">
         {/* 상단 헤더 */}
         <header className="prediction-header">
-          <span className="prediction-header__eyebrow">PREMIER LEAGUE</span>
+          <span className="prediction-header__eyebrow">PREMIRE LEAGUE</span>
           <h1 className="prediction-header__title">승부예측</h1>
           <p className="prediction-header__desc">
             내가 응원하는 애정팀을 선택하고 승부예측 랭킹 1위에 도전하세요!<br />
             <strong>[정배 +100P]</strong> &nbsp;|&nbsp; <strong>[무승부 +150P]</strong> &nbsp;|&nbsp; <strong>[언더독 승리 +250P 🔥]</strong>
           </p>
         </header>
-
-        {/* 로그인 사용자 전용: 승부예측 전적 및 적중 포인트 대시보드 */}
-        {myStats && (
-          <section className="prediction-stats-dashboard">
-            <div className="prediction-stats-header">
-              <div className="prediction-stats-title">
-                <span>📊 나의 승부예측 전적 &amp; 적중 포인트</span>
-              </div>
-              <span className="prediction-stats-badge">
-                {myStats.ranking > 0 ? `현재 랭킹 ${myStats.ranking}위` : '순위 집계 중'}
-              </span>
-            </div>
-            <div className="prediction-stats-grid">
-              <div className="prediction-stat-box">
-                <span className="prediction-stat-box__label">예측 성공률</span>
-                <span className="prediction-stat-box__val highlight-green">{myStats.winRate}%</span>
-                <span className="prediction-stat-box__sub">{myStats.predictWin}승 / {myStats.predictTotal}전</span>
-              </div>
-              <div className="prediction-stat-box">
-                <span className="prediction-stat-box__label">적중 성공</span>
-                <span className="prediction-stat-box__val highlight-gold">{myStats.predictWin}회</span>
-                <span className="prediction-stat-box__sub">미적중: {myStats.predictLose}회</span>
-              </div>
-              <div className="prediction-stat-box">
-                <span className="prediction-stat-box__label">누적 적중 획득 포인트</span>
-                <span className="prediction-stat-box__val highlight-green">+{Number(myStats.totalEarnedPoints || 0).toLocaleString()} P</span>
-                <span className="prediction-stat-box__sub">예측 적중 보상 누계</span>
-              </div>
-              <div className="prediction-stat-box">
-                <span className="prediction-stat-box__label">현재 보유 포인트</span>
-                <span className="prediction-stat-box__val highlight-gold">{Number(myStats.currentPoint || 0).toLocaleString()} P</span>
-                <span className="prediction-stat-box__sub">잔여 포인트</span>
-              </div>
-              <div className="prediction-stat-box">
-                <span className="prediction-stat-box__label">명예의 전당 순위</span>
-                <span className="prediction-stat-box__val highlight-pink">{myStats.ranking > 0 ? `${myStats.ranking}위` : '—'}</span>
-                <span className="prediction-stat-box__sub">전체 참여자 기준</span>
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* 탭 네비게이션 */}
         <nav className="prediction-tabs" aria-label="승부예측 탭">
@@ -261,48 +207,10 @@ export default function Prediction() {
             <main className="prediction-main-content">
               {activeTab === 'matches' ? (
                 <div className="prediction-matches-list">
-                  {/* 경기 상태 필터 버튼 */}
-                  <div className="prediction-match-filters">
-                    <button
-                      type="button"
-                      className={`prediction-filter-btn ${statusFilter === 'UPCOMING' ? 'is-active' : ''}`}
-                      onClick={() => setStatusFilter('UPCOMING')}
-                    >
-                      ⏳ 예정된 경기 ({matches.filter((m) => m.status !== 'FINISHED' && m.status !== 'AWARDED').length})
-                    </button>
-                    <button
-                      type="button"
-                      className={`prediction-filter-btn ${statusFilter === 'ALL' ? 'is-active' : ''}`}
-                      onClick={() => setStatusFilter('ALL')}
-                    >
-                      전체 경기 ({matches.length})
-                    </button>
-                    <button
-                      type="button"
-                      className={`prediction-filter-btn ${statusFilter === 'FINISHED' ? 'is-active' : ''}`}
-                      onClick={() => setStatusFilter('FINISHED')}
-                    >
-                      🏁 종료된 경기 ({matches.filter((m) => m.status === 'FINISHED' || m.status === 'AWARDED').length})
-                    </button>
-                  </div>
-
-                  {matches
-                    .filter((m) => {
-                      const isFinished = m.status === 'FINISHED' || m.status === 'AWARDED';
-                      if (statusFilter === 'UPCOMING') return !isFinished;
-                      if (statusFilter === 'FINISHED') return isFinished;
-                      return true;
-                    })
-                    .length === 0 ? (
-                    <div className="prediction-my-empty">해당 조건에 해당하는 경기가 없습니다.</div>
+                  {matches.length === 0 ? (
+                    <div className="prediction-my-empty">예정된 승부예측 경기가 없습니다.</div>
                   ) : (
-                    matches
-                      .filter((m) => {
-                        const isFinished = m.status === 'FINISHED' || m.status === 'AWARDED';
-                        if (statusFilter === 'UPCOMING') return !isFinished;
-                        if (statusFilter === 'FINISHED') return isFinished;
-                        return true;
-                      }).map((m) => {
+                    matches.map((m) => {
                       const odds = oddsData[m.matchId] || {};
                       const myVote = myVotes[m.matchId];
                       const isFinished = m.status === 'FINISHED';

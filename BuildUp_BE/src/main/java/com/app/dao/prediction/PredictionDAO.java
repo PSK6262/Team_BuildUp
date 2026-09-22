@@ -38,10 +38,4 @@ public interface PredictionDAO {
 	int mergeUserPredicts(Map<String, Object> params);
 
 	List<UserPredicts> selectTopPredictors();
-
-	UserPredicts selectUserPredictsByUserId(Long userId);
-
-	Long selectUserTotalHitPoints(Long userId);
-
-	Integer selectUserPredictionRank(Long userId);
 }

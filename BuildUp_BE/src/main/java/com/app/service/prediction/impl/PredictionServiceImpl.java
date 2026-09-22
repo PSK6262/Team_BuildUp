@@ -201,52 +201,6 @@ public class PredictionServiceImpl implements PredictionService {
 	}
 
 	@Override
-	public Map<String, Object> getUserPredictionStats(Long userId) {
-		if (userId == null) {
-			return Map.of(
-				"predictTotal", 0L,
-				"predictWin", 0L,
-				"predictLose", 0L,
-				"winRate", 0.0,
-				"totalEarnedPoints", 0L,
-				"currentPoint", 0L,
-				"ranking", 0
-			);
-		}
-
-		UserPredicts up = predictionDAO.selectUserPredictsByUserId(userId);
-		long total = (up != null && up.getPredictTotal() != null) ? up.getPredictTotal() : 0L;
-		long win = (up != null && up.getPredictWin() != null) ? up.getPredictWin() : 0L;
-		long lose = Math.max(0L, total - win);
-
-		double winRate = 0.0;
-		if (total > 0) {
-			winRate = Math.round(((double) win / total) * 1000.0) / 10.0;
-		}
-
-		Long earnedPoints = predictionDAO.selectUserTotalHitPoints(userId);
-		long totalEarnedPoints = (earnedPoints != null) ? earnedPoints : 0L;
-
-		Long point = predictionDAO.selectUserPoint(userId);
-		long currentPoint = (point != null) ? point : 0L;
-
-		Integer rankObj = predictionDAO.selectUserPredictionRank(userId);
-		int ranking = (rankObj != null) ? rankObj : 0;
-
-		Map<String, Object> stats = new HashMap<>();
-		stats.put("userId", userId);
-		stats.put("predictTotal", total);
-		stats.put("predictWin", win);
-		stats.put("predictLose", lose);
-		stats.put("winRate", winRate);
-		stats.put("totalEarnedPoints", totalEarnedPoints);
-		stats.put("currentPoint", currentPoint);
-		stats.put("ranking", ranking);
-
-		return stats;
-	}
-
-	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public Map<String, Object> settleMatchPredictions(Long matchId) {
 		Matches match = predictionDAO.selectMatchForOdds(matchId);

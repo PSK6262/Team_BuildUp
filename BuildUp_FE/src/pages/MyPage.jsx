@@ -14,7 +14,6 @@ export default function MyPage() {
   const [email, setEmail] = useState('')
   const [favoriteTeamId, setFavoriteTeamId] = useState('')
   const [teamList, setTeamList] = useState([])
-  const [predictionStats, setPredictionStats] = useState(null)
 
   // 실제 DB 구단 목록 조회 (/api/teams)
   useEffect(() => {
@@ -43,23 +42,6 @@ export default function MyPage() {
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
   const [withdrawAgreed, setWithdrawAgreed] = useState(false)
   const [withdrawing, setWithdrawing] = useState(false)
-
-  // 승부예측 전적 및 포인트 통계 로드
-  const fetchPredictionStats = async () => {
-    try {
-      const token = localStorage.getItem('buildup_token')
-      const headers = token ? { Authorization: `Bearer ${token}` } : {}
-      const res = await fetch('/api/predictions/my/stats', { headers, credentials: 'include' })
-      if (res.ok) {
-        const json = await res.json()
-        if (json.status === 'SUCCESS' && json.stats) {
-          setPredictionStats(json.stats)
-        }
-      }
-    } catch (e) {
-      console.error('[MyPage] 승부예측 통계 로드 실패:', e)
-    }
-  }
 
   // 사용자 상세 정보 로드
   useEffect(() => {
@@ -94,9 +76,6 @@ export default function MyPage() {
             setFavoriteTeamId(reduxUser.favoriteTeamId ? String(reduxUser.favoriteTeamId) : '')
           }
         }
-
-        // 승부예측 통계 조회
-        await fetchPredictionStats()
       } catch (err) {
         if (reduxUser) {
           setProfile(reduxUser)
@@ -271,12 +250,6 @@ export default function MyPage() {
             <span className="mypage-stat-value">{profile.point?.toLocaleString() || 100} P</span>
           </div>
           <div className="mypage-stat-item">
-            <span className="mypage-stat-label">예측 성공률</span>
-            <span className="mypage-stat-value" style={{ color: '#00ff87' }}>
-              {predictionStats ? `${predictionStats.winRate}%` : '0.0%'}
-            </span>
-          </div>
-          <div className="mypage-stat-item">
             <span className="mypage-stat-label">회원 등급</span>
             <span className="mypage-stat-value">{profile.roleName || (profile.roleCode === 9 ? '관리자' : '일반회원')}</span>
           </div>
@@ -308,26 +281,6 @@ export default function MyPage() {
               <span className="mypage-info-label">응원 구단</span>
               <span className="mypage-info-value">
                 {favoriteTeam ? (favoriteTeam.teamNameKor || favoriteTeam.teamName) : '선택된 구단 없음'}
-              </span>
-            </div>
-            <div className="mypage-info-row">
-              <span className="mypage-info-label">승부예측 전적</span>
-              <span className="mypage-info-value" style={{ color: '#00ff87', fontWeight: 700 }}>
-                {predictionStats
-                  ? `${predictionStats.predictWin}승 ${predictionStats.predictLose}패 (총 ${predictionStats.predictTotal}전, 적중률 ${predictionStats.winRate}%)`
-                  : '0승 0패 (0전)'}
-              </span>
-            </div>
-            <div className="mypage-info-row">
-              <span className="mypage-info-label">승부예측 적중 보상 누계</span>
-              <span className="mypage-info-value" style={{ color: '#f59e0b', fontWeight: 700 }}>
-                +{Number(predictionStats?.totalEarnedPoints || 0).toLocaleString()} P
-              </span>
-            </div>
-            <div className="mypage-info-row">
-              <span className="mypage-info-label">명예의 전당 순위</span>
-              <span className="mypage-info-value" style={{ color: '#ff2882', fontWeight: 700 }}>
-                {predictionStats?.ranking > 0 ? `${predictionStats.ranking}위` : '순위 집계 중'}
               </span>
             </div>
 
