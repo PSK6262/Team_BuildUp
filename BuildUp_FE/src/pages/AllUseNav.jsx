@@ -9,6 +9,7 @@ const links = [
   ['나만의 팀', 'myteam'],
   ['랭킹', 'rankpage'],
   ['예측', 'prediction'],
+  ['미니게임', 'minigames'],
 ]
 
 export default function AllUseNav() {

@@ -19,6 +19,8 @@ import ChatbotWidget from './components/ChatbotWidget.jsx'
 import { communityTeams } from './data/communityTeams.js'
 import Match from './pages/Match.jsx'
 import Admin from './pages/Admin.jsx'
+import MiniGames from './pages/MiniGames.jsx'
+import PenaltyKick from './pages/PenaltyKick.jsx'
 import './App.css'
 
 function App() {
@@ -91,6 +93,10 @@ function App() {
       {(pathname === '/plug/signin' || pathname === '/plug/signup' || pathname === '/plug/signup/confirm') && <Signup />}
       {pathname === '/plug/mypage' && <MyPage />}
       {pathname === '/plug/admin' && <Admin />}
+
+      {/* 미니게임 */}
+      {pathname === '/plug/minigames' && <MiniGames />}
+      {pathname === '/plug/minigames/penaltykick' && <PenaltyKick />}
 
       {/* 커뮤니티 */}
       {pathname === '/plug/community' && <Community />}

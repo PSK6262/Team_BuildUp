@@ -1,0 +1,633 @@
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   공통 레이아웃
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.pk {
+  min-height: calc(100vh - 60px);
+  background: #0e0e0e;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #fff;
+  user-select: none;
+  padding-bottom: 48px;
+}
+
+/* ── 상단 바 ── */
+.pk__topbar {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px 10px;
+}
+.pk__back {
+  color: rgba(255,255,255,0.55);
+  font-size: 0.85rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.pk__back:hover { color: #fff; }
+
+.pk__title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.pk__score {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+.pk__score strong   { font-size: 1.15rem; }
+.pk__score-sep      { color: rgba(255,255,255,0.35); }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   난이도 선택 화면
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.pk__intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  padding: 52px 24px;
+  text-align: center;
+  max-width: 400px;
+}
+.pk__intro-desc {
+  font-size: 1rem;
+  line-height: 1.85;
+  color: rgba(255,255,255,0.8);
+  margin: 0;
+}
+.pk__intro-dot { color: #e74c3c; font-size: 1.1em; }
+.pk__intro-sub { font-size: 0.85rem; color: rgba(255,255,255,0.45); margin: 0; }
+
+.pk__diff-row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+.pk__diff-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 30px;
+  border: 2px solid var(--dc, #888);
+  border-radius: 14px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.12s;
+}
+.pk__diff-btn:hover {
+  background: var(--dc, #888);
+  transform: translateY(-2px);
+}
+.pk__diff-lv   { font-size: 1.7rem; font-weight: 900; }
+.pk__diff-time { font-size: 0.82rem; color: rgba(255,255,255,0.6); }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   게임 종료 화면
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.pk__over {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 64px 24px;
+  text-align: center;
+}
+.pk__over-badge {
+  font-size: 3.2rem;
+  font-weight: 900;
+  animation: pk-pop 0.32s ease-out;
+}
+.pk__over-badge--win  { color: #f1c40f; text-shadow: 0 0 24px rgba(241,196,15,0.45); }
+.pk__over-badge--lose { color: rgba(255,255,255,0.5); }
+
+.pk__over-score {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 8px;
+  color: rgba(255,255,255,0.9);
+}
+.pk__over-btns { display: flex; gap: 12px; margin-top: 8px; }
+
+.pk__over-btn {
+  padding: 12px 26px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: transform 0.1s, opacity 0.1s;
+  border: none;
+}
+.pk__over-btn:hover { transform: translateY(-2px); opacity: 0.85; }
+.pk__over-btn--retry { background: #f1c40f; color: #000; }
+.pk__over-btn--home  {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border: 2px solid rgba(255,255,255,0.28);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   게임 씬 컨테이너
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.pk__scene {
+  position: relative;
+  width: min(560px, 95vw);
+  height: 510px;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.65);
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+
+/* ── 하늘 ── */
+.pk__sky {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 30%;
+  background: linear-gradient(to bottom, #2c6cb0 0%, #4a8fd4 55%, #80b8e0 100%);
+  z-index: 0;
+}
+/* 구름 */
+.pk__sky::before,
+.pk__sky::after {
+  content: '';
+  position: absolute;
+  background: rgba(255,255,255,0.32);
+  border-radius: 60px;
+}
+.pk__sky::before { top: 32%; left: 10%;  width: 96px;  height: 22px; }
+.pk__sky::after  { top: 58%; right: 18%; width: 68px;  height: 16px; }
+
+/* ── 그라운드 (원근 사다리꼴) ── */
+.pk__ground {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 72%;
+  background: linear-gradient(
+    to bottom,
+    #3baa3b 0%,
+    #2e932e 30%,
+    #1e7a1e 60%,
+    #0f4d0f 100%
+  );
+  clip-path: polygon(19% 0%, 81% 0%, 100% 100%, 0% 100%);
+  z-index: 1;
+}
+/* 잔디 줄무늬 텍스처 */
+.pk__ground::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent        0%,
+    transparent        11%,
+    rgba(0,0,0,0.055)  11%,
+    rgba(0,0,0,0.055)  22%
+  );
+  clip-path: inherit;
+}
+
+/* ── 피치 선 SVG ── */
+.pk__pitch {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   골대
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.pk__goal-wrap {
+  position: absolute;
+  top: 5.5%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 58%;
+  z-index: 8;
+}
+
+/* 그물 배경 */
+.pk__net {
+  position: absolute;
+  top: 8px;      /* crossbar 두께만큼 */
+  left: 8px;
+  right: 8px;
+  height: 148px;
+  background: rgba(8,8,8,0.5);
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* 클릭 가능한 골대 내부 */
+.pk__goal-inside {
+  position: relative;
+  margin: 0 8px;   /* post 너비 */
+  height: 148px;
+  z-index: 5;
+  overflow: hidden;
+}
+.pk__goal-inside--aim    { cursor: crosshair; }
+.pk__goal-inside--defend { cursor: pointer; }
+
+/* 골대 기둥 & 크로스바 */
+.pk__post {
+  position: absolute;
+  background: linear-gradient(135deg, #ffffff 0%, #c8c8c8 100%);
+  border-radius: 4px;
+  box-shadow:
+    2px 3px 7px rgba(0,0,0,0.5),
+    inset -1px -1px 3px rgba(0,0,0,0.12);
+  z-index: 9;
+}
+.pk__post--left  { left: 0;  top: 0; width: 8px; height: calc(148px + 8px); }
+.pk__post--right { right: 0; top: 0; width: 8px; height: calc(148px + 8px); }
+.pk__post--crossbar { top: 0; left: 0; right: 0; height: 8px; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   조준 크로스헤어
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.pk__crosshair {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 12;
+  border: 1.5px solid rgba(255,255,90,0.88);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255,255,0,0.4);
+}
+/* 가로선 */
+.pk__crosshair::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -9px;
+  right: -9px;
+  height: 1.5px;
+  background: rgba(255,255,90,0.88);
+  transform: translateY(-50%);
+}
+/* 세로선 */
+.pk__crosshair::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -9px;
+  bottom: -9px;
+  width: 1.5px;
+  background: rgba(255,255,90,0.88);
+  transform: translateX(-50%);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   AI 힌트 점 (빨간 원형)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.pk__dot {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 100, 100, 0.7) 0%,
+    rgba(230, 50, 50, 0.45) 60%,
+    rgba(200, 30, 30, 0.15) 100%
+  );
+  border: 1.5px solid rgba(255, 120, 120, 0.6);
+  box-shadow:
+    0 0 8px rgba(255, 80, 80, 0.5),
+    0 0 16px rgba(220, 40, 40, 0.25);
+  pointer-events: none;
+  z-index: 13;
+  animation: pk-dot-show linear forwards;
+}
+
+@keyframes pk-dot-show {
+  0%   { opacity: 0;   transform: translate(-50%, -50%) scale(0.15); }
+  10%  { opacity: 1;   transform: translate(-50%, -50%) scale(1.18); }
+  20%  {               transform: translate(-50%, -50%) scale(1); }
+  72%  { opacity: 0.9; }
+  100% { opacity: 0;   transform: translate(-50%, -50%) scale(0.75); }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   골키퍼 (골대 안 작은 캐릭터)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.pk__keeper {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.pk__keeper-head {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #f4bb72;
+  border: 1.5px solid rgba(0,0,0,0.15);
+}
+
+.pk__keeper-body {
+  width: 16px;
+  height: 19px;
+  background: #d4a820;    /* 노란 GK 유니폼 */
+  border-radius: 2px;
+  position: relative;
+}
+/* 팔 (pseudo-element) */
+.pk__keeper-body::before,
+.pk__keeper-body::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  width: 10px;
+  height: 7px;
+  background: #d4a820;
+  border-radius: 3px;
+}
+.pk__keeper-body::before {
+  left: -9px;
+  transform: rotate(-22deg);
+  transform-origin: right center;
+}
+.pk__keeper-body::after {
+  right: -9px;
+  transform: rotate(22deg);
+  transform-origin: left center;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   공
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.pk__ball {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 36% 28%,
+    #ffffff 0%,
+    #e6e6e6 45%,
+    #b2b2b2 100%
+  );
+  box-shadow:
+    1px 2px 10px rgba(0,0,0,0.5),
+    inset -2px -2px 4px rgba(0,0,0,0.12);
+  z-index: 10;
+  pointer-events: none;
+}
+/* 공 패턴 얼룩 */
+.pk__ball::before {
+  content: '';
+  position: absolute;
+  top: 26%;
+  left: 17%;
+  width: 33%;
+  height: 30%;
+  background: rgba(0,0,0,0.22);
+  border-radius: 30% 42% 35% 42%;
+  transform: rotate(-18deg);
+}
+.pk__ball::after {
+  content: '';
+  position: absolute;
+  bottom: 20%;
+  right: 19%;
+  width: 27%;
+  height: 25%;
+  background: rgba(0,0,0,0.18);
+  border-radius: 42% 30% 42% 30%;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   선수 캐릭터 (등 뒤 시점)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.pk__player {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 7;
+}
+
+/* 머리 */
+.pk__pl-head {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f5be80;
+  border: 2px solid rgba(0,0,0,0.07);
+  position: relative;
+  overflow: hidden;
+}
+/* 머리카락 */
+.pk__pl-head::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 48%;
+  background: #1c0e06;
+  border-radius: 20px 20px 0 0;
+}
+
+/* 목 */
+.pk__pl-neck {
+  width: 16px;
+  height: 8px;
+  background: #e8a862;
+}
+
+/* 어깨 (몸보다 넓게 — 등 뒤 원근감) */
+.pk__pl-shoulders {
+  width: 76px;
+  height: 12px;
+  background: #3b5cc0;
+  border-radius: 6px 6px 0 0;
+  clip-path: polygon(4% 100%, 96% 100%, 90% 0%, 10% 0%);
+  position: relative;
+}
+/* 팔 */
+.pk__pl-shoulders::before,
+.pk__pl-shoulders::after {
+  content: '';
+  position: absolute;
+  bottom: -35px;
+  width: 13px;
+  height: 32px;
+  background: #3b5cc0;
+  border-radius: 4px;
+}
+.pk__pl-shoulders::before { left: 3px;  transform: rotate(7deg);  transform-origin: top center; }
+.pk__pl-shoulders::after  { right: 3px; transform: rotate(-7deg); transform-origin: top center; }
+
+/* 유니폼 상의 */
+.pk__pl-jersey {
+  width: 62px;
+  height: 42px;
+  background: #3b5cc0;
+  border-radius: 0 0 3px 3px;
+  clip-path: polygon(4% 0%, 96% 0%, 100% 100%, 0% 100%);
+  position: relative;
+}
+/* 등번호 */
+.pk__pl-jersey::after {
+  content: '10';
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.72);
+  font-family: inherit;
+}
+
+/* 반바지 */
+.pk__pl-shorts {
+  width: 52px;
+  height: 22px;
+  background: #1e3da0;
+  border-radius: 0 0 3px 3px;
+}
+
+/* 다리 */
+.pk__pl-legs {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+.pk__pl-leg {
+  width: 19px;
+  height: 38px;
+  background: #f0e6d6;  /* 양말 색 */
+  border-radius: 4px 4px 3px 3px;
+  transform-origin: top center;
+  position: relative;
+}
+/* 정강이 가드 라인 */
+.pk__pl-leg::after {
+  content: '';
+  position: absolute;
+  top: 18%;
+  left: 20%;
+  right: 20%;
+  bottom: 28%;
+  border: 1px solid rgba(180,180,180,0.28);
+  border-radius: 2px;
+}
+.pk__pl-leg--l { transform: rotate( 4deg); }
+.pk__pl-leg--r { transform: rotate(-4deg); }
+
+/* ── 킥 애니메이션 ── */
+.pk__player--kick .pk__pl-leg--r {
+  animation: pk-kick-leg 0.54s ease-out forwards;
+}
+.pk__player--kick .pk__pl-jersey,
+.pk__player--kick .pk__pl-shoulders {
+  animation: pk-lean 0.54s ease-out forwards;
+}
+
+/* ── 골키퍼 자세 (AI 킥 차례: 다리 벌리고 준비) ── */
+.pk__player--keeper .pk__pl-legs { gap: 14px; }
+.pk__player--keeper .pk__pl-leg--l { transform: rotate( 9deg); }
+.pk__player--keeper .pk__pl-leg--r { transform: rotate(-9deg); }
+.pk__player--keeper .pk__pl-shoulders::before { transform: rotate(-30deg) translateY(-6px); }
+.pk__player--keeper .pk__pl-shoulders::after  { transform: rotate( 30deg) translateY(-6px); }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   @keyframes
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@keyframes pk-kick-leg {
+  0%   { transform: rotate(-4deg); }
+  28%  { transform: rotate(-52deg) translateY(-12px); }
+  56%  { transform: rotate(24deg); }
+  100% { transform: rotate(-4deg); }
+}
+
+@keyframes pk-lean {
+  0%   { transform: none; }
+  28%  { transform: rotate(-11deg) translateY(-5px); }
+  100% { transform: none; }
+}
+
+@keyframes pk-pop {
+  from { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+  to   { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   라운드 메시지
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.pk__msg {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.2rem;
+  font-weight: 900;
+  pointer-events: none;
+  z-index: 22;
+  white-space: nowrap;
+  text-shadow: 0 3px 16px rgba(0,0,0,0.6);
+  animation: pk-pop 0.22s ease-out;
+}
+.pk__msg--goal { color: #f1c40f; }
+.pk__msg--save { color: #2ecc71; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   하단 안내 바
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.pk__bar {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.58);
+  backdrop-filter: blur(4px);
+  color: rgba(255,255,255,0.9);
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 7px 20px;
+  border-radius: 20px;
+  white-space: nowrap;
+  z-index: 18;
+}
+
+.pk__bar--urgent {
+  background: rgba(175,22,22,0.85);
+  color: #fff;
+  animation: pk-bar-pulse 0.32s ease-in-out infinite alternate;
+}
+
+@keyframes pk-bar-pulse {
+  from { opacity: 0.82; }
+  to   { opacity: 1; box-shadow: 0 0 14px rgba(220,50,50,0.45); }
+}
