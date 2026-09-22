@@ -53,7 +53,7 @@ public class UserMailServiceImpl implements UserMailService {
 			String payload = objectMapper.writeValueAsString(userToStore);
 			userMailDAO.insertSignupAuthKey(pendingUser.getEmail(), authKey, payload);
 
-			String confirmUrl = "http://localhost:5173/plug/signup/confirm?key=" + authKey;
+			String confirmUrl = "http://192.168.0.60:5173/plug/signup/confirm?key=" + authKey;
 			String title = "[PL:UG] 이메일 인증을 완료하고 회원가입을 마쳐주세요! ⚽";
 			String content = "<!DOCTYPE html>"
 					+ "<html lang='ko'>"
@@ -219,7 +219,7 @@ public class UserMailServiceImpl implements UserMailService {
 				+ "                    <h2>환영합니다, " + nickname + "님! ⚽</h2>"
 				+ "                    <p>PL:UG의 모든 서비스(경기 일정, 승부예측, 커뮤니티)를 지금 바로 이용해보세요!</p>"
 				+ "                    <div style='text-align: center; margin: 30px 0;'>"
-				+ "                        <a href='http://localhost:5173/plug/community' style='background-color: #16744b; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;'>커뮤니티 바로가기</a>"
+				+ "                        <a href='http://192.168.0.60:5173/plug/community' style='background-color: #16744b; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;'>커뮤니티 바로가기</a>"
 				+ "                    </div>"
 				+ "                </td></tr>"
 				+ "            </table>"
@@ -258,7 +258,7 @@ public class UserMailServiceImpl implements UserMailService {
 				+ "                    </div>"
 				+ "                    <p style='color: #4b5563;'>그동안 PL:UG를 이용해 주셔서 진심으로 감사드리며, 더 나은 모습으로 다시 만나 뵙기를 기대하겠습니다.</p>"
 				+ "                    <div style='text-align: center; margin: 32px 0 10px 0;'>"
-				+ "                        <a href='http://localhost:5173/plug/' style='background-color: #334155; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;'>PL:UG 홈으로 가기</a>"
+				+ "                        <a href='http://192.168.0.60:5173/plug/' style='background-color: #334155; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;'>PL:UG 홈으로 가기</a>"
 				+ "                    </div>"
 				+ "                </td></tr>"
 				+ "                <tr><td style='padding: 20px 40px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center;'>"
@@ -277,7 +277,7 @@ public class UserMailServiceImpl implements UserMailService {
 		String authKey = UUID.randomUUID().toString();
 		userMailDAO.insertPasswordResetAuthKey(userEmail, authKey);
 
-		String resetUrl = "http://localhost:5173/plug/reset-password?key=" + authKey + "&email=" + userEmail;
+		String resetUrl = "http://192.168.0.60:5173/plug/reset-password?key=" + authKey + "&email=" + userEmail;
 		String title = "[PL:UG] 비밀번호 재설정 안내 메일입니다. 🔑";
 		String content = "<!DOCTYPE html>"
 				+ "<html lang='ko'>"
