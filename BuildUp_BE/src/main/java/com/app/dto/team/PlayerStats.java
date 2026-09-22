@@ -17,6 +17,7 @@ public class PlayerStats {
     // 화면 표시 조인용 필드 (득점 랭킹 조회용)
     private String playerName;     // 선수명
     private String mainPosition;   // 주 포지션
+    private String detailPosition; // 상세 포지션 (CB, LB, ST 등)
     private String nationality;    // 국적
     private Long teamId;           // 소속 구단 ID
     private String teamName;       // 소속 구단명

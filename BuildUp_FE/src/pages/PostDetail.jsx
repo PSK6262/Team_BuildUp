@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchTeams, fetchCategories } from '../store/teamSlice.js'
 import { communityTeams } from '../data/communityTeams.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
 import '../css/Community.css'
@@ -29,14 +30,14 @@ function requestPost(postId) {
 }
 
 export default function PostDetail({ postId }) {
+  const dispatch = useDispatch()
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn)
   const user = useSelector((state) => state.auth.user)
+  const { teams, categories } = useSelector((state) => state.team)
   const [post, setPost] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [editing, setEditing] = useState(false)
-  const [categories, setCategories] = useState([])
-  const [teams, setTeams] = useState([])
   const [categoryId, setCategoryId] = useState('')
   const [teamId, setTeamId] = useState('')
   const [title, setTitle] = useState('')
@@ -53,6 +54,8 @@ export default function PostDetail({ postId }) {
   const [editingCommentId, setEditingCommentId] = useState(null)
   const [editCommentContent, setEditCommentContent] = useState('')
   const [commentActionId, setCommentActionId] = useState(null)
+  const [unblurredPost, setUnblurredPost] = useState(false)
+  const [unblurredComments, setUnblurredComments] = useState({})
   const requestedReturn = new URLSearchParams(window.location.search).get('from')
   // 외부 주소나 임의의 경로로 이동하지 않도록 실제 목록 경로만 허용합니다.
   const allowedPaths = ['/plug/community', '/plug/community/free', ...communityTeams.map((team) => `/plug/community/teams/${team.slug}`)]
@@ -118,17 +121,10 @@ export default function PostDetail({ postId }) {
     setActionError('')
     setActionLoading(true)
     try {
-      const [categoryResponse, teamResponse] = await Promise.all([
-        fetch('/api/communities/categories'),
-        fetch('/api/teams'),
+      await Promise.all([
+        dispatch(fetchCategories()).unwrap(),
+        dispatch(fetchTeams()).unwrap(),
       ])
-      const categoryResult = await categoryResponse.json()
-      const teamResult = await teamResponse.json()
-      if (!categoryResponse.ok || !teamResponse.ok) {
-        throw new Error('수정에 필요한 정보를 불러오지 못했습니다.')
-      }
-      setCategories(Array.isArray(categoryResult.data) ? categoryResult.data : [])
-      setTeams(Array.isArray(teamResult) ? teamResult : [])
       setCategoryId(String(post.categoryId))
       setTeamId(post.teamId == null ? '' : String(post.teamId))
       setTitle(post.title || '')
@@ -378,24 +374,59 @@ export default function PostDetail({ postId }) {
 
   // 일반 댓글과 대댓글에 동일한 작성자 수정·삭제 기능을 표시합니다.
   const renderComment = (comment, canReply) => {
-    if (comment.isBlind === 'Y') {
-      return <p className="community__deleted-comment">삭제된 댓글입니다.</p>
-    }
+    const isCommentBlind = comment.isBlind === 'Y'
+    const isCommentUnblurred = Boolean(unblurredComments[comment.commentId])
     const isCommentOwner = isLoggedIn && Number(user?.userId) === Number(comment.userId)
     const isEditingComment = Number(editingCommentId) === Number(comment.commentId)
     const isCommentBusy = Number(commentActionId) === Number(comment.commentId)
 
     return <>
-      <header><strong>{comment.nickname}</strong><time dateTime={comment.createdAt}>{comment.createdAt}</time></header>
-      {isEditingComment ? <form className="community__comment-edit" onSubmit={(event) => updateComment(event, comment.commentId)}>
-        <textarea rows="3" value={editCommentContent} onChange={(event) => setEditCommentContent(event.target.value)} disabled={isCommentBusy} />
-        <div>
-          <button type="button" onClick={() => { setEditingCommentId(null); setEditCommentContent('') }} disabled={isCommentBusy}>취소</button>
-          <button type="submit" disabled={isCommentBusy}>{isCommentBusy ? '수정 중...' : '수정 완료'}</button>
+      <header>
+        <strong>{comment.nickname}</strong>
+        <time dateTime={comment.createdAt}>{comment.createdAt}</time>
+        {isCommentBlind && (
+          <span className="community__badge community__badge--blind" style={{ marginLeft: 6 }}>
+            블라인드 댓글
+          </span>
+        )}
+      </header>
+      {isEditingComment ? (
+        <form className="community__comment-edit" onSubmit={(event) => updateComment(event, comment.commentId)}>
+          <textarea rows="3" value={editCommentContent} onChange={(event) => setEditCommentContent(event.target.value)} disabled={isCommentBusy} />
+          <div>
+            <button type="button" onClick={() => { setEditingCommentId(null); setEditCommentContent('') }} disabled={isCommentBusy}>취소</button>
+            <button type="submit" disabled={isCommentBusy}>{isCommentBusy ? '수정 중...' : '수정 완료'}</button>
+          </div>
+        </form>
+      ) : isCommentBlind && !isCommentUnblurred ? (
+        <div className="community__blind-comment-notice">
+          <span>⚠️ 부적절한 단어가 포함되어 블라인드 처리된 댓글입니다.</span>
+          <button
+            type="button"
+            className="community__blind-unblur-btn"
+            onClick={() => setUnblurredComments((prev) => ({ ...prev, [comment.commentId]: true }))}
+          >
+            내용 보기
+          </button>
+          <p className="community__comment-text--blurred">{comment.content}</p>
         </div>
-      </form> : <p>{comment.content}</p>}
+      ) : (
+        <div>
+          <p>{comment.content}</p>
+          {isCommentBlind && (
+            <button
+              type="button"
+              className="community__blind-unblur-btn"
+              style={{ fontSize: 12, marginTop: 4 }}
+              onClick={() => setUnblurredComments((prev) => ({ ...prev, [comment.commentId]: false }))}
+            >
+              블러 다시 적용
+            </button>
+          )}
+        </div>
+      )}
       {!isEditingComment && <div className="community__comment-actions">
-        {canReply && <button type="button" onClick={() => { setReplyTarget(comment); setCommentsError('') }}>답글</button>}
+        {canReply && !isCommentBlind && <button type="button" onClick={() => { setReplyTarget(comment); setCommentsError('') }}>답글</button>}
         {isCommentOwner && <>
           <button type="button" onClick={() => startCommentEditing(comment)} disabled={isCommentBusy}>수정</button>
           <button type="button" className="community__comment-delete" onClick={() => deleteComment(comment.commentId)} disabled={isCommentBusy}>삭제</button>
@@ -433,6 +464,11 @@ export default function PostDetail({ postId }) {
     </form> : <article className="community__detail">
       <header>
         <span className={`community__badge ${isTeamPost ? 'community__badge--team' : ''}`}>{post.teamName || post.categoryType || '자유게시판'}</span>
+        {post.isBlind === 'Y' && (
+          <span className="community__badge community__badge--blind" style={{ marginLeft: 6 }}>
+            블라인드 제재
+          </span>
+        )}
         <h1>{post.title}</h1>
         <dl className="community__post-meta">
           <div><dt>작성자</dt><dd>{post.nickname}</dd></div>
@@ -441,7 +477,44 @@ export default function PostDetail({ postId }) {
           <div><dt>추천수</dt><dd>{post.likeCount}</dd></div>
         </dl>
       </header>
-      <div className="community__post-body">{post.content}</div>
+      {post.isBlind === 'Y' && !unblurredPost ? (
+        <div className="community__blind-post-box">
+          <div className="community__blind-post-overlay">
+            <div className="community__blind-post-notice">
+              <span className="community__blind-icon">⚠️</span>
+              <div>
+                <strong>민감한 내용(욕설/비속어 등)이 포함되어 블라인드 처리된 게시글입니다.</strong>
+                <p>내용을 확인하시겠습니까?</p>
+              </div>
+              <button
+                type="button"
+                className="community__blind-toggle-btn"
+                onClick={() => setUnblurredPost(true)}
+              >
+                블러 해제하고 내용 보기
+              </button>
+            </div>
+          </div>
+          <div className="community__post-body community__post-body--blurred">
+            {post.content}
+          </div>
+        </div>
+      ) : (
+        <div className="community__post-body">
+          {post.content}
+          {post.isBlind === 'Y' && (
+            <div style={{ marginTop: 16 }}>
+              <button
+                type="button"
+                className="community__blind-reblur-btn"
+                onClick={() => setUnblurredPost(false)}
+              >
+                블러 다시 적용하기
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </article>}
 
     <div className="community__detail-actions">

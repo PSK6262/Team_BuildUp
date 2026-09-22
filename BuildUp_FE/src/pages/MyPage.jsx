@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateUser, logout } from '../store/authSlice.js'
+import { fetchTeams } from '../store/teamSlice.js'
 
 const EMAIL_REGEX = /^[a-zA-Z0-9](?!.*\.\.)[a-zA-Z0-9._-]{2,28}[a-zA-Z0-9]@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 
@@ -8,29 +9,17 @@ export default function MyPage() {
   const dispatch = useDispatch()
   const reduxUser = useSelector((state) => state.auth.user)
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn)
+  const teamList = useSelector((state) => state.team.teams)
 
   const [profile, setProfile] = useState(null)
   const [nickname, setNickname] = useState('')
   const [email, setEmail] = useState('')
   const [favoriteTeamId, setFavoriteTeamId] = useState('')
-  const [teamList, setTeamList] = useState([])
 
-  // 실제 DB 구단 목록 조회 (/api/teams)
+  // 실제 DB 구단 목록 조회 (Redux Thunk)
   useEffect(() => {
-    fetch('/api/teams')
-      .then((res) => {
-        if (!res.ok) throw new Error('구단 목록 조회 실패')
-        return res.json()
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setTeamList(data)
-        }
-      })
-      .catch((err) => {
-        console.error('[구단 목록 로드 실패]', err)
-      })
-  }, [])
+    dispatch(fetchTeams())
+  }, [dispatch])
 
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(true)
