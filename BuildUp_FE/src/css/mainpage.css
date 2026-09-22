@@ -13,7 +13,7 @@
   position: relative;
   width: 100%;
   min-height: calc(100vh - 84px);
-  background-color: #18011c;
+  background-color: #240428;
   color: #ffffff;
   overflow: hidden;
   box-sizing: border-box;
@@ -42,17 +42,17 @@
 }
 
 .mainpage-bg__bolts {
-  transform-origin: 50% 85%;
+  transform-origin: center center;
 }
 
 .mainpage-bg__vignette {
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    circle at 50% 85%,
-    rgba(53, 6, 61, 0) 35%,
-    rgba(38, 2, 44, 0.25) 75%,
-    rgba(22, 1, 26, 0.6) 100%
+    ellipse at 60% 45%,
+    transparent 50%,
+    rgba(34, 4, 39, 0.3) 78%,
+    rgba(17, 2, 20, 0.65) 100%
   );
   pointer-events: none;
 }
@@ -340,13 +340,14 @@
 .emblem-card.is-hovered,
 .emblem-card:hover,
 .emblem-card:focus-visible {
-  border-color: #00ff87;
+  border-color: var(--team-hex, #00ff87);
   background: radial-gradient(circle at 35% 35%, rgba(85, 20, 102, 0.98), rgba(38, 4, 46, 0.99));
   box-shadow:
-    0 0 16px #00ff87,
-    0 0 35px rgba(0, 255, 135, 0.75),
-    inset 0 0 14px rgba(0, 255, 135, 0.45);
-  transform: translateZ(0) scale(1.35) !important;
+    0 0 18px var(--team-hex, #00ff87),
+    0 0 38px var(--team-glow, rgba(0, 255, 135, 0.75)),
+    0 0 65px var(--team-glow, rgba(0, 255, 135, 0.45)),
+    inset 0 0 16px var(--team-glow, rgba(0, 255, 135, 0.45));
+  transform: translateZ(0) scale(1.62) !important;
   z-index: 50;
 }
 
@@ -362,6 +363,44 @@
   opacity: 0.45;
   filter: grayscale(25%);
   transform: scale(0.95);
+}
+
+/* --------------------------------------------------------
+   Favorite Team (애정팀 기본 상태: 기존 네온라이트로 은은하게 비춤)
+   -------------------------------------------------------- */
+.emblem-card.is-favorite:not(.is-hovered):not(:hover) {
+  border-color: #00ff87;
+  background: radial-gradient(circle at 35% 35%, rgba(70, 18, 86, 0.96), rgba(28, 4, 34, 0.99));
+  box-shadow:
+    0 0 16px #00ff87,
+    0 0 35px rgba(0, 255, 135, 0.75),
+    0 0 55px rgba(0, 255, 135, 0.4),
+    inset 0 0 14px rgba(0, 255, 135, 0.45);
+  animation: eplFavoriteNeonPulse 3s ease-in-out infinite alternate;
+  z-index: 20;
+}
+
+@keyframes eplFavoriteNeonPulse {
+  0% {
+    box-shadow:
+      0 0 14px #00ff87,
+      0 0 28px rgba(0, 255, 135, 0.7),
+      0 0 45px rgba(0, 255, 135, 0.35),
+      inset 0 0 12px rgba(0, 255, 135, 0.4);
+  }
+  100% {
+    box-shadow:
+      0 0 18px #00ff87,
+      0 0 38px rgba(0, 255, 135, 0.85),
+      0 0 65px rgba(0, 255, 135, 0.5),
+      inset 0 0 16px rgba(0, 255, 135, 0.5);
+  }
+}
+
+/* 애정팀은 다른 엠블럼이 호버될 때도 네온 그린 라이트의 존재감을 자연스럽게 유지 */
+.mainpage-orbit-ring.has-hover .emblem-card.is-favorite:not(.is-hovered):not(:hover) {
+  opacity: 0.75;
+  filter: grayscale(0%);
 }
 
 /* --------------------------------------------------------

@@ -247,4 +247,16 @@ public class UserServiceImpl implements UserService {
 		log.info("[UserServiceImpl] 회원 탈퇴 처리 완료 -> userId={}, email={}", userId, targetEmail);
 		return deletedUsers > 0;
 	}
+
+	@Override
+	public Users getUserByLoginId(String loginId) {
+		if (loginId == null || loginId.trim().isEmpty()) {
+			return null;
+		}
+		Users user = userDAO.selectUserByLoginId(loginId.trim());
+		if (user != null) {
+			user.setPassword(null);
+		}
+		return user;
+	}
 }

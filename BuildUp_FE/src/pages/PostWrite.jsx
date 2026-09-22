@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchTeams, fetchCategories } from '../store/teamSlice.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
 import '../css/Community.css'
 
@@ -16,11 +17,12 @@ const contentLength = (value) => Array.from(value).length
 const limitContent = (value) => Array.from(value).slice(0, POST_CONTENT_MAX_LENGTH).join('')
 
 export default function PostWrite() {
+  const dispatch = useDispatch()
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn)
   const user = useSelector((state) => state.auth.user)
+  const { teams, categories, teamsLoaded, categoriesLoaded, teamsError, categoriesError } = useSelector((state) => state.team)
+
   const initialBoard = new URLSearchParams(window.location.search).get('board') === 'team' ? 'team' : 'free'
-  const [categories, setCategories] = useState([])
-  const [teams, setTeams] = useState([])
   const [board, setBoard] = useState(initialBoard)
   const [categoryId, setCategoryId] = useState('')
   const [teamId, setTeamId] = useState('')
@@ -28,41 +30,29 @@ export default function PostWrite() {
   const [content, setContent] = useState('')
   const [imageAttachments, setImageAttachments] = useState([])
   const [fileAttachments, setFileAttachments] = useState([])
-  const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const attachments = [...imageAttachments, ...fileAttachments]
 
-  // 글 작성에 필요한 카테고리와 실제 DB 구단 목록을 조회합니다.
+  const loading = !teamsLoaded || !categoriesLoaded
+
+  // 글 작성에 필요한 카테고리와 실제 DB 구단 목록을 Redux Thunk로 로드합니다.
   useEffect(() => {
-    const loadOptions = async () => {
-      try {
-        const [categoryResponse, teamResponse] = await Promise.all([
-          fetch('/api/communities/categories'),
-          fetch('/api/teams'),
-        ])
-        const categoryResult = await categoryResponse.json()
-        const teamResult = await teamResponse.json()
-        if (!categoryResponse.ok) {
-          throw new Error(categoryResult.message || '카테고리를 불러오지 못했습니다.')
-        }
-        if (!teamResponse.ok) {
-          throw new Error('구단 목록을 불러오지 못했습니다.')
-        }
-        const categoryItems = Array.isArray(categoryResult.data) ? categoryResult.data : []
-        setCategories(categoryItems)
-        setTeams(Array.isArray(teamResult) ? teamResult : [])
-        if (categoryItems.length > 0) {
-          setCategoryId(String(categoryItems[0].categoryId))
-        }
-      } catch (exception) {
-        setError(exception.message || '글쓰기 정보를 불러오지 못했습니다.')
-      } finally {
-        setLoading(false)
-      }
+    dispatch(fetchTeams())
+    dispatch(fetchCategories())
+  }, [dispatch])
+
+  useEffect(() => {
+    if (categories.length > 0 && !categoryId) {
+      setCategoryId(String(categories[0].categoryId))
     }
-    loadOptions()
-  }, [])
+  }, [categories, categoryId])
+
+  useEffect(() => {
+    if (teamsError || categoriesError) {
+      setError(categoriesError || teamsError || '글쓰기 정보를 불러오지 못했습니다.')
+    }
+  }, [teamsError, categoriesError])
 
   // 이미지와 일반 첨부파일을 각각 검사하여 선택 목록에 저장합니다.
   const selectAttachments = (event, type) => {
