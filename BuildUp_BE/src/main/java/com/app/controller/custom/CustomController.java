@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.app.service.custom.CustomService;
 import com.app.dto.custom.CustomTeams;
+import com.app.dto.custom.AiMatches;
 import com.app.dto.user.Users;
 import com.app.dao.user.UserDAO;
 import com.app.util.JwtProvider;
@@ -22,6 +23,18 @@ public class CustomController {
     private static final Logger log = LoggerFactory.getLogger(CustomController.class);
     @Autowired private CustomService customService;
     @Autowired private UserDAO userDAO;
+
+    @PostMapping("/api/customs/ai-matches")
+    public ResponseEntity<?> playAiMatch(@RequestBody AiMatches.Request request) {
+        try {
+            return ResponseEntity.ok(customService.playAiMatch(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            log.error("AI 대전 생성 실패", e);
+            return ResponseEntity.status(500).body(Map.of("message", "AI 대전을 생성하지 못했습니다. DB 연결을 확인한 후 다시 시도해주세요."));
+        }
+    }
 
 	@GetMapping("/api/customs")
 	public ResponseEntity<?> customs(HttpServletRequest request) {

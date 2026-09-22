@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { getAllPremierLeaguePlayers, getTeams } from '../api/teamApi.js';
+import { getAllPremierLeaguePlayers, getInitialTeams, getTeams } from '../api/teamApi.js';
 import '../css/MyTeam.css';
 
 // 지정 프리셋 포메이션 정의 (DF - MF - FW 합계는 모두 10)
@@ -17,6 +17,17 @@ const FORMATION_PRESETS = [
 ];
 
 const LOCAL_STORAGE_KEY = 'buildup_custom_squad_v1';
+const CLUB_EMBLEM_FALLBACKS = new Map(getInitialTeams().map((team) => [String(team.teamId), team.emblemUrl]));
+
+function RosterClubEmblem({ club, className }) {
+  const [failedUrls, setFailedUrls] = useState([]);
+  const src = [club.emblemUrl, CLUB_EMBLEM_FALLBACKS.get(String(club.teamId))]
+    .find((url) => url && !failedUrls.includes(url));
+  return src ? (
+    <img src={src} alt={`${club.teamNameKor || club.teamName} 로고`} className={className}
+      draggable={false} onError={() => setFailedUrls((urls) => [...urls, src])} />
+  ) : <span className="club-card-fallback" role="img" aria-label={`${club.teamNameKor || club.teamName} 로고 로딩 실패`}>🛡️</span>;
+}
 
 function createSquadImage(teamName, formation, slots) {
   const canvas = document.createElement('canvas');
@@ -83,253 +94,29 @@ function createSquadImage(teamName, formation, slots) {
   }, 'image/png'));
 }
 
-function createAiOpponent(players, teamId = null) {
-  const pools = Object.fromEntries(['GK', 'DF', 'MF', 'FW'].map((pos) => [pos, []]));
-  const seen = new Set();
-  players.forEach((player) => {
-    if (teamId !== null && Number(player.teamId) !== Number(teamId)) return;
-    if (player.playerId == null || seen.has(String(player.playerId)) || !pools[player.mainPosition]) return;
-    seen.add(String(player.playerId));
-    pools[player.mainPosition].push(player);
-  });
-  const available = FORMATION_PRESETS.filter((preset) =>
-    pools.GK.length >= 1 && pools.DF.length >= preset.df &&
-    pools.MF.length >= preset.mf && pools.FW.length >= preset.fw
-  );
-  if (!available.length) return null;
-  const formation = available[Math.floor(Math.random() * available.length)];
-  const lineup = [];
-  for (const [pos, count] of [['GK', 1], ['DF', formation.df], ['MF', formation.mf], ['FW', formation.fw]]) {
-    const pool = [...pools[pos]];
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [pool[i], pool[j]] = [pool[j], pool[i]];
-    }
-    lineup.push(...pool.slice(0, count).map((player) => ({ pos, player })));
-  }
-  return { formation, lineup };
-}
-
-function getPositionPenalty(lineup, isAi = false) {
-  const totalPlayers = lineup.length;
-  const fwMismatches = lineup.filter(({ pos, player }) => player && pos === 'FW' && player.mainPosition !== 'FW');
-  const mfMismatches = lineup.filter(({ pos, player }) => player && pos === 'MF' && player.mainPosition !== 'MF');
-  const dfMismatches = lineup.filter(({ pos, player }) => player && pos === 'DF' && player.mainPosition !== 'DF');
-  const gkMismatches = lineup.filter(({ pos, player }) => player && pos === 'GK' && player.mainPosition !== 'GK');
-
-  const totalMismatchCount = fwMismatches.length + mfMismatches.length + dfMismatches.length + gkMismatches.length;
-
-  // 11명 전원 불일치 여부 (전술 붕괴 디버프)
-  const isAllMismatch = totalPlayers >= 11 && totalMismatchCount === totalPlayers;
-
-  // 11명 전원 일치 여부 (완벽한 시너지 버프) - 유저 팀(!isAi)만 획득 가능, AI는 시너지 불가
-  const isPerfectSynergy = !isAi && totalPlayers >= 11 && totalMismatchCount === 0;
-
-  // 기본 슬롯별 패널티
-  let fwPenaltyPercent = Math.min(fwMismatches.length * 15, 60);
-  let mfPenaltyPercent = Math.min(mfMismatches.length * 12, 50);
-  let dfPenaltyPercent = Math.min(dfMismatches.length * 12, 50);
-  let gkPenaltyPercent = gkMismatches.length > 0 ? 75 : 0;
-
-  // 11명 전원 불일치 시: 추가적으로 모든 스탯이 큰 폭으로 추가 감소 (+25% 추가 디버프)
-  if (isAllMismatch) {
-    fwPenaltyPercent = Math.min(fwPenaltyPercent + 25, 85);
-    mfPenaltyPercent = Math.min(mfPenaltyPercent + 25, 75);
-    dfPenaltyPercent = Math.min(dfPenaltyPercent + 25, 75);
-    gkPenaltyPercent = Math.min(gkPenaltyPercent + 15, 90);
-  }
-
-  let goalRateMultiplier = Math.max(0.15, 1 - fwPenaltyPercent / 100);
-  let passRateMultiplier = Math.max(0.2, 1 - mfPenaltyPercent / 100);
-  let defenseEfficiencyMultiplier = Math.max(0.2, 1 - dfPenaltyPercent / 100);
-  let saveRateMultiplier = gkMismatches.length > 0 ? (isAllMismatch ? 0.10 : 0.25) : 1.0;
-
-  // 11명 전원 일치 시: 완벽한 팀워크 시너지 버프 (유저 팀 한정 전 스탯 +20% 상승)
-  let synergyBuffPercent = 0;
-  if (isPerfectSynergy) {
-    synergyBuffPercent = 20;
-    goalRateMultiplier = 1.20; // 골 결정력 +20% 버프
-    passRateMultiplier = 1.20; // 패스 성공률 +20% 버프
-    defenseEfficiencyMultiplier = 1.25; // 수비 효율 +25% 버프
-    saveRateMultiplier = 1.15; // 선방 확률 +15% 버프
-  }
-
-  return {
-    isAi,
-    totalPlayers,
-    mismatchCount: totalMismatchCount,
-    isAllMismatch,
-    isPerfectSynergy,
-    synergyBuffPercent,
-
-    fwMismatchCount: fwMismatches.length,
-    fwPenaltyPercent,
-    goalRateMultiplier,
-
-    mfMismatchCount: mfMismatches.length,
-    mfPenaltyPercent,
-    passRateMultiplier,
-
-    dfMismatchCount: dfMismatches.length,
-    dfPenaltyPercent,
-    defenseEfficiencyMultiplier,
-
-    gkMismatchCount: gkMismatches.length,
-    gkPenaltyPercent,
-    saveRateMultiplier,
-  };
-}
-
-function simulateAiMatch(home, away) {
-  const score = [0, 0];
-  const events = [];
-  const positionPenalties = [getPositionPenalty(home, false), getPositionPenalty(away, true)];
-  const booked = [new Set(), new Set()];
-  const dismissed = [new Set(), new Set()];
-  const activeLineup = (side) => [home, away][side].filter((slot) => !dismissed[side].has(slot.player.playerId));
-  const addEvent = (minute, side, type, label, description, isGoal = false) => {
-    if (isGoal) score[side]++;
-    events.push({ minute, side, type, label, description, isGoal, score: [...score], dismissedAiIds: [...dismissed[1]] });
-  };
-  addEvent(0, null, 'period', '킥오프', '전반전이 시작됩니다.');
-
-  // 시작 시 완벽한 시너지 버프(유저 전용) 또는 전술 붕괴 디버프 안내 이벤트
-  [0, 1].forEach((side) => {
-    const pen = positionPenalties[side];
-    const teamName = side === 0 ? '우리 팀' : '상대 팀';
-    if (pen.isPerfectSynergy) {
-      addEvent(1, side, 'period', '시너지 버프 발동',
-        `🔥 ${teamName}은 11명 전원이 원래 포지션에 완벽하게 일치합니다! 전 능력치 +20% 시너지 버프가 적용됩니다.`);
-    } else if (pen.isAllMismatch) {
-      addEvent(1, side, 'yellow', '전술 붕괴 디버프',
-        `🚨 ${teamName}은 11명 전원이 원래 포지션과 다릅니다! 극심한 조직력 와해로 모든 스탯이 추가 25% 급감합니다.`);
-    }
-  });
-
-  // 90분 경기 시뮬레이션
-  for (let minute = 1; minute <= 90; minute++) {
-    [0, 1].forEach((side) => {
-      const oppSide = 1 - side;
-      const lineup = activeLineup(side);
-      const oppLineup = activeLineup(oppSide);
-      if (!lineup.length || !oppLineup.length) return;
-
-      const myPenalty = positionPenalties[side];
-      const oppPenalty = positionPenalties[oppSide];
-
-      // 상대 수비 효율(DF 패널티 / 시너지 버프)에 따라 우리 팀의 공격 찬스 빈도 변동
-      const defenseGap = (1 - oppPenalty.defenseEfficiencyMultiplier) * 0.08;
-      const attackChance = 0.11 + defenseGap;
-      if (Math.random() >= attackChance) return;
-
-      // 1. MF 패스 확률 검증: 미드필더에 비-MF 선수가 있을 경우 패스 미스로 인한 공격 차단
-      if (myPenalty.mfMismatchCount > 0 && Math.random() > myPenalty.passRateMultiplier) {
-        const mfMismatchSlot = lineup.find((slot) => slot.pos === 'MF' && slot.player.mainPosition !== 'MF') || lineup[0];
-        const mfPlayerName = mfMismatchSlot.player.nameKor || mfMismatchSlot.player.name;
-        addEvent(minute, side, 'miss', '패스 실패',
-          `${mfPlayerName}의 패스가 부정확하게 흘러 차단됩니다. (MF 포지션 불일치로 패스 확률 ${myPenalty.mfPenaltyPercent}% 감소)`);
-        return;
-      }
-
-      // 공격 주도 선수 선정 (FW, MF 우선)
-      const attackers = lineup.filter((slot) => slot.pos === 'FW' || slot.pos === 'MF');
-      const candidates = attackers.length ? attackers : lineup;
-      const shooterSlot = candidates[Math.floor(Math.random() * candidates.length)];
-      const player = shooterSlot.player;
-      const name = player.nameKor || player.name;
-      const kind = Math.random();
-
-      // 2. FW 골 확률 패널티 및 시너지 버프
-      const isShooterFwMismatch = shooterSlot.pos === 'FW' && player.mainPosition !== 'FW';
-      const effectiveGoalMultiplier = myPenalty.goalRateMultiplier * (isShooterFwMismatch ? 0.7 : 1.0);
-
-      if (kind < 0.13) {
-        // 일반 슈팅 찬스
-        const scored = Math.random() < 0.45 * effectiveGoalMultiplier;
-        if (scored) {
-          const buffComment = myPenalty.isPerfectSynergy ? ' (팀 시너지 버프!)' : '';
-          addEvent(minute, side, 'goal', '골', `${name}의 감각적인 슈팅이 골망을 흔듭니다!${buffComment}`, true);
-        } else if (isShooterFwMismatch) {
-          addEvent(minute, side, 'miss', '슈팅 실패',
-            `${name}의 슈팅이 빗맞아 골문을 벗어납니다. (FW 포지션 불일치로 골 확률 ${myPenalty.fwPenaltyPercent}% 감소)`);
-        } else {
-          addEvent(minute, side, 'miss', '슈팅 실패', `${name}의 위협적인 슈팅이 골대를 아슬아슬하게 스쳐 지나갑니다.`);
-        }
-      } else if (kind < 0.21) {
-        // PK 선언
-        addEvent(minute, side, 'penalty', 'PK 선언',
-          oppPenalty.dfMismatchCount > 0
-            ? `${name}의 돌파를 저지하던 상대 수비진의 포지션 부적응 파울! 페널티킥이 선언됩니다.`
-            : `${name}의 돌파 중 페널티 지역 안에서 파울! 페널티킥이 선언됩니다.`);
-        const scored = Math.random() < 0.75 * effectiveGoalMultiplier;
-        addEvent(minute, side, scored ? 'goal' : 'miss', scored ? 'PK 성공' : 'PK 실패',
-          scored ? `${name}이 침착하게 페널티킥을 성공시킵니다!` : `${name}의 페널티킥이 실축됩니다!`, scored);
-      } else if (kind < 0.38) {
-        // 오프사이드
-        addEvent(minute, side, 'offside', '오프사이드', `${name}의 침투에 오프사이드가 선언되어 공격이 중단됩니다.`);
-      } else if (kind < 0.54) {
-        // 프리킥 찬스
-        addEvent(minute, side, 'free-kick', '프리킥', `좋은 위치에서 얻은 프리킥을 ${name}이 직접 노립니다.`);
-        const scored = Math.random() < 0.11 * effectiveGoalMultiplier;
-        addEvent(minute, side, scored ? 'goal' : 'miss', scored ? '프리킥 골' : '프리킥 실패',
-          scored ? `${name}의 직접 프리킥이 골문 구석으로 빨려들어갑니다!` : `${name}의 프리킥이 수비벽에 막힙니다.`, scored);
-      } else if (kind < 0.73) {
-        // 4. GK 선방 확률 검증
-        const oppKeeperSlot = oppLineup.find((slot) => slot.pos === 'GK') || oppLineup[0];
-        const oppKeeper = oppKeeperSlot.player;
-        const keeperName = oppKeeper?.nameKor || oppKeeper?.name || '골키퍼';
-        const isGkMismatch = oppKeeperSlot.pos === 'GK' && oppKeeper?.mainPosition !== 'GK';
-
-        const baseSaveRate = isGkMismatch ? (oppPenalty.isAllMismatch ? 0.10 : 0.22) : 0.85;
-        const finalSaveRate = baseSaveRate * oppPenalty.saveRateMultiplier;
-        if (Math.random() < finalSaveRate) {
-          addEvent(minute, oppSide, 'save', '선방', `${keeperName}이 ${name}의 결정적인 슈팅을 몸을 던져 막아냅니다!`);
-        } else {
-          // 선방 실패로 인한 실점
-          addEvent(minute, side, 'goal', '골',
-            isGkMismatch
-              ? `${name}의 슈팅을 ${keeperName}(전문 GK 아님)이 쳐내지 못하고 실점합니다! (GK 선방 확률 ${oppPenalty.gkPenaltyPercent}% 감소)`
-              : `${name}의 날카로운 슈팅이 골키퍼를 뚫고 골이 됩니다!`, true);
-        }
-      } else if (kind < 0.87) {
-        // 코너킥
-        addEvent(minute, side, 'corner', '코너킥', `${name}의 코너킥 크로스를 상대 수비가 걷어냅니다.`);
-      } else {
-        // 3. DF 수비 효율 패널티
-        const offender = lineup[Math.floor(Math.random() * lineup.length)].player;
-        const offenderName = offender.nameKor || offender.name;
-        const directRed = kind >= 0.985;
-        if (directRed || booked[side].has(offender.playerId)) {
-          dismissed[side].add(offender.playerId);
-          addEvent(minute, side, 'red', directRed ? '직접 퇴장' : '경고 누적 퇴장',
-            `${offenderName}이 ${directRed ? '거친 태클로 바로 레드카드를 받습니다' : '두 번째 옐로카드를 받아 퇴장합니다'}. 남은 선수 ${lineup.length - 1}명.`);
-        } else {
-          booked[side].add(offender.playerId);
-          addEvent(minute, side, 'yellow', '경고', `${offenderName}이 거친 태클로 옐로카드를 받습니다.`);
-        }
-      }
-    });
-
-    if (minute === 45) {
-      addEvent(45, null, 'period', '하프타임', '전반전이 종료되었습니다.');
-      addEvent(46, null, 'period', '후반 시작', '후반전이 시작됩니다.');
-    }
-  }
-
-  addEvent(90, null, 'period', '경기 종료', '주심이 경기 종료 휘슬을 붑니다.');
-  return { score, events, positionPenalties };
-}
-
 function AiMatchTimeline({ match }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const activeEventRef = useRef(null);
+
+  useEffect(() => {
+    if (!playing || selectedIndex < 6 || selectedIndex >= match.events.length - 6) return;
+    const frame = requestAnimationFrame(() => {
+      activeEventRef.current?.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+        block: 'center',
+        inline: 'nearest',
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [selectedIndex, playing, match.events.length]);
 
   useEffect(() => {
     if (!playing) return;
     const timer = setTimeout(() => {
       const nextIndex = Math.min(selectedIndex + 1, match.events.length - 1);
       setSelectedIndex(nextIndex);
-      if (nextIndex === match.events.length - 1) setPlaying(false);
+      if (nextIndex === selectedIndex) setPlaying(false);
     }, 2400);
     return () => clearTimeout(timer);
   }, [playing, selectedIndex, match]);
@@ -339,6 +126,7 @@ function AiMatchTimeline({ match }) {
   const attacking = !neutral && (event.type === 'save' ? event.side === 0 : event.side === 1);
   const phase = neutral ? '기본 대형' : attacking ? '공격 전개' : '수비 복귀';
   const lineup = match.opponent.lineup.filter(({ player }) => !event.dismissedAiIds.includes(player.playerId));
+  const homeLineup = match.home.filter(({ player }) => !(event.dismissedHomeIds || []).includes(player.playerId));
   const selectEvent = (index) => { setSelectedIndex(index); setPlaying(false); };
 
   // 이벤트별 공(Ball) 위치 및 전술 라벨 계산
@@ -401,7 +189,11 @@ function AiMatchTimeline({ match }) {
   };
 
   // 현재 선택된 이벤트 기준 공(Ball) 위치 및 라벨 계산
-  const ballPos = getBallPosition(event, selectedIndex) || { x: 180, y: 220, label: '경기 중' };
+  const isSecondHalf = event.minute >= 46;
+  const baseBallPos = getBallPosition(event, selectedIndex) || { x: 180, y: 220, label: '경기 중' };
+  const ballPos = isSecondHalf
+    ? { ...baseBallPos, x: 360 - baseBallPos.x, y: 440 - baseBallPos.y }
+    : baseBallPos;
 
   // 세트피스 상황 판정 (코너킥, PK, 프리킥)
   const isCorner = event.type === 'corner';
@@ -423,8 +215,8 @@ function AiMatchTimeline({ match }) {
   const setPieceTrajectoryPath = useMemo(() => {
     if (!isSetPiece) return null;
     const isAi = event.side === 1;
-    const startX = ballPos.x;
-    const startY = ballPos.y;
+    const startX = baseBallPos.x;
+    const startY = baseBallPos.y;
 
     if (isCorner) {
       // 코너킥 크로스 포물선 궤적
@@ -452,7 +244,7 @@ function AiMatchTimeline({ match }) {
     }
 
     return null;
-  }, [isSetPiece, isCorner, isPk, isFreeKick, event.side, ballPos, selectedIndex]);
+  }, [isSetPiece, isCorner, isPk, isFreeKick, event.side, baseBallPos.x, baseBallPos.y, selectedIndex]);
 
   return (
     <section aria-label="주요 사건과 AI 포메이션 움직임">
@@ -460,7 +252,9 @@ function AiMatchTimeline({ match }) {
       <div className="myteam-ai-replay">
         <ol className="myteam-ai-events" aria-label="경기 주요 사건 시간순 기록">
           {match.events.map((item, index) => (
-            <li key={index} className={`myteam-ai-event myteam-ai-event--${item.type}${item.isGoal ? ` myteam-ai-event--goal-${item.side === 0 ? 'home' : 'away'}` : ''}`}>
+            <li key={index} ref={selectedIndex === index ? activeEventRef : null}
+              aria-current={selectedIndex === index ? 'step' : undefined}
+              className={`myteam-ai-event myteam-ai-event--${item.type}${item.isGoal ? ` myteam-ai-event--goal-${item.side === 0 ? 'home' : 'away'}` : ''}`}>
               <button type="button" className="myteam-ai-event-select" onClick={() => selectEvent(index)} aria-pressed={selectedIndex === index}>
                 <span className="myteam-ai-event-minute">{item.minute}분</span>
                 <span>
@@ -484,15 +278,16 @@ function AiMatchTimeline({ match }) {
             }}>{playing ? '일시정지' : '움직임 재생'}</button>
             <button type="button" className="myteam-btn myteam-btn-secondary" disabled={selectedIndex >= match.events.length - 1} onClick={() => selectEvent(selectedIndex + 1)}>다음</button>
           </div>
-          <svg className="myteam-ai-mini-pitch" viewBox="0 0 360 440" role="img" aria-label={`AI 포메이션 ${phase}, 남은 선수 ${lineup.length}명, 위쪽으로 공격`}>
+          <p>{isSecondHalf ? '후반' : '전반'} · <span style={{ color: '#60a5fa' }}>● {match.homeName} {homeLineup.length}명 · {isSecondHalf ? '↑' : '↓'} 공격</span>{' / '}<span style={{ color: '#f87171' }}>● {match.opponentName} {lineup.length}명 · {isSecondHalf ? '↓' : '↑'} 공격</span></p>
+          <svg className="myteam-ai-mini-pitch" viewBox="0 0 360 440" role="img" aria-label={`양 팀 선수 배치: ${match.homeName} ${homeLineup.length}명, ${match.opponentName} ${lineup.length}명`}>
             <rect x="10" y="10" width="340" height="420" rx="8" fill="#123e30" stroke="#a7c9ba" />
             <path d="M10 220H350 M100 10V70H260V10 M100 430V370H260V430" fill="none" stroke="#a7c9ba" />
             <circle cx="180" cy="220" r="45" fill="none" stroke="#a7c9ba" />
-            <text x="180" y="30" textAnchor="middle" fill="#d1fae5" fontSize="12">↑ AI 공격 방향</text>
+            <text x="180" y="30" textAnchor="middle" fill="#d1fae5" fontSize="12">{isSecondHalf ? '↓' : '↑'} AI 공격 방향</text>
 
             {/* 세트피스(코너킥/PK/프리킥) 궤적 곡선/직선 점선 */}
             {setPieceTrajectoryPath && (
-              <g className="corner-trajectory-group">
+              <g className="corner-trajectory-group" transform={isSecondHalf ? 'rotate(180 180 220)' : undefined}>
                 <path
                   d={setPieceTrajectoryPath}
                   fill="none"
@@ -520,62 +315,72 @@ function AiMatchTimeline({ match }) {
             )}
 
             {/* 선수 마커 렌더링 */}
-            {lineup.map(({ pos, player }) => {
-              const originalRow = match.opponent.lineup.filter((slot) => slot.pos === pos);
+            {[
+              { side: 1, fullLineup: match.opponent.lineup, activeLineup: lineup },
+              { side: 0, fullLineup: match.home, activeLineup: homeLineup },
+            ].flatMap(({ side, fullLineup, activeLineup }) => activeLineup.map(({ pos, player }) => {
+              const originalRow = fullLineup.filter((slot) => slot.pos === pos);
+              const teamAttacking = !neutral && (event.type === 'save' ? event.side !== side : event.side === side);
+              const localBall = side === 1 ? baseBallPos : { ...baseBallPos, x: 360 - baseBallPos.x, y: 440 - baseBallPos.y };
+              const kickerId = side === 1 ? setPieceKickerId : (activeLineup.find((slot) => slot.pos === 'FW')
+                || activeLineup.find((slot) => slot.pos === 'MF') || activeLineup[0])?.player.playerId;
               const index = originalRow.findIndex((slot) => slot.player.playerId === player.playerId);
               const rowSize = Math.min(originalRow.length, 5);
               const subRow = Math.floor(index / 5);
               const count = Math.min(rowSize, originalRow.length - subRow * 5);
               const baseX = 35 + (index % 5 + 1) * 290 / (count + 1);
               const baseY = { GK: 392, DF: 315, MF: 225, FW: 125 }[pos];
-              const shift = pos === 'GK' || neutral ? 0 : attacking ? -38 : 35;
+              const shift = pos === 'GK' || neutral ? 0 : teamAttacking ? -38 : 35;
               const wide = event.type === 'corner' || event.type === 'free-kick';
               const flank = selectedIndex % 2 === 0 ? -1 : 1;
-              const lateral = neutral ? 0 : wide ? flank * 24 : attacking ? (180 - baseX) * 0.2 : flank * 10;
+              const lateral = neutral ? 0 : wide ? flank * 24 : teamAttacking ? (180 - baseX) * 0.2 : flank * 10;
 
               let x = Math.max(30, Math.min(330, baseX + lateral));
               let y = Math.max(58, Math.min(392, baseY + subRow * 38 + shift));
 
               // 세트피스(코너킥, PK, 프리킥) 전담 키커 여부
-              const isKicker = isSetPiece && player.playerId === setPieceKickerId && event.side === 1;
+              const isKicker = isSetPiece && player.playerId === kickerId && event.side === side;
 
               if (isKicker) {
                 // 키커가 공과 함께 정확한 위치로 이동!
                 if (isCorner) {
-                  const isLeft = ballPos.x < 180;
-                  x = isLeft ? ballPos.x + 12 : ballPos.x - 12;
-                  y = ballPos.y + (ballPos.y < 220 ? 12 : -12);
+                  const isLeft = localBall.x < 180;
+                  x = isLeft ? localBall.x + 12 : localBall.x - 12;
+                  y = localBall.y + (localBall.y < 220 ? 12 : -12);
                 } else if (isPk) {
                   // PK: 공 바로 뒤 중앙 (킥 대기)
-                  x = ballPos.x;
-                  y = ballPos.y + 16;
+                  x = localBall.x;
+                  y = localBall.y + 16;
                 } else if (isFreeKick) {
                   // 프리킥: 공 바로 뒤 대각
-                  x = ballPos.x + (ballPos.x < 180 ? -8 : 8);
-                  y = ballPos.y + 14;
+                  x = localBall.x + (localBall.x < 180 ? -8 : 8);
+                  y = localBall.y + 14;
                 }
-              } else if (isPk && event.side === 1 && pos !== 'GK') {
+              } else if (isPk && event.side === side && pos !== 'GK') {
                 // PK 시 나머지 선수들은 페널티 박스 바깥 아크 주위에 도열
-                const pIdx = lineup.findIndex((s) => s.player.playerId === player.playerId);
+                const pIdx = activeLineup.findIndex((s) => s.player.playerId === player.playerId);
                 x = 85 + (pIdx * 20);
                 y = 88 + ((pIdx % 2) * 8);
-              } else if (isPk && event.side === 0 && pos === 'GK') {
+              } else if (isPk && event.side !== side && pos === 'GK') {
                 // 상대가 PK 찰 때: AI 골키퍼가 골문 정중앙 라인에서 선방 대기
                 x = 180;
                 y = 422;
-              } else if (isFreeKick && event.side === 0 && pos !== 'GK') {
+              } else if (isFreeKick && event.side !== side && pos !== 'GK') {
                 // 상대가 프리킥 찰 때: AI 선수들이 공 앞 30px 지점에 수비벽(Wall) 구축
-                const pIdx = lineup.findIndex((s) => s.player.playerId === player.playerId);
+                const pIdx = activeLineup.findIndex((s) => s.player.playerId === player.playerId);
                 if (pIdx < 4) {
-                  x = ballPos.x - 24 + (pIdx * 16);
-                  y = ballPos.y - 28;
+                  x = localBall.x - 24 + (pIdx * 16);
+                  y = localBall.y - 28;
                 }
-              } else if (isCorner && event.side === 1 && pos !== 'GK') {
+              } else if (isCorner && event.side === side && pos !== 'GK') {
                 // 코너킥 시 나머지 선수들은 박스 안 헤더 쇄도
-                const pIdx = lineup.findIndex((s) => s.player.playerId === player.playerId);
+                const pIdx = activeLineup.findIndex((s) => s.player.playerId === player.playerId);
                 x = 135 + ((pIdx * 35) % 100);
                 y = 42 + ((pIdx * 16) % 32);
               }
+
+              if (side === 0) { x = 360 - x; y = 440 - y; }
+              if (isSecondHalf) { x = 360 - x; y = 440 - y; }
 
               // 키커 배지 텍스트
               let kickerBadge = '';
@@ -587,52 +392,50 @@ function AiMatchTimeline({ match }) {
 
               return (
                 <g
-                  key={player.playerId}
+                  key={`${side}-${player.playerId}`}
                   className={`myteam-ai-marker ${isKicker ? 'is-corner-kicker' : ''}`}
                   style={{
                     transform: `translate(${x}px, ${y}px)`,
-                    transition: 'transform 0.85s cubic-bezier(0.25, 1, 0.5, 1)',
                   }}
                 >
                   <g
                     className="myteam-ai-marker-inner"
                     style={{
-                      animationDelay: `${((index * 0.35) % 1.5).toFixed(2)}s`,
-                      animationDuration: `${(2.2 + (index % 3) * 0.5).toFixed(1)}s`,
+                      animationDelay: `${(-((index * 0.35) % 1.5)).toFixed(2)}s`,
+                      animationDuration: `${(3.2 + (index % 3) * 0.4).toFixed(1)}s`,
                     }}
                   >
                     <title>
-                      {player.nameKor || player.name} · {pos}
+                      {side === 0 ? match.homeName : match.opponentName} · {player.nameKor || player.name} · {pos}
                       {isKicker ? (isCorner ? ' (코너킥 전담)' : isPk ? ' (PK 전담)' : ' (프리킥 전담)') : ''}
                     </title>
                     <circle
-                      r={isKicker ? 15 : 14}
-                      fill={pos === 'GK' ? '#facc15' : isKicker ? '#00ff87' : '#f87171'}
-                      stroke={isKicker ? '#121212' : '#fff'}
-                      strokeWidth={isKicker ? 2.5 : 1.5}
+                      r={isKicker ? 10 : 9}
+                      fill={side === 0 ? '#60a5fa' : '#f87171'}
+                      stroke={isKicker ? '#00ff87' : pos === 'GK' ? '#facc15' : '#fff'}
+                      strokeWidth={isKicker ? 2 : 1}
                     />
-                    <text textAnchor="middle" y="4" fontSize="10" fill="#17212b" fontWeight="800">{pos}</text>
-                    <text textAnchor="middle" y="28" fontSize="9" fill="#fff" fontWeight={isKicker ? '700' : 'normal'}>
+                    <text textAnchor="middle" y="3" fontSize="7" fill="#17212b" fontWeight="800">{pos}</text>
+                    <text textAnchor="middle" y="20" fontSize="7.5" fill="#fff" fontWeight={isKicker ? '700' : 'normal'}>
                       {kickerBadge}{player.nameKor || player.name}
                     </text>
                   </g>
                 </g>
               );
-            })}
+            }))}
 
             {/* 필드 위 공(Ball) 마커 - 스핀 회전 및 다이나믹 바운스 */}
             <g
               className="myteam-ai-ball-marker dynamic-ball"
               style={{
                 transform: `translate(${ballPos.x}px, ${ballPos.y}px)`,
-                transition: 'transform 0.85s cubic-bezier(0.22, 1, 0.36, 1)',
               }}
             >
               <title>⚽ 현재 공 위치: {ballPos.label}</title>
               {/* 바닥 다이나믹 그림자 (공이 통통 뛸 때 크기 변화) */}
               <ellipse cx="0" cy="11" rx="9" ry="3.5" fill="rgba(0, 0, 0, 0.5)">
-                <animate attributeName="rx" values="9;6;9" dur="0.8s" repeatCount="indefinite" />
-                <animate attributeName="opacity" values="0.5;0.2;0.5" dur="0.8s" repeatCount="indefinite" />
+                <animate attributeName="rx" values="9;7;9" dur="1.4s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.5;0.3;0.5" dur="1.4s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite" />
               </ellipse>
 
               {/* 빛나는 펄스 원 */}
@@ -646,8 +449,11 @@ function AiMatchTimeline({ match }) {
                 <animateTransform
                   attributeName="transform"
                   type="translate"
-                  values="0,0; 0,-5; 0,0"
-                  dur="0.8s"
+                  values="0,0; 0,-3; 0,0"
+                  dur="1.4s"
+                  calcMode="spline"
+                  keyTimes="0;0.5;1"
+                  keySplines="0.42 0 0.58 1;0.42 0 0.58 1"
                   repeatCount="indefinite"
                 />
                 {/* 축구공 본체 */}
@@ -659,7 +465,7 @@ function AiMatchTimeline({ match }) {
                     type="rotate"
                     from="0"
                     to="360"
-                    dur="1.2s"
+                    dur="2s"
                     repeatCount="indefinite"
                   />
                   <polygon points="0,-3.5 -3,-1.2 -1.8,2.8 1.8,2.8 3,-1.2" fill="#111827" />
@@ -716,6 +522,8 @@ export default function MyTeam() {
   const savePendingRef = useRef(false);
   const accountVersionRef = useRef(0);
   const [aiMatch, setAiMatch] = useState(null);
+  const [matching, setMatching] = useState(false);
+  const matchRequestRef = useRef(null);
   const aiMatchIdRef = useRef(0);
   const [opponentMode, setOpponentMode] = useState('RANDOM');
   const [opponentClubId, setOpponentClubId] = useState('');
@@ -1044,6 +852,9 @@ export default function MyTeam() {
   useEffect(() => {
     let isMounted = true;
     accountVersionRef.current++;
+    matchRequestRef.current?.abort();
+    matchRequestRef.current = null;
+    setMatching(false);
 
     async function loadData() {
       try {
@@ -1178,6 +989,8 @@ export default function MyTeam() {
     return () => {
       isMounted = false;
       accountVersionRef.current++;
+      matchRequestRef.current?.abort();
+      matchRequestRef.current = null;
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
   }, [isLoggedIn, currentUser?.userId, reloadSquad]);
@@ -1654,9 +1467,13 @@ export default function MyTeam() {
 
   // 포지션 상관 없이 자동 완성 (Auto-Fill)
   const handleAutoFillSquad = () => {
-    const usedIds = new Set(assignedPlayerIds);
-    // 아직 배치되지 않은 전체 선수 목록 (포지션 불문)
-    const availablePlayers = allPlayers.filter((p) => !usedIds.has(p.playerId));
+    if (loading || slots.length === 0) return;
+    const availablePlayers = [...new Map(allPlayers.filter((p) => p.playerId != null)
+      .map((p) => [String(p.playerId), p])).values()];
+    if (availablePlayers.length < slots.length) {
+      showToast('전체 스쿼드를 구성할 선수가 부족합니다.');
+      return;
+    }
 
     // 매번 다양하고 재미있는 라인업을 위해 무작위 셔플
     const shuffled = [...availablePlayers];
@@ -1665,23 +1482,27 @@ export default function MyTeam() {
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
 
-    let candidateIndex = 0;
-
-    setSlots((prev) =>
-      prev.map((slot) => {
-        if (slot.player) return slot; // 이미 채워진 슬롯은 유지
-
-        // 포지션(GK/DF/MF/FW) 상관 없이 미배치 선수 배치
-        if (candidateIndex < shuffled.length) {
-          const candidate = shuffled[candidateIndex++];
-          return { ...slot, player: candidate };
-        }
-
-        return slot;
-      })
-    );
-
-    showToast('⚡ 빈 슬롯들이 포지션 상관없이 자동으로 채워졌습니다!');
+    const currentIds = new Set(slots.filter((slot) => slot.player).map((slot) => String(slot.player.playerId)));
+    const candidates = [
+      ...shuffled.filter((player) => !currentIds.has(String(player.playerId))),
+      ...shuffled.filter((player) => currentIds.has(String(player.playerId))),
+    ];
+    const nextSlots = slots.map((slot) => {
+      const index = candidates.findIndex((player) => String(player.playerId) !== String(slot.player?.playerId));
+      const [player] = candidates.splice(index === -1 ? 0 : index, 1);
+      return { ...slot, player };
+    });
+    // 후보가 11명뿐인 경우에도 같은 슬롯에 같은 선수가 남지 않도록 교환.
+    nextSlots.forEach((slot, index) => {
+      if (String(slot.player.playerId) !== String(slots[index].player?.playerId)) return;
+      const other = nextSlots.findIndex((candidate, otherIndex) => otherIndex !== index
+        && String(candidate.player.playerId) !== String(slots[index].player?.playerId)
+        && String(slot.player.playerId) !== String(slots[otherIndex].player?.playerId));
+      if (other !== -1) [nextSlots[index].player, nextSlots[other].player] = [nextSlots[other].player, nextSlots[index].player];
+    });
+    setSlots(nextSlots);
+    setSelectedSlotId(null);
+    showToast('⚡ 기존 선수를 포함해 전체 스쿼드를 새로 자동 구성했습니다!');
   };
 
   // 로그인 사용자의 팀과 선수 배치를 DB에 저장
@@ -1752,7 +1573,8 @@ export default function MyTeam() {
   const filledCount = slots.filter((s) => s.player).length;
   const selectedOpponentClub = teams.find((team) => String(team.teamId) === opponentClubId);
 
-  const handleAiMatch = () => {
+  const handleAiMatch = async () => {
+    if (matchRequestRef.current) return;
     if (loading || slots.length !== 11 || filledCount !== 11 ||
       new Set(slots.map((slot) => String(slot.player?.playerId))).size !== 11) {
       showToast('대전하려면 서로 다른 선수 11명을 먼저 배치해주세요.');
@@ -1765,21 +1587,50 @@ export default function MyTeam() {
       showToast('대결할 상대 구단을 선택해주세요.');
       return;
     }
-    const opponent = createAiOpponent(allPlayers, club?.teamId ?? null);
-    if (!opponent) {
-      showToast(`${club ? club.teamNameKor || club.teamName : 'AI 팀'}의 포지션별 선수가 부족해 11명을 구성할 수 없습니다.`);
-      return;
+    const controller = new AbortController();
+    matchRequestRef.current = controller;
+    setMatching(true);
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    try {
+      const response = await fetch('/api/customs/ai-matches', {
+        method: 'POST',
+        credentials: 'include',
+        signal: controller.signal,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          teamName: teamName.trim() || '나만의 드림 스쿼드',
+          presetLabel: formation.presetLabel,
+          opponentTeamId: club?.teamId ?? null,
+          squads: slots.map((slot) => ({ positionNo: slot.id + 1, position: slot.pos, playerId: slot.player.playerId })),
+        }),
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(result?.message || 'AI 대전을 생성하지 못했습니다.');
+      if (!Array.isArray(result?.events) || result.events.length === 0 || !Array.isArray(result?.positionPenalties)
+        || !Array.isArray(result?.home) || !Array.isArray(result?.opponent?.lineup) || !Array.isArray(result?.score)) {
+        throw new Error('AI 대전 결과를 확인하지 못했습니다.');
+      }
+      if (matchRequestRef.current === controller && !controller.signal.aborted) {
+        setAiMatch({ ...result, replayId: ++aiMatchIdRef.current });
+      }
+    } catch (error) {
+      if (matchRequestRef.current === controller) {
+        showToast(error.name === 'AbortError' ? 'AI 대전 요청 시간이 초과되었습니다. 다시 시도해주세요.' : error.message || 'AI 대전 서버에 연결하지 못했습니다.');
+      }
+    } finally {
+      clearTimeout(timeout);
+      if (matchRequestRef.current === controller) {
+        matchRequestRef.current = null;
+        setMatching(false);
+      }
     }
-    const home = slots.map((slot) => ({ pos: slot.pos, player: { ...slot.player } }));
-    setAiMatch({
-      replayId: ++aiMatchIdRef.current,
-      opponentName: club ? club.teamNameKor || club.teamName : 'AI 팀',
-      homeName: teamName.trim() || '나만의 드림 스쿼드',
-      homeFormation: formation.presetLabel || `${formation.df}-${formation.mf}-${formation.fw}`,
-      home,
-      opponent,
-      ...simulateAiMatch(home, opponent.lineup),
-    });
+  };
+
+  const handleEndAiMatch = () => {
+    matchRequestRef.current?.abort();
+    matchRequestRef.current = null;
+    setMatching(false);
+    setAiMatch(null);
   };
 
   // 슬롯들을 포메이션 행(FW, MF, DF, GK)으로 분류
@@ -1995,7 +1846,7 @@ export default function MyTeam() {
               <h2 id="ai-match-title">AI 팀과 대전</h2>
               <p>매판 무작위 포메이션과 선수로 구성된 AI 팀에 도전하세요. AI는 각 자리에 같은 포지션의 선수만 배치합니다.</p>
               <p>90분 경기를 즉시 시뮬레이션합니다. 원래 포지션과 다른 자리에 배치한 선수 1명당 팀의 득점 확률이 5%씩, 최대 50% 감소합니다. 일반 슈팅·PK·프리킥에 모두 적용되며 실제 선수 능력치는 반영하지 않습니다.</p>
-              <p>현재 내 팀: 포지션 불일치 {getPositionPenalty(slots).mismatchCount}명 · 득점 확률 {getPositionPenalty(slots).reductionPercent}% 감소</p>
+              <p>현재 내 팀: 포지션 불일치 {slots.filter(({ pos, player }) => player && pos !== player.mainPosition).length}명</p>
               <div className="myteam-opponent-modes" role="group" aria-label="대전 상대 유형">
                 <button type="button" className="myteam-opponent-mode"
                   aria-pressed={opponentMode === 'RANDOM'} onClick={() => setOpponentMode('RANDOM')}>
@@ -2035,15 +1886,15 @@ export default function MyTeam() {
               {opponentMode === 'CLUB' && <p>선택한 구단 소속 선수만으로 매판 포메이션과 선발 11명을 무작위 구성합니다. 모든 선수는 원래 포지션에 배치됩니다.</p>}
             </div>
             <div className="myteam-ai-actions">
-              {aiMatch && (
+              {(aiMatch || matching) && (
                 <button type="button" className="myteam-btn myteam-btn-secondary"
-                  onClick={() => setAiMatch(null)}>
+                  onClick={handleEndAiMatch}>
                   대전 끝내기
                 </button>
               )}
               <button type="button" className="myteam-btn myteam-btn-primary"
-                onClick={handleAiMatch} disabled={loading || filledCount !== 11 || (opponentMode === 'CLUB' && !opponentClubId)}>
-                {opponentMode === 'CLUB' ? (selectedOpponentClub ? `${selectedOpponentClub.teamNameKor || selectedOpponentClub.teamName} 상대 대전 시작` : '상대 구단을 먼저 선택해주세요') : (aiMatch ? '새 AI 팀과 다시 대전' : 'AI 대전 시작')}
+                onClick={handleAiMatch} disabled={loading || matching || filledCount !== 11 || (opponentMode === 'CLUB' && !opponentClubId)}>
+                {matching ? 'AI 대전 준비 중...' : opponentMode === 'CLUB' ? (selectedOpponentClub ? `${selectedOpponentClub.teamNameKor || selectedOpponentClub.teamName} 상대 대전 시작` : '상대 구단을 먼저 선택해주세요') : (aiMatch ? '새 AI 팀과 다시 대전' : 'AI 대전 시작')}
               </button>
             </div>
           </div>
@@ -2310,18 +2161,7 @@ export default function MyTeam() {
                             title={`${club.teamNameKor || club.teamName} 선수단 보기`}
                           >
                             <div className="club-card-emblem-wrap">
-                              {club.emblemUrl ? (
-                                <img
-                                  src={club.emblemUrl}
-                                  alt={club.teamName}
-                                  className="club-card-emblem"
-                                  onError={(e) => {
-                                    e.currentTarget.style.display = 'none';
-                                  }}
-                                />
-                              ) : (
-                                <span className="club-card-fallback">🛡️</span>
-                              )}
+                              <RosterClubEmblem club={club} className="club-card-emblem" />
                             </div>
                             <div className="club-card-names">
                               <span className="club-card-name-kor">{club.teamNameKor || club.teamName}</span>
@@ -2352,16 +2192,7 @@ export default function MyTeam() {
                     </button>
 
                     <div className="club-banner-info">
-                      {activeClub?.emblemUrl && (
-                        <img
-                          src={activeClub.emblemUrl}
-                          alt={activeClub.teamName}
-                          className="club-banner-emblem"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      )}
+                      {activeClub && <RosterClubEmblem key={activeClub.teamId} club={activeClub} className="club-banner-emblem" />}
                       <div className="club-banner-text">
                         <span className="club-banner-name-kor">{activeClub?.teamNameKor || activeClub?.teamName}</span>
                         <span className="club-banner-name-en">{activeClub?.teamName} · {activeClubPlayers.length}명</span>
