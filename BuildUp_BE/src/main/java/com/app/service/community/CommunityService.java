@@ -1,10 +1,13 @@
 package com.app.service.community;
 
 import java.util.List;
+import org.springframework.core.io.Resource;
+import org.springframework.web.multipart.MultipartFile;
 import com.app.dto.community.CommunityBoardType;
 import com.app.dto.community.CommunityCategory;
 import com.app.dto.community.Comments;
 import com.app.dto.community.PostListResponse;
+import com.app.dto.community.PostAttachments;
 import com.app.dto.community.Posts;
 public interface CommunityService {
     // 커뮤니티 카테고리 목록을 조회합니다.
@@ -36,4 +39,14 @@ public interface CommunityService {
     Comments updateComment(String loginId, Long postId, Long commentId, Comments comment);
     // 로그인한 작성자의 댓글 또는 대댓글을 숨김 처리합니다.
     void deleteComment(String loginId, Long postId, Long commentId);
+    // 게시글에 등록된 첨부파일 목록을 조회합니다.
+    List<PostAttachments> findPostAttachments(Long postId);
+    // 로그인한 작성자의 게시글에 첨부파일을 등록합니다.
+    List<PostAttachments> uploadPostAttachments(String loginId, Long postId, List<MultipartFile> files);
+    // 첨부파일 정보를 조회합니다.
+    PostAttachments findPostAttachment(Long attachmentId);
+    // 첨부파일의 실제 저장 파일을 조회합니다.
+    Resource loadPostAttachmentFile(PostAttachments attachment);
+    // 로그인한 작성자의 게시글 첨부파일을 삭제합니다.
+    void deletePostAttachment(String loginId, Long postId, Long attachmentId);
 }

@@ -9,6 +9,7 @@ import com.app.dao.community.CommunityDAO;
 import com.app.dto.community.CommunityCategory;
 import com.app.dto.community.Comments;
 import com.app.dto.community.PostLikes;
+import com.app.dto.community.PostAttachments;
 import com.app.dto.community.Posts;
 @Repository
 public class CommunityDAOImpl implements CommunityDAO {
@@ -105,5 +106,28 @@ public class CommunityDAOImpl implements CommunityDAO {
         params.put("commentId", commentId);
         params.put("userId", userId);
         return sqlSession.update("CommunityMapper.deleteComment", params);
+    // 게시글 첨부파일 목록 조회 SQL을 실행합니다.
+    public List<PostAttachments> findPostAttachments(Long postId) {
+        return sqlSession.selectList("CommunityMapper.findPostAttachments", postId);
+    }
+    // 첨부파일 상세 조회 SQL을 실행합니다.
+    public PostAttachments findPostAttachmentById(Long attachmentId) {
+        return sqlSession.selectOne("CommunityMapper.findPostAttachmentById", attachmentId);
+    }
+    // 게시글 첨부파일 개수 조회 SQL을 실행합니다.
+    public int countPostAttachments(Long postId) {
+        return sqlSession.selectOne("CommunityMapper.countPostAttachments", postId);
+    }
+    // 게시글 첨부파일 전체 크기 조회 SQL을 실행합니다.
+    public long sumPostAttachmentSize(Long postId) {
+        return sqlSession.selectOne("CommunityMapper.sumPostAttachmentSize", postId);
+    }
+    // 게시글 첨부파일 등록 SQL을 실행합니다.
+    public int insertPostAttachment(PostAttachments attachment) {
+        return sqlSession.insert("CommunityMapper.insertPostAttachment", attachment);
+    }
+    // 게시글 첨부파일 삭제 SQL을 실행합니다.
+    public int deletePostAttachment(Long attachmentId) {
+        return sqlSession.delete("CommunityMapper.deletePostAttachment", attachmentId);
     }
 }

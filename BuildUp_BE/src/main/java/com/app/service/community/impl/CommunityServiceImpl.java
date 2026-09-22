@@ -1,11 +1,24 @@
 package com.app.service.community.impl;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.ArrayList;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import com.app.dao.community.CommunityDAO;
 import com.app.dao.user.UserDAO;
@@ -14,13 +27,33 @@ import com.app.dto.community.CommunityCategory;
 import com.app.dto.community.Comments;
 import com.app.dto.community.PostLikes;
 import com.app.dto.community.PostListResponse;
+import com.app.dto.community.PostAttachments;
 import com.app.dto.community.Posts;
 import com.app.dto.user.Users;
 import com.app.service.community.CommunityService;
 @Service
 public class CommunityServiceImpl implements CommunityService {
+    private static final int POST_CONTENT_MAX_LENGTH = 1000;
+    private static final int COMMENT_MAX_LENGTH = 100;
+    private static final int POST_ATTACHMENT_MAX_COUNT = 5;
+    private static final long POST_ATTACHMENT_MAX_SIZE = 10L * 1024 * 1024;
+    private static final long POST_ATTACHMENT_MAX_TOTAL_SIZE = 20L * 1024 * 1024;
+    private static final Map<String, Set<String>> ALLOWED_ATTACHMENT_TYPES = Map.of(
+        ".jpg", Set.of("image/jpeg", "image/jpg", "application/octet-stream"),
+        ".jpeg", Set.of("image/jpeg", "image/jpg", "application/octet-stream"),
+        ".png", Set.of("image/png", "application/octet-stream"),
+        ".gif", Set.of("image/gif", "application/octet-stream"),
+        ".webp", Set.of("image/webp", "application/octet-stream"),
+        ".pdf", Set.of("application/pdf", "application/octet-stream"),
+        ".txt", Set.of("text/plain", "application/octet-stream"),
+        ".docx", Set.of("application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/octet-stream"),
+        ".xlsx", Set.of("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/octet-stream"),
+        ".zip", Set.of("application/zip", "application/x-zip-compressed", "application/octet-stream")
+    );
     private final CommunityDAO communityDAO;
     private final UserDAO userDAO;
+    @Value("${community.upload.path:}")
+    private String configuredUploadPath;
     public CommunityServiceImpl(CommunityDAO communityDAO, UserDAO userDAO) {
         this.communityDAO = communityDAO;
         this.userDAO = userDAO;
@@ -175,9 +208,7 @@ public class CommunityServiceImpl implements CommunityService {
     public Comments createComment(String loginId, Long postId, Comments comment) {
         Users user = findLoginUser(loginId);
         findSavedPost(postId);
-        if (comment == null || comment.getContent() == null || comment.getContent().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid comment");
-        }
+        String content = validateCommentContent(comment);
 
         // 부모 댓글이 같은 게시글의 일반 댓글인지 확인하여 대댓글 깊이를 한 단계로 제한합니다.
         if (comment.getPCommentId() != null) {
@@ -190,7 +221,7 @@ public class CommunityServiceImpl implements CommunityService {
         // 요청에서 받은 게시글과 회원 번호를 사용하지 않고 경로와 로그인 사용자로 지정합니다.
         comment.setPostId(postId);
         comment.setUserId(user.getUserId());
-        comment.setContent(comment.getContent().trim());
+        comment.setContent(content);
         if (communityDAO.insertComment(comment) != 1) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Comment creation failed");
         }
@@ -206,13 +237,11 @@ public class CommunityServiceImpl implements CommunityService {
         if (!savedComment.getUserId().equals(user.getUserId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Comment owner required");
         }
-        if (comment == null || comment.getContent() == null || comment.getContent().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid comment");
-        }
+        String content = validateCommentContent(comment);
 
         comment.setCommentId(commentId);
         comment.setUserId(user.getUserId());
-        comment.setContent(comment.getContent().trim());
+        comment.setContent(content);
         if (communityDAO.updateComment(comment) != 1) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found");
         }
@@ -231,6 +260,212 @@ public class CommunityServiceImpl implements CommunityService {
         if (communityDAO.deleteComment(commentId, user.getUserId()) != 1) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found");
         }
+    }
+
+    @Override
+    public List<PostAttachments> findPostAttachments(Long postId) {
+        findSavedPost(postId);
+        return communityDAO.findPostAttachments(postId);
+    }
+
+    @Override
+    @Transactional
+    public List<PostAttachments> uploadPostAttachments(
+            String loginId, Long postId, List<MultipartFile> files) {
+        Users user = findLoginUser(loginId);
+        Posts post = findSavedPost(postId);
+        if (!post.getUserId().equals(user.getUserId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Attachment owner required");
+        }
+        validateAttachmentRequest(postId, files);
+
+        int savedCount = communityDAO.countPostAttachments(postId);
+        Path postDirectory = postAttachmentDirectory(postId);
+        List<Path> storedPaths = new ArrayList<>();
+        try {
+            Files.createDirectories(postDirectory);
+            for (int index = 0; index < files.size(); index++) {
+                MultipartFile file = files.get(index);
+                String originalName = safeOriginalName(file.getOriginalFilename());
+                String extension = fileExtension(originalName);
+                String storedName = UUID.randomUUID() + extension;
+                Path storedPath = postDirectory.resolve(storedName).normalize();
+                if (!storedPath.startsWith(postDirectory)) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");
+                }
+                try (InputStream input = file.getInputStream()) {
+                    Files.copy(input, storedPath);
+                }
+                storedPaths.add(storedPath);
+
+                PostAttachments attachment = new PostAttachments();
+                attachment.setPostId(postId);
+                attachment.setOriginalName(originalName);
+                attachment.setStoredName(storedName);
+                attachment.setContentType(storedContentType(file.getContentType(), extension));
+                attachment.setFileSize(file.getSize());
+                attachment.setSortOrder(savedCount + index);
+                if (communityDAO.insertPostAttachment(attachment) != 1) {
+                    throw new IOException("Attachment metadata creation failed");
+                }
+            }
+            return communityDAO.findPostAttachments(postId);
+        } catch (IOException | RuntimeException exception) {
+            storedPaths.forEach(this::deleteStoredFileQuietly);
+            if (exception instanceof ResponseStatusException) {
+                throw (ResponseStatusException) exception;
+            }
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR, "Attachment storage failed", exception);
+        }
+    }
+
+    @Override
+    public PostAttachments findPostAttachment(Long attachmentId) {
+        if (attachmentId == null || attachmentId < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");
+        }
+        PostAttachments attachment = communityDAO.findPostAttachmentById(attachmentId);
+        if (attachment == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Attachment not found");
+        }
+        findSavedPost(attachment.getPostId());
+        return attachment;
+    }
+
+    @Override
+    public Resource loadPostAttachmentFile(PostAttachments attachment) {
+        Path directory = postAttachmentDirectory(attachment.getPostId());
+        Path storedPath = directory.resolve(attachment.getStoredName()).normalize();
+        if (!storedPath.startsWith(directory) || !Files.isRegularFile(storedPath)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Attachment not found");
+        }
+        return new FileSystemResource(storedPath);
+    }
+
+    @Override
+    @Transactional
+    public void deletePostAttachment(String loginId, Long postId, Long attachmentId) {
+        Users user = findLoginUser(loginId);
+        Posts post = findSavedPost(postId);
+        if (!post.getUserId().equals(user.getUserId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Attachment owner required");
+        }
+        PostAttachments attachment = communityDAO.findPostAttachmentById(attachmentId);
+        if (attachment == null || !postId.equals(attachment.getPostId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Attachment not found");
+        }
+        if (communityDAO.deletePostAttachment(attachmentId) != 1) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Attachment not found");
+        }
+        try {
+            Path directory = postAttachmentDirectory(postId);
+            Path storedPath = directory.resolve(attachment.getStoredName()).normalize();
+            if (!storedPath.startsWith(directory)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");
+            }
+            Files.deleteIfExists(storedPath);
+        } catch (IOException exception) {
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR, "Attachment storage failed", exception);
+        }
+    }
+
+    // 첨부파일 개수, 크기, 확장자와 MIME 타입을 검사합니다.
+    private void validateAttachmentRequest(Long postId, List<MultipartFile> files) {
+        if (files == null || files.isEmpty() || files.stream().anyMatch(MultipartFile::isEmpty)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");
+        }
+        int savedCount = communityDAO.countPostAttachments(postId);
+        if (savedCount + files.size() > POST_ATTACHMENT_MAX_COUNT) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Attachment limit exceeded");
+        }
+        long totalSize = 0;
+        for (MultipartFile file : files) {
+            if (file.getSize() <= 0 || file.getSize() > POST_ATTACHMENT_MAX_SIZE) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Attachment too large");
+            }
+            totalSize += file.getSize();
+            String originalName = safeOriginalName(file.getOriginalFilename());
+            String extension = fileExtension(originalName);
+            Set<String> allowedTypes = ALLOWED_ATTACHMENT_TYPES.get(extension);
+            if (allowedTypes == null || !allowedTypes.contains(normalizeContentType(file.getContentType()))) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");
+            }
+        }
+        if (communityDAO.sumPostAttachmentSize(postId) + totalSize > POST_ATTACHMENT_MAX_TOTAL_SIZE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Attachment too large");
+        }
+    }
+
+    private String safeOriginalName(String originalName) {
+        if (originalName == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");
+        }
+        String normalized = originalName.replace('\\', '/');
+        String fileName = normalized.substring(normalized.lastIndexOf('/') + 1).trim();
+        if (fileName.isBlank() || fileName.codePointCount(0, fileName.length()) > 255
+                || fileName.codePoints().anyMatch(character -> character < 32 || character == 127)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");
+        }
+        return fileName;
+    }
+
+    private String fileExtension(String fileName) {
+        int dotIndex = fileName.lastIndexOf('.');
+        if (dotIndex < 1 || dotIndex == fileName.length() - 1) return "";
+        return fileName.substring(dotIndex).toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizeContentType(String contentType) {
+        if (contentType == null || contentType.isBlank()) return "application/octet-stream";
+        return contentType.split(";", 2)[0].trim().toLowerCase(Locale.ROOT);
+    }
+
+    // 브라우저가 일반 바이너리 타입으로 보낸 파일은 허용된 확장자 기준 타입으로 저장합니다.
+    private String storedContentType(String contentType, String extension) {
+        String normalized = normalizeContentType(contentType);
+        if (!"application/octet-stream".equals(normalized)) return normalized;
+        return switch (extension) {
+            case ".jpg", ".jpeg" -> "image/jpeg";
+            case ".png" -> "image/png";
+            case ".gif" -> "image/gif";
+            case ".webp" -> "image/webp";
+            case ".pdf" -> "application/pdf";
+            case ".txt" -> "text/plain";
+            case ".docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            case ".xlsx" -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            case ".zip" -> "application/zip";
+            default -> normalized;
+        };
+    }
+
+    private Path postAttachmentDirectory(Long postId) {
+        String root = configuredUploadPath == null || configuredUploadPath.isBlank()
+            ? Paths.get(System.getProperty("user.home"), "plugin-uploads").toString()
+            : configuredUploadPath.trim();
+        return Paths.get(root).toAbsolutePath().normalize().resolve("posts")
+            .resolve(String.valueOf(postId)).normalize();
+    }
+
+    private void deleteStoredFileQuietly(Path path) {
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException ignored) {
+            // 실패 응답 처리 중 생성된 파일을 가능한 범위에서 정리합니다.
+        }
+    }
+
+    // 댓글의 공백과 최대 글자 수를 등록·수정에서 동일하게 검사합니다.
+    private String validateCommentContent(Comments comment) {
+        if (comment == null || comment.getContent() == null || comment.getContent().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid comment");
+        }
+        String content = comment.getContent().trim();
+        if (content.codePointCount(0, content.length()) > COMMENT_MAX_LENGTH) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Comment too long");
+        }
+        return content;
     }
 
     // 로그인 아이디에 해당하는 실제 회원을 확인합니다.
@@ -277,6 +512,10 @@ public class CommunityServiceImpl implements CommunityService {
                 || post.getCategoryId() == null || post.getCategoryId() < 1
                 || (post.getTeamId() != null && post.getTeamId() < 1)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid post");
+        }
+        String content = post.getContent().trim();
+        if (content.codePointCount(0, content.length()) > POST_CONTENT_MAX_LENGTH) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Post content too long");
         }
     }
 

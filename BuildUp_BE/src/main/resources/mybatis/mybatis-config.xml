@@ -14,6 +14,7 @@
 		<typeAlias type="com.app.dto.community.PostLikes" alias="PostLikes"/>
 		<typeAlias type="com.app.dto.community.CommunityCategory" alias="CommunityCategory"/>
 		<typeAlias type="com.app.dto.community.Comments" alias="Comments"/>
+		<typeAlias type="com.app.dto.community.PostAttachments" alias="PostAttachments"/>
 		<typeAlias type="com.app.dto.team.Teams" alias="Teams"/>
 		<typeAlias type="com.app.dto.team.Players" alias="Players"/>
 		<typeAlias type="com.app.dto.team.PlayerStats" alias="PlayerStats"/>

@@ -109,6 +109,31 @@
 .community__post-meta div { display: flex; gap: 8px; }
 .community__post-meta dd { margin: 0; color: #253247; }
 .community__post-body { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.9; min-height: 260px; padding: 28px 0 48px; border-bottom: 1px solid #e1e7e4; }
+.community__attachments { padding: 28px 0; border-bottom: 1px solid #e1e7e4; }
+.community__attachments h2 { margin: 0 0 16px; font-size: 18px; }
+.community__attachments h2 span { color: #16744b; }
+.community__attachment-section { margin-top: 20px; padding: 18px; border: 1px solid #e1e7e4; border-radius: 10px; }
+.community__attachment-section h3 { margin: 0 0 14px; font-size: 15px; }
+.community__attachment-section h3 span { color: #16744b; }
+.community__attachment-empty { margin: 0; color: #7a8697; font-size: 13px; }
+.community__image-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.community__image-grid li { display: grid; gap: 9px; min-width: 0; padding: 10px; border-radius: 8px; background: #f8faf9; }
+.community__image-grid img { width: 100%; aspect-ratio: 4 / 3; border-radius: 6px; object-fit: cover; background: white; }
+.community__image-grid li > div:not(.community__attachment-actions) { display: grid; gap: 4px; min-width: 0; }
+.community__image-grid strong { overflow-wrap: anywhere; font-size: 12px; }
+.community__image-grid small { color: #7a8697; font-size: 11px; }
+.community__attachment-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+.community__attachment-actions a { margin-right: auto; color: #16744b; font-size: 12px; font-weight: 700; }
+.community__attachment-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.community__attachment-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 12px; border: 1px solid #e1e7e4; border-radius: 8px; background: #f8faf9; }
+.community__attachment-list div { display: grid; gap: 4px; min-width: 0; }
+.community__attachment-list strong { overflow-wrap: anywhere; font-size: 13px; }
+.community__attachment-list small { color: #7a8697; font-size: 11px; }
+.community__attachment-list a { color: #16744b; font-size: 13px; font-weight: 700; }
+.community__attachment-upload { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 14px; padding: 14px; border-radius: 8px; background: #f3f8f5; }
+.community__attachment-upload > strong { width: 100%; font-size: 13px; }
+.community__attachment-upload input { min-width: 240px; flex: 1; padding: 8px; background: white; }
+.community__attachment-upload span { color: #637083; font-size: 12px; }
 .community__detail-actions { display: flex; justify-content: flex-end; gap: 8px; margin: 24px 0; }
 .community .community__like { border-color: #16744b; color: #16744b; font-weight: 700; }
 .community .community__like--active { background: #16744b; color: white; }
@@ -121,6 +146,12 @@
 .community__write-form select, .community__write-form textarea { width: 100%; font: inherit; color: inherit; border: 1px solid #d9e1dc; border-radius: 6px; padding: 12px 14px; background: white; }
 .community__write-form input[type='text'] { width: 100%; }
 .community__write-form textarea { resize: vertical; line-height: 1.7; }
+.community__write-form input[type='file'] { width: 100%; padding: 10px; border: 1px dashed #b8d8c5; background: #f8faf9; }
+.community__write-form label small { color: #7a8697; font-size: 12px; font-weight: 400; line-height: 1.6; }
+.community__selected-files { display: grid; gap: 8px; margin: -10px 0 0; padding: 0; list-style: none; }
+.community__selected-files li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 6px; background: #f3f6f4; font-size: 13px; }
+.community__selected-files span { min-width: 0; overflow-wrap: anywhere; }
+.community__selected-files button { flex-shrink: 0; padding: 6px 10px; }
 .community__write-form fieldset { display: flex; flex-wrap: wrap; gap: 16px; margin: 0; padding: 16px; border: 1px solid #d9e1dc; border-radius: 8px; }
 .community__write-form fieldset legend { padding: 0 8px; font-size: 14px; font-weight: 700; }
 .community__write-form fieldset label { display: flex; align-items: center; gap: 6px; font-size: 14px; }
@@ -130,6 +161,8 @@
 .community .community__submit { border-color: #16744b; background: #16744b; color: white; padding: 12px 24px; font-weight: 700; }
 .community .community__submit:not(:disabled):hover { background: #105a39; }
 @media (max-width: 600px) { .community__toolbar-actions { width: 100%; flex-wrap: wrap; } .community__form-actions { justify-content: stretch; } .community__form-actions > * { flex: 1; text-align: center; } }
+@media (max-width: 760px) { .community__image-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .community__image-grid { grid-template-columns: 1fr; } .community__attachment-list li { grid-template-columns: minmax(0, 1fr) auto; } .community__attachment-list button { grid-column: 2; } .community__attachment-upload input { min-width: 100%; } }
 
 .community__comments { margin-top: 48px; padding-top: 32px; border-top: 2px solid #253247; }
 .community__comments h2 { margin: 0 0 24px; font-size: 22px; }
@@ -155,6 +188,7 @@
 .community__comment-form { display: grid; gap: 10px; margin-top: 20px; }
 .community__comment-form label { font-size: 14px; font-weight: 700; }
 .community__comment-form textarea { width: 100%; padding: 14px; border: 1px solid #d9e1dc; border-radius: 8px; color: inherit; font: inherit; line-height: 1.7; resize: vertical; }
+.community__character-count { justify-self: end; color: #7a8697; font-size: 12px; }
 .community__comment-form .community__submit { justify-self: end; }
 .community__reply-target { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 8px; background: #edf7f1; color: #526558; font-size: 13px; }
 @media (max-width: 600px) { .community__reply-row { grid-template-columns: 22px minmax(0, 1fr); margin-left: 16px; } .community__reply-marker { font-size: 17px; } .community__comment-form .community__submit { width: 100%; } }
