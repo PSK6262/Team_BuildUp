@@ -1,5 +1,7 @@
 package com.app.controller.user;
 
+import java.util.regex.Pattern;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,11 +30,14 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 @RequestMapping("/api/users")
 public class UserController {
 
+	private static final Pattern NICKNAME_PATTERN = Pattern.compile("^[\\uAC00-\\uD7A3a-zA-Z0-9]{2,20}$");
+
 	@Autowired
 	private UserService userService;
 
 	@Autowired
 	private UserDAO userDAO;
+
 
 	/**
 	 * 현재 로그인된 회원의 상세 프로필 조회 (마이페이지용)

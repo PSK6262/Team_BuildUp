@@ -25,6 +25,8 @@ public enum ResultCode {
     INVALID_EMAIL("REJ_107", "올바른 이메일 형식이 아닙니다."),
     INVALID_AUTH_KEY("REJ_108", "인증 링크가 유효하지 않거나 만료되었습니다."),
     EMAIL_SEND_FAIL("REJ_109", "인증 메일 발송에 실패했습니다."),
+    INVALID_LOGIN_ID("REJ_110", "아이디는 4~20자의 영문 소문자와 숫자만 사용할 수 있습니다."),
+    INVALID_NICKNAME("REJ_111", "닉네임은 2~20자의 한글, 영문, 숫자만 사용할 수 있습니다."),
 
     // 커뮤니티 로그인 확인 실패
     COMMUNITY_LOGIN_REQUIRED("REJ_201", "로그인이 필요합니다."),

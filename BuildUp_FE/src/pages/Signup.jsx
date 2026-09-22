@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fetchTeams } from '../store/teamSlice.js'
 
 const EMAIL_REGEX = /^[a-zA-Z0-9](?!.*\.\.)[a-zA-Z0-9._-]{2,28}[a-zA-Z0-9]@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+const LOGIN_ID_REGEX = /^[a-z0-9]{4,20}$/
+const NICKNAME_REGEX = /^[가-힣a-zA-Z0-9]{2,20}$/
 
 export default function Signup() {
   const dispatch = useDispatch()
@@ -75,12 +77,28 @@ export default function Signup() {
 
   // 아이디 중복확인
   const handleCheckId = async () => {
-    if (!loginId.trim()) {
+    const trimmedId = loginId.trim()
+    if (!trimmedId) {
       setIdCheckMsg('아이디를 입력해주세요.')
       return
     }
+    if (!LOGIN_ID_REGEX.test(trimmedId)) {
+      setIdChecked(false)
+      if (trimmedId.length < 4) {
+        setIdCheckMsg('✕ 아이디는 최소 4자 이상이어야 합니다.')
+      } else if (trimmedId.length > 20) {
+        setIdCheckMsg('✕ 아이디는 20자를 초과할 수 없습니다.')
+      } else if (/[A-Z]/.test(trimmedId)) {
+        setIdCheckMsg('✕ 대문자는 사용할 수 없습니다. (영문 소문자만 허용)')
+      } else if (/[^a-z0-9]/.test(trimmedId)) {
+        setIdCheckMsg('✕ 특수문자는 사용할 수 없습니다. (영문 소문자, 숫자만 허용)')
+      } else {
+        setIdCheckMsg('✕ 아이디는 4~20자의 영문 소문자와 숫자만 사용할 수 있습니다.')
+      }
+      return
+    }
     try {
-      const res = await fetch(`/api/auth/check-id?loginId=${encodeURIComponent(loginId.trim())}`)
+      const res = await fetch(`/api/auth/check-id?loginId=${encodeURIComponent(trimmedId)}`)
       if (!res.ok) {
         throw new Error(`서버 응답 오류 (HTTP ${res.status})`)
       }
@@ -101,12 +119,28 @@ export default function Signup() {
 
   // 닉네임 중복확인
   const handleCheckNickname = async () => {
-    if (!nickname.trim()) {
+    const trimmedNickname = nickname.trim()
+    if (!trimmedNickname) {
       setNicknameCheckMsg('닉네임을 입력해주세요.')
       return
     }
+    if (!NICKNAME_REGEX.test(trimmedNickname)) {
+      setNicknameChecked(false)
+      if (trimmedNickname.length < 2) {
+        setNicknameCheckMsg('✕ 닉네임은 최소 2자 이상이어야 합니다.')
+      } else if (trimmedNickname.length > 20) {
+        setNicknameCheckMsg('✕ 닉네임은 20자를 초과할 수 없습니다.')
+      } else if (/\s/.test(trimmedNickname)) {
+        setNicknameCheckMsg('✕ 닉네임에 공백을 사용할 수 없습니다.')
+      } else if (/[^가-힣a-zA-Z0-9]/.test(trimmedNickname)) {
+        setNicknameCheckMsg('✕ 특수문자는 사용할 수 없습니다. (한글, 영문, 숫자만 허용)')
+      } else {
+        setNicknameCheckMsg('✕ 닉네임은 2~20자의 한글, 영문, 숫자만 사용할 수 있습니다.')
+      }
+      return
+    }
     try {
-      const res = await fetch(`/api/auth/check-nickname?nickname=${encodeURIComponent(nickname.trim())}`)
+      const res = await fetch(`/api/auth/check-nickname?nickname=${encodeURIComponent(trimmedNickname)}`)
       if (!res.ok) {
         throw new Error(`서버 응답 오류 (HTTP ${res.status})`)
       }
@@ -130,11 +164,15 @@ export default function Signup() {
     e.preventDefault()
     setErrorMsg('')
 
-    if (!loginId.trim()) return setErrorMsg('아이디를 입력해주세요.')
+    const trimmedLoginId = loginId.trim()
+    if (!trimmedLoginId) return setErrorMsg('아이디를 입력해주세요.')
+    if (!LOGIN_ID_REGEX.test(trimmedLoginId)) return setErrorMsg('아이디는 4~20자의 영문 소문자와 숫자만 사용할 수 있습니다. (공백, 특수문자, 대문자 불가)')
     if (!idChecked) return setErrorMsg('아이디 중복확인을 진행해주세요.')
     if (!password) return setErrorMsg('비밀번호를 입력해주세요.')
     if (password !== passwordConfirm) return setErrorMsg('비밀번호가 일치하지 않습니다.')
-    if (!nickname.trim()) return setErrorMsg('닉네임을 입력해주세요.')
+    const trimmedNickname = nickname.trim()
+    if (!trimmedNickname) return setErrorMsg('닉네임을 입력해주세요.')
+    if (!NICKNAME_REGEX.test(trimmedNickname)) return setErrorMsg('닉네임은 2~20자의 한글, 영문, 숫자만 사용할 수 있습니다. (특수문자, 공백 불가)')
     if (!nicknameChecked) return setErrorMsg('닉네임 중복확인을 진행해주세요.')
     if (!email.trim()) return setErrorMsg('이메일을 입력해주세요.')
     if (!EMAIL_REGEX.test(email.trim())) return setErrorMsg('올바른 이메일 형식을 입력해주세요. (영문, 숫자, 특수문자 . _ - 허용, 4~30자)')
@@ -333,10 +371,13 @@ export default function Signup() {
               <input
                 id="signupId"
                 type="text"
-                placeholder="영문, 숫자 4~20자"
+                placeholder="영문 소문자, 숫자 4~20자"
+                maxLength={20}
                 value={loginId}
                 onChange={(e) => {
-                  setLoginId(e.target.value)
+                  // 공백만 제거 (형식 위반은 중복확인 시 안내)
+                  const cleaned = e.target.value.replace(/\s/g, '')
+                  setLoginId(cleaned)
                   setIdChecked(false)
                   setIdCheckMsg('')
                 }}
@@ -392,7 +433,8 @@ export default function Signup() {
               <input
                 id="signupNickname"
                 type="text"
-                placeholder="활동에 사용할 닉네임"
+                placeholder="한글, 영문, 숫자 2~20자"
+                maxLength={20}
                 value={nickname}
                 onChange={(e) => {
                   setNickname(e.target.value)

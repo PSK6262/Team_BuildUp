@@ -35,6 +35,8 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthController {
 
 	private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9](?!.*\\.\\.)[a-zA-Z0-9._-]{2,28}[a-zA-Z0-9]@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+	private static final Pattern LOGIN_ID_PATTERN = Pattern.compile("^[a-z0-9]{4,20}$");
+	private static final Pattern NICKNAME_PATTERN = Pattern.compile("^[\\uAC00-\\uD7A3a-zA-Z0-9]{2,20}$");
 
 	@Autowired
 	private UserService userService;
@@ -86,11 +88,17 @@ public class AuthController {
 		if (user.getLoginId() == null || user.getLoginId().trim().isEmpty()) {
 			return ApiResponse.error(ResultCode.INVALID_INPUT);
 		}
+		if (!LOGIN_ID_PATTERN.matcher(user.getLoginId().trim()).matches()) {
+			return ApiResponse.error(ResultCode.INVALID_LOGIN_ID);
+		}
 		if (!userService.isLoginIdAvailable(user.getLoginId().trim())) {
 			return ApiResponse.error(ResultCode.DUPLICATE_LOGIN_ID);
 		}
 		if (user.getNickname() == null || user.getNickname().trim().isEmpty()) {
 			return ApiResponse.error(ResultCode.INVALID_INPUT);
+		}
+		if (!NICKNAME_PATTERN.matcher(user.getNickname().trim()).matches()) {
+			return ApiResponse.error(ResultCode.INVALID_NICKNAME);
 		}
 		if (!userService.isNicknameAvailable(user.getNickname().trim())) {
 			return ApiResponse.error(ResultCode.DUPLICATE_NICKNAME);
@@ -162,6 +170,9 @@ public class AuthController {
 		if (loginId == null || loginId.trim().isEmpty()) {
 			return ApiResponse.error(ResultCode.INVALID_INPUT);
 		}
+		if (!LOGIN_ID_PATTERN.matcher(loginId.trim()).matches()) {
+			return ApiResponse.error(ResultCode.INVALID_LOGIN_ID);
+		}
 
 		boolean available = userService.isLoginIdAvailable(loginId.trim());
 		if (!available) {
@@ -178,6 +189,9 @@ public class AuthController {
 	public ApiResponse<Boolean> checkNickname(@RequestParam("nickname") String nickname) {
 		if (nickname == null || nickname.trim().isEmpty()) {
 			return ApiResponse.error(ResultCode.INVALID_INPUT);
+		}
+		if (!NICKNAME_PATTERN.matcher(nickname.trim()).matches()) {
+			return ApiResponse.error(ResultCode.INVALID_NICKNAME);
 		}
 
 		boolean available = userService.isNicknameAvailable(nickname.trim());

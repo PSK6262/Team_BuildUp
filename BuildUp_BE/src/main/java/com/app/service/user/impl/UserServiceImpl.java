@@ -20,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 public class UserServiceImpl implements UserService {
 
 	private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9](?!.*\\.\\.)[a-zA-Z0-9._-]{2,28}[a-zA-Z0-9]@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+	private static final Pattern LOGIN_ID_PATTERN = Pattern.compile("^[a-z0-9]{4,20}$");
+	private static final Pattern NICKNAME_PATTERN = Pattern.compile("^[\\uAC00-\\uD7A3a-zA-Z0-9]{2,20}$");
 
 	@Autowired
 	private UserDAO userDAO;
@@ -42,11 +44,17 @@ public class UserServiceImpl implements UserService {
 		if (user.getLoginId() == null || user.getLoginId().trim().isEmpty()) {
 			throw new IllegalArgumentException("아이디를 입력해주세요.");
 		}
+		if (!LOGIN_ID_PATTERN.matcher(user.getLoginId().trim()).matches()) {
+			throw new IllegalArgumentException("아이디는 4~20자의 영문 소문자와 숫자만 사용할 수 있습니다.");
+		}
 		if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
 			throw new IllegalArgumentException("비밀번호를 입력해주세요.");
 		}
 		if (user.getNickname() == null || user.getNickname().trim().isEmpty()) {
 			throw new IllegalArgumentException("닉네임을 입력해주세요.");
+		}
+		if (!NICKNAME_PATTERN.matcher(user.getNickname().trim()).matches()) {
+			throw new IllegalArgumentException("닉네임은 2~20자의 한글, 영문, 숫자만 사용할 수 있습니다.");
 		}
 		if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
 			throw new IllegalArgumentException("이메일을 입력해주세요.");
