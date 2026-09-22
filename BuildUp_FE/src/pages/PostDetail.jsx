@@ -8,6 +8,7 @@ import '../css/Community.css'
 // StrictMode가 개발 환경에서 같은 상세 조회를 두 번 실행해도 서버 요청은 한 번만 보냅니다.
 const pendingPostRequests = new Map()
 const COMMENT_MAX_LENGTH = 100
+const POST_TITLE_MAX_LENGTH = 50
 const POST_CONTENT_MAX_LENGTH = 1000
 const MAX_ATTACHMENT_COUNT = 5
 const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024
@@ -17,6 +18,8 @@ const FILE_ATTACHMENT_PATTERN = /\.(pdf|txt|docx|xlsx|zip)$/i
 
 const commentLength = (value) => Array.from(value).length
 const limitComment = (value) => Array.from(value).slice(0, COMMENT_MAX_LENGTH).join('')
+const titleLength = (value) => Array.from(value).length
+const limitTitle = (value) => Array.from(value).slice(0, POST_TITLE_MAX_LENGTH).join('')
 const contentLength = (value) => Array.from(value).length
 const limitContent = (value) => Array.from(value).slice(0, POST_CONTENT_MAX_LENGTH).join('')
 
@@ -66,8 +69,6 @@ export default function PostDetail({ postId }) {
   const [editingCommentId, setEditingCommentId] = useState(null)
   const [editCommentContent, setEditCommentContent] = useState('')
   const [commentActionId, setCommentActionId] = useState(null)
-  const [unblurredPost, setUnblurredPost] = useState(false)
-  const [unblurredComments, setUnblurredComments] = useState({})
   const [attachments, setAttachments] = useState([])
   const [pendingImages, setPendingImages] = useState([])
   const [pendingFiles, setPendingFiles] = useState([])
@@ -77,6 +78,8 @@ export default function PostDetail({ postId }) {
       ? '게시글은 등록되었지만 일부 첨부파일 업로드에 실패했습니다. 다시 등록해주세요.'
       : '',
   )
+  const [unblurredPost, setUnblurredPost] = useState(false)
+  const [unblurredComments, setUnblurredComments] = useState({})
   const requestedReturn = new URLSearchParams(window.location.search).get('from')
   // 외부 주소나 임의의 경로로 이동하지 않도록 실제 목록 경로만 허용합니다.
   const allowedPaths = ['/plug/community', '/plug/community/free', ...communityTeams.map((team) => `/plug/community/teams/${team.slug}`)]
@@ -181,6 +184,10 @@ export default function PostDetail({ postId }) {
     setActionError('')
     if (!categoryId || !title.trim() || !content.trim()) {
       setActionError('카테고리, 제목, 내용을 모두 입력해주세요.')
+      return
+    }
+    if (titleLength(title.trim()) > POST_TITLE_MAX_LENGTH) {
+      setActionError(`제목은 ${POST_TITLE_MAX_LENGTH}자까지 입력할 수 있습니다.`)
       return
     }
     if (contentLength(content.trim()) > POST_CONTENT_MAX_LENGTH) {
@@ -530,7 +537,8 @@ export default function PostDetail({ postId }) {
       </header>
       {isEditingComment ? (
         <form className="community__comment-edit" onSubmit={(event) => updateComment(event, comment.commentId)}>
-          <textarea rows="3" value={editCommentContent} onChange={(event) => setEditCommentContent(event.target.value)} disabled={isCommentBusy} />
+          <textarea rows="3" value={editCommentContent} onChange={(event) => setEditCommentContent(limitComment(event.target.value))} disabled={isCommentBusy} />
+          <span className="community__character-count">{commentLength(editCommentContent)} / {COMMENT_MAX_LENGTH}</span>
           <div>
             <button type="button" onClick={() => { setEditingCommentId(null); setEditCommentContent('') }} disabled={isCommentBusy}>취소</button>
             <button type="submit" disabled={isCommentBusy}>{isCommentBusy ? '수정 중...' : '수정 완료'}</button>
@@ -547,13 +555,6 @@ export default function PostDetail({ postId }) {
             내용 보기
           </button>
           <p className="community__comment-text--blurred">{comment.content}</p>
-      <header><strong>{comment.nickname}</strong><time dateTime={comment.createdAt}>{comment.createdAt}</time></header>
-      {isEditingComment ? <form className="community__comment-edit" onSubmit={(event) => updateComment(event, comment.commentId)}>
-        <textarea rows="3" value={editCommentContent} onChange={(event) => setEditCommentContent(limitComment(event.target.value))} disabled={isCommentBusy} />
-        <span className="community__character-count">{commentLength(editCommentContent)} / {COMMENT_MAX_LENGTH}</span>
-        <div>
-          <button type="button" onClick={() => { setEditingCommentId(null); setEditCommentContent('') }} disabled={isCommentBusy}>취소</button>
-          <button type="submit" disabled={isCommentBusy}>{isCommentBusy ? '수정 중...' : '수정 완료'}</button>
         </div>
       ) : (
         <div>
@@ -643,7 +644,8 @@ export default function PostDetail({ postId }) {
         </select>
       </label>
       <label>제목
-        <input type="text" maxLength="255" value={title} onChange={(event) => setTitle(event.target.value)} disabled={actionLoading} />
+        <input type="text" value={title} onChange={(event) => setTitle(limitTitle(event.target.value))} disabled={actionLoading} />
+        <small className="community__character-count">{titleLength(title)} / {POST_TITLE_MAX_LENGTH}</small>
       </label>
       <label>내용
         <textarea rows="14" value={content} onChange={(event) => setContent(limitContent(event.target.value))} disabled={actionLoading} />
@@ -708,7 +710,6 @@ export default function PostDetail({ postId }) {
           )}
         </div>
       )}
-      <div className="community__post-body">{post.content}</div>
       {renderAttachments(false)}
     </article>}
 

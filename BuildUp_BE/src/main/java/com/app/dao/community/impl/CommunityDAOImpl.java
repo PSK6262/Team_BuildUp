@@ -106,6 +106,7 @@ public class CommunityDAOImpl implements CommunityDAO {
         params.put("commentId", commentId);
         params.put("userId", userId);
         return sqlSession.update("CommunityMapper.deleteComment", params);
+    }
     // 게시글 첨부파일 목록 조회 SQL을 실행합니다.
     public List<PostAttachments> findPostAttachments(Long postId) {
         return sqlSession.selectList("CommunityMapper.findPostAttachments", postId);
