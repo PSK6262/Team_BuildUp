@@ -31,7 +31,9 @@ public class CommunityExceptionAdvice {
     public ResponseEntity<ApiResponse<Void>> invalidRequest(ResponseStatusException exception) {
         ResultCode code;
         if (exception.getStatus() == HttpStatus.BAD_REQUEST) {
-            if ("Post title too long".equals(exception.getReason())) {
+            if ("News writing disabled".equals(exception.getReason())) {
+                code = ResultCode.COMMUNITY_NEWS_WRITE_DISABLED;
+            } else if ("Post title too long".equals(exception.getReason())) {
                 code = ResultCode.COMMUNITY_POST_TITLE_TOO_LONG;
             } else if ("Post content too long".equals(exception.getReason())) {
                 code = ResultCode.COMMUNITY_POST_TOO_LONG;

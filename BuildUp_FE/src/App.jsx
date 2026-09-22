@@ -21,6 +21,7 @@ import Match from './pages/Match.jsx'
 import Admin from './pages/Admin.jsx'
 import MiniGames from './pages/MiniGames.jsx'
 import PenaltyKick from './pages/PenaltyKick.jsx'
+import GlobalFooter from './components/GlobalFooter.jsx'
 import './App.css'
 
 function App() {
@@ -111,6 +112,7 @@ function App() {
           <a href="/plug/community/teams">팀 선택으로 돌아가기</a>
         </main>
       )}
+      <GlobalFooter />
       {showChatbot && <ChatbotWidget />}
     </>
   )

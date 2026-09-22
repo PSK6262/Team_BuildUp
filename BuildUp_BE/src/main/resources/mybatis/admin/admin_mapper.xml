@@ -284,6 +284,15 @@
 		WHERE POST_ID = #{postId}
 	</update>
 
+	<!-- 관리자가 작성자와 관계없이 게시글을 삭제 처리 -->
+	<update id="deletePost" parameterType="long">
+		UPDATE POSTS
+		SET IS_DELETED = 'Y',
+			UPDATED_AT = SYSTIMESTAMP
+		WHERE POST_ID = #{postId}
+		AND IS_DELETED = 'N'
+	</update>
+
 	<!-- 커뮤니티 댓글 목록 조회 (블라인드/삭제/검색 필터) -->
 	<select id="selectAdminComments" parameterType="map" resultType="Comments">
 		SELECT

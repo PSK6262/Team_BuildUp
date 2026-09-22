@@ -22,6 +22,7 @@ const titleLength = (value) => Array.from(value).length
 const limitTitle = (value) => Array.from(value).slice(0, POST_TITLE_MAX_LENGTH).join('')
 const contentLength = (value) => Array.from(value).length
 const limitContent = (value) => Array.from(value).slice(0, POST_CONTENT_MAX_LENGTH).join('')
+const isNewsCategory = (category) => ['뉴스', 'NEWS'].includes(category?.categoryType?.trim().toUpperCase())
 
 function requestPost(postId) {
   const key = String(postId)
@@ -634,7 +635,9 @@ export default function PostDetail({ postId }) {
     {editing ? <form className="community__write-form" onSubmit={updatePost}>
       <label>카테고리
         <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)} disabled={actionLoading}>
-          {categories.map((category) => <option key={category.categoryId} value={category.categoryId}>{category.categoryType}</option>)}
+          {categories.map((category) => <option key={category.categoryId} value={category.categoryId} disabled={isNewsCategory(category)}>
+            {category.categoryType}{isNewsCategory(category) ? ' (작성 제한)' : ''}
+          </option>)}
         </select>
       </label>
       <label>구단

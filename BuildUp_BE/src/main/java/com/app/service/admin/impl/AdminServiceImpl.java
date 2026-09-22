@@ -99,6 +99,12 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
+	@Transactional
+	public boolean deletePost(Long postId) {
+		return adminDAO.deletePost(postId) > 0;
+	}
+
+	@Override
 	public List<Comments> getAdminComments(String isBlind, String isDeleted, String keyword) {
 		Map<String, Object> params = new HashMap<>();
 		params.put("isBlind", isBlind);

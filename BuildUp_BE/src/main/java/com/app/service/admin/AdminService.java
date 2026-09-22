@@ -33,6 +33,7 @@ public interface AdminService {
 		return getAdminPosts(isBlind, null, keyword);
 	}
 	boolean togglePostBlind(Long postId, String isBlind);
+	boolean deletePost(Long postId);
 	List<Comments> getAdminComments(String isBlind, String isDeleted, String keyword);
 	default List<Comments> getAdminComments(String isBlind, String keyword) {
 		return getAdminComments(isBlind, null, keyword);
