@@ -105,9 +105,10 @@ CREATE TABLE EMAIL_VERIFICATIONS (
 -- [3. 구단 상세 / 스태프 / 선수 / 경기]
 -- --------------------------------------------------------------------
 
--- 8. TEAM_STATS (구단 시즌 성적 및 순위 통계 - 1:1)
+-- 8. TEAM_STATS (구단 시즌 성적 및 순위 통계 - 시즌별 복합키)
 CREATE TABLE TEAM_STATS (
     TEAM_ID            NUMBER        NOT NULL, -- 구단 식별자
+    SEASON             NUMBER        NOT NULL, -- 시즌 연도 (예: 2026)
     CURRENT_RANK       NUMBER,                 -- 시즌 현재 순위
     MATCHES_PLAYED     NUMBER DEFAULT 0 NOT NULL, -- 치른 경기 수
     WINS               NUMBER DEFAULT 0 NOT NULL, -- 승리 횟수
@@ -120,7 +121,7 @@ CREATE TABLE TEAM_STATS (
     YELLOW_CARDS       NUMBER DEFAULT 0 NOT NULL, -- 경고 누적 수
     RED_CARDS          NUMBER DEFAULT 0 NOT NULL, -- 퇴장 누적 수
     UPDATED_AT         TIMESTAMP,              -- 기록 갱신 일시
-    CONSTRAINT PK_TEAM_STATS PRIMARY KEY (TEAM_ID),
+    CONSTRAINT PK_TEAM_STATS PRIMARY KEY (TEAM_ID, SEASON),
     CONSTRAINT FK_TEAM_STATS_TEAM_ID FOREIGN KEY (TEAM_ID) REFERENCES TEAMS(TEAM_ID)
 );
 
@@ -441,5 +442,18 @@ ALTER TABLE PLAYERS ADD (
 
 -- 4. USER_ROLES 탈퇴회원(7) 코드 추가
 INSERT INTO USER_ROLES (ROLE_CODE, ROLE_NAME) VALUES (7, '탈퇴회원');
+
+-- 5. TEAM_STATS 시즌 컬럼 추가 (기존 PK 삭제 후 복합키로 재생성)
+-- ※ 기존 데이터가 없는 경우에만 아래 ALTER 실행 가능
+-- ※ 기존 데이터가 있는 경우: 먼저 데이터 백업 후 DROP TABLE → init.sql 재실행
+ALTER TABLE TEAM_STATS DROP CONSTRAINT PK_TEAM_STATS;
+ALTER TABLE TEAM_STATS ADD SEASON NUMBER NOT NULL DEFAULT 2026;
+ALTER TABLE TEAM_STATS ADD CONSTRAINT PK_TEAM_STATS PRIMARY KEY (TEAM_ID, SEASON);
+
+-- 6. EMAIL_VERIFICATIONS AUTH_TYPE 허용값 안내
+-- AUTH_TYPE 컬럼은 VARCHAR2(20), 현재 사용 중인 값:
+--   'SIGNUP'         : 회원가입 인증 링크 (유효 30분, PAYLOAD 포함)
+--   'PASSWORD_RESET' : 비밀번호 재설정 링크 (유효 10분)
+--   'EMAIL_CHANGE'   : 이메일 변경 6자리 인증코드 (유효 10분) -- 추후 기능 추가 시 사용
 
 COMMIT;

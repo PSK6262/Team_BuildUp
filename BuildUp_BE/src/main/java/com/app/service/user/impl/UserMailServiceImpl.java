@@ -1,5 +1,8 @@
 package com.app.service.user.impl;
 
+import java.net.InetAddress;
+
+import java.net.UnknownHostException;
 import java.sql.Clob;
 import java.util.Map;
 import java.util.UUID;
@@ -21,6 +24,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class UserMailServiceImpl implements UserMailService {
+
+	/** 백엔드 서버가 실행 중인 컴퓨터의 IP를 런타임에 감지해 프론트 주소 생성 */
+	private String getFrontendBaseUrl() {
+		try {
+			String ip = InetAddress.getLocalHost().getHostAddress();
+			return "http://" + ip + ":5173";
+		} catch (UnknownHostException e) {
+			log.warn("서버 IP 감지 실패, localhost로 대체");
+			return "http://localhost:5173";
+		}
+	}
 
 	@Autowired
 	private SendMail sendMail;
@@ -53,7 +67,7 @@ public class UserMailServiceImpl implements UserMailService {
 			String payload = objectMapper.writeValueAsString(userToStore);
 			userMailDAO.insertSignupAuthKey(pendingUser.getEmail(), authKey, payload);
 
-			String confirmUrl = "http://192.168.0.60:5173/plug/signup/confirm?key=" + authKey;
+			String confirmUrl = getFrontendBaseUrl() + "/plug/signup/confirm?key=" + authKey;
 			String title = "[PL:UG] 이메일 인증을 완료하고 회원가입을 마쳐주세요! ⚽";
 			String content = "<!DOCTYPE html>"
 					+ "<html lang='ko'>"
@@ -219,7 +233,7 @@ public class UserMailServiceImpl implements UserMailService {
 				+ "                    <h2>환영합니다, " + nickname + "님! ⚽</h2>"
 				+ "                    <p>PL:UG의 모든 서비스(경기 일정, 승부예측, 커뮤니티)를 지금 바로 이용해보세요!</p>"
 				+ "                    <div style='text-align: center; margin: 30px 0;'>"
-				+ "                        <a href='http://192.168.0.60:5173/plug/community' style='background-color: #16744b; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;'>커뮤니티 바로가기</a>"
+				+ "                        <a href='" + getFrontendBaseUrl() + "/plug/community' style='background-color: #16744b; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;'>커뮤니티 바로가기</a>"
 				+ "                    </div>"
 				+ "                </td></tr>"
 				+ "            </table>"
@@ -258,7 +272,7 @@ public class UserMailServiceImpl implements UserMailService {
 				+ "                    </div>"
 				+ "                    <p style='color: #4b5563;'>그동안 PL:UG를 이용해 주셔서 진심으로 감사드리며, 더 나은 모습으로 다시 만나 뵙기를 기대하겠습니다.</p>"
 				+ "                    <div style='text-align: center; margin: 32px 0 10px 0;'>"
-				+ "                        <a href='http://192.168.0.60:5173/plug/' style='background-color: #334155; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;'>PL:UG 홈으로 가기</a>"
+				+ "                        <a href='" + getFrontendBaseUrl() + "/plug/' style='background-color: #334155; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;'>PL:UG 홈으로 가기</a>"
 				+ "                    </div>"
 				+ "                </td></tr>"
 				+ "                <tr><td style='padding: 20px 40px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center;'>"
@@ -277,7 +291,7 @@ public class UserMailServiceImpl implements UserMailService {
 		String authKey = UUID.randomUUID().toString();
 		userMailDAO.insertPasswordResetAuthKey(userEmail, authKey);
 
-		String resetUrl = "http://192.168.0.60:5173/plug/reset-password?key=" + authKey + "&email=" + userEmail;
+		String resetUrl = getFrontendBaseUrl() + "/plug/reset-password?key=" + authKey + "&email=" + userEmail;
 		String title = "[PL:UG] 비밀번호 재설정 안내 메일입니다. 🔑";
 		String content = "<!DOCTYPE html>"
 				+ "<html lang='ko'>"
@@ -307,6 +321,61 @@ public class UserMailServiceImpl implements UserMailService {
 	@Override
 	public boolean verifyResetAuthKey(String email, String authKey) {
 		return userMailDAO.checkValidPasswordResetAuthKey(email, authKey);
+	}
+
+	@Override
+	public void sendEmailChangeCode(String newEmail, String nickname) {
+		// 6자리 숫자 인증코드 생성
+		String code = String.format("%06d", (int)(Math.random() * 1_000_000));
+		userMailDAO.insertEmailChangeCode(newEmail, code);
+
+		String title = "[PL:UG] 이메일 변경 인증번호를 확인해주세요 ⚽";
+		String content = "<!DOCTYPE html>"
+				+ "<html lang='ko'>"
+				+ "<head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'></head>"
+				+ "<body style='margin:0;padding:0;background-color:#f4f6f8;font-family:\"Malgun Gothic\",\"Apple SD Gothic Neo\",sans-serif;'>"
+				+ "<table border='0' cellpadding='0' cellspacing='0' width='100%' style='background-color:#f4f6f8;padding:40px 10px;'>"
+				+ "<tr><td align='center'>"
+				+ "<table border='0' cellpadding='0' cellspacing='0' width='100%' style='max-width:600px;background-color:#ffffff;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,0.05);overflow:hidden;'>"
+				+ "<tr><td style='padding:30px 40px;background-color:#16744b;text-align:left;'>"
+				+ "<h1 style='margin:0;color:#ffffff;font-size:26px;font-weight:bold;letter-spacing:-1px;'>PL:UG</h1>"
+				+ "<span style='color:#a7f3d0;font-size:13px;'>프리미어리그 축구 커뮤니티 &amp; 승부예측</span>"
+				+ "</td></tr>"
+				+ "<tr><td style='padding:40px;color:#333333;font-size:15px;line-height:1.6;'>"
+				+ "<h2 style='margin:0 0 20px 0;color:#1a1a1a;font-size:22px;font-weight:bold;'>" + nickname + "님, 이메일 변경을 요청하셨습니다.</h2>"
+				+ "<p style='margin:0 0 15px 0;'>아래의 인증번호를 마이페이지 이메일 변경 화면에 입력해 주세요.</p>"
+				+ "<p style='margin:0 0 10px 0;color:#dc2626;font-weight:bold;'>⚠️ 인증번호는 10분 동안만 유효합니다.</p>"
+				+ "<div style='margin:30px 0;padding:24px;background-color:#f0fdf4;border:2px solid #16744b;border-radius:8px;text-align:center;'>"
+				+ "<span style='font-size:36px;font-weight:bold;letter-spacing:8px;color:#16744b;'>" + code + "</span>"
+				+ "</div>"
+				+ "<p style='font-size:13px;color:#888888;margin:30px 0 20px 0;padding:15px;background-color:#f8fafc;border-radius:6px;'>"
+				+ "※ 본인이 요청하지 않은 인증 메일인 경우 즉시 비밀번호를 변경하시고 본 메일을 무시하세요."
+				+ "</p>"
+				+ "<p style='margin:35px 0 0 0;color:#555555;'>감사합니다.<br><strong style='color:#1a1a1a;'>PL:UG 팀</strong></p>"
+				+ "</td></tr>"
+				+ "<tr><td style='padding:25px 40px;background-color:#fafafa;border-top:1px solid #eeeeee;'>"
+				+ "<p style='margin:0;font-size:12px;color:#999999;'>본 메일은 시스템에 의해 자동 발송된 발신전용 메일입니다.</p>"
+				+ "<p style='margin:4px 0 0 0;font-size:11px;color:#b0b0b0;'>© PL:UG (BUILDUP). All rights reserved.</p>"
+				+ "</td></tr>"
+				+ "</table></td></tr></table>"
+				+ "</body></html>";
+
+		boolean sent = sendMail.send(newEmail, title, content);
+		if (sent) {
+			log.info("[UserMailServiceImpl] 이메일 변경 인증코드 발송 성공 -> 이메일: {}", newEmail);
+		} else {
+			log.warn("[UserMailServiceImpl] 이메일 변경 인증코드 발송 실패 -> 이메일: {}", newEmail);
+			throw new RuntimeException("이메일 발송 실패");
+		}
+	}
+
+	@Override
+	public boolean verifyEmailChangeCode(String newEmail, String code) {
+		if (!userMailDAO.checkValidEmailChangeCode(newEmail, code)) {
+			return false;
+		}
+		userMailDAO.markEmailChangeVerified(newEmail);
+		return true;
 	}
 
 	private String clobToString(Clob clob) {

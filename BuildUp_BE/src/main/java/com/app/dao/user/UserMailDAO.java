@@ -11,4 +11,10 @@ public interface UserMailDAO {
 	boolean checkValidPasswordResetAuthKey(String email, String authKey);
 	int deleteUsedAuthKey(String authKey);
 	int deleteVerificationsByEmail(String email);
+
+	// 이메일 변경 인증코드 (6자리 숫자, AUTH_TYPE='EMAIL_CHANGE')
+	void insertEmailChangeCode(String email, String code);
+	boolean checkValidEmailChangeCode(String email, String code);
+	int markEmailChangeVerified(String email);
+	boolean isEmailChangeVerified(String email);
 }

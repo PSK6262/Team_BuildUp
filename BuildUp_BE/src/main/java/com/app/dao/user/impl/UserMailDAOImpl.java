@@ -60,4 +60,34 @@ public class UserMailDAOImpl implements UserMailDAO {
 	public int deleteVerificationsByEmail(String email) {
 		return sqlSession.delete("UserMailMapper.deleteVerificationsByEmail", email);
 	}
+
+	@Override
+	public void insertEmailChangeCode(String email, String code) {
+		// 기존 인증코드 먼저 삭제 후 신규 삽입
+		sqlSession.delete("UserMailMapper.deleteOldEmailChangeCodes", email);
+		Map<String, Object> params = new HashMap<>();
+		params.put("email", email);
+		params.put("code", code);
+		sqlSession.insert("UserMailMapper.insertEmailChangeCode", params);
+	}
+
+	@Override
+	public boolean checkValidEmailChangeCode(String email, String code) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("email", email);
+		params.put("code", code);
+		Integer count = sqlSession.selectOne("UserMailMapper.checkValidEmailChangeCode", params);
+		return count != null && count > 0;
+	}
+
+	@Override
+	public int markEmailChangeVerified(String email) {
+		return sqlSession.update("UserMailMapper.markEmailChangeVerified", email);
+	}
+
+	@Override
+	public boolean isEmailChangeVerified(String email) {
+		Integer count = sqlSession.selectOne("UserMailMapper.isEmailChangeVerified", email);
+		return count != null && count > 0;
+	}
 }
