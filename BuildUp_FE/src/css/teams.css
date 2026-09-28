@@ -33,33 +33,6 @@
   outline-offset: -3px;
 }
 
-.player-ranking-hero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  flex-wrap: wrap;
-  padding: clamp(24px, 4vw, 40px);
-  border-radius: 18px;
-  background: linear-gradient(120deg, #38003c, #602369);
-  color: white;
-}
-
-.player-ranking-kicker {
-  color: #00ff87;
-  font-weight: 800;
-  letter-spacing: 1px;
-  font-size: 13px;
-}
-
-.player-ranking-hero h2 {
-  margin: 12px 0 8px;
-  font-size: clamp(24px, 4vw, 36px);
-}
-
-.player-ranking-hero p { margin: 0; color: #e2d5e5; }
-.player-ranking-score { display: flex; align-items: baseline; gap: 12px; }
-.player-ranking-score strong { font-size: 56px; line-height: 1; color: #00ff87; }
 .player-rankings-table { min-width: 660px; }
 
 .standings-toolbar {
@@ -418,3 +391,37 @@
     background: #38003c;
   }
 }
+.ranking-player-link {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.ranking-player-dialog {
+  width: min(720px, calc(100vw - 32px));
+  max-height: 85vh;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  color: #0f172a;
+  background: #fff;
+  overflow-y: auto;
+}
+
+.ranking-player-dialog::backdrop { background: rgb(15 23 42 / 65%); }
+.ranking-player-details { padding: 24px; }
+.ranking-player-close { display: block; margin-left: auto; cursor: pointer; }
+.ranking-player-header { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; margin: 20px 0; }
+.ranking-player-photo { width: 140px; height: 160px; display: grid; place-items: center; background: #f1f5f9; border-radius: 12px; text-align: center; color: #64748b; }
+.ranking-player-photo img { width: 100%; height: 100%; object-fit: contain; border-radius: inherit; }
+.ranking-player-events ul { list-style: none; padding: 0; }
+.ranking-player-events li { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 14px 0; border-bottom: 1px solid #e2e8f0; }
+.ranking-player-events time { color: #64748b; }
+.ranking-player-events strong { margin-left: auto; color: #38003c; }
+.ranking-player-link:focus-visible, .ranking-player-close:focus-visible { outline: 3px solid #7c3aed; outline-offset: 4px; }

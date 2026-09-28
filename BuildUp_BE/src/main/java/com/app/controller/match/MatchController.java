@@ -27,6 +27,16 @@ public class MatchController {
 	@Autowired
 	private MatchService matchService;
 
+	@GetMapping("/players/{playerId}/events")
+	public List<MatchEvents> getPlayerEvents(
+			@PathVariable("playerId") Long playerId,
+			@RequestParam(value = "season", defaultValue = "2026") Integer season) {
+		if (playerId <= 0 || season < 1900 || season > 9998) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "선수와 시즌을 확인하세요.");
+		}
+		return matchService.getPlayerEvents(playerId, season);
+	}
+
 	@Autowired
 	private FootballApiService footballApiService;
 

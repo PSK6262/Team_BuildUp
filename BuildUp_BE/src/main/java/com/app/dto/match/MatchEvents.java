@@ -26,6 +26,18 @@ public class MatchEvents {
     @JsonProperty("assistPlayerId")
     private Long assistPlayerId;       // [FK] 도움 선수 식별자 (없으면 NULL)
 
+    // 선수별 경기 기록 조회 JOIN 필드
+    private String matchDate;
+    private String homeTeamName;
+    private String awayTeamName;
+
+    public String getMatchDate() { return matchDate; }
+    public void setMatchDate(String matchDate) { this.matchDate = matchDate; }
+    public String getHomeTeamName() { return homeTeamName; }
+    public void setHomeTeamName(String homeTeamName) { this.homeTeamName = homeTeamName; }
+    public String getAwayTeamName() { return awayTeamName; }
+    public void setAwayTeamName(String awayTeamName) { this.awayTeamName = awayTeamName; }
+
     // --- snake_case 호환 Getter (프론트엔드/API snake_case 참조 지원) ---
     @JsonProperty("event_time")
     public Long getEventTimeSnake() {

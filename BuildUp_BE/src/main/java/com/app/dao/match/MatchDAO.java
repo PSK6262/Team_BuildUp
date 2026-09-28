@@ -6,6 +6,7 @@ import com.app.dto.match.Matches;
 import com.app.dto.match.MatchEvents;
 
 public interface MatchDAO {
+	List<MatchEvents> findPlayerEvents(Long playerId, LocalDateTime startDate, LocalDateTime endDate);
 	void mergeMatch(Matches match);
 	Matches findMatchById(Long matchId);
 	List<Matches> findAllMatches();

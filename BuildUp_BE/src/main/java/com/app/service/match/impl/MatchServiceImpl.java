@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.app.dao.match.MatchDAO;
 import com.app.dto.match.Matches;
+import com.app.dto.match.MatchEvents;
 import com.app.service.match.MatchService;
 
 @Service
@@ -15,6 +16,12 @@ public class MatchServiceImpl implements MatchService {
 
 	@Autowired
 	private MatchDAO matchDAO;
+
+	@Override
+	public List<MatchEvents> getPlayerEvents(Long playerId, Integer season) {
+		LocalDateTime startDate = LocalDateTime.of(season, 7, 1, 0, 0);
+		return matchDAO.findPlayerEvents(playerId, startDate, startDate.plusYears(1));
+	}
 
 	@Override
 	public List<Matches> getAllMatches() {

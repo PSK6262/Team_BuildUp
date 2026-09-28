@@ -4,6 +4,30 @@
 
 <mapper namespace="MatchMapper">
 
+	<!-- 선수별 시즌 득점 및 도움 기록 (자책골 제외) -->
+	<select id="selectPlayerEvents" parameterType="map" resultType="MatchEvents">
+		SELECT
+			e.EVENT_ID,
+			e.MATCH_ID,
+			e.TEAM_ID,
+			e.EVENT_TIME,
+			e.EVENT_TYPE,
+			e.PLAYER_ID,
+			e.ASSIST_PLAYER_ID,
+			TO_CHAR(m.MATCH_DATE, 'YYYY-MM-DD HH24:MI') AS MATCH_DATE,
+			NVL(h.TEAM_NAME_KOR, h.TEAM_NAME) AS HOME_TEAM_NAME,
+			NVL(a.TEAM_NAME_KOR, a.TEAM_NAME) AS AWAY_TEAM_NAME
+		FROM MATCH_EVENTS e
+		JOIN MATCHES m ON m.MATCH_ID = e.MATCH_ID
+		JOIN TEAMS h ON h.TEAM_ID = m.HOME_TEAM_ID
+		JOIN TEAMS a ON a.TEAM_ID = m.AWAY_TEAM_ID
+		WHERE (e.PLAYER_ID = #{playerId} OR e.ASSIST_PLAYER_ID = #{playerId})
+			AND e.EVENT_TYPE IN (1, 2)
+			AND m.MATCH_DATE &gt;= #{startDate}
+			AND m.MATCH_DATE &lt; #{endDate}
+		ORDER BY m.MATCH_DATE DESC, e.EVENT_TIME ASC, e.EVENT_ID ASC
+	</select>
+
 	<!-- 경기 정보 UPSERT (MERGE) -->
 	<insert id="mergeMatch" parameterType="Matches">
 		MERGE INTO MATCHES m
