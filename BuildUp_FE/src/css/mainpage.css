@@ -12,9 +12,10 @@
   flex-direction: column;
   position: relative;
   width: 100%;
-  min-height: calc(100vh - 84px);
+  min-height: 100vh;
   background-color: #240428;
   color: #ffffff;
+  font-family: var(--font-plug);
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -65,13 +66,17 @@
   z-index: 1;
   width: 100%;
   max-width: 1440px;
-  min-height: calc(100vh - 84px);
+  min-height: 100vh;
   margin: 0 auto;
-  padding: 24px 20px;
+  padding: 84px 20px 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+}
+
+body.mainpage-intro-active .mainpage-content {
+  padding: 24px 20px;
 }
 
 /* --------------------------------------------------------
@@ -264,8 +269,8 @@
   width: calc(var(--orbit-radius) * 2);
   height: calc(var(--orbit-radius) * 2);
   border-radius: 50%;
-  border: 1.5px dashed rgba(210, 140, 235, 0.22);
-  box-shadow: 0 0 60px rgba(135, 25, 160, 0.2);
+  border: none;
+  box-shadow: none;
   animation: eplSpinRing 45s linear infinite;
   transform-origin: center center;
 }
@@ -430,10 +435,10 @@
 }
 
 /* --------------------------------------------------------
-   Quiz Trigger Button (가운데 문구 아래 콤팩트 배치)
+   Quiz Trigger Button (가운데 문구 아래 마젠타 네온 필 버튼)
    -------------------------------------------------------- */
 .mainpage-quiz-trigger-wrap {
-  margin-top: 18px;
+  margin-top: 22px;
   display: flex;
   justify-content: center;
   width: auto;
@@ -443,21 +448,21 @@
 .mainpage-quiz-trigger-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 8px 18px;
-  background: linear-gradient(135deg, rgba(62, 9, 78, 0.9) 0%, rgba(28, 2, 36, 0.95) 100%);
-  border: 1.5px solid #00ff87;
+  padding: 11px 28px;
+  background: linear-gradient(135deg, #f500b8 0%, #c800e8 100%);
+  border: 1.5px solid rgba(255, 160, 240, 0.85);
   border-radius: 999px;
   color: #ffffff;
-  font-size: 13.5px;
+  font-size: 14.5px;
   font-weight: 800;
   letter-spacing: -0.2px;
   cursor: pointer;
-  backdrop-filter: blur(8px);
   box-shadow:
-    0 6px 18px rgba(0, 0, 0, 0.55),
-    0 0 18px rgba(0, 255, 135, 0.3),
-    inset 0 0 10px rgba(0, 255, 135, 0.15);
+    0 6px 22px rgba(245, 0, 184, 0.55),
+    0 0 28px rgba(230, 0, 200, 0.65),
+    inset 0 1px 6px rgba(255, 255, 255, 0.4);
   transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
   animation: quizBtnGlowPulse 3s ease-in-out infinite;
   pointer-events: auto;
@@ -466,26 +471,26 @@
 @keyframes quizBtnGlowPulse {
   0%, 100% {
     box-shadow:
-      0 6px 18px rgba(0, 0, 0, 0.55),
-      0 0 16px rgba(0, 255, 135, 0.3),
-      inset 0 0 8px rgba(0, 255, 135, 0.1);
+      0 6px 20px rgba(245, 0, 184, 0.5),
+      0 0 24px rgba(230, 0, 200, 0.55),
+      inset 0 1px 6px rgba(255, 255, 255, 0.35);
   }
   50% {
     box-shadow:
-      0 8px 24px rgba(0, 0, 0, 0.65),
-      0 0 24px rgba(0, 255, 135, 0.55),
-      inset 0 0 12px rgba(0, 255, 135, 0.25);
+      0 8px 28px rgba(245, 0, 184, 0.7),
+      0 0 38px rgba(245, 0, 184, 0.85),
+      inset 0 1px 10px rgba(255, 255, 255, 0.5);
   }
 }
 
 .mainpage-quiz-trigger-btn:hover {
   transform: scale(1.05) translateY(-2px);
-  background: linear-gradient(135deg, rgba(88, 14, 110, 0.95) 0%, rgba(38, 4, 48, 0.98) 100%);
-  border-color: #00ff87;
+  background: linear-gradient(135deg, #ff14c6 0%, #d81aff 100%);
+  border-color: #ffffff;
   box-shadow:
-    0 8px 26px rgba(0, 0, 0, 0.75),
-    0 0 30px rgba(0, 255, 135, 0.7),
-    inset 0 0 14px rgba(0, 255, 135, 0.35);
+    0 10px 30px rgba(245, 0, 184, 0.8),
+    0 0 42px rgba(255, 20, 198, 0.9),
+    inset 0 1px 12px rgba(255, 255, 255, 0.55);
 }
 
 .quiz-btn-flair {
@@ -503,21 +508,153 @@
 }
 
 .quiz-btn-title {
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 800;
   color: #ffffff;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
 }
 
 .quiz-btn-badge {
   font-size: 11px;
   font-weight: 700;
-  color: #00ff87;
-  background: rgba(0, 255, 135, 0.15);
-  border: 1px solid rgba(0, 255, 135, 0.4);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.45);
   padding: 2px 7px;
   border-radius: 999px;
   letter-spacing: 0.2px;
+}
+
+/* --------------------------------------------------------
+   Top-Right Below Navbar: Favorite Team Next Match D-Day Widget
+   -------------------------------------------------------- */
+.mainpage-next-match {
+  position: absolute;
+  top: 98px;
+  right: 28px;
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 215px;
+  padding: 16px 22px 15px;
+  border-radius: 18px;
+  background: linear-gradient(155deg, rgba(36, 9, 44, 0.78) 0%, rgba(19, 3, 25, 0.88) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, 0.62),
+    0 0 24px rgba(186, 60, 220, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  animation: eplStageReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  user-select: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.mainpage-next-match:hover {
+  transform: translateY(-3px);
+  border-color: rgba(245, 0, 184, 0.65);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.72),
+    0 0 30px rgba(245, 0, 184, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.mainpage-next-match__top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.mainpage-next-match__dday {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 16px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f000b8 0%, #bd00ff 100%);
+  border: 1px solid rgba(255, 160, 240, 0.6);
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  box-shadow:
+    0 0 16px rgba(240, 0, 184, 0.65),
+    inset 0 1px 4px rgba(255, 255, 255, 0.35);
+}
+
+.mainpage-next-match__matchup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.mainpage-next-match__badge-frame {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(68, 16, 82, 0.92), rgba(24, 4, 30, 0.98));
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.mainpage-next-match:hover .mainpage-next-match__badge-frame {
+  transform: scale(1.05);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.mainpage-next-match__emblem {
+  width: 72%;
+  height: 72%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
+}
+
+.mainpage-next-match__vs {
+  font-size: 16px;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.65);
+  letter-spacing: 0.8px;
+}
+
+.mainpage-next-match__info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.mainpage-next-match__opponent-name {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+}
+
+.mainpage-next-match__stadium {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #cbbad8;
+  line-height: 1.3;
+  letter-spacing: -0.2px;
 }
 
 /* --------------------------------------------------------
@@ -525,12 +662,12 @@
    -------------------------------------------------------- */
 @media (max-width: 768px) {
   .mainpage-container {
-    min-height: calc(100vh - 70px);
+    min-height: 100vh;
   }
 
   .mainpage-content {
-    min-height: calc(100vh - 70px);
-    padding: 16px 12px;
+    min-height: 100vh;
+    padding: 80px 12px 16px;
   }
 
   .mainpage-orbit-stage {
@@ -542,11 +679,11 @@
   }
 
   .mainpage-quiz-trigger-wrap {
-    margin-top: 12px;
+    margin-top: 14px;
   }
 
   .mainpage-quiz-trigger-btn {
-    padding: 6px 14px;
+    padding: 8px 18px;
     gap: 6px;
   }
 
@@ -555,7 +692,7 @@
   }
 
   .quiz-btn-title {
-    font-size: 12px;
+    font-size: 12.5px;
   }
 
   .quiz-btn-badge {
@@ -564,110 +701,30 @@
   }
 
   .mainpage-next-match {
-    top: 12px;
+    top: 82px;
     right: 12px;
-    padding: 10px 14px;
-    min-width: 170px;
+    padding: 12px 16px;
+    min-width: 175px;
+    gap: 8px;
   }
 
-  .mainpage-next-match__opponent {
-    font-size: 13.5px;
+  .mainpage-next-match__badge-frame {
+    width: 44px;
+    height: 44px;
+  }
+
+  .mainpage-next-match__vs {
+    font-size: 14px;
+  }
+
+  .mainpage-next-match__opponent-name {
+    font-size: 12.5px;
   }
 
   .mainpage-next-match__stadium {
-    font-size: 11.5px;
+    font-size: 11px;
   }
 }
 
-/* --------------------------------------------------------
-   Top-Right Below Navbar: Favorite Team Next Match D-Day Widget
-   -------------------------------------------------------- */
-.mainpage-next-match {
-  position: absolute;
-  top: 24px;
-  right: 28px;
-  z-index: 25;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 7px;
-  min-width: 195px;
-  padding: 14px 18px;
-  border-radius: 16px;
-  background: linear-gradient(145deg, rgba(38, 6, 45, 0.88) 0%, rgba(22, 3, 27, 0.92) 100%);
-  border: 1px solid rgba(0, 255, 135, 0.38);
-  box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.55),
-    0 0 20px var(--fav-team-glow, rgba(0, 255, 135, 0.22)),
-    inset 0 0 12px rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  animation: eplStageReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-  user-select: none;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.mainpage-next-match:hover {
-  transform: translateY(-2px);
-  border-color: #00ff87;
-  box-shadow:
-    0 14px 32px rgba(0, 0, 0, 0.65),
-    0 0 26px var(--fav-team-glow, rgba(0, 255, 135, 0.4));
-}
-
-.mainpage-next-match__top {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-}
-
-.mainpage-next-match__dday {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: #00ff87;
-  color: #1b0222;
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.4px;
-  box-shadow: 0 0 12px rgba(0, 255, 135, 0.55);
-}
-
-.mainpage-next-match__opponent {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 15px;
-  line-height: 1.35;
-  color: #ffffff;
-  margin-top: 2px;
-}
-
-.mainpage-next-match__vs {
-  font-size: 13px;
-  font-weight: 900;
-  color: #ff2882;
-  text-shadow: 0 0 10px rgba(255, 40, 130, 0.5);
-  letter-spacing: 0.5px;
-}
-
-.mainpage-next-match__opponent-name {
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.3px;
-}
-
-.mainpage-next-match__stadium {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #cbbad8;
-  line-height: 1.3;
-  letter-spacing: -0.2px;
-}
 
 

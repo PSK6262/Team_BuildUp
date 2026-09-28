@@ -16,6 +16,7 @@ export default function AllUseNav() {
   const user = useSelector((state) => state.auth.user)
   const dispatch = useDispatch()
   const pathname = window.location.pathname.replace(/\/$/, '')
+  const isMainPage = !pathname || pathname === '' || pathname === '/plug' || pathname === '/plug/mainpage'
   const isAdmin = user && Number(user.roleCode) === 9
 
   const renderLink = ([label, path]) => (
@@ -46,7 +47,7 @@ export default function AllUseNav() {
   }
 
   return (
-    <header className="user-nav">
+    <header className={`user-nav ${isMainPage ? 'user-nav--mainpage' : ''}`}>
       <nav className="user-nav__inner" aria-label="공통 네비게이션">
         <a className="user-nav__logo" href="/plug/mainpage" aria-label="PL:UG 메인페이지">
           <span className="user-nav__logo-pl">PL</span>

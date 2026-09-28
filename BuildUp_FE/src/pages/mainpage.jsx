@@ -160,16 +160,44 @@ export default function MainPage() {
       homeTeamObj?.homeGround ||
       '홈 경기장';
 
+    const opponentEmblemRaw = isHome
+      ? (closest.awayEmblemUrl || opponentTeamObj?.emblemUrl || '')
+      : (closest.homeEmblemUrl || opponentTeamObj?.emblemUrl || '');
+    const favEmblemRaw = favTeamObj?.emblemUrl || (isHome ? closest.homeEmblemUrl : closest.awayEmblemUrl) || '';
+
+    const normalizeEmblem = (url) =>
+      url && url.includes('/badges/50/') ? url.replace('/badges/50/', '/badges/') : url;
+
     return {
       matchId: closest.matchId,
       dDayTag,
       diffDays,
       opponentName,
       stadiumName,
+      favoriteTeamEmblem: normalizeEmblem(favEmblemRaw),
+      opponentEmblem: normalizeEmblem(opponentEmblemRaw),
       themeHex: favTheme?.hex || '#00ff87',
       themeGlow: favTheme?.glow || 'rgba(0, 255, 135, 0.5)'
     };
   }, [favoriteTeamId, matches, teams]);
+
+  // 인트로 재생 중에는 스크롤을 완전히 잠그고 내비바 등을 숨겨 인트로만 단독으로 보이도록 제어
+  useEffect(() => {
+    if (!isIntroFinished) {
+      document.body.classList.add('mainpage-intro-active');
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.classList.remove('mainpage-intro-active');
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.classList.remove('mainpage-intro-active');
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
+  }, [isIntroFinished]);
 
   useEffect(() => {
     if (isIntroFinished || introIndex >= INTRO_SENTENCES.length) return;
@@ -366,14 +394,34 @@ export default function MainPage() {
               {nextFavoriteMatch.dDayTag}
             </span>
           </div>
-          <div className="mainpage-next-match__opponent">
+          <div className="mainpage-next-match__matchup">
+            <div className="mainpage-next-match__badge-frame">
+              {nextFavoriteMatch.favoriteTeamEmblem && (
+                <img
+                  src={nextFavoriteMatch.favoriteTeamEmblem}
+                  alt="내 애정팀 엠블럼"
+                  className="mainpage-next-match__emblem"
+                />
+              )}
+            </div>
             <span className="mainpage-next-match__vs">VS</span>
-            <strong className="mainpage-next-match__opponent-name">
-              {nextFavoriteMatch.opponentName}
-            </strong>
+            <div className="mainpage-next-match__badge-frame">
+              {nextFavoriteMatch.opponentEmblem && (
+                <img
+                  src={nextFavoriteMatch.opponentEmblem}
+                  alt={`${nextFavoriteMatch.opponentName} 엠블럼`}
+                  className="mainpage-next-match__emblem"
+                />
+              )}
+            </div>
           </div>
-          <div className="mainpage-next-match__stadium">
-            {nextFavoriteMatch.stadiumName}
+          <div className="mainpage-next-match__info">
+            <strong className="mainpage-next-match__opponent-name">
+              VS {nextFavoriteMatch.opponentName}
+            </strong>
+            <span className="mainpage-next-match__stadium">
+              {nextFavoriteMatch.stadiumName}
+            </span>
           </div>
         </a>
       )}

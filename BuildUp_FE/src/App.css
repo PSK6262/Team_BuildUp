@@ -6,7 +6,7 @@
   min-height: calc(100vh - 120px);
   padding: 40px 20px;
   background-color: #f7f9fb;
-  font-family: Arial, 'Malgun Gothic', sans-serif;
+  font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
 }
 
 .auth-card, .mypage-card {
