@@ -284,6 +284,15 @@ export default function Match() {
   const [ reload, setReload ] = useState(0)
   const [ syncing, setSyncing ] = useState(false)
   const [ activeMatchForModal, setActiveMatchForModal ] = useState(null)
+  const [ focusedMatchId ] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const mId = params.get('matchId')
+      return mId ? Number(mId) : null
+    } catch {
+      return null
+    }
+  })
 
   const handleSyncMatches = async () => {
     if (syncing) return
@@ -532,6 +541,19 @@ export default function Match() {
 
     return result
   }, [ matches, selectedTeamId, filterMode, selectedMonth, selectedRound ])
+
+  // 메인페이지 등에서 특정 경기(matchId)를 클릭해 넘어온 경우 해당 카드로 스크롤 및 포커스
+  useEffect(() => {
+    if (loading || !focusedMatchId) return
+    const timer = setTimeout(() => {
+      const el = document.getElementById(`match-card-${focusedMatchId}`)
+      if (el) {
+        el.focus({ preventScroll: true })
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, 150)
+    return () => clearTimeout(timer)
+  }, [ loading, focusedMatchId, filteredMatches ])
 
   // 승/패 판정 도우미
   const getMatchOutcome = (m) => {
@@ -874,17 +896,20 @@ export default function Match() {
               const outcome = getMatchOutcome(match)
               const isHomeWinner = isFinished && outcome === 'HOME_WIN'
               const isAwayWinner = isFinished && outcome === 'AWAY_WIN'
+              const isFocusedMatch = Boolean(focusedMatchId && Number(match.matchId) === focusedMatchId)
 
               return (
                 <article
                   key={match.matchId}
+                  id={`match-card-${match.matchId}`}
+                  tabIndex={-1}
                   className={`match-card ${
                     isFinished
                       ? 'match-card--result'
                       : isLive
                         ? 'match-card--live'
                         : 'match-card--scheduled'
-                  }`}
+                  } ${isFocusedMatch ? 'match-card--focused' : ''}`}
                 >
                   {/* 일시 및 라운드 태그 */}
                   <div className="match-card__datetime">
