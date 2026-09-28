@@ -101,4 +101,15 @@ public interface GeminiApiService {
 			String targetTeam,
 			int officialGoals,
 			java.util.List<java.util.Map<String, Object>> candidateGoals);
+
+	/**
+	 * [AI 유해 게시글 / 욕설 문맥 자동 감지 및 블라인드 처리 (배치)]
+	 * 
+	 * 최근 등록/수정된 정상 공개 상태의 게시글 및 댓글 목록을 Gemini AI에게 일괄 전달하여,
+	 * 욕설/패드립/성희롱/심한 비하 문맥을 판별하고 유해 판정 항목을 IS_BLIND = 'Y'로 자동 제재합니다.
+	 * 
+	 * @param limit 1회 검사 대상 최대 개수 (기본 20~30)
+	 * @return 검사 결과 요약 맵 (checkedCount, blindedPosts, blindedComments, details)
+	 */
+	Map<String, Object> inspectAndBlindHarmfulCommunityBatch(int limit);
 }

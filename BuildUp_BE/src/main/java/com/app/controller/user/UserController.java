@@ -16,6 +16,7 @@ import com.app.common.ApiResponse;
 import com.app.common.CommonCode;
 import com.app.common.ResultCode;
 import com.app.dao.user.UserDAO;
+import com.app.dao.user.UserMailDAO;
 import com.app.dto.user.Users;
 import com.app.service.user.UserService;
 import com.app.util.JwtProvider;
@@ -37,7 +38,7 @@ public class UserController {
 	private UserDAO userDAO;
 
 	@Autowired
-	private com.app.dao.user.UserMailDAO userMailDAO;
+	private UserMailDAO userMailDAO;
 
 
 	/**

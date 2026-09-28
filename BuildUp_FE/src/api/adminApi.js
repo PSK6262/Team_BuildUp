@@ -306,3 +306,16 @@ export async function triggerDataSync(endpoint, queryParams = {}) {
   });
   return res;
 }
+
+/**
+ * 23. AI 커뮤니티 유해 게시글/욕설 일괄 모더레이션 즉시 실행 (POST /api/admin/community/ai-moderation)
+ */
+export async function triggerAiModeration(limit = 30) {
+  const res = await fetch('/api/admin/community/ai-moderation', {
+    method: 'POST',
+    headers: getAdminAuthHeaders(),
+    credentials: 'include',
+    body: JSON.stringify({ limit }),
+  });
+  return res;
+}

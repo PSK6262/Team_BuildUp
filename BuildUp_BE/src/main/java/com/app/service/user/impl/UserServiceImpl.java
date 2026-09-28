@@ -8,9 +8,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.app.dao.team.TeamDAO;
 import com.app.dao.user.UserDAO;
+import com.app.dao.user.UserMailDAO;
 import com.app.dto.team.Teams;
 import com.app.dto.user.Users;
 import com.app.service.user.UserService;
+import com.app.service.user.UserMailService;
 import com.app.util.SHA256Encryptor;
 
 import lombok.extern.slf4j.Slf4j;
@@ -30,10 +32,10 @@ public class UserServiceImpl implements UserService {
 	private TeamDAO teamDAO;
 
 	@Autowired
-	private com.app.dao.user.UserMailDAO userMailDAO;
+	private UserMailDAO userMailDAO;
 
 	@Autowired
-	private com.app.service.user.UserMailService userMailService;
+	private UserMailService userMailService;
 
 	@Override
 	@Transactional

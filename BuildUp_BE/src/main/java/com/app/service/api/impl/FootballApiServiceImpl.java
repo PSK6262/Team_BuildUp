@@ -28,6 +28,7 @@ import com.app.dto.team.Staffs;
 import com.app.dto.team.TeamStats;
 import com.app.dto.team.Teams;
 import com.app.service.api.FootballApiService;
+import com.app.service.prediction.PredictionService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -55,7 +56,7 @@ public class FootballApiServiceImpl implements FootballApiService {
     private MatchDAO matchDAO;
 
     @Autowired(required = false)
-    private com.app.service.prediction.PredictionService predictionService;
+    private PredictionService predictionService;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
