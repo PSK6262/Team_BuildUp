@@ -1,10 +1,12 @@
 package com.app.service.admin.impl;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +23,7 @@ import com.app.dto.match.MatchEvents;
 import com.app.dto.match.Matches;
 import com.app.dto.prediction.PointHistory;
 import com.app.dto.team.PlayerStats;
+import com.app.dto.team.Players;
 import com.app.dto.team.Teams;
 import com.app.dto.user.Users;
 import com.app.service.admin.AdminService;
@@ -368,5 +371,190 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	public int resyncMismatchedEvents() {
 		return bigBallsApiService.resyncAllMismatchedFinishedMatches();
+	}
+
+	@Override
+	@Transactional
+	public Map<String, Object> forceAiAlignMatchEventsByDateRange(String fromDateStr, String toDateStr) {
+		String from = (fromDateStr != null && !fromDateStr.trim().isEmpty())
+				? fromDateStr.trim()
+				: LocalDate.now().toString();
+		String to = (toDateStr != null && !toDateStr.trim().isEmpty())
+				? toDateStr.trim()
+				: from;
+
+		LocalDate startDate = LocalDate.parse(from);
+		LocalDate endDate = LocalDate.parse(to);
+		if (startDate.isAfter(endDate)) {
+			LocalDate tmp = startDate;
+			startDate = endDate;
+			endDate = tmp;
+		}
+
+		LocalDateTime start = startDate.atStartOfDay();
+		LocalDateTime end = endDate.atTime(23, 59, 59);
+
+		List<Matches> matches = matchDAO.findMatchesByDateRange(start, end);
+		int fixedMatches = 0;
+		int deletedEvents = 0;
+
+		if (matches == null || matches.isEmpty()) {
+			Map<String, Object> res = new HashMap<>();
+			res.put("fixedMatches", 0);
+			res.put("deletedEvents", 0);
+			return res;
+		}
+
+		System.out.println("======================================================================");
+		System.out.println("[BuildUp] " + startDate + " ~ " + endDate + " 기간 AI 스코어 정합성 강제 일치 시작");
+		System.out.println("----------------------------------------------------------------------");
+
+		for (Matches m : matches) {
+			if (!"FINISHED".equalsIgnoreCase(m.getStatus()) || m.getHomeScore() == null || m.getAwayScore() == null) {
+				continue;
+			}
+
+			Long matchId = m.getMatchId();
+			long officialHomeScore = m.getHomeScore();
+			long officialAwayScore = m.getAwayScore();
+
+			List<MatchEvents> events = matchDAO.findEventsByMatchId(matchId);
+			if (events == null) events = new ArrayList<>();
+
+			Long homeTeamId = m.getHomeTeamId();
+			Long awayTeamId = m.getAwayTeamId();
+
+			List<MatchEvents> homeGoals = events.stream()
+					.filter(e -> e.getTeamId().equals(homeTeamId) && (e.getEventType() == 1L || e.getEventType() == 2L || e.getEventType() == 3L))
+					.collect(Collectors.toList());
+			List<MatchEvents> awayGoals = events.stream()
+					.filter(e -> e.getTeamId().equals(awayTeamId) && (e.getEventType() == 1L || e.getEventType() == 2L || e.getEventType() == 3L))
+					.collect(Collectors.toList());
+
+			boolean isMismatch = (homeGoals.size() != officialHomeScore) || (awayGoals.size() != officialAwayScore);
+			if (!isMismatch) {
+				continue;
+			}
+
+			Teams homeTeam = teamDAO.findTeamById(homeTeamId);
+			Teams awayTeam = teamDAO.findTeamById(awayTeamId);
+			String hName = homeTeam != null ? homeTeam.getTeamName() : "Home";
+			String aName = awayTeam != null ? awayTeam.getTeamName() : "Away";
+
+			// 이벤트가 없거나 빈 경기는 임의 생성하지 않음 (신뢰할 수 없는 데이터 유입 방지)
+			if (events.isEmpty() || (homeGoals.isEmpty() && awayGoals.isEmpty())) {
+				continue;
+			}
+
+			// [초과골 발생 케이스]: 이벤트는 들어왔으나 VAR 취소골 등으로 공식 점수보다 초과된 경우
+			boolean matchModified = false;
+			List<Players> homePlayers = teamDAO.findPlayersByTeamId(homeTeamId);
+			List<Players> awayPlayers = teamDAO.findPlayersByTeamId(awayTeamId);
+
+			String mDate = m.getMatchDate() != null && m.getMatchDate().length() >= 10 ? m.getMatchDate().substring(0, 10) : "";
+
+			// [홈팀 보정]
+			if (officialHomeScore == 0 && !homeGoals.isEmpty()) {
+				// 공식 스코어 0점이면 모든 골 이벤트 삭제 (100% VAR 취소골)
+				for (MatchEvents g : homeGoals) {
+					adminDAO.deleteMatchEvent(g.getEventId());
+					deletedEvents++;
+				}
+				matchModified = true;
+			} else if (homeGoals.size() > officialHomeScore) {
+				// Gemini AI로 취소골 시간대 추론
+				List<Map<String, Object>> candidates = new ArrayList<>();
+				for (MatchEvents g : homeGoals) {
+					Map<String, Object> map = new HashMap<>();
+					map.put("minute", g.getEventTime());
+					String pName = (homePlayers != null) ? homePlayers.stream()
+							.filter(p -> p.getPlayerId().equals(g.getPlayerId()))
+							.map(Players::getName)
+							.findFirst()
+							.orElse("Unknown") : "Unknown";
+					map.put("playerName", pName);
+					candidates.add(map);
+				}
+				List<Integer> disallowedMinutes = geminiApiService.identifyDisallowedGoalMinutes(
+						mDate, hName, aName, hName, (int) officialHomeScore, candidates
+				);
+				int removeNeeded = homeGoals.size() - (int) officialHomeScore;
+				for (MatchEvents g : homeGoals) {
+					if (removeNeeded <= 0) break;
+					if (disallowedMinutes != null && disallowedMinutes.contains(g.getEventTime().intValue())) {
+						adminDAO.deleteMatchEvent(g.getEventId());
+						deletedEvents++;
+						removeNeeded--;
+					}
+				}
+				// AI가 특정하지 못했거나 여전히 초과하는 경우 후반부 골부터 초과분 삭제
+				if (removeNeeded > 0) {
+					for (int i = homeGoals.size() - 1; i >= 0 && removeNeeded > 0; i--) {
+						MatchEvents g = homeGoals.get(i);
+						adminDAO.deleteMatchEvent(g.getEventId());
+						deletedEvents++;
+						removeNeeded--;
+					}
+				}
+				matchModified = true;
+			}
+
+			// [원정팀 보정]
+			if (officialAwayScore == 0 && !awayGoals.isEmpty()) {
+				for (MatchEvents g : awayGoals) {
+					adminDAO.deleteMatchEvent(g.getEventId());
+					deletedEvents++;
+				}
+				matchModified = true;
+			} else if (awayGoals.size() > officialAwayScore) {
+				List<Map<String, Object>> candidates = new ArrayList<>();
+				for (MatchEvents g : awayGoals) {
+					Map<String, Object> map = new HashMap<>();
+					map.put("minute", g.getEventTime());
+					String pName = (awayPlayers != null) ? awayPlayers.stream()
+							.filter(p -> p.getPlayerId().equals(g.getPlayerId()))
+							.map(Players::getName)
+							.findFirst()
+							.orElse("Unknown") : "Unknown";
+					map.put("playerName", pName);
+					candidates.add(map);
+				}
+				List<Integer> disallowedMinutes = geminiApiService.identifyDisallowedGoalMinutes(
+						mDate, hName, aName, aName, (int) officialAwayScore, candidates
+				);
+				int removeNeeded = awayGoals.size() - (int) officialAwayScore;
+				for (MatchEvents g : awayGoals) {
+					if (removeNeeded <= 0) break;
+					if (disallowedMinutes != null && disallowedMinutes.contains(g.getEventTime().intValue())) {
+						adminDAO.deleteMatchEvent(g.getEventId());
+						deletedEvents++;
+						removeNeeded--;
+					}
+				}
+				if (removeNeeded > 0) {
+					for (int i = awayGoals.size() - 1; i >= 0 && removeNeeded > 0; i--) {
+						MatchEvents g = awayGoals.get(i);
+						adminDAO.deleteMatchEvent(g.getEventId());
+						deletedEvents++;
+						removeNeeded--;
+					}
+				}
+				matchModified = true;
+			}
+
+			if (matchModified) {
+				fixedMatches++;
+				System.out.println("  - [AI 강제 일치 완료] MATCH_ID=" + matchId + " (" + hName + " vs " + aName + ") -> 공식 스코어 " + officialHomeScore + ":" + officialAwayScore + "에 맞춤 완료");
+			}
+		}
+
+		System.out.println("======================================================================");
+		System.out.println("[BuildUp] AI 스코어 정합성 강제 일치 완료: 총 " + fixedMatches + "경기 보정 (취소골 " + deletedEvents + "건 삭제)");
+		System.out.println("======================================================================");
+
+		Map<String, Object> result = new HashMap<>();
+		result.put("fixedMatches", fixedMatches);
+		result.put("deletedEvents", deletedEvents);
+		return result;
 	}
 }

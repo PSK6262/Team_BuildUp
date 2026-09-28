@@ -12,6 +12,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -84,7 +85,12 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
                 .build();
     }
 
+    private volatile boolean circuitBreakerActive = false;
+
     private String sendGetRequest(String url) {
+        if (circuitBreakerActive) {
+            return null;
+        }
         try {
             HttpClient client = createInsecureHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
@@ -96,6 +102,12 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
                     .build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 429 || (response.body() != null && response.body().contains("rate_limited"))) {
+                circuitBreakerActive = true;
+                System.err.println("\n[BigBallsData 경고] 외부 API Rate Limit(429) 또는 서킷 브레이커 감지! API 계정 보호를 위해 동기화를 즉시 중단합니다.");
+                log.error("[BigBallsData] API Rate Limit 감지 (HTTP {}): {}", response.statusCode(), response.body());
+                return null;
+            }
             if (response.statusCode() != 200) {
                 log.warn("[BigBallsData] API 요청 실패 (HTTP {}): {}", response.statusCode(), response.body());
                 return null;
@@ -472,20 +484,49 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
         LocalDateTime start = startDate.atStartOfDay();
         LocalDateTime end = endDate.atTime(23, 59, 59);
 
-        List<Matches> matches = matchDAO.findMatchesByDateRange(start, end);
+        circuitBreakerActive = false; // 서킷 브레이커 상태 초기화
+
+        List<Matches> allMatches = matchDAO.findMatchesByDateRange(start, end);
+        // 비시즌 및 아직 열리지 않은 SCHEDULED 경기는 제외 -> 실제 종료된(FINISHED) 경기만 선별하여 404 차단 방지
+        List<Matches> matches = (allMatches != null)
+                ? allMatches.stream()
+                        .filter(m -> "FINISHED".equalsIgnoreCase(m.getStatus()))
+                        .toList()
+                : Collections.emptyList();
+
         int totalSaved = 0;
         int matchCount = 0;
+        int totalMatches = matches.size();
+
+        System.out.println("======================================================================");
+        System.out.println("[BuildUp] " + startDate + " ~ " + endDate + " 기간 타임라인 이벤트 일괄 동기화 시작");
+        System.out.println("  - 전체 조회 경기: " + (allMatches != null ? allMatches.size() : 0) + "경기 (종료된 대상 경기: " + totalMatches + "경기)");
+        System.out.println("----------------------------------------------------------------------");
 
         for (Matches m : matches) {
+            if (circuitBreakerActive) {
+                System.err.println("  [BuildUp 경고] 외부 API Rate Limit(서킷 브레이커) 감지로 인해 계정 보호를 위해 동기화가 안전하게 중단되었습니다.");
+                break;
+            }
             try {
                 int count = syncMatchEventsAuto(m.getMatchId());
                 totalSaved += count;
                 matchCount++;
-                Thread.sleep(100);
+                if (matchCount % 10 == 0 || matchCount == totalMatches) {
+                    System.out.println("  - 진행 중: [" + matchCount + " / " + totalMatches + " 경기] 처리 완료 (누적 " + totalSaved + "건 저장)");
+                }
+                Thread.sleep(200); // 0.2초 안전 딜레이
             } catch (Exception e) {
                 log.warn("[BigBallsData] MATCH_ID={} 일괄 동기화 중 오류: {}", m.getMatchId(), e.getMessage());
             }
         }
+        System.out.println("======================================================================");
+        System.out.println("[BuildUp] " + startDate + " ~ " + endDate + " 기간 타임라인 이벤트 일괄 동기화 완료");
+        System.out.println("  - 처리 결과: 총 " + matchCount + "경기 중 " + totalSaved + "건의 타임라인 이벤트 저장 완료");
+        if (circuitBreakerActive) {
+            System.out.println("  - 알림: 외부 API 서킷 브레이커(쿨다운) 감지로 조기 중단되었습니다. 3분 후 다시 시도해주세요.");
+        }
+        System.out.println("======================================================================");
         log.info("[BigBallsData] {} ~ {} 기간 총 {}경기 이벤트 일괄 동기화 완료 (총 {}건 저장)", startDate, endDate, matchCount, totalSaved);
         return totalSaved;
     }

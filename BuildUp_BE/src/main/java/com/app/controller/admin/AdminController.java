@@ -421,6 +421,27 @@ public class AdminController {
 		}
 	}
 
+	// 18-1. AI 스코어 정합성 강제 일치 트리거 (단일 일자 또는 기간 From ~ To 지원)
+	@PostMapping("/sync/ai-force-align")
+	public ApiResponse<Map<String, Object>> forceAiAlign(
+			@RequestParam(value = "date", required = false) String date,
+			@RequestParam(value = "startDate", required = false) String startDate,
+			@RequestParam(value = "endDate", required = false) String endDate,
+			HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		try {
+			String from = (startDate != null && !startDate.trim().isEmpty()) ? startDate.trim() : date;
+			String to = (endDate != null && !endDate.trim().isEmpty()) ? endDate.trim() : from;
+			Map<String, Object> result = adminService.forceAiAlignMatchEventsByDateRange(from, to);
+			return ApiResponse.success(result);
+		} catch (Exception e) {
+			log.error("[AdminController] AI 강제 일치 실패: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "AI 강제 일치 중 오류가 발생했습니다: " + e.getMessage());
+		}
+	}
+
 	// 19. 프리미어리그 순위표 수동 동기화
 	@PostMapping("/sync/standings")
 	public ApiResponse<Map<String, Object>> syncStandings(

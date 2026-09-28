@@ -64,4 +64,5 @@ public interface AdminService {
 	int syncSeasonMatches(Integer season);
 	int syncTeamsAndPlayers();
 	int resyncMismatchedEvents();
+	Map<String, Object> forceAiAlignMatchEventsByDateRange(String fromDateStr, String toDateStr);
 }

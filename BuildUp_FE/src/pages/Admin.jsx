@@ -71,6 +71,10 @@ export default function Admin() {
   const [eventSyncFrom, setEventSyncFrom] = useState(todayStr)
   const [eventSyncTo, setEventSyncTo] = useState(todayStr)
 
+  const [aiAlignRange, setAiAlignRange] = useState(false)
+  const [aiAlignFrom, setAiAlignFrom] = useState(todayStr)
+  const [aiAlignTo, setAiAlignTo] = useState(todayStr)
+
   const [syncLoading, setSyncLoading] = useState(false)
   const [syncStatus, setSyncStatus] = useState(null) // { active: true, message: '...' }
 
@@ -840,6 +844,9 @@ export default function Admin() {
         else if (json.data?.syncedPlayers !== undefined) detailMsg = ` (${json.data.syncedPlayers}명)`
         else if (json.data?.syncedScorers !== undefined) detailMsg = ` (${json.data.syncedScorers}명)`
         else if (json.data?.syncedStandings !== undefined) detailMsg = ` (${json.data.syncedStandings}개 구단)`
+        else if (json.data?.fixedMatches !== undefined) {
+          detailMsg = ` (보정 ${json.data.fixedMatches}경기, 취소골 ${json.data.deletedEvents || 0}건 삭제)`
+        }
 
         showAlert(`${label} 동기화가 성공적으로 완료되었습니다!${detailMsg}`)
         fetchSummary()
@@ -1982,6 +1989,98 @@ export default function Admin() {
                   }}
                 >
                   동기화
+                </button>
+              </div>
+            </div>
+
+            {/* AI 스코어 정합성 강제 일치 (To ~ From 지원) */}
+            <div className="sync-card" style={{ borderColor: '#fbcfe8', background: '#fdf2f8' }}>
+              <div>
+                <div className="sync-card__title" style={{ color: '#9d174d', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span>🤖</span> AI 스코어 정합성 강제 일치
+                </div>
+                <div className="sync-card__desc" style={{ color: '#831843' }}>
+                  지정한 기간(From ~ To) 동안 공식 스코어와 골 이벤트가 불일치하는 경기들을 Gemini AI가 분석하여 VAR 취소골/무효골을 DB에서 자동으로 찾아 삭제·보정합니다.
+                </div>
+              </div>
+              <div className="sync-card__actions" style={{ flexWrap: 'wrap', gap: 8 }}>
+                {aiAlignRange ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    <input
+                      type="date"
+                      className="admin-input"
+                      style={{ fontSize: 13, padding: '6px 10px' }}
+                      value={aiAlignFrom}
+                      onChange={(e) => setAiAlignFrom(e.target.value)}
+                      title="시작일 (From)"
+                    />
+                    <span style={{ color: '#9d174d', fontWeight: 700 }}>~</span>
+                    <input
+                      type="date"
+                      className="admin-input"
+                      style={{ fontSize: 13, padding: '6px 10px' }}
+                      value={aiAlignTo}
+                      onChange={(e) => setAiAlignTo(e.target.value)}
+                      title="종료일 (To)"
+                    />
+                    <button
+                      type="button"
+                      className="btn-action btn-action--outline"
+                      style={{
+                        padding: '6px 10px',
+                        fontSize: 13,
+                        color: '#9d174d',
+                        borderColor: '#f472b6',
+                        fontWeight: 600,
+                      }}
+                      onClick={() => setAiAlignRange(false)}
+                      title="단일 일자 선택 모드로 전환 (−)"
+                    >
+                      − 단일
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <input
+                      type="date"
+                      className="admin-input"
+                      style={{ fontSize: 13, padding: '6px 10px' }}
+                      value={aiAlignFrom}
+                      onChange={(e) => setAiAlignFrom(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="btn-action btn-action--outline"
+                      style={{
+                        padding: '6px 10px',
+                        fontSize: 13,
+                        color: '#9d174d',
+                        borderColor: '#f472b6',
+                        fontWeight: 600,
+                      }}
+                      onClick={() => setAiAlignRange(true)}
+                      title="기간(From ~ To) 범위 선택 모드로 전환 (+)"
+                    >
+                      + 기간
+                    </button>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className="btn-action btn-action--warning"
+                  style={{ background: '#db2777', borderColor: '#db2777', color: '#ffffff', fontWeight: 700 }}
+                  disabled={syncLoading}
+                  onClick={() => {
+                    const label = aiAlignRange ? `${aiAlignFrom} ~ ${aiAlignTo} AI 강제 일치` : `${aiAlignFrom} AI 강제 일치`
+                    if (!window.confirm(`선택한 기간(${label})의 불일치 경기들을 Gemini AI 분석을 통해 자동으로 취소골을 삭제하고 공식 스코어와 강제 일치시키겠습니까?`)) return
+                    if (aiAlignRange) {
+                      handleTriggerSync('ai-force-align', { startDate: aiAlignFrom, endDate: aiAlignTo }, `${aiAlignFrom} ~ ${aiAlignTo} AI 스코어 강제 일치`)
+                    } else {
+                      handleTriggerSync('ai-force-align', { date: aiAlignFrom }, `${aiAlignFrom} AI 스코어 강제 일치`)
+                    }
+                  }}
+                >
+                  AI 강제 일치 실행
                 </button>
               </div>
             </div>
