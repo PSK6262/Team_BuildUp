@@ -94,6 +94,11 @@ function isStandingRow(row) {
 }
 
 export function StandingsPage() {
+  const seasons = [2026, 2024, 2025];
+  const [season, setSeason] = useState(() => {
+    const value = Number(new URLSearchParams(window.location.search).get('season'));
+    return seasons.includes(value) ? value : 2026;
+  });
   const tabs = [ ['league', '리그 순위'], ['goals', '득점왕'], ['assists', '도움'], ['contributions', '공격포인트'] ];
   const [ tab, setTab ] = useState(() => {
     const value = new URLSearchParams(window.location.search).get('tab');
@@ -102,7 +107,7 @@ export function StandingsPage() {
   function changeTab(value) {
     const url = new URL(window.location.href);
     url.searchParams.set('tab', value);
-    url.searchParams.delete('season');
+    url.searchParams.set('season', String(season));
     window.history.replaceState(null, '', url);
     setTab(value);
   }
@@ -111,7 +116,7 @@ export function StandingsPage() {
     <main className="teams-page-container">
       <div className="teams-page-wrapper">
         <header className="teams-page-header">
-          <span className="teams-page-eyebrow">PREMIER LEAGUE · 2026/27</span>
+          <span className="teams-page-eyebrow">PREMIER LEAGUE{tab === 'league' ? ` · ${season}/${String(season + 1).slice(-2)}` : ''}</span>
           <h1 className="teams-page-title">리그 & 선수 랭킹</h1>
           <p className="teams-page-desc">구단 순위부터 득점, 도움, 공격포인트까지 한눈에 확인하세요.</p>
         </header>
@@ -131,7 +136,22 @@ export function StandingsPage() {
           ))}
         </div>
         <section id="ranking-panel" role="tabpanel" aria-labelledby={`ranking-tab-${tab}`} tabIndex={0}>
-        {tab === 'league' ? <StandingsTable season={2026} />
+        {tab === 'league' ? <>
+          <div className="ranking-tabs" role="group" aria-label="리그 순위 시즌 선택">
+            {seasons.map((value) => (
+              <button key={value} type="button" aria-pressed={season === value}
+                onClick={() => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('season', String(value));
+                  window.history.replaceState(null, '', url);
+                  setSeason(value);
+                }}>
+                {String(value).slice(-2)}-{String(value + 1).slice(-2)} 시즌
+              </button>
+            ))}
+          </div>
+          <StandingsTable key={season} season={season} />
+        </>
           : <PlayerRankings key={tab} metric={tab} label={tabs.find(([ id ]) => id === tab)[1]} />}
         </section>
       </div>
@@ -213,7 +233,7 @@ function StandingsTable({ season }) {
         const response = await fetch(`/api/teams/standings?season=${season}`, { signal: controller.signal });
         if (!response.ok) throw new Error('순위 조회 실패');
         const rows = await response.json();
-        if (!Array.isArray(rows) || !rows.every(isStandingRow)
+        if (!Array.isArray(rows) || !rows.every((row) => isStandingRow(row) && Number(row.season) === season)
           || new Set(rows.map((row) => row.teamId)).size !== rows.length) {
           throw new Error('잘못된 순위 응답');
         }

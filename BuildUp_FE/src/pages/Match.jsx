@@ -3,6 +3,9 @@ import teamDbFallback from '../data/teamDbFallback.json'
 import '../css/match.css'
 
 const teamsData = teamDbFallback.teams
+const SEASONS = [2026, 2024, 2025]
+const MATCH_PAGE_SIZE = 10
+const seasonLabel = (season) => `${String(season).slice(-2)}-${String(season + 1).slice(-2)}`
 
 // 프리미어리그 시즌 월 목록 (8월 ~ 5월 + 전체)
 const MONTH_TABS = [
@@ -69,121 +72,7 @@ const TEAM_NAMES_KOR = {
   1044: '본머스',
 }
 
-// 백엔드 미응답 시 사용할 기본 순위(Fallback)
-const DEFAULT_RANKS = {
-  2: 1, 57: 1,      // 아스널 (1위)
-  14: 2, 65: 2,     // 맨시티 (2위)
-  13: 3, 64: 3,     // 리버풀 (3위)
-  6: 4, 61: 4,      // 첼시 (4위)
-  3: 5, 58: 5,      // 애스턴 빌라 (5위)
-  19: 6, 73: 6,     // 토트넘 (6위)
-  16: 7, 67: 7,     // 뉴캐슬 (7위)
-  17: 8, 351: 8,    // 노팅엄 (8위)
-  5: 9, 397: 9,     // 브라이튼 (9위)
-  10: 10, 63: 10,   // 풀럼 (10위)
-  4: 11, 402: 11,   // 브렌트포드 (11위)
-  1: 12, 1044: 12,  // 본머스 (12위)
-  15: 13, 66: 13,   // 맨유 (13위)
-  20: 14, 563: 14,  // 웨스트햄 (14위)
-  8: 15, 354: 15,   // 크리스탈 팰리스 (15위)
-  9: 16, 62: 16,    // 에버튼 (16위)
-  12: 17, 338: 17,  // 레스터 시티 (17위)
-  7: 18, 76: 18,    // 코번트리 (18위)
-  11: 19, 349: 19,  // 입스위치 (19위)
-  18: 20, 340: 20,  // 사우샘프턴 (20위)
-}
-
-// DB 미연결 시 즉시 렌더링할 전체 38개 라운드/월별 샘플 경기 일정
-const SAMPLE_MATCHES = [
-  // [8월] 1R (경기 완료)
-  { matchId: 101, season: 2026, round: 1, matchDate: '2026-08-16 20:30', homeTeamId: 2, awayTeamId: 20, homeScore: 2, awayScore: 0, status: 'FINISHED' },
-  { matchId: 102, season: 2026, round: 1, matchDate: '2026-08-16 23:00', homeTeamId: 13, awayTeamId: 11, homeScore: 2, awayScore: 0, status: 'FINISHED' },
-  { matchId: 103, season: 2026, round: 1, matchDate: '2026-08-17 01:30', homeTeamId: 6, awayTeamId: 14, homeScore: 0, awayScore: 2, status: 'FINISHED' },
-  { matchId: 104, season: 2026, round: 1, matchDate: '2026-08-17 22:00', homeTeamId: 19, awayTeamId: 12, homeScore: 1, awayScore: 1, status: 'FINISHED' },
-  { matchId: 105, season: 2026, round: 1, matchDate: '2026-08-18 04:00', homeTeamId: 15, awayTeamId: 10, homeScore: 1, awayScore: 0, status: 'FINISHED' },
-  // [8월] 2R (경기 완료)
-  { matchId: 106, season: 2026, round: 2, matchDate: '2026-08-23 20:30', homeTeamId: 5, awayTeamId: 15, homeScore: 2, awayScore: 1, status: 'FINISHED' },
-  { matchId: 107, season: 2026, round: 2, matchDate: '2026-08-23 23:00', homeTeamId: 14, awayTeamId: 11, homeScore: 4, awayScore: 1, status: 'FINISHED' },
-  { matchId: 108, season: 2026, round: 2, matchDate: '2026-08-24 01:30', homeTeamId: 3, awayTeamId: 2, homeScore: 0, awayScore: 2, status: 'FINISHED' },
-  { matchId: 109, season: 2026, round: 2, matchDate: '2026-08-24 22:00', homeTeamId: 20, awayTeamId: 6, homeScore: 2, awayScore: 6, status: 'FINISHED' },
-  { matchId: 110, season: 2026, round: 2, matchDate: '2026-08-25 00:30', homeTeamId: 13, awayTeamId: 4, homeScore: 2, awayScore: 0, status: 'FINISHED' },
-  // [8월] 3R (경기 완료)
-  { matchId: 111, season: 2026, round: 3, matchDate: '2026-08-30 20:30', homeTeamId: 2, awayTeamId: 5, homeScore: 1, awayScore: 1, status: 'FINISHED' },
-  { matchId: 112, season: 2026, round: 3, matchDate: '2026-08-31 01:30', homeTeamId: 15, awayTeamId: 13, homeScore: 0, awayScore: 3, status: 'FINISHED' },
-
-  // [9월] 4R ~ 6R
-  { matchId: 113, season: 2026, round: 4, matchDate: '2026-09-14 20:30', homeTeamId: 18, awayTeamId: 15, homeScore: 0, awayScore: 3, status: 'FINISHED' },
-  { matchId: 114, season: 2026, round: 4, matchDate: '2026-09-15 22:00', homeTeamId: 19, awayTeamId: 2, homeScore: 0, awayScore: 1, status: 'FINISHED' },
-  { matchId: 115, season: 2026, round: 5, matchDate: '2026-09-21 20:30', homeTeamId: 20, awayTeamId: 6, homeScore: 0, awayScore: 3, status: 'FINISHED' },
-  { matchId: 116, season: 2026, round: 5, matchDate: '2026-09-22 00:30', homeTeamId: 14, awayTeamId: 2, homeScore: 2, awayScore: 2, status: 'FINISHED' },
-  { matchId: 117, season: 2026, round: 6, matchDate: '2026-09-28 20:30', homeTeamId: 16, awayTeamId: 14, homeScore: 1, awayScore: 1, status: 'FINISHED' },
-  { matchId: 118, season: 2026, round: 6, matchDate: '2026-09-29 01:30', homeTeamId: 20, awayTeamId: 13, homeScore: 1, awayScore: 2, status: 'FINISHED' },
-
-  // [10월] 7R ~ 9R
-  { matchId: 119, season: 2026, round: 7, matchDate: '2026-10-05 20:30', homeTeamId: 8, awayTeamId: 13, homeScore: 0, awayScore: 1, status: 'FINISHED' },
-  { matchId: 120, season: 2026, round: 7, matchDate: '2026-10-06 00:30', homeTeamId: 5, awayTeamId: 19, homeScore: 3, awayScore: 2, status: 'FINISHED' },
-  { matchId: 121, season: 2026, round: 8, matchDate: '2026-10-19 20:30', homeTeamId: 19, awayTeamId: 20, homeScore: 4, awayScore: 1, status: 'FINISHED' },
-  { matchId: 122, season: 2026, round: 8, matchDate: '2026-10-20 00:30', homeTeamId: 13, awayTeamId: 6, homeScore: 2, awayScore: 1, status: 'FINISHED' },
-  { matchId: 123, season: 2026, round: 9, matchDate: '2026-10-26 23:00', homeTeamId: 14, awayTeamId: 18, homeScore: 1, awayScore: 0, status: 'FINISHED' },
-  { matchId: 124, season: 2026, round: 9, matchDate: '2026-10-28 01:30', homeTeamId: 2, awayTeamId: 13, homeScore: 2, awayScore: 2, status: 'FINISHED' },
-
-  // [11월] 10R ~ 13R
-  { matchId: 125, season: 2026, round: 10, matchDate: '2026-11-02 21:30', homeTeamId: 16, awayTeamId: 2, homeScore: 1, awayScore: 0, status: 'FINISHED' },
-  { matchId: 126, season: 2026, round: 11, matchDate: '2026-11-10 02:30', homeTeamId: 5, awayTeamId: 14, homeScore: 2, awayScore: 1, status: 'FINISHED' },
-  { matchId: 127, season: 2026, round: 12, matchDate: '2026-11-24 02:30', homeTeamId: 14, awayTeamId: 19, homeScore: 0, awayScore: 4, status: 'FINISHED' },
-  { matchId: 128, season: 2026, round: 13, matchDate: '2026-11-30 22:30', homeTeamId: 13, awayTeamId: 14, homeScore: 2, awayScore: 0, status: 'FINISHED' },
-
-  // [12월] 14R ~ 19R
-  { matchId: 129, season: 2026, round: 14, matchDate: '2026-12-05 05:15', homeTeamId: 2, awayTeamId: 15, homeScore: 2, awayScore: 0, status: 'FINISHED' },
-  { matchId: 130, season: 2026, round: 15, matchDate: '2026-12-08 21:30', homeTeamId: 9, awayTeamId: 13, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 131, season: 2026, round: 16, matchDate: '2026-12-15 02:30', homeTeamId: 14, awayTeamId: 15, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 132, season: 2026, round: 17, matchDate: '2026-12-22 02:30', homeTeamId: 19, awayTeamId: 13, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 133, season: 2026, round: 18, matchDate: '2026-12-26 23:00', homeTeamId: 6, awayTeamId: 10, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 134, season: 2026, round: 19, matchDate: '2026-12-30 05:00', homeTeamId: 15, awayTeamId: 16, homeScore: null, awayScore: null, status: 'TIMED' },
-
-  // [1월] 20R ~ 22R
-  { matchId: 135, season: 2026, round: 20, matchDate: '2027-01-04 21:30', homeTeamId: 19, awayTeamId: 16, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 136, season: 2026, round: 21, matchDate: '2027-01-15 05:00', homeTeamId: 2, awayTeamId: 19, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 137, season: 2026, round: 22, matchDate: '2027-01-25 23:00', homeTeamId: 14, awayTeamId: 6, homeScore: null, awayScore: null, status: 'TIMED' },
-
-  // [2월] 23R ~ 26R
-  { matchId: 138, season: 2026, round: 23, matchDate: '2027-02-01 22:00', homeTeamId: 13, awayTeamId: 2, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 139, season: 2026, round: 24, matchDate: '2027-02-15 02:30', homeTeamId: 15, awayTeamId: 19, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 140, season: 2026, round: 25, matchDate: '2027-02-22 01:30', homeTeamId: 14, awayTeamId: 13, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 141, season: 2026, round: 26, matchDate: '2027-02-28 23:00', homeTeamId: 18, awayTeamId: 2, homeScore: null, awayScore: null, status: 'TIMED' },
-
-  // [3월] 27R ~ 29R
-  { matchId: 142, season: 2026, round: 27, matchDate: '2027-03-08 02:30', homeTeamId: 19, awayTeamId: 14, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 143, season: 2026, round: 28, matchDate: '2027-03-15 00:00', homeTeamId: 6, awayTeamId: 2, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 144, season: 2026, round: 29, matchDate: '2027-03-29 23:00', homeTeamId: 2, awayTeamId: 6, homeScore: null, awayScore: null, status: 'TIMED' },
-
-  // [4월] 30R ~ 34R
-  { matchId: 145, season: 2026, round: 30, matchDate: '2027-04-05 02:30', homeTeamId: 13, awayTeamId: 15, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 146, season: 2026, round: 31, matchDate: '2027-04-12 01:30', homeTeamId: 14, awayTeamId: 3, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 147, season: 2026, round: 32, matchDate: '2027-04-19 23:00', homeTeamId: 15, awayTeamId: 2, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 148, season: 2026, round: 33, matchDate: '2027-04-26 00:30', homeTeamId: 19, awayTeamId: 13, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 149, season: 2026, round: 34, matchDate: '2027-04-29 03:00', homeTeamId: 6, awayTeamId: 14, homeScore: null, awayScore: null, status: 'TIMED' },
-
-  // [5월] 35R ~ 38R (최종전)
-  { matchId: 150, season: 2026, round: 35, matchDate: '2027-05-03 01:30', homeTeamId: 2, awayTeamId: 14, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 151, season: 2026, round: 36, matchDate: '2027-05-10 01:30', homeTeamId: 13, awayTeamId: 19, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 152, season: 2026, round: 37, matchDate: '2027-05-17 00:00', homeTeamId: 14, awayTeamId: 2, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 153, season: 2026, round: 38, matchDate: '2027-05-24 00:00', homeTeamId: 2, awayTeamId: 18, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 154, season: 2026, round: 38, matchDate: '2027-05-24 00:00', homeTeamId: 14, awayTeamId: 4, homeScore: null, awayScore: null, status: 'TIMED' },
-  { matchId: 155, season: 2026, round: 38, matchDate: '2027-05-24 00:00', homeTeamId: 13, awayTeamId: 5, homeScore: null, awayScore: null, status: 'TIMED' },
-]
-
-export default function Match({ resultsOnly = false }) {
-  // 현재 URL 경로 감지 (/plug/matchresult 등)
-  const isUrlResult =
-    typeof window !== 'undefined' &&
-    window.location.pathname.replace(/\/$/, '').endsWith('matchresult')
-
-  // 뷰 모드: 'SCHEDULE' (경기 일정) | 'RESULT' (경기 결과)
-  const [ viewType, setViewType ] = useState(() =>
-    resultsOnly || isUrlResult ? 'RESULT' : 'SCHEDULE'
-  )
-
+export default function Match() {
   // 필터 모드: 'MONTH' (월별) 또는 'ROUND' (라운드별)
   const [ filterMode, setFilterMode ] = useState('MONTH')
 
@@ -195,69 +84,42 @@ export default function Match({ resultsOnly = false }) {
 
   // 구단 선택 필터 (기본값: 전체 구단)
   const [ selectedTeamId, setSelectedTeamId ] = useState('ALL')
+  const [ selectedSeason, setSelectedSeason ] = useState(2026)
+  const [ visibleCount, setVisibleCount ] = useState(MATCH_PAGE_SIZE)
 
-  const [ rawMatches, setRawMatches ] = useState(SAMPLE_MATCHES)
-  const [ teamRanks, setTeamRanks ] = useState(new Map())
-  const [ dataSource, setDataSource ] = useState('database') // 'database' | 'sample'
+  const [ rawMatches, setRawMatches ] = useState([])
+  const [ rankResult, setRankResult ] = useState({ season: null, ranks: new Map() })
+  const teamRanks = rankResult.season === selectedSeason ? rankResult.ranks : new Map()
   const [ dbError, setDbError ] = useState('')
   const [ loading, setLoading ] = useState(false)
   const [ reload, setReload ] = useState(0)
-  const [ syncing, setSyncing ] = useState(false)
-
-  const handleSyncMatches = async () => {
-    if (syncing) return
-    if (!window.confirm('외부 축구 API에서 2026 시즌 전체 380경기 일정을 DB(MATCHES)로 동기화하시겠습니까?')) return
-    try {
-      setSyncing(true)
-      const res = await fetch('/api/matches/sync-season?season=2026', { method: 'POST' })
-      const data = await res.json()
-      alert(data.message || 'DB 동기화가 완료되었습니다!')
-      setReload((v) => v + 1)
-    } catch (err) {
-      alert('동기화 중 오류가 발생했습니다: ' + err.message)
-    } finally {
-      setSyncing(false)
-    }
-  }
-
-  // prop이 변경되었을 때 viewType 동기화
-  useEffect(() => {
-    if (resultsOnly || isUrlResult) {
-      setViewType('RESULT')
-    }
-  }, [ resultsOnly, isUrlResult ])
-
   // 1. 실시간 리그 순위 데이터 로드 (DB TEAM_STATS 연동)
   useEffect(() => {
     let active = true
     const rankMap = new Map()
 
-    // Fallback 순위 등록
-    Object.entries(DEFAULT_RANKS).forEach(([ id, rank ]) => {
-      rankMap.set(Number(id), Number(rank))
-    })
-
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 3000)
 
-    fetch('/api/teams/standings?season=2026', { signal: controller.signal })
+    fetch(`/api/teams/standings?season=${selectedSeason}`, { signal: controller.signal })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         return res.json()
       })
       .then((standings) => {
         clearTimeout(timeoutId)
-        if (!active || !Array.isArray(standings) || standings.length === 0) return
+        if (!active) return
+        if (!Array.isArray(standings)) throw new Error('잘못된 순위 응답')
         standings.forEach((s) => {
-          if (s.teamId && s.currentRank) {
+          if (Number(s.season) === selectedSeason && s.teamId && Number(s.currentRank) > 0) {
             rankMap.set(Number(s.teamId), Number(s.currentRank))
           }
         })
-        if (active) setTeamRanks(new Map(rankMap))
+        if (active) setRankResult({ season: selectedSeason, ranks: rankMap })
       })
       .catch(() => {
         clearTimeout(timeoutId)
-        if (active) setTeamRanks(new Map(rankMap))
+        if (active) setRankResult({ season: selectedSeason, ranks: new Map() })
       })
 
     return () => {
@@ -265,7 +127,7 @@ export default function Match({ resultsOnly = false }) {
       clearTimeout(timeoutId)
       controller.abort()
     }
-  }, [ reload ])
+  }, [ reload, selectedSeason ])
 
   // 2. DB MATCHES 테이블 데이터 로드 (백엔드 API 연동)
   useEffect(() => {
@@ -273,13 +135,11 @@ export default function Match({ resultsOnly = false }) {
     setLoading(true)
     setDbError('')
 
-    const apiUrl =
-      viewType === 'RESULT'
-        ? '/api/matches/results?season=2026'
-        : '/api/matches?season=2026'
+    setRawMatches([])
+    const apiUrl = `/api/matches?season=${selectedSeason}`
 
     const controller = new AbortController()
-    // 3초 이상 지연(DB 타임아웃 등) 시 즉시 안전한 샘플 모드로 전환
+    // 연결 지연 시 오류 안내
     const timeoutId = setTimeout(() => controller.abort(), 3500)
 
     fetch(apiUrl, { signal: controller.signal })
@@ -292,23 +152,18 @@ export default function Match({ resultsOnly = false }) {
       })
       .then((data) => {
         if (!active) return
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setRawMatches(data)
-          setDataSource('database')
           setDbError('')
         } else {
-          // DB에 아직 2026 데이터가 비어있을 때는 샘플 데이터 유지
-          setRawMatches(SAMPLE_MATCHES)
-          setDataSource('sample')
+          throw new Error('경기 목록 응답 형식 오류')
         }
       })
       .catch((err) => {
         clearTimeout(timeoutId)
         if (!active) return
         console.warn('[Match] 백엔드(/api/matches) 연결 지연 또는 실패:', err.message)
-        // DB 연결 실패 시 무한 로딩에 빠지지 않고 샘플 데이터로 즉시 화면 렌더링
-        setRawMatches(SAMPLE_MATCHES)
-        setDataSource('sample')
+        setRawMatches([])
         setDbError('오라클 DB 연결 실패 (' + (err.name === 'AbortError' ? '연결 타임아웃' : err.message) + ')')
       })
       .finally(() => {
@@ -320,7 +175,7 @@ export default function Match({ resultsOnly = false }) {
       clearTimeout(timeoutId)
       controller.abort()
     }
-  }, [ viewType, reload ])
+  }, [ reload, selectedSeason ])
 
   // 3. 구단 목록 실시간 추출 (구단 필터용)
   const dbTeams = useMemo(() => {
@@ -420,28 +275,23 @@ export default function Match({ resultsOnly = false }) {
       }
     })
 
-    // 일정: 날짜 오름차순, 결과: 최신순(내림차순)
+    // 경기 일정은 날짜 오름차순으로 표시
     return list.sort((a, b) => {
       const dateA = a.matchDate || ''
       const dateB = b.matchDate || ''
-      return viewType === 'RESULT'
-        ? dateB.localeCompare(dateA)
-        : dateA.localeCompare(dateB)
+      return dateA.localeCompare(dateB)
     })
-  }, [ rawMatches, viewType, getTeamInfo ])
+  }, [ rawMatches, getTeamInfo ])
 
   // 7. 필터링 로직 (월별 / 라운드별 + 구단 선택)
   const filteredMatches = useMemo(() => {
-    let result = matches
-
-    // 결과 뷰일 때는 종료된 경기만 필터링
-    if (viewType === 'RESULT') {
-      result = result.filter((m) => {
-        const isFinishedStatus = m.status === 'FINISHED' || m.status === 'AWARDED'
-        const hasScore = m.homeScore !== null && m.awayScore !== null
-        return isFinishedStatus || hasScore
-      })
-    }
+    let result = matches.filter((match) => {
+      if (match.season != null) return Number(match.season) === selectedSeason
+      const date = String(match.matchDate || '').match(/^(\d{4})[-/](\d{1,2})/)
+      if (!date) return false
+      const season = Number(date[1]) - (Number(date[2]) < 7 ? 1 : 0)
+      return season === selectedSeason
+    })
 
     // 구단 필터
     if (selectedTeamId !== 'ALL') {
@@ -479,7 +329,13 @@ export default function Match({ resultsOnly = false }) {
     }
 
     return result
-  }, [ matches, viewType, selectedTeamId, filterMode, selectedMonth, selectedRound ])
+  }, [ matches, selectedSeason, selectedTeamId, filterMode, selectedMonth, selectedRound ])
+
+  useEffect(() => {
+    setVisibleCount(MATCH_PAGE_SIZE)
+  }, [selectedSeason, selectedTeamId, filterMode, selectedMonth, selectedRound, reload])
+
+  const visibleMatches = filteredMatches.slice(0, visibleCount)
 
   // 승/패 판정 도우미
   const getMatchOutcome = (m) => {
@@ -504,7 +360,7 @@ export default function Match({ resultsOnly = false }) {
     return (
       <span
         className={`match-team-rank-badge match-team-rank-badge--${modifier}`}
-        title={`현재 프리미어리그 ${rank}위`}
+        title={`${seasonLabel(selectedSeason)} 시즌 프리미어리그 ${rank}위`}
       >
         {rank}위
       </span>
@@ -554,56 +410,35 @@ export default function Match({ resultsOnly = false }) {
     )
   }
 
-  // 탭 변경 핸들러 (경기 일정 <-> 경기 결과)
-  const handleTabChange = (newType) => {
-    setViewType(newType)
-    if (typeof window !== 'undefined' && window.history) {
-      const newPath = newType === 'RESULT' ? '/plug/matchresult' : '/plug/match'
-      window.history.replaceState(null, '', newPath)
-    }
-  }
-
-  const isResultMode = viewType === 'RESULT'
-
   return (
     <div className="match-page-container">
       <div className="match-page-wrapper">
-        {/* 대분류 탭: 경기 일정 vs 경기 결과 */}
-        <div className="match-main-tabs" role="tablist" aria-label="경기 일정 및 결과 전환">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={!isResultMode}
-            className={`match-main-tab ${!isResultMode ? 'is-active' : ''}`}
-            onClick={() => handleTabChange('SCHEDULE')}
-          >
-            📅 경기 일정
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={isResultMode}
-            className={`match-main-tab ${isResultMode ? 'is-active' : ''}`}
-            onClick={() => handleTabChange('RESULT')}
-          >
-            🏆 경기 결과
-          </button>
-        </div>
-
         {/* 헤더 */}
         <header className="match-page-header">
           <span className="match-page-eyebrow">
-            {isResultMode ? 'Premier League Match Results' : 'Premier League Schedule'}
+            Premier League Schedule
           </span>
           <h1 className="match-page-title">
-            {isResultMode ? '프리미어리그 경기 결과' : '프리미어리그 경기 일정'}
+            프리미어리그 경기 일정
           </h1>
           <p className="match-page-desc">
-            {isResultMode
-              ? '월별 및 라운드별 경기 최종 스코어와 실시간 구단 순위를 한눈에 확인하세요.'
-              : '2026 시즌 프리미어리그 전체 경기 일정을 월별/라운드별로 필터링하여 확인하세요.'}
+            {seasonLabel(selectedSeason)} 시즌 프리미어리그 전체 경기 일정을 월별/라운드별로 필터링하여 확인하세요.
           </p>
         </header>
+
+        <div className="match-season-tabs" role="group" aria-label="시즌 선택">
+          {SEASONS.map((season) => (
+            <button
+              key={season}
+              type="button"
+              className={`match-season-tab ${selectedSeason === season ? 'is-active' : ''}`}
+              aria-pressed={selectedSeason === season}
+              onClick={() => setSelectedSeason(season)}
+            >
+              {seasonLabel(season)} 시즌
+            </button>
+          ))}
+        </div>
 
         {/* DB 연결 상태 안내 배너 (연결 지연 시 안내) */}
         {dbError && (
@@ -620,8 +455,7 @@ export default function Match({ resultsOnly = false }) {
           }}>
             <strong>⚠️ {dbError}</strong><br />
             <span style={{ fontSize: '13px', color: '#a16207' }}>
-              백엔드 DB(192.168.0.66:1521/BuildUp) 응답이 지연되어 현재 <strong>[샘플 데이터 모드]</strong>로 즉시 렌더링되었습니다.
-              모든 월별/라운드별 필터 및 순위 배지를 정상 체험하실 수 있습니다.
+              {seasonLabel(selectedSeason)} 시즌 경기 데이터를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.
             </span>
           </div>
         )}
@@ -669,13 +503,11 @@ export default function Match({ resultsOnly = false }) {
               onChange={(e) => setSelectedTeamId(e.target.value)}
               aria-label="구단 선택"
             >
-              <option value="ALL">전체 20개 구단 ({dbTeams.length})</option>
+              <option value="ALL">전체 구단</option>
               {dbTeams.map((team) => {
-                const rank = teamRanks.get(Number(team.teamId))
-                const rankText = rank ? `[${rank}위] ` : ''
                 return (
                   <option key={team.teamId} value={team.teamId}>
-                    {rankText}{team.teamNameKor} ({team.teamName})
+                    {team.teamNameKor} ({team.teamName})
                   </option>
                 )
               })}
@@ -758,8 +590,9 @@ export default function Match({ resultsOnly = false }) {
             🔄 새로고침
           </button>
           <span className="match-count">
+            {seasonLabel(selectedSeason)} 시즌 ·{' '}
             총 <strong>{filteredMatches.length}</strong>개의{' '}
-            {isResultMode ? '경기 결과' : '경기'}
+            경기
             {filterMode === 'MONTH' && selectedMonth !== 'ALL' && (
               <span> ({MONTH_TABS.find((t) => t.id === selectedMonth)?.label})</span>
             )}
@@ -781,25 +614,28 @@ export default function Match({ resultsOnly = false }) {
           <div className="match-empty">
             <div className="match-loading-spinner" />
             <p className="match-empty__text">
-              {isResultMode ? '경기 결과를 불러오는 중입니다...' : '경기 일정을 불러오는 중입니다...'}
+              {seasonLabel(selectedSeason)} 시즌 ·{' '}
+              경기 일정을 불러오는 중입니다...
             </p>
+          </div>
+        ) : dbError ? (
+          <div className="match-empty">
+            <p className="match-empty__text">경기 일정을 불러오지 못했습니다.</p>
           </div>
         ) : filteredMatches.length === 0 ? (
           <div className="match-empty">
             <div className="match-empty__icon">⚽</div>
             <p className="match-empty__text">
               {selectedTeam
-                ? `${selectedTeam.teamNameKor}의 해당 기간 ${isResultMode ? '경기 결과가' : '경기 일정이'} 없습니다.`
-                : isResultMode
-                  ? '선택하신 조건에 해당하는 경기 결과가 없습니다.'
-                  : filterMode === 'MONTH'
-                    ? '선택하신 월에는 예정된 경기가 없습니다.'
-                    : `${selectedRound} 라운드에는 등록된 경기 일정이 없습니다.`}
+                ? `${selectedTeam.teamNameKor}의 해당 기간 경기 일정이 없습니다.`
+                : filterMode === 'MONTH'
+                    ? '선택하신 조건에 해당하는 경기 일정이 없습니다.'
+                    : '선택하신 라운드에 해당하는 경기 일정이 없습니다.'}
             </p>
           </div>
         ) : (
           <div className="match-grid">
-            {filteredMatches.map((match) => {
+            {visibleMatches.map((match) => {
               const homeTeam = getTeamInfo(match.homeTeamId)
               const awayTeam = getTeamInfo(match.awayTeamId)
               const [ dateStr, timeStr ] = (match.matchDate || '').split(' ')
@@ -811,7 +647,7 @@ export default function Match({ resultsOnly = false }) {
               return (
                 <article
                   key={match.matchId}
-                  className={`match-card ${isResultMode ? 'match-card--result' : ''}`}
+                  className="match-card"
                 >
                   {/* 일시 및 라운드 태그 */}
                   <div className="match-card__datetime">
@@ -891,6 +727,15 @@ export default function Match({ resultsOnly = false }) {
                 </article>
               )
             })}
+            {visibleMatches.length < filteredMatches.length && (
+              <button
+                type="button"
+                className="match-load-more"
+                onClick={() => setVisibleCount((count) => count + MATCH_PAGE_SIZE)}
+              >
+                더보기 ({visibleMatches.length} / {filteredMatches.length})
+              </button>
+            )}
           </div>
         )}
       </div>

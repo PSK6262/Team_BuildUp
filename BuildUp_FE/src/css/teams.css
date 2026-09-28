@@ -21,7 +21,8 @@
   cursor: pointer;
 }
 
-.ranking-tabs button[aria-selected="true"] {
+.ranking-tabs button[aria-selected="true"],
+.ranking-tabs button[aria-pressed="true"] {
   background: #38003c;
   color: white;
   box-shadow: 0 3px 8px #38003c20;

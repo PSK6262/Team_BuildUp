@@ -1,10 +1,13 @@
 package com.app.controller.match;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -92,8 +95,17 @@ public class MatchController {
 	// 4. 전체 경기 일정 조회 (DB 데이터)
 	// 예: GET /api/matches 또는 GET /api/matches/
 	@GetMapping({"", "/"})
-	public List<Matches> getAllMatches() {
-		return matchService.getAllMatches();
+	public List<Matches> getAllMatches(
+			@RequestParam(value = "season", required = false) Integer season) {
+		if (season == null) {
+			return matchService.getAllMatches();
+		}
+		if (season < 1900 || season > 9998) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "올바른 시즌 연도를 입력하세요.");
+		}
+		LocalDateTime startDate = LocalDate.of(season, 7, 1).atStartOfDay();
+		LocalDateTime endDate = startDate.plusYears(1).minusNanos(1);
+		return matchService.getMatchesByDateRange(startDate, endDate);
 	}
 
 	// 5. 단건 경기 상세 조회 (DB 데이터)

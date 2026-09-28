@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { logout } from '../store/authSlice.js'
 import '../css/AllUseNav.css'
 
-const links = [['팀소개', 'teams'], ['경기 일정', 'match'], ['경기결과', 'matchresult'], ['커뮤니티', 'community/teams'], ['랭킹', 'rankpage'], ['예측', 'prediction']]
+const links = [['팀소개', 'teams'], ['경기 일정', 'match'], ['커뮤니티', 'community/teams'], ['랭킹', 'rankpage'], ['예측', 'prediction']]
 
 export default function AllUseNav() {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn)
