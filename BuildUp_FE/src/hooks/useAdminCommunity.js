@@ -163,6 +163,28 @@ export function useAdminCommunity({ showAlert }) {
     }
   };
 
+  // AI 모더레이션 즉시 일괄 검사 실행
+  const [moderationLoading, setModerationLoading] = useState(false);
+  const handleRunAiModeration = async (limit = 30) => {
+    try {
+      setModerationLoading(true);
+      const res = await adminApi.triggerAiModeration(limit);
+      const json = await res.json();
+      if (json.code === 'SUC_001') {
+        const msg = json.data?.message || 'AI 유해성 검사가 완료되었습니다.';
+        showAlert?.(`🤖 ${msg}`);
+        fetchPosts();
+        fetchComments();
+      } else {
+        showAlert?.(json.message || 'AI 모더레이션 실행 실패', 'error');
+      }
+    } catch (e) {
+      showAlert?.('AI 모더레이션 요청 중 오류가 발생했습니다.', 'error');
+    } finally {
+      setModerationLoading(false);
+    }
+  };
+
   return {
     communitySubTab,
     setCommunitySubTab,
@@ -177,6 +199,7 @@ export function useAdminCommunity({ showAlert }) {
     commentKeyword,
     setCommentKeyword,
     loading,
+    moderationLoading,
     viewPostModal,
     setViewPostModal,
     fetchPosts,
@@ -184,5 +207,6 @@ export function useAdminCommunity({ showAlert }) {
     handleTogglePostBlind,
     handleDeletePost,
     handleToggleCommentBlind,
+    handleRunAiModeration,
   };
 }

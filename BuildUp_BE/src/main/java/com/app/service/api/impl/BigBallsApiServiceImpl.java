@@ -26,6 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.app.common.ExternalApiException;
+import com.app.common.ResultCode;
 import com.app.dao.admin.AdminDAO;
 import com.app.dao.match.MatchDAO;
 import com.app.dao.team.TeamDAO;
@@ -73,30 +75,119 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
 
     private volatile boolean circuitBreakerActive = false;
 
+    // [질문 11 - 외부 API 재시도 및 장애 내성 설정]
+    private static final int MAX_RETRY_COUNT = 2; // 최대 재시도 횟수
+    private static final long RETRY_BACKOFF_MS = 500L; // 재시도 전 대기 지연(ms)
+
+    /**
+     * 외부 축구 상세 데이터 API(BigBallsData)에 GET HTTP 요청을 전송하고 JSON 본문 문자열을 반환합니다.
+     * 
+     * [질문 11 개선 사항]:
+     * 1. 단순 null 반환 대신 ExternalApiException을 명확히 발생시켜 호출부에서 장애 원인을 파악할 수 있도록 합니다.
+     * 2. 일시적인 네트워크 타임아웃이나 외부 서버 장애(5xx) 시 최대 2회 지수 백오프 재시도(Retry)를 수행합니다.
+     * 3. 429(Rate Limit 초과) 발생 시 서킷 브레이커를 활성화하고 즉각적인 예외를 던집니다.
+     * 
+     * @param url 호출할 외부 API 전체 URL
+     * @return 성공 시 JSON 본문 문자열 (절대 null을 반환하지 않음)
+     * @throws ExternalApiException 외부 API 연동 실패 시
+     */
     private String sendGetRequest(String url) {
         if (circuitBreakerActive) {
-            return null;
+            log.warn("[BigBallsData] 서킷 브레이커 작동 중 - 외부 API 호출 즉시 차단 (URL: {})", url);
+            throw new ExternalApiException(ResultCode.EXTERNAL_API_RATE_LIMIT, 429, url,
+                    "외부 축구 API 호출 한도 초과로 인해 서킷 브레이커가 동작 중입니다. 잠시 후 다시 시도해주세요.");
         }
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + apiKey)
-                    .header("x-api-key", apiKey)
-                    .header("Accept", "application/json")
-                    .GET()
-                    .build();
 
-            // 신뢰할 수 있는 공식 인증서로 검증된 안전한 연결을 통해 데이터를 수신합니다.
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200) {
-                log.warn("[BigBallsData] API 요청 실패 (HTTP {}): {}", response.statusCode(), response.body());
-                return null;
+        int attempt = 0;
+        while (attempt <= MAX_RETRY_COUNT) {
+            attempt++;
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .header("Authorization", "Bearer " + apiKey)
+                        .header("x-api-key", apiKey)
+                        .header("Accept", "application/json")
+                        .timeout(Duration.ofSeconds(10))
+                        .GET()
+                        .build();
+
+                // 신뢰할 수 있는 공식 인증서로 검증된 안전한 연결을 통해 데이터를 수신합니다.
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                int statusCode = response.statusCode();
+
+                // 1. 정상 응답 (2xx)
+                if (statusCode >= 200 && statusCode < 300) {
+                    return response.body();
+                }
+
+                // 2. 429 Too Many Requests (호출 한도 초과 -> 서킷 브레이커 작동)
+                if (statusCode == 429) {
+                    circuitBreakerActive = true;
+                    log.warn("[BigBallsData] API 호출 한도 초과 (HTTP 429, 서킷브레이커 작동, URL: {})", url);
+                    throw new ExternalApiException(ResultCode.EXTERNAL_API_RATE_LIMIT, 429, url,
+                            "외부 축구 API 일일/초당 호출 한도(429 Too Many Requests)를 초과했습니다.");
+                }
+
+                // 3. 401 / 403 인증 실패
+                if (statusCode == 401 || statusCode == 403) {
+                    log.error("[BigBallsData] API 인증 실패 (HTTP {}, URL: {})", statusCode, url);
+                    throw new ExternalApiException(ResultCode.EXTERNAL_API_ERROR, statusCode, url,
+                            "외부 축구 API 인증키가 유효하지 않거나 접근이 거부되었습니다. (HTTP " + statusCode + ")");
+                }
+
+                // 4. 5xx 외부 서버 장애 -> 재시도 대상
+                if (statusCode >= 500) {
+                    log.warn("[BigBallsData] 외부 API 서버 장애 (HTTP {}, 시도 {}/{}, URL: {})",
+                            statusCode, attempt, MAX_RETRY_COUNT + 1, url);
+                    if (attempt <= MAX_RETRY_COUNT) {
+                        try {
+                            Thread.sleep(RETRY_BACKOFF_MS * attempt);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                        }
+                        continue; // 재시도 진행
+                    }
+                    throw new ExternalApiException(ResultCode.EXTERNAL_API_SERVER_ERROR, statusCode, url,
+                            "외부 축구 API 서버에 일시적인 장애가 발생했습니다. (HTTP " + statusCode + ")");
+                }
+
+                // 5. 기타 4xx 클라이언트 오류
+                throw new ExternalApiException(ResultCode.EXTERNAL_API_ERROR, statusCode, url,
+                        "외부 축구 API 요청 실패 (HTTP " + statusCode + ")");
+
+            } catch (ExternalApiException e) {
+                throw e;
+            } catch (java.net.http.HttpTimeoutException e) {
+                log.warn("[BigBallsData] 네트워크 응답 시간 초과 (시도 {}/{}, URL: {}): {}",
+                        attempt, MAX_RETRY_COUNT + 1, url, e.getMessage());
+                if (attempt <= MAX_RETRY_COUNT) {
+                    try {
+                        Thread.sleep(RETRY_BACKOFF_MS * attempt);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
+                    continue; // 재시도 진행
+                }
+                throw new ExternalApiException(ResultCode.EXTERNAL_API_TIMEOUT, 504, url,
+                        "외부 축구 API 서버 응답 시간이 초과되었습니다. (Timeout)", e);
+            } catch (Exception e) {
+                log.warn("[BigBallsData] HTTP 통신 오류 발생 (시도 {}/{}, URL: {}): {}",
+                        attempt, MAX_RETRY_COUNT + 1, url, e.getMessage());
+                if (attempt <= MAX_RETRY_COUNT) {
+                    try {
+                        Thread.sleep(RETRY_BACKOFF_MS * attempt);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
+                    continue; // 재시도 진행
+                }
+                throw new ExternalApiException(ResultCode.EXTERNAL_API_ERROR, 502, url,
+                        "외부 축구 API와의 통신 중 오류가 발생했습니다: " + e.getMessage(), e);
             }
-            return response.body();
-        } catch (Exception e) {
-            log.error("[BigBallsData] HTTP 요청 중 오류 발생 (URL: {}): {}", url, e.getMessage());
-            return null;
         }
+
+        throw new ExternalApiException(ResultCode.EXTERNAL_API_ERROR, 502, url,
+                "외부 축구 API 요청 실패 (최대 재시도 횟수 초과)");
     }
 
     @Override

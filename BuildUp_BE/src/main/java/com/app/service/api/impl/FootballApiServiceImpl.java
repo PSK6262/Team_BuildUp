@@ -20,6 +20,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.app.common.ExternalApiException;
+import com.app.common.ResultCode;
 import com.app.dao.match.MatchDAO;
 import com.app.dao.team.TeamDAO;
 import com.app.dto.match.Matches;
@@ -28,6 +30,7 @@ import com.app.dto.team.Staffs;
 import com.app.dto.team.TeamStats;
 import com.app.dto.team.Teams;
 import com.app.service.api.FootballApiService;
+import com.app.service.prediction.PredictionService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -55,7 +58,7 @@ public class FootballApiServiceImpl implements FootballApiService {
     private MatchDAO matchDAO;
 
     @Autowired(required = false)
-    private com.app.service.prediction.PredictionService predictionService;
+    private PredictionService predictionService;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -66,27 +69,112 @@ public class FootballApiServiceImpl implements FootballApiService {
             .connectTimeout(Duration.ofSeconds(10))
             .build();
 
+    // [질문 11 - 외부 API 재시도 및 장애 내성 설정]
+    private static final int MAX_RETRY_COUNT = 2; // 최대 재시도 횟수 (기본 1회 + 재시도 2회 = 총 3회)
+    private static final long RETRY_BACKOFF_MS = 500L; // 재시도 전 대기 지연(ms)
+
     /**
      * 외부 축구 API(football-data.org)에 GET HTTP 요청을 전송하고 JSON 본문 문자열을 반환합니다.
-     * - X-Auth-Token 헤더에 API 키를 탑재하여 인증합니다.
+     * 
+     * [질문 11 개선 사항]:
+     * 1. 단순 null 반환을 제거하여 호출부에서 데이터 부재 vs 통신 장애를 명확히 구분할 수 있도록 합니다.
+     * 2. 일시적인 네트워크 타임아웃이나 외부 서버 장애(5xx) 시 최대 2회 지수 백오프 재시도(Retry)를 수행합니다.
+     * 3. 429(Rate Limit 초과), 401/403(인증 실패), 5xx(서버 장애) 등 실패 원인을 담은 ExternalApiException을 던집니다.
+     * 
      * @param url 호출할 외부 API 전체 URL
-     * @return 성공 시 JSON 문자열, 실패 시 null
+     * @return 성공 시 JSON 본문 문자열 (절대 null을 반환하지 않음)
+     * @throws ExternalApiException 외부 API 연동 실패 시
      */
     private String sendGetRequest(String url) {
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("X-Auth-Token", apiKey)
-                    .GET()
-                    .build();
+        int attempt = 0;
 
-            // 공식 SSL 인증서 검증을 통과한 안전한 HTTPS 통신을 수행합니다.
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            return response.body();
-        } catch (Exception e) {
-            log.error("[FootballData] HTTP 요청 중 오류 발생 (URL: {}): {}", url, e.getMessage());
-            return null;
+        while (attempt <= MAX_RETRY_COUNT) {
+            attempt++;
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .header("X-Auth-Token", apiKey)
+                        .timeout(Duration.ofSeconds(10))
+                        .GET()
+                        .build();
+
+                // 공식 SSL 인증서 검증을 통과한 안전한 HTTPS 통신을 수행합니다.
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                int statusCode = response.statusCode();
+
+                // 1. 정상 응답 (2xx)
+                if (statusCode >= 200 && statusCode < 300) {
+                    return response.body();
+                }
+
+                // 2. 429 Too Many Requests (호출 제한 초과 - 즉시 명확한 예외 발생)
+                if (statusCode == 429) {
+                    log.warn("[FootballData] API 일일/초당 호출 한도 초과 (HTTP 429, URL: {})", url);
+                    throw new ExternalApiException(ResultCode.EXTERNAL_API_RATE_LIMIT, 429, url,
+                            "외부 축구 API 호출 한도(429 Too Many Requests)를 초과했습니다. 잠시 후 다시 시도해주세요.");
+                }
+
+                // 3. 401 / 403 인증 실패
+                if (statusCode == 401 || statusCode == 403) {
+                    log.error("[FootballData] API 인증 실패 (HTTP {}, URL: {})", statusCode, url);
+                    throw new ExternalApiException(ResultCode.EXTERNAL_API_ERROR, statusCode, url,
+                            "외부 축구 API 키 인증에 실패했거나 접근 권한이 없습니다. (HTTP " + statusCode + ")");
+                }
+
+                // 4. 5xx 외부 서버 장애 발생 -> 일시적 이슈일 수 있으므로 재시도 대상
+                if (statusCode >= 500) {
+                    log.warn("[FootballData] 외부 API 서버 장애 (HTTP {}, 시도 {}/{}, URL: {})",
+                            statusCode, attempt, MAX_RETRY_COUNT + 1, url);
+                    if (attempt <= MAX_RETRY_COUNT) {
+                        try {
+                            Thread.sleep(RETRY_BACKOFF_MS * attempt);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                        }
+                        continue; // 재시도 진행
+                    }
+                    throw new ExternalApiException(ResultCode.EXTERNAL_API_SERVER_ERROR, statusCode, url,
+                            "외부 축구 API 서버에 일시적인 장애가 발생했습니다. (HTTP " + statusCode + ")");
+                }
+
+                // 5. 기타 4xx 클라이언트 오류
+                throw new ExternalApiException(ResultCode.EXTERNAL_API_ERROR, statusCode, url,
+                        "외부 축구 API 요청에 실패했습니다. (HTTP " + statusCode + ")");
+
+            } catch (ExternalApiException e) {
+                // 커스텀 비즈니스 예외는 그대로 상위로 전파
+                throw e;
+            } catch (java.net.http.HttpTimeoutException e) {
+                log.warn("[FootballData] 네트워크 응답 시간 초과 (시도 {}/{}, URL: {}): {}",
+                        attempt, MAX_RETRY_COUNT + 1, url, e.getMessage());
+                if (attempt <= MAX_RETRY_COUNT) {
+                    try {
+                        Thread.sleep(RETRY_BACKOFF_MS * attempt);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
+                    continue; // 재시도 진행
+                }
+                throw new ExternalApiException(ResultCode.EXTERNAL_API_TIMEOUT, 504, url,
+                        "외부 축구 API 서버 응답 시간이 초과되었습니다. (Timeout)", e);
+            } catch (Exception e) {
+                log.warn("[FootballData] HTTP 통신 오류 발생 (시도 {}/{}, URL: {}): {}",
+                        attempt, MAX_RETRY_COUNT + 1, url, e.getMessage());
+                if (attempt <= MAX_RETRY_COUNT) {
+                    try {
+                        Thread.sleep(RETRY_BACKOFF_MS * attempt);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
+                    continue; // 재시도 진행
+                }
+                throw new ExternalApiException(ResultCode.EXTERNAL_API_ERROR, 502, url,
+                        "외부 축구 API와의 통신 중 오류가 발생했습니다: " + e.getMessage(), e);
+            }
         }
+
+        throw new ExternalApiException(ResultCode.EXTERNAL_API_ERROR, 502, url,
+                "외부 축구 API 요청 실패 (최대 재시도 횟수 초과)");
     }
 
     /**
