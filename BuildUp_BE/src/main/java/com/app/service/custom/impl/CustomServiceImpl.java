@@ -242,6 +242,7 @@ public class CustomServiceImpl implements CustomService {
                         booked.get(side).add(offender.getPlayerId());
                         addMatchEvent(result, dismissed, minute, side, "yellow", "경고", playerName(offender) + "이 거친 태클로 옐로카드를 받습니다.", false);
                     }
+                    result.getEvents().get(result.getEvents().size() - 1).setPlayerId(offender.getPlayerId());
                 }
             }
             if (minute == 45) {
