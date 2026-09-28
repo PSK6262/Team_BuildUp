@@ -270,7 +270,7 @@ function PlayerRankings({ metric, label }) {
 
   return <>
     <div className="player-ranking-hero">
-      <div><span className="player-ranking-kicker">{label} 상위 20</span>
+      <div>
         <h2>{leaderPlayerKor}</h2>
         <p>{leaderTeamKor} · {rows.filter((row) => row.rank === 1).length > 1 ? '공동 1위' : '현재 1위'}</p>
       </div>
