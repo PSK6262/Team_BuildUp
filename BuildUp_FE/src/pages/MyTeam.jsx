@@ -18,6 +18,7 @@ const FORMATION_PRESETS = [
 ];
 
 const LOCAL_STORAGE_KEY = 'buildup_custom_squad_v1';
+const SHOWCASE_DRAFT_KEY = 'plugin:community:showcase-draft';
 const CLUB_EMBLEM_FALLBACKS = new Map(getInitialTeams().map((team) => [String(team.teamId), team.emblemUrl]));
 
 function RosterClubEmblem({ club, className }) {
@@ -30,69 +31,82 @@ function RosterClubEmblem({ club, className }) {
   ) : <span className="club-card-fallback" role="img" aria-label={`${club.teamNameKor || club.teamName} 로고 로딩 실패`}>🛡️</span>;
 }
 
+// 현재 포메이션과 선수 배치를 게시글에 첨부할 PNG 이미지로 만듭니다.
 function createSquadImage(teamName, formation, slots) {
   const canvas = document.createElement('canvas');
   canvas.width = 1200;
   canvas.height = 1440;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('스쿼드 이미지를 만들 수 없는 브라우저입니다.');
-  ctx.fillStyle = '#101d2c';
-  ctx.fillRect(0, 0, 1200, 1440);
+
+  ctx.fillStyle = '#170019';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.textAlign = 'center';
   ctx.fillStyle = '#00ff87';
   ctx.font = 'bold 22px sans-serif';
-  ctx.fillText('PL:UG MY TEAM', 600, 48);
+  ctx.fillText('PL:UG MY TEAM', 600, 46);
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 42px sans-serif';
-  ctx.fillText(teamName.trim() || '나만의 드림 스쿼드', 600, 108, 1080);
+  ctx.fillText(teamName.trim() || '나만의 드림 스쿼드', 600, 104, 1080);
   ctx.fillStyle = '#cbd5e1';
   ctx.font = '24px sans-serif';
   const formationText = formation.presetLabel || `${formation.df}-${formation.mf}-${formation.fw}`;
-  ctx.fillText(`${formationText}  ·  ${slots.filter((slot) => slot.player).length}/11명`, 600, 152);
+  ctx.fillText(`${formationText} · ${slots.filter((slot) => slot.player).length}/11명`, 600, 148);
 
-  const pitch = { x: 40, y: 190, width: 1120, height: 1180 };
+  const pitch = { x: 40, y: 180, width: 1120, height: 1210 };
   for (let stripe = 0; stripe < 10; stripe++) {
-    ctx.fillStyle = stripe % 2 ? '#194f3a' : '#154631';
+    ctx.fillStyle = stripe % 2 ? '#176133' : '#12512b';
     ctx.fillRect(pitch.x, pitch.y + stripe * pitch.height / 10, pitch.width, pitch.height / 10);
   }
   ctx.strokeStyle = '#a7c9ba';
   ctx.lineWidth = 3;
-  ctx.strokeRect(pitch.x + 18, pitch.y + 18, pitch.width - 36, pitch.height - 36);
+  ctx.strokeRect(pitch.x + 4, pitch.y + 4, pitch.width - 8, pitch.height - 8);
   ctx.beginPath();
-  ctx.moveTo(pitch.x + 18, pitch.y + pitch.height / 2);
-  ctx.lineTo(pitch.x + pitch.width - 18, pitch.y + pitch.height / 2);
+  ctx.moveTo(pitch.x + 4, pitch.y + pitch.height / 2);
+  ctx.lineTo(pitch.x + pitch.width - 4, pitch.y + pitch.height / 2);
   ctx.stroke();
   ctx.beginPath();
-  ctx.arc(600, pitch.y + pitch.height / 2, 115, 0, Math.PI * 2);
+  ctx.arc(600, pitch.y + pitch.height / 2, 112, 0, Math.PI * 2);
   ctx.stroke();
-  ctx.strokeRect(350, pitch.y + 18, 500, 165);
-  ctx.strokeRect(350, pitch.y + pitch.height - 183, 500, 165);
+  ctx.strokeRect(360, pitch.y + 4, 480, 145);
+  ctx.strokeRect(360, pitch.y + pitch.height - 149, 480, 145);
 
-  const colors = { GK: '#facc15', DF: '#60a5fa', MF: '#4ade80', FW: '#fb923c' };
+  const positionColors = { GK: '#facc15', DF: '#60a5fa', MF: '#4ade80', FW: '#fb923c' };
   slots.forEach((slot) => {
     const x = pitch.x + Math.max(8, Math.min(92, slot.x ?? 50)) / 100 * pitch.width;
     const y = pitch.y + Math.max(7, Math.min(93, slot.y ?? 50)) / 100 * pitch.height;
-    ctx.fillStyle = slot.player ? '#142333' : '#234d40';
+    ctx.fillStyle = '#142333';
     ctx.beginPath();
-    ctx.roundRect(x - 82, y - 46, 164, 108, 12);
+    ctx.roundRect(x - 84, y - 49, 168, 112, 13);
     ctx.fill();
-    ctx.strokeStyle = colors[slot.pos] || '#ffffff';
+    ctx.strokeStyle = positionColors[slot.pos] || '#ffffff';
     ctx.lineWidth = 2;
     ctx.stroke();
-    ctx.fillStyle = colors[slot.pos] || '#ffffff';
-    ctx.font = 'bold 22px sans-serif';
-    ctx.fillText(slot.pos, x, y - 17);
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = positionColors[slot.pos] || '#ffffff';
     ctx.font = 'bold 21px sans-serif';
-    ctx.fillText(slot.player ? slot.player.nameKor || slot.player.name : '빈 자리', x, y + 13, 150);
+    ctx.fillText(slot.pos, x, y - 20);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.fillText(slot.player?.nameKor || slot.player?.name || '빈 자리', x, y + 12, 150);
     ctx.fillStyle = '#cbd5e1';
-    ctx.font = '16px sans-serif';
-    ctx.fillText(slot.player?.teamNameKor || slot.player?.teamName || '', x, y + 42, 150);
+    ctx.font = '15px sans-serif';
+    ctx.fillText(slot.player?.teamNameKor || slot.player?.teamName || '', x, y + 40, 150);
   });
+
   return new Promise((resolve, reject) => canvas.toBlob((blob) => {
     if (blob) resolve(blob);
     else reject(new Error('스쿼드 이미지 생성에 실패했습니다.'));
   }, 'image/png'));
+}
+
+// 생성한 PNG를 화면 이동 후에도 사용할 수 있는 문자열로 변환합니다.
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('스쿼드 이미지를 준비하지 못했습니다.'));
+    reader.readAsDataURL(blob);
+  });
 }
 
 function AiMatchTimeline({ match }) {
@@ -529,7 +543,7 @@ export default function MyTeam() {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [copyingSquad, setCopyingSquad] = useState(false);
+  const [sharingSquad, setSharingSquad] = useState(false);
   const [squadLoadError, setSquadLoadError] = useState('');
   const [reloadSquad, setReloadSquad] = useState(0);
   const savePendingRef = useRef(false);
@@ -1562,23 +1576,61 @@ export default function MyTeam() {
     }
   };
 
-  // 현재 배치 좌표를 반영한 PNG 이미지를 클립보드에 복사
-  const handleCopyLineup = async () => {
-    if (copyingSquad || loading) return;
-    if (!window.isSecureContext || !navigator.clipboard?.write || typeof ClipboardItem === 'undefined') {
-      showToast('이미지 복사를 지원하는 브라우저에서 HTTPS 또는 localhost로 접속해주세요.');
+  // 완성된 스쿼드를 저장하고 나만의 팀 자랑글 작성 화면으로 이동
+  const handleShareSquad = async () => {
+    if (sharingSquad || loading || savePendingRef.current) return;
+    if (!isLoggedIn) {
+      showToast('스쿼드를 공유하려면 로그인해주세요.');
       return;
     }
-    setCopyingSquad(true);
+    if (slots.length !== 11 || slots.some((slot) => !slot.player)
+        || new Set(slots.map((slot) => String(slot.player?.playerId))).size !== 11) {
+      showToast('서로 다른 선수 11명을 모두 배치한 뒤 공유해주세요.');
+      return;
+    }
+    const name = teamName.trim();
+    if (!name || new TextEncoder().encode(name).length > 100) {
+      showToast('스쿼드 이름은 비어 있지 않아야 하며 UTF-8 기준 100바이트 이내여야 합니다.');
+      return;
+    }
+    const formationName = formation.presetLabel || `${formation.df}-${formation.mf}-${formation.fw}`;
+    const payload = {
+      teamName: name,
+      formation: formationName,
+      squads: slots.map((slot) => ({
+        positionNo: slot.id + 1,
+        position: slot.pos,
+        playerId: slot.player.playerId,
+      })),
+    };
+    savePendingRef.current = true;
+    setSharingSquad(true);
     try {
-      const image = createSquadImage(teamName, formation, slots);
-      await navigator.clipboard.write([new ClipboardItem({ 'image/png': image })]);
-      showToast('📋 스쿼드 사진이 복사되었습니다! 이미지 붙여넣기가 가능한 곳에 붙여넣으세요.');
+      const token = localStorage.getItem('buildup_token');
+      const response = await fetch('/api/customs', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(result?.message || '공유할 스쿼드를 저장하지 못했습니다.');
+      if (!result?.customTeamId) throw new Error('공유할 스쿼드 번호를 확인하지 못했습니다.');
+      const squadImage = await createSquadImage(name, formation, slots);
+      const imageDataUrl = await blobToDataUrl(squadImage);
+      sessionStorage.setItem(SHOWCASE_DRAFT_KEY, JSON.stringify({
+        customTeamId: result.customTeamId,
+        teamName: name,
+        formation: formationName,
+        imageDataUrl,
+        players: slots.map((slot) => ({ position: slot.pos, name: slot.player.nameKor || slot.player.name })),
+      }));
+      window.location.assign(`/plug/community/write?board=showcase&customTeamId=${encodeURIComponent(result.customTeamId)}`);
     } catch (error) {
-      console.warn('[MyTeam] 스쿼드 이미지 복사 실패:', error);
-      showToast('사진을 복사하지 못했습니다. 브라우저의 클립보드 권한을 확인해주세요.');
+      showToast(error.message || '나만의 팀 공유를 시작하지 못했습니다.');
     } finally {
-      setCopyingSquad(false);
+      savePendingRef.current = false;
+      setSharingSquad(false);
     }
   };
 
@@ -1686,8 +1738,8 @@ export default function MyTeam() {
             <button type="button" className="myteam-btn myteam-btn-secondary" onClick={handleAutoFillSquad} title="스쿼드 자동 채우기">
               ⚡ 자동완성
             </button>
-            <button type="button" className="myteam-btn myteam-btn-secondary" onClick={handleCopyLineup} disabled={copyingSquad || loading} title="스쿼드 사진을 클립보드에 복사">
-              {copyingSquad ? '사진 복사 중...' : '📋 공유'}
+            <button type="button" className="myteam-btn myteam-btn-secondary" onClick={handleShareSquad} disabled={sharingSquad || loading} title="나만의 팀 자랑글 작성">
+              {sharingSquad ? '공유 준비 중...' : '📋 공유'}
             </button>
             <button type="button" className="myteam-btn myteam-btn-primary" onClick={handleSaveSquad} disabled={loading || saving || !!squadLoadError} title="스쿼드 DB 저장">
               {saving ? '저장 중...' : '💾 저장하기'}

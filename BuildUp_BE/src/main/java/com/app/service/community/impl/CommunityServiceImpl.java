@@ -39,6 +39,8 @@ public class CommunityServiceImpl implements CommunityService {
     private static final int POST_ATTACHMENT_MAX_COUNT = 5;
     private static final long POST_ATTACHMENT_MAX_SIZE = 10L * 1024 * 1024;
     private static final long POST_ATTACHMENT_MAX_TOTAL_SIZE = 20L * 1024 * 1024;
+    private static final String SHOWCASE_STORED_NAME_PREFIX = "showcase-";
+    private static final String LEGACY_SHOWCASE_ORIGINAL_NAME_PREFIX = "plugin-squad-";
     private static final Map<String, Set<String>> ALLOWED_ATTACHMENT_TYPES = Map.of(
         ".jpg", Set.of("image/jpeg", "image/jpg", "application/octet-stream"),
         ".jpeg", Set.of("image/jpeg", "image/jpg", "application/octet-stream"),
@@ -75,13 +77,16 @@ public class CommunityServiceImpl implements CommunityService {
                 || !List.of("latest", "likes", "views").contains(sort)
                 || page < 1 || size < 1 || size > 100 || keyword.length() > 255
                 || (teamId != null && teamId < 1)
-                || (board == CommunityBoardType.FREE && teamId != null)) {
+                || ((board == CommunityBoardType.FREE || board == CommunityBoardType.SHOWCASE) && teamId != null)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid community search parameters");
         }
         // DB 조회에 사용할 조건을 구성합니다.
         Map<String, Object> params = new HashMap<>();
         params.put("categoryIds", categoryIds);
         params.put("board", board);
+        params.put("freeBoard", board == CommunityBoardType.FREE);
+        params.put("teamBoard", board == CommunityBoardType.TEAM);
+        params.put("showcaseBoard", board == CommunityBoardType.SHOWCASE);
         params.put("teamId", teamId);
         // 검색어의 공백을 정리하고 특수문자를 문자 그대로 검색합니다.
         params.put("keyword", keyword.trim().replace("!", "!!").replace("%", "!%").replace("_", "!_"));
@@ -105,11 +110,7 @@ public class CommunityServiceImpl implements CommunityService {
         if (communityDAO.increaseViewCount(postId) != 1) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
         }
-        Posts post = communityDAO.findPostById(postId);
-        if (post == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
-        }
-        return post;
+        return findSavedPost(postId);
     }
 
     @Override
@@ -119,6 +120,7 @@ public class CommunityServiceImpl implements CommunityService {
         Users user = findLoginUser(loginId);
         validatePost(post);
         validatePostCategory(post.getCategoryId(), null);
+        validatePostBoard(post);
 
         // 요청에서 받은 userId는 사용하지 않고 로그인 회원 번호를 작성자로 지정합니다.
         post.setUserId(user.getUserId());
@@ -129,7 +131,7 @@ public class CommunityServiceImpl implements CommunityService {
         if (communityDAO.insertPost(post) != 1) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Post creation failed");
         }
-        return post;
+        return findSavedPost(post.getPostId());
     }
 
     @Override
@@ -150,7 +152,7 @@ public class CommunityServiceImpl implements CommunityService {
         if (communityDAO.updatePost(post) != 1) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
         }
-        return communityDAO.findPostById(postId);
+        return findSavedPost(postId);
     }
 
     @Override
@@ -184,7 +186,7 @@ public class CommunityServiceImpl implements CommunityService {
             communityDAO.insertPostLike(postLike);
             communityDAO.increaseLikeCount(postId);
         }
-        return communityDAO.findPostById(postId);
+        return findSavedPost(postId);
     }
 
     @Override
@@ -197,7 +199,7 @@ public class CommunityServiceImpl implements CommunityService {
         if (communityDAO.deletePostLike(postLike) == 1) {
             communityDAO.decreaseLikeCount(postId);
         }
-        return communityDAO.findPostById(postId);
+        return findSavedPost(postId);
     }
 
     @Override
@@ -274,13 +276,13 @@ public class CommunityServiceImpl implements CommunityService {
     @Override
     @Transactional
     public List<PostAttachments> uploadPostAttachments(
-            String loginId, Long postId, List<MultipartFile> files) {
+            String loginId, Long postId, List<MultipartFile> files, boolean showcaseImage) {
         Users user = findLoginUser(loginId);
         Posts post = findSavedPost(postId);
         if (!post.getUserId().equals(user.getUserId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Attachment owner required");
         }
-        validateAttachmentRequest(postId, files);
+        validateAttachmentRequest(postId, files, showcaseImage);
 
         int savedCount = communityDAO.countPostAttachments(postId);
         Path postDirectory = postAttachmentDirectory(postId);
@@ -289,9 +291,12 @@ public class CommunityServiceImpl implements CommunityService {
             Files.createDirectories(postDirectory);
             for (int index = 0; index < files.size(); index++) {
                 MultipartFile file = files.get(index);
-                String originalName = safeOriginalName(file.getOriginalFilename());
+                String originalName = showcaseImage
+                    ? LEGACY_SHOWCASE_ORIGINAL_NAME_PREFIX + postId + ".png"
+                    : safeOriginalName(file.getOriginalFilename());
                 String extension = fileExtension(originalName);
-                String storedName = UUID.randomUUID() + extension;
+                String storedName = (showcaseImage ? SHOWCASE_STORED_NAME_PREFIX : "")
+                    + UUID.randomUUID() + extension;
                 Path storedPath = postDirectory.resolve(storedName).normalize();
                 if (!storedPath.startsWith(postDirectory)) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");
@@ -375,7 +380,8 @@ public class CommunityServiceImpl implements CommunityService {
     }
 
     // 첨부파일 개수, 크기, 확장자와 MIME 타입을 검사합니다.
-    private void validateAttachmentRequest(Long postId, List<MultipartFile> files) {
+    private void validateAttachmentRequest(
+            Long postId, List<MultipartFile> files, boolean showcaseImage) {
         if (files == null || files.isEmpty() || files.stream().anyMatch(MultipartFile::isEmpty)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");
         }
@@ -384,6 +390,11 @@ public class CommunityServiceImpl implements CommunityService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Attachment limit exceeded");
         }
         long totalSize = 0;
+        if (showcaseImage && (files.size() != 1
+                || communityDAO.findPostAttachments(postId).stream()
+                    .anyMatch(PostAttachments::isShowcaseImage))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");
+        }
         for (MultipartFile file : files) {
             if (file.getSize() <= 0 || file.getSize() > POST_ATTACHMENT_MAX_SIZE) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Attachment too large");
@@ -391,6 +402,15 @@ public class CommunityServiceImpl implements CommunityService {
             totalSize += file.getSize();
             String originalName = safeOriginalName(file.getOriginalFilename());
             String extension = fileExtension(originalName);
+            if (showcaseImage && (!".png".equals(extension)
+                    || !"image/png".equals(normalizeContentType(file.getContentType())))) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");
+            }
+            if (!showcaseImage && originalName.regionMatches(
+                    true, 0, LEGACY_SHOWCASE_ORIGINAL_NAME_PREFIX, 0,
+                    LEGACY_SHOWCASE_ORIGINAL_NAME_PREFIX.length())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");
+            }
             Set<String> allowedTypes = ALLOWED_ATTACHMENT_TYPES.get(extension);
             if (allowedTypes == null || !allowedTypes.contains(normalizeContentType(file.getContentType()))) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");
@@ -512,7 +532,8 @@ public class CommunityServiceImpl implements CommunityService {
         if (post == null || post.getTitle() == null || post.getTitle().isBlank()
                 || post.getContent() == null || post.getContent().isBlank()
                 || post.getCategoryId() == null || post.getCategoryId() < 1
-                || (post.getTeamId() != null && post.getTeamId() < 1)) {
+                || (post.getTeamId() != null && post.getTeamId() < 1)
+                ) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid post");
         }
         String title = post.getTitle().trim();
@@ -522,6 +543,25 @@ public class CommunityServiceImpl implements CommunityService {
         String content = post.getContent().trim();
         if (content.codePointCount(0, content.length()) > POST_CONTENT_MAX_LENGTH) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Post content too long");
+        }
+    }
+
+    // 등록 요청의 게시판과 팀 연결 값이 일치하는지 검사합니다.
+    private void validatePostBoard(Posts post) {
+        CommunityBoardType board;
+        try {
+            board = CommunityBoardType.fromValue(post.getBoardType());
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid post board type");
+        }
+        boolean validFree = board == CommunityBoardType.FREE
+            && post.getTeamId() == null;
+        boolean validTeam = board == CommunityBoardType.TEAM
+            && post.getTeamId() != null;
+        boolean validShowcase = board == CommunityBoardType.SHOWCASE
+            && post.getTeamId() == null;
+        if (!validFree && !validTeam && !validShowcase) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Post board data mismatch");
         }
     }
 
