@@ -166,11 +166,12 @@
 		  AND p.IS_SUCCESS IS NULL
 	</select>
 
-	<!-- 예측 건별 정산 결과 업데이트 -->
+	<!-- 예측 건별 정산 결과 업데이트 (동시성 중복 정산 원천 차단: IS_SUCCESS IS NULL 조건 필수) -->
 	<update id="updatePredictionSettlement" parameterType="Predictions">
 		UPDATE PREDICTIONS
 		SET IS_SUCCESS = #{isSuccess}
 		WHERE PREDICTION_ID = #{predictionId}
+		  AND IS_SUCCESS IS NULL
 	</update>
 
 	<!-- 경기 시작 전 예측 변경 -->

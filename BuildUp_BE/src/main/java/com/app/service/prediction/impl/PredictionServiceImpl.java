@@ -8,6 +8,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -166,14 +167,28 @@ public class PredictionServiceImpl implements PredictionService {
 			);
 		}
 
-		Predictions prediction = new Predictions();
-		prediction.setUserId(userId);
-		prediction.setMatchId(matchId);
-		prediction.setPredictResult(predictResult);
-		predictionDAO.insertPrediction(prediction);
+		try {
+			Predictions prediction = new Predictions();
+			prediction.setUserId(userId);
+			prediction.setMatchId(matchId);
+			prediction.setPredictResult(predictResult);
+			predictionDAO.insertPrediction(prediction);
 
-		log.info("[승부예측 투표] 유저 ID: {}, 경기: {}, 선택: {}, 적중 시: {}P",
-				userId, matchTitle, predictResult, expectedReward);
+			log.info("[승부예측 투표] 유저 ID: {}, 경기: {}, 선택: {}, 적중 시: {}P",
+					userId, matchTitle, predictResult, expectedReward);
+
+		} catch (DuplicateKeyException e) {
+			// [동시성 방어 - 질문 7 모범 규격]
+			// DB 레벨의 복합 고유 키(UQ_PREDICTIONS_USER_MATCH: USER_ID + MATCH_ID)로 중복 레코드 생성을 원천 차단하고,
+			// 스프링의 DuplicateKeyException을 명시적으로 잡아 클라이언트에 중복 투표 요청임을 명확히 통보합니다.
+			log.warn("[승부예측 중복 투표 차단] 유저 ID: {}, 경기 ID: {} - 동시 요청으로 인한 DuplicateKeyException 감지, 중복 요청 통보 ({})",
+					userId, matchId, e.getMessage());
+			return Map.of(
+				"status", STATUS_FAIL,
+				"message", MSG_ALREADY_PREDICTED,
+				"matchId", matchId
+			);
+		}
 
 		return Map.of(
 			"status", STATUS_SUCCESS,
@@ -240,13 +255,37 @@ public class PredictionServiceImpl implements PredictionService {
 		}
 
 		List<Predictions> pendingList = predictionDAO.selectPendingPredictionsByMatchId(matchId);
+		if (pendingList == null || pendingList.isEmpty()) {
+			log.info("[승부예측 정산 스킵] 경기 ID: {} - 정산 대기 중인 예측이 없거나 이미 모두 정산 완료됨", matchId);
+			return Map.of(
+				"status", STATUS_SKIPPED,
+				"matchId", matchId,
+				"message", "해당 경기(" + matchTitle + ")는 이미 모든 예측 정산이 완료되었거나 참여자가 없습니다."
+			);
+		}
+
 		int successCount = 0;
 		int failCount = 0;
 		long totalPayout = 0L;
 
 		for (Predictions p : pendingList) {
 			boolean isWin = p.getPredictResult().equals(actualResult);
+			String targetStatus = isWin ? CommonCode.SUCCESS_WIN : CommonCode.SUCCESS_LOSE;
 
+			// [동시성 방어 - 질문 8 핵심]
+			// 1단계: 원자적 선점 업데이트 - IS_SUCCESS IS NULL 조건을 만족할 때만 상태를 먼저 선점합니다.
+			p.setIsSuccess(targetStatus);
+			int updatedRows = predictionDAO.updatePredictionSettlement(p);
+
+			// 만약 스케줄러나 다른 관리자가 동시 실행하여 이미 정산했다면 updatedRows가 0이 됩니다.
+			// 이때는 포인트를 절대 중복 지급하지 않고 즉시 스킵합니다! (멱등성 보장)
+			if (updatedRows == 0) {
+				log.warn("[승부예측 중복 정산 방어] 이미 정산 처리된 건 스킵 (Prediction ID: {}, User ID: {})",
+						p.getPredictionId(), p.getUserId());
+				continue;
+			}
+
+			// 2단계: 선점에 성공한 단 하나의 트랜잭션만 회원에게 포인트를 정확히 1회 지급합니다.
 			if (isWin) {
 				// 적중 시 보상 포인트 지급
 				predictionDAO.updateUserPoint(Map.of("userId", p.getUserId(), "amount", reward));
@@ -261,21 +300,13 @@ public class PredictionServiceImpl implements PredictionService {
 				history.setDescription("[승부예측 적중] " + matchTitle + " (" + reward + "P 적중 보상 지급)");
 				predictionDAO.insertPointHistory(history);
 
-				// 예측 결과 업데이트 (성공)
-				p.setIsSuccess(CommonCode.SUCCESS_WIN);
-				predictionDAO.updatePredictionSettlement(p);
-
 				// 누적 전적 갱신 (승수 +1)
 				predictionDAO.mergeUserPredicts(Map.of("userId", p.getUserId(), "winIncrement", 1));
 
 				successCount++;
 				totalPayout += reward;
 			} else {
-				// 미적중 (실패)
-				p.setIsSuccess(CommonCode.SUCCESS_LOSE);
-				predictionDAO.updatePredictionSettlement(p);
-
-				// 누적 전적 갱신 (참여수만 +1)
+				// 미적중 (실패) - 누적 전적 갱신 (참여수만 +1)
 				predictionDAO.mergeUserPredicts(Map.of("userId", p.getUserId(), "winIncrement", 0));
 
 				failCount++;
@@ -289,7 +320,7 @@ public class PredictionServiceImpl implements PredictionService {
 			"status", STATUS_SUCCESS,
 			"matchId", matchId,
 			"actualResult", actualResult,
-			"settledCount", pendingList.size(),
+			"settledCount", (successCount + failCount),
 			"successCount", successCount,
 			"failCount", failCount,
 			"totalPayout", totalPayout,
