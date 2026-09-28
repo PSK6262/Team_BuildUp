@@ -20,4 +20,10 @@ public interface UserMailService {
 
 	// 비밀번호 재설정 인증키 유효성 검사
 	boolean verifyResetAuthKey(String email, String authKey);
+
+	// 이메일 변경 인증코드 발송 (6자리 숫자, 신규 이메일로 발송)
+	void sendEmailChangeCode(String newEmail, String nickname);
+
+	// 이메일 변경 인증코드 확인 및 검증 처리
+	boolean verifyEmailChangeCode(String newEmail, String code);
 }

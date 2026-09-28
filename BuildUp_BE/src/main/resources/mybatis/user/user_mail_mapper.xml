@@ -92,4 +92,60 @@
 		WHERE EMAIL = #{email}
 	</delete>
 
+	<!-- 이메일 변경 인증코드 저장 전 기존 미사용 레코드 삭제 -->
+	<delete id="deleteOldEmailChangeCodes" parameterType="string">
+		DELETE FROM EMAIL_VERIFICATIONS
+		WHERE EMAIL = #{email}
+			AND AUTH_TYPE = 'EMAIL_CHANGE'
+	</delete>
+
+	<!-- 이메일 변경 인증코드 저장 (6자리 숫자, 유효기간: 10분) -->
+	<insert id="insertEmailChangeCode" parameterType="map">
+		INSERT INTO EMAIL_VERIFICATIONS (
+			EMAIL,
+			AUTH_KEY,
+			AUTH_TYPE,
+			EXPIRED_AT,
+			IS_VERIFIED,
+			CREATED_AT
+		) VALUES (
+			#{email},
+			#{code},
+			'EMAIL_CHANGE',
+			SYSTIMESTAMP + INTERVAL '10' MINUTE,
+			'N',
+			SYSTIMESTAMP
+		)
+	</insert>
+
+	<!-- 이메일 변경 인증코드 유효성 검사 (코드 일치 + 미사용 + 만료 전) -->
+	<select id="checkValidEmailChangeCode" parameterType="map" resultType="int">
+		SELECT COUNT(*)
+		FROM EMAIL_VERIFICATIONS
+		WHERE EMAIL = #{email}
+			AND AUTH_KEY = #{code}
+			AND AUTH_TYPE = 'EMAIL_CHANGE'
+			AND IS_VERIFIED = 'N'
+			AND SYSTIMESTAMP &lt;= EXPIRED_AT
+	</select>
+
+	<!-- 이메일 변경 인증코드 확인 완료 처리 -->
+	<update id="markEmailChangeVerified" parameterType="string">
+		UPDATE EMAIL_VERIFICATIONS
+		SET IS_VERIFIED = 'Y'
+		WHERE EMAIL = #{email}
+			AND AUTH_TYPE = 'EMAIL_CHANGE'
+			AND IS_VERIFIED = 'N'
+	</update>
+
+	<!-- 해당 이메일의 변경 인증이 완료되었는지 확인 -->
+	<select id="isEmailChangeVerified" parameterType="string" resultType="int">
+		SELECT COUNT(*)
+		FROM EMAIL_VERIFICATIONS
+		WHERE EMAIL = #{email}
+			AND AUTH_TYPE = 'EMAIL_CHANGE'
+			AND IS_VERIFIED = 'Y'
+			AND SYSTIMESTAMP &lt;= EXPIRED_AT
+	</select>
+
 </mapper>

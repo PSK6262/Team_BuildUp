@@ -38,6 +38,9 @@ public class UserController {
 	@Autowired
 	private UserDAO userDAO;
 
+	@Autowired
+	private com.app.dao.user.UserMailDAO userMailDAO;
+
 
 	/**
 	 * 현재 로그인된 회원의 상세 프로필 조회 (마이페이지용)
@@ -76,10 +79,28 @@ public class UserController {
 		// 본인 정보만 업데이트 가능하도록 PK 고정
 		updateData.setUserId(currentUser.getUserId());
 
-		// 닉네임 변경 시 중복 검증 (자신의 기존 닉네임과 다른 경우만)
-		if (updateData.getNickname() != null && !updateData.getNickname().equals(currentUser.getNickname())) {
-			if (!userService.isNicknameAvailable(updateData.getNickname())) {
+		// 닉네임 변경 시 형식 및 중복 검증 (자신의 기존 닉네임과 다른 경우만)
+		if (updateData.getNickname() != null && !updateData.getNickname().trim().equals(currentUser.getNickname())) {
+			String newNickname = updateData.getNickname().trim();
+			if (newNickname.isEmpty()) {
+				return ApiResponse.error(ResultCode.INVALID_INPUT);
+			}
+			if (!NICKNAME_PATTERN.matcher(newNickname).matches()) {
+				return ApiResponse.error(ResultCode.INVALID_NICKNAME);
+			}
+			if (!userService.isNicknameAvailable(newNickname)) {
 				return ApiResponse.error(ResultCode.DUPLICATE_NICKNAME);
+			}
+		}
+
+		// 이메일 변경 시 인증 완료 및 중복 검증 (자신의 기존 이메일과 다른 경우만)
+		if (updateData.getEmail() != null && !updateData.getEmail().trim().equalsIgnoreCase(currentUser.getEmail())) {
+			String newEmail = updateData.getEmail().trim();
+			if (!userService.isEmailAvailable(newEmail)) {
+				return ApiResponse.error(ResultCode.DUPLICATE_EMAIL);
+			}
+			if (!userMailDAO.isEmailChangeVerified(newEmail)) {
+				return ApiResponse.error(ResultCode.EMAIL_CHANGE_NOT_VERIFIED);
 			}
 		}
 
