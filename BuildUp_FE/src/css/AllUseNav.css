@@ -1,8 +1,8 @@
-.user-nav { position: relative; z-index: 20; background: #fff; border-bottom: 1px solid #e5e9ef; color: #253247; font-family: Arial, 'Malgun Gothic', sans-serif; }
+.user-nav { position: relative; z-index: 20; background: #fff; border-bottom: 1px solid #e5e9ef; color: #253247; font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif); }
 .user-nav * { box-sizing: border-box; }
 .user-nav__inner { display: flex; align-items: center; justify-content: space-between; gap: 28px; max-width: 1440px; min-height: 84px; margin: 0 auto; padding: 16px 32px; }
 .user-nav a { color: inherit; text-decoration: none; }
-.user-nav__logo { font-size: 26px; font-weight: 900; letter-spacing: -0.5px; display: inline-flex; align-items: center; text-decoration: none; }
+.user-nav__logo { font-family: var(--font-en, 'Montserrat', sans-serif); font-size: 26px; font-weight: 900; letter-spacing: -0.5px; display: inline-flex; align-items: center; text-decoration: none; }
 .user-nav__logo-pl { color: #38003c; }
 .user-nav__logo-colon { color: #e90052; margin: 0 1px; }
 .user-nav__logo-ug { color: #02a663; }
@@ -36,4 +36,116 @@
 }
 
 .user-nav [aria-current='location'] { color: #16744b; }
+
+/* ========================================================
+   메인페이지 전용 글래스모피즘 블러 내비게이션 바 & 인트로 단독 노출 제어
+   ======================================================== */
+.user-nav.user-nav--mainpage {
+  position: fixed;
+  top: 14px;
+  left: 20px;
+  right: 20px;
+  z-index: 40;
+  max-width: 1440px;
+  margin: 0 auto;
+  background: rgba(18, 3, 24, 0.55);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  color: #ffffff;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.48),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition:
+    opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.user-nav.user-nav--mainpage .user-nav__inner {
+  min-height: 68px;
+  padding: 10px 28px;
+}
+
+.user-nav.user-nav--mainpage .user-nav__logo-pl {
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+}
+
+.user-nav.user-nav--mainpage .user-nav__logo-colon {
+  color: #ff166b;
+  text-shadow: 0 0 10px rgba(255, 22, 107, 0.65);
+}
+
+.user-nav.user-nav--mainpage .user-nav__logo-ug {
+  color: #00ff87;
+  text-shadow: 0 0 12px rgba(0, 255, 135, 0.55);
+}
+
+.user-nav.user-nav--mainpage .user-nav__links a,
+.user-nav.user-nav--mainpage .user-nav__account a,
+.user-nav.user-nav--mainpage .user-nav__account button {
+  color: rgba(255, 255, 255, 0.92);
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.user-nav.user-nav--mainpage .user-nav__links a:hover,
+.user-nav.user-nav--mainpage .user-nav__account a:hover,
+.user-nav.user-nav--mainpage .user-nav__account button:hover,
+.user-nav.user-nav--mainpage [aria-current='page'],
+.user-nav.user-nav--mainpage [aria-current='location'],
+.user-nav.user-nav--mainpage .is-active {
+  color: #00ff87;
+  text-shadow: 0 0 16px rgba(0, 255, 135, 0.8);
+}
+
+.user-nav.user-nav--mainpage .user-nav__primary {
+  padding: 9px 22px;
+  border-radius: 999px;
+  background: rgba(0, 255, 135, 0.12);
+  border: 1.5px solid #00ff87;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow:
+    0 0 16px rgba(0, 255, 135, 0.38),
+    inset 0 0 8px rgba(0, 255, 135, 0.18);
+  transition: all 0.22s ease;
+}
+
+.user-nav.user-nav--mainpage .user-nav__primary:hover {
+  background: rgba(0, 255, 135, 0.24);
+  color: #00ff87;
+  box-shadow:
+    0 0 22px rgba(0, 255, 135, 0.65),
+    inset 0 0 12px rgba(0, 255, 135, 0.3);
+}
+
+/* 인트로 재생 중일 때 스크롤 완전 고정 및 내비바/푸터/챗봇 숨김 */
+html:has(body.mainpage-intro-active),
+body.mainpage-intro-active {
+  overflow: hidden !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+}
+
+body.mainpage-intro-active .user-nav.user-nav--mainpage {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(-20px);
+}
+
+body.mainpage-intro-active .global-footer {
+  display: none !important;
+}
+
+body.mainpage-intro-active .chatbot-widget,
+body.mainpage-intro-active .chatbot-widget__launcher,
+body.mainpage-intro-active .chatbot-widget__panel {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+
+
 
