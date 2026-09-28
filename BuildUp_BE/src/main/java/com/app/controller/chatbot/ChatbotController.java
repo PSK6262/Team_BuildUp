@@ -29,14 +29,16 @@ public class ChatbotController {
             return ResponseEntity.badRequest().body(ApiResponse.error(ResultCode.INVALID_INPUT));
         }
         String question = body.get("question");
-        if (question == null || question.isBlank() || question.length() > 1000) {
+        String teamContext = body.get("teamContext");
+        if (question == null || question.isBlank() || question.length() > 1000
+                || (teamContext != null && teamContext.length() > 20000)) {
             return ResponseEntity.badRequest().body(ApiResponse.error(ResultCode.INVALID_INPUT));
         }
 
 		try {
 			return ResponseEntity.ok(ApiResponse.success(geminiApiService.answerEplQuestion(
 				question, body.get("pagePath"), body.get("scoreContext"),
-				body.get("conversationContext"))));
+				body.get("conversationContext"), teamContext)));
         } catch (IllegalStateException exception) {
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(ApiResponse.error(ResultCode.FAIL));
         }
