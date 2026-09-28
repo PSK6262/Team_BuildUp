@@ -4,8 +4,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -13,9 +12,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,22 +58,12 @@ public class FootballApiServiceImpl implements FootballApiService {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private HttpClient createInsecureHttpClient() throws Exception {
-        TrustManager[] trustAllCerts = new TrustManager[]{
-            new X509TrustManager() {
-                public X509Certificate[] getAcceptedIssuers() { return null; }
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-            }
-        };
-
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, trustAllCerts, new SecureRandom());
-
-        return HttpClient.newBuilder()
-                .sslContext(sslContext)
-                .build();
-    }
+    // [보안 및 성능 최적화 개선]
+    // 1. JVM 기본 신뢰 인증서(CA)를 검증하여 중간자 공격(MITM) 및 전송 데이터 위·변조를 원천 방어합니다.
+    // 2. 요청마다 클라이언트를 새로 생성하지 않고 싱글톤으로 재사용하여 커넥션 풀링 및 네트워크 성능을 대폭 향상시킵니다.
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .build();
 
     /**
      * 외부 축구 API(football-data.org)에 GET HTTP 요청을 전송하고 JSON 본문 문자열을 반환합니다.
@@ -87,17 +73,17 @@ public class FootballApiServiceImpl implements FootballApiService {
      */
     private String sendGetRequest(String url) {
         try {
-            HttpClient client = createInsecureHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("X-Auth-Token", apiKey)
                     .GET()
                     .build();
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            // 공식 SSL 인증서 검증을 통과한 안전한 HTTPS 통신을 수행합니다.
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             return response.body();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("[FootballData] HTTP 요청 중 오류 발생 (URL: {}): {}", url, e.getMessage());
             return null;
         }
     }
