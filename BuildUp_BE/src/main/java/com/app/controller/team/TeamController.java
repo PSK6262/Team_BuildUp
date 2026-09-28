@@ -3,21 +3,32 @@ package com.app.controller.team;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.app.common.CommonCode;
+import com.app.dao.user.UserDAO;
 import com.app.dto.team.PlayerStats;
 import com.app.dto.team.Players;
 import com.app.dto.team.Staffs;
 import com.app.dto.team.TeamStats;
 import com.app.dto.team.Teams;
+import com.app.dto.user.Users;
 import com.app.service.api.FootballApiService;
 import com.app.service.api.GeminiApiService;
 import com.app.service.team.TeamService;
+import com.app.util.JwtProvider;
+import com.app.util.LoginManager;
 
 @RestController
 @RequestMapping({"/api/teams", "/teams"})
@@ -32,102 +43,190 @@ public class TeamController {
 	@Autowired
 	private GeminiApiService geminiApiService;
 
+	@Autowired
+	private UserDAO userDAO;
+
+	/**
+	 * [관리자 권한 검증 메서드]
+	 * 1. 세션의 loginUser 객체 확인
+	 * 2. 세션 loginUserId 확인 후 DB 조회
+	 * 3. Authorization Bearer JWT 토큰 검증 후 DB 조회
+	 * 데이터 동기화와 같은 중요한 상태 변경 API는 반드시 관리자(ROLE_ADMIN) 권한을 요구합니다.
+	 */
+	private boolean isAdmin(HttpServletRequest request) {
+		if (request == null) {
+			return false;
+		}
+
+		// 1. 세션의 loginUser 객체 확인
+		HttpSession session = request.getSession(false);
+		if (session != null) {
+			Users sessionUser = (Users) session.getAttribute(CommonCode.SESSION_LOGIN_USER);
+			if (sessionUser != null && CommonCode.ROLE_ADMIN.equals(sessionUser.getRoleCode())) {
+				return true;
+			}
+		}
+
+		// 2. 세션 loginUserId 확인
+		String sessionLoginId = LoginManager.getLoginUserId(request);
+		if (sessionLoginId != null && userDAO != null) {
+			Users user = userDAO.selectUserByLoginId(sessionLoginId);
+			if (user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode())) {
+				return true;
+			}
+		}
+
+		// 3. Authorization Bearer JWT 토큰 확인
+		String token = JwtProvider.extractToken(request);
+		if (token != null && JwtProvider.isValidToken(token)) {
+			String tokenLoginId = JwtProvider.getLoginIdFromToken(token);
+			if (tokenLoginId != null && userDAO != null) {
+				Users user = userDAO.selectUserByLoginId(tokenLoginId);
+				if (user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode())) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * 비관리자 접근 시 403 Forbidden 응답을 생성하는 공통 메서드
+	 */
+	private ResponseEntity<Map<String, Object>> forbiddenResponse() {
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+			"status", "FAIL",
+			"code", "FORBIDDEN",
+			"message", "데이터 동기화 작업은 관리자(ADMIN) 권한이 필요합니다."
+		));
+	}
+
 	// [Gemini AI] 0. 전체 구단 역사 및 한글명 일괄 자동 적재 (비동기 백그라운드)
-	// 예: GET 또는 POST /api/teams/sync-ai-korean
-	@GetMapping("/sync-ai-korean")
-	public Map<String, Object> syncAiKorean() {
-		return geminiApiService.syncAllKoreanDataAsync();
+	// 보안 개선: GET -> POST 전환 및 관리자(ADMIN) 권한 검증 필수
+	@PostMapping("/sync-ai-korean")
+	public ResponseEntity<Map<String, Object>> syncAiKorean(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return forbiddenResponse();
+		}
+		return ResponseEntity.ok(geminiApiService.syncAllKoreanDataAsync());
 	}
 
 	// [Gemini AI] 0-1. 20개 구단 한글명, 홈구장, 역사 동기화만 단독 실행
-	// 예: GET /api/teams/sync-ai-teams
-	@GetMapping("/sync-ai-teams")
-	public Map<String, Object> syncAiTeams() {
+	// 보안 개선: GET -> POST 전환 및 관리자(ADMIN) 권한 검증 필수
+	@PostMapping("/sync-ai-teams")
+	public ResponseEntity<Map<String, Object>> syncAiTeams(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return forbiddenResponse();
+		}
 		int count = geminiApiService.syncTeamsKoreanAndHistory();
-		return Map.of(
+		return ResponseEntity.ok(Map.of(
 			"status", "SUCCESS",
 			"message", "20개 구단 한글명 및 역사 생성이 완료되었습니다.",
 			"updatedCount", count
-		);
+		));
 	}
 
 	// [Gemini AI] 0-2. 코칭스태프(감독) 한글명 번역만 단독 실행
-	// 예: GET /api/teams/sync-ai-staffs
-	@GetMapping("/sync-ai-staffs")
-	public Map<String, Object> syncAiStaffs() {
+	// 보안 개선: GET -> POST 전환 및 관리자(ADMIN) 권한 검증 필수
+	@PostMapping("/sync-ai-staffs")
+	public ResponseEntity<Map<String, Object>> syncAiStaffs(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return forbiddenResponse();
+		}
 		int count = geminiApiService.syncStaffsKorean();
-		return Map.of(
+		return ResponseEntity.ok(Map.of(
 			"status", "SUCCESS",
 			"message", "코칭스태프 한글명 번역이 완료되었습니다.",
 			"updatedCount", count
-		);
+		));
 	}
 
 	// [Gemini AI] 0-3. 전체 선수단 한글 번역만 단독 실행
-	// 예: GET /api/teams/sync-ai-players
-	@GetMapping("/sync-ai-players")
-	public Map<String, Object> syncAiPlayers() {
+	// 보안 개선: GET -> POST 전환 및 관리자(ADMIN) 권한 검증 필수
+	@PostMapping("/sync-ai-players")
+	public ResponseEntity<Map<String, Object>> syncAiPlayers(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return forbiddenResponse();
+		}
 		int count = geminiApiService.syncAllPlayersKorean();
-		return Map.of(
+		return ResponseEntity.ok(Map.of(
 			"status", "SUCCESS",
 			"message", "전체 선수단 한글명 번역이 완료되었습니다.",
 			"updatedCount", count
-		);
+		));
 	}
 
 	// [응원가 자동화] 20개 구단 공식 유튜브 응원가 일괄 DB 적재
-	// 예: GET /api/teams/sync-anthems
-	@GetMapping("/sync-anthems")
-	public Map<String, Object> syncAnthems() {
+	// 보안 개선: GET -> POST 전환 및 관리자(ADMIN) 권한 검증 필수
+	@PostMapping("/sync-anthems")
+	public ResponseEntity<Map<String, Object>> syncAnthems(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return forbiddenResponse();
+		}
 		int count = geminiApiService.syncAllTeamAnthems();
-		return Map.of(
+		return ResponseEntity.ok(Map.of(
 			"status", "SUCCESS",
 			"updatedCount", count,
 			"message", "20개 구단의 공식 유튜브 응원가(Anthem)가 DB에 성공적으로 저장되었습니다."
-		);
+		));
 	}
 
 	// [Gemini AI] 0-4. 깨지거나 누락된 구단 엠블럼 AI 자동 탐색 및 복구
-	// 예: GET /api/teams/sync-ai-emblems
-	@GetMapping("/sync-ai-emblems")
-	public Map<String, Object> syncAiEmblems() {
+	// 보안 개선: GET -> POST 전환 및 관리자(ADMIN) 권한 검증 필수
+	@PostMapping("/sync-ai-emblems")
+	public ResponseEntity<Map<String, Object>> syncAiEmblems(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return forbiddenResponse();
+		}
 		int count = geminiApiService.syncBrokenTeamEmblemsWithAI();
-		return Map.of(
+		return ResponseEntity.ok(Map.of(
 			"status", "SUCCESS",
 			"updatedCount", count,
 			"message", "깨지거나 누락된 구단 엠블럼 AI 복구 및 저장이 완료되었습니다."
-		);
+		));
 	}
 
 	// [Gemini AI] 0-5. 20개 구단 전체 선수 세부 포지션(CB, LB, RB, CDM, CAM, ST 등) AI 정밀 판별 및 DB 적재
-	// 예: GET /api/teams/sync-ai-detail-positions
-	@GetMapping("/sync-ai-detail-positions")
-	public Map<String, Object> syncAiDetailPositions() {
+	// 보안 개선: GET -> POST 전환 및 관리자(ADMIN) 권한 검증 필수
+	@PostMapping("/sync-ai-detail-positions")
+	public ResponseEntity<Map<String, Object>> syncAiDetailPositions(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return forbiddenResponse();
+		}
 		int count = geminiApiService.syncAllPlayersDetailPositions();
-		return Map.of(
+		return ResponseEntity.ok(Map.of(
 			"status", "SUCCESS",
 			"message", "20개 구단 전체 선수의 세부 포지션(CB, LB, RB, CDM, CAM, ST 등) 정밀 동기화가 완료되었습니다.",
 			"updatedCount", count
-		);
+		));
 	}
 
 	// [Gemini AI] 0-6. 특정 구단 소속 선수 세부 포지션 AI 단독 적재
-	// 예: GET /api/teams/57/sync-ai-detail-positions
-	@GetMapping("/{teamId}/sync-ai-detail-positions")
-	public Map<String, Object> syncAiDetailPositionsByTeam(@PathVariable("teamId") Long teamId) {
+	// 보안 개선: GET -> POST 전환 및 관리자(ADMIN) 권한 검증 필수
+	@PostMapping("/{teamId}/sync-ai-detail-positions")
+	public ResponseEntity<Map<String, Object>> syncAiDetailPositionsByTeam(
+			@PathVariable("teamId") Long teamId,
+			HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return forbiddenResponse();
+		}
 		int count = geminiApiService.syncPlayersDetailPositionsByTeamId(teamId);
-		return Map.of(
+		return ResponseEntity.ok(Map.of(
 			"status", "SUCCESS",
 			"teamId", teamId,
 			"message", "구단(ID: " + teamId + ") 소속 선수의 세부 포지션 정밀 동기화가 완료되었습니다.",
 			"updatedCount", count
-		);
+		));
 	}
 
 	// 1. 프리미어리그 전체 구단 및 소속 선수 전체 일괄 DB 저장 (동기화)
-	// 예: GET /api/teams/sync-all
-	@GetMapping("/sync-all")
-	public Map<String, Object> syncAllTeams() {
+	// 보안 개선: GET -> POST 전환 및 관리자(ADMIN) 권한 검증 필수
+	@PostMapping("/sync-all")
+	public ResponseEntity<Map<String, Object>> syncAllTeams(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return forbiddenResponse();
+		}
 		System.out.println("======================================================================");
 		System.out.println("[BuildUp] 프리미어리그 전체 구단 및 선수 일괄 동기화 시작");
 		System.out.println("----------------------------------------------------------------------");
@@ -135,17 +234,22 @@ public class TeamController {
 		System.out.println("  - 처리 결과: 총 " + totalPlayers + "명의 선수가 DB에 저장되었습니다.");
 		System.out.println("======================================================================");
 
-		return Map.of(
+		return ResponseEntity.ok(Map.of(
 			"status", "SUCCESS",
 			"message", "프리미어리그 20개 구단 및 전체 선수 데이터가 성공적으로 DB에 저장되었습니다.",
 			"totalSavedPlayers", totalPlayers
-		);
+		));
 	}
 
 	// 2. 특정 구단 선수 스쿼드 API 조회 후 DB 저장 (동기화)
-	// 예: GET /api/teams/57/sync
-	@GetMapping("/{teamId}/sync")
-	public Map<String, Object> syncTeamSquad(@PathVariable("teamId") Long teamId) {
+	// 보안 개선: GET -> POST 전환 및 관리자(ADMIN) 권한 검증 필수
+	@PostMapping("/{teamId}/sync")
+	public ResponseEntity<Map<String, Object>> syncTeamSquad(
+			@PathVariable("teamId") Long teamId,
+			HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return forbiddenResponse();
+		}
 		System.out.println("======================================================================");
 		System.out.println("[BuildUp] 구단 선수 목록 동기화 시작 (TEAM_ID: " + teamId + ")");
 		System.out.println("----------------------------------------------------------------------");
@@ -157,12 +261,12 @@ public class TeamController {
 		}
 		System.out.println("======================================================================");
 
-		return Map.of(
+		return ResponseEntity.ok(Map.of(
 			"teamId", teamId,
 			"status", "SUCCESS",
 			"savedPlayerCount", savedPlayers.size(),
 			"players", savedPlayers
-		);
+		));
 	}
 
 	// 3. 전체 구단 목록 조회 (DB 데이터)
@@ -173,42 +277,53 @@ public class TeamController {
 	}
 
 	// 3-1. 프리미어리그 20개 구단 공식 감독 일괄 적재
-	// 예: GET /api/teams/init-staffs
-	@GetMapping("/init-staffs")
-	public Map<String, Object> initStaffs() {
+	// 보안 개선: GET -> POST 전환 및 관리자(ADMIN) 권한 검증 필수
+	@PostMapping("/init-staffs")
+	public ResponseEntity<Map<String, Object>> initStaffs(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return forbiddenResponse();
+		}
 		int count = footballApiService.initPremierLeagueStaffs();
-		return Map.of(
+		return ResponseEntity.ok(Map.of(
 			"status", count > 0 ? "SUCCESS" : "DORMANT",
 			"message", count > 0 
 				? "프리미어리그 구단 공식 최신 감독 데이터가 성공적으로 적재되었습니다."
 				: "현재 무료 API 환경에서는 감독 데이터 제공이 지원되지 않아 자동 설정이 비활성화(Dormant) 상태입니다. (유료 API 연동 틀 유지 중)",
 			"totalStaffs", count
-		);
+		));
 	}
 
 	// 3-2. 특정 시즌 순위표 동기화 (기본값: 2026)
-	// 예: GET /api/teams/sync-standings?season=2026
-	@GetMapping("/sync-standings")
-	public Map<String, Object> syncStandings(@RequestParam(value = "season", required = false) Integer season) {
+	// 보안 개선: GET -> POST 전환 및 관리자(ADMIN) 권한 검증 필수
+	@PostMapping("/sync-standings")
+	public ResponseEntity<Map<String, Object>> syncStandings(
+			@RequestParam(value = "season", required = false) Integer season,
+			HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return forbiddenResponse();
+		}
 		int count = footballApiService.syncPremierLeagueStandings(season);
-		return Map.of(
+		return ResponseEntity.ok(Map.of(
 			"status", "SUCCESS",
 			"season", (season != null ? season : 2026),
 			"savedTeams", count,
 			"message", "프리미어리그 " + (season != null ? season : 2026) + " 시즌 순위표가 성공적으로 DB에 저장되었습니다."
-		);
+		));
 	}
 
 	// 3-3. 최근 3개 시즌(2024, 2025, 2026) 순위표 일괄 동기화
-	// 예: GET /api/teams/sync-recent-standings
-	@GetMapping("/sync-recent-standings")
-	public Map<String, Object> syncRecentStandings() {
+	// 보안 개선: GET -> POST 전환 및 관리자(ADMIN) 권한 검증 필수
+	@PostMapping("/sync-recent-standings")
+	public ResponseEntity<Map<String, Object>> syncRecentStandings(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return forbiddenResponse();
+		}
 		int count = footballApiService.syncRecentThreeSeasonsStandings();
-		return Map.of(
+		return ResponseEntity.ok(Map.of(
 			"status", "SUCCESS",
 			"totalRecords", count,
 			"message", "최근 3개 시즌(2024~2026) 리그 순위표가 성공적으로 DB에 저장되었습니다."
-		);
+		));
 	}
 
 	// 3-4. 리그 순위표 조회 (기본값: 2026 시즌)
@@ -219,15 +334,20 @@ public class TeamController {
 	}
 
 	// 3-5. 프리미어리그 득점자 스탯 일괄 동기화 (기본: 상위 100명)
-	// 예: GET /api/teams/sync-scorers?limit=100
-	@GetMapping("/sync-scorers")
-	public Map<String, Object> syncScorers(@RequestParam(value = "limit", required = false, defaultValue = "100") Integer limit) {
+	// 보안 개선: GET -> POST 전환 및 관리자(ADMIN) 권한 검증 필수
+	@PostMapping("/sync-scorers")
+	public ResponseEntity<Map<String, Object>> syncScorers(
+			@RequestParam(value = "limit", required = false, defaultValue = "100") Integer limit,
+			HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return forbiddenResponse();
+		}
 		int count = footballApiService.syncPremierLeagueScorers(limit);
-		return Map.of(
+		return ResponseEntity.ok(Map.of(
 			"status", "SUCCESS",
 			"updatedScorers", count,
 			"message", "프리미어리그 득점자 " + count + "명의 기록이 성공적으로 DB에 동기화되었습니다."
-		);
+		));
 	}
 
 	// 3-6. 프리미어리그 득점 랭킹 조회 (기본: 상위 20명)

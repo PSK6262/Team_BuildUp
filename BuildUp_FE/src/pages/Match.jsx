@@ -290,7 +290,15 @@ export default function Match() {
     if (!window.confirm('외부 축구 API에서 2026 시즌 전체 380경기 일정을 DB(MATCHES)로 동기화하시겠습니까?')) return
     try {
       setSyncing(true)
-      const res = await fetch('/api/matches/sync-season?season=2026')
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/matches/sync-season?season=2026', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: 'include',
+      })
       const data = await res.json()
       alert(data.message || 'DB 동기화가 완료되었습니다!')
       setReload((v) => v + 1)
