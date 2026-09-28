@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchTeams } from '../store/teamSlice.js';
 import { getTeams, getInitialTeams } from '../api/teamApi.js';
 import TeamCard from '../components/team/TeamCard.jsx';
 import '../css/teams.css';

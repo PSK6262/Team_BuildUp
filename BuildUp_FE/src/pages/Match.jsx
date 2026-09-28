@@ -5,7 +5,7 @@ import FcManagerModeModal from '../components/match/FcManagerModeModal.jsx'
 import '../css/match.css'
 
 const teamsData = teamDbFallback.teams
-const SEASONS = [2026, 2024, 2025]
+const SEASONS = [2024, 2025, 2026]
 const MATCH_PAGE_SIZE = 10
 const seasonLabel = (season) => `${String(season).slice(-2)}-${String(season + 1).slice(-2)}`
 
@@ -74,7 +74,29 @@ const TEAM_NAMES_KOR = {
   1044: '본머스',
 }
 
+// 기본 경기장 한글명 매핑
+function getStadiumNameKor(stadium, teamId) {
+  if (!stadium) return '홈 구장'
+  return stadium
+}
+
+// 경기 결과 판별
+function getMatchOutcome(match) {
+  if (match.homeScore == null || match.awayScore == null) return null
+  const h = Number(match.homeScore)
+  const a = Number(match.awayScore)
+  if (h > a) return 'HOME_WIN'
+  if (h < a) return 'AWAY_WIN'
+  return 'DRAW'
+}
+
 export default function Match() {
+  const urlParams = useMemo(() => new URLSearchParams(window.location.search), [])
+  const focusedMatchId = useMemo(() => {
+    const id = urlParams.get('matchId')
+    return id ? Number(id) : null
+  }, [ urlParams ])
+
   // 필터 모드: 'MONTH' (월별) 또는 'ROUND' (라운드별)
   const [ filterMode, setFilterMode ] = useState('MONTH')
 
@@ -95,6 +117,7 @@ export default function Match() {
   const [ dbError, setDbError ] = useState('')
   const [ loading, setLoading ] = useState(false)
   const [ reload, setReload ] = useState(0)
+  const [ activeMatchForModal, setActiveMatchForModal ] = useState(null)
   // 1. 실시간 리그 순위 데이터 로드 (DB TEAM_STATS 연동)
   useEffect(() => {
     let active = true
@@ -267,12 +290,11 @@ export default function Match() {
     })
 
     // 경기 일정은 날짜 오름차순으로 표시
-    return list.sort((a, b) => {
+    const sorted = list.sort((a, b) => {
       const dateA = a.matchDate || ''
       const dateB = b.matchDate || ''
       return dateA.localeCompare(dateB)
     })
-  }, [ rawMatches, getTeamInfo ])
 
     return sorted.map((m, idx) => ({
       ...m,
