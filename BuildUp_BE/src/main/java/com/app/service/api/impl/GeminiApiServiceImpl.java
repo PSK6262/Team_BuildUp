@@ -9,11 +9,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,8 +35,14 @@ import com.app.service.api.GeminiApiService;
 import com.app.util.ApiBridgeUtil;
 import com.app.service.custom.CustomService;
 import com.app.service.prediction.PredictionService;
+import com.app.util.api.GeminiApiClient;
+import com.app.dao.admin.AdminDAO;
+import com.app.dto.community.Comments;
+import com.app.dto.community.Posts;
 import com.app.dto.custom.CustomTeams;
 import com.app.dto.user.UserPredicts;
+import com.app.util.api.GeminiPromptBuilder;
+import com.app.util.api.GeminiResponseParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -88,6 +94,18 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	private PredictionService predictionService;
 	@Autowired
 	private CustomService customService;
+
+	@Autowired
+	private GeminiApiClient geminiApiClient;
+
+	@Autowired
+	private GeminiPromptBuilder geminiPromptBuilder;
+
+	@Autowired
+	private GeminiResponseParser geminiResponseParser;
+
+	@Autowired
+	private AdminDAO adminDAO;
 
 	private final HttpClient httpClient;
 	private final ObjectMapper objectMapper;
@@ -166,48 +184,97 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 
 		// 감독 수 질문은 STAFFS의 국적과 직책을 기준으로 직접 셉니다.
 		boolean managerQuestion = isManagerQuestion(trimmedQuestion);
-		List<Staffs> allManagers = managerQuestion ? teamDAO.findAllStaffs().stream()
-				.filter(staff -> "감독".equals(staff.getRoleName()))
-				.toList() : List.of();
+		List<Staffs> allManagers = new ArrayList<>();
+		if (managerQuestion) {
+			for (Staffs staff : teamDAO.findAllStaffs()) {
+				if (staff != null && "감독".equals(staff.getRoleName())) {
+					allManagers.add(staff);
+				}
+			}
+		}
 		boolean historicalManagers = trimmedQuestion.contains("역대") || trimmedQuestion.contains("과거");
-		List<TeamStats> currentStandings = managerQuestion && !historicalManagers
-				? teamDAO.findAllTeamStandings(null) : List.of();
-		Set<Long> currentTeamIds = currentStandings.stream()
-				.map(stats -> stats == null ? null : stats.getTeamId()).collect(Collectors.toSet());
-		List<Staffs> managers = historicalManagers ? allManagers : allManagers.stream()
-				.filter(staff -> currentTeamIds.contains(staff.getTeamId())).toList();
+		List<TeamStats> currentStandings = (managerQuestion && !historicalManagers)
+				? teamDAO.findAllTeamStandings(null) : new ArrayList<>();
+		Set<Long> currentTeamIds = new java.util.HashSet<>();
+		for (TeamStats stats : currentStandings) {
+			if (stats != null && stats.getTeamId() != null) {
+				currentTeamIds.add(stats.getTeamId());
+			}
+		}
+		List<Staffs> managers = new ArrayList<>();
+		if (historicalManagers) {
+			managers.addAll(allManagers);
+		} else {
+			for (Staffs staff : allManagers) {
+				if (staff != null && currentTeamIds.contains(staff.getTeamId())) {
+					managers.add(staff);
+				}
+			}
+		}
 		String nationality = managerQuestion ? findRequestedNationality(trimmedQuestion, allManagers) : null;
 		if (managerQuestion && nationality == null && isCountQuestion(trimmedQuestion)) {
 			if (!historicalManagers && currentStandings.isEmpty()) {
 				return "현재 시즌 순위 데이터가 없어 감독 인원을 확인할 수 없습니다.";
 			}
-			List<Staffs> scopedManagers = namedTeam ? managers.stream()
-					.filter(staff -> selectedTeams.stream()
-							.anyMatch(team -> team.getTeamId().equals(staff.getTeamId()))).toList()
-					: managers;
+			List<Staffs> scopedManagers = new ArrayList<>();
+			if (namedTeam) {
+				for (Staffs staff : managers) {
+					if (staff == null) continue;
+					boolean teamMatch = false;
+					for (Teams team : selectedTeams) {
+						if (team != null && team.getTeamId().equals(staff.getTeamId())) {
+							teamMatch = true;
+							break;
+						}
+					}
+					if (teamMatch) {
+						scopedManagers.add(staff);
+					}
+				}
+			} else {
+				scopedManagers.addAll(managers);
+			}
 			if (!trimmedQuestion.contains("국적별")) {
 				return "DB 기준 감독은 " + scopedManagers.size() + "명입니다.";
 			}
-			Map<String, Long> counts = scopedManagers.stream()
-					.collect(Collectors.groupingBy(this::displayNationality, Collectors.counting()));
+			Map<String, Long> counts = new java.util.TreeMap<>();
+			for (Staffs staff : scopedManagers) {
+				String nat = displayNationality(staff);
+				counts.put(nat, counts.getOrDefault(nat, 0L) + 1L);
+			}
 			StringBuilder answer = new StringBuilder("감독 국적별 인원");
-			counts.entrySet().stream().sorted(Map.Entry.comparingByKey())
-					.forEach(entry -> answer.append("\n- ").append(entry.getKey())
-							.append(" · ").append(entry.getValue()).append("명"));
+			for (Map.Entry<String, Long> entry : counts.entrySet()) {
+				answer.append("\n- ").append(entry.getKey())
+						.append(" · ").append(entry.getValue()).append("명");
+			}
 			return answer.toString();
 		}
 		if (nationality != null && isCountQuestion(trimmedQuestion)) {
 			if (!historicalManagers && currentStandings.isEmpty()) {
 				return "현재 시즌 순위 데이터가 없어 감독 인원을 확인할 수 없습니다.";
 			}
-			List<Staffs> matchingManagers = managers.stream()
-					.filter(staff -> matchesNationality(staff, nationality))
-					.filter(staff -> !namedTeam || selectedTeams.stream()
-							.anyMatch(team -> team.getTeamId().equals(staff.getTeamId())))
-					.toList();
-			String displayNationality = allManagers.stream()
-					.filter(staff -> matchesNationality(staff, nationality))
-					.findFirst().map(this::displayNationality).orElse(nationality);
+			List<Staffs> matchingManagers = new ArrayList<>();
+			for (Staffs staff : managers) {
+				if (staff == null || !matchesNationality(staff, nationality)) continue;
+				if (namedTeam) {
+					boolean teamMatch = false;
+					for (Teams team : selectedTeams) {
+						if (team != null && team.getTeamId().equals(staff.getTeamId())) {
+							teamMatch = true;
+							break;
+						}
+					}
+					if (!teamMatch) continue;
+				}
+				matchingManagers.add(staff);
+			}
+			String displayNationality = nationality;
+			for (Staffs staff : allManagers) {
+				if (matchesNationality(staff, nationality)) {
+					displayNationality = displayNationality(staff);
+					break;
+				}
+			}
 			String scope = historicalManagers ? "DB에 저장된 전체 팀 기준 "
 					: currentStandings.get(0).getSeason() + "시즌 PL 팀 기준 ";
 			return scope + displayNationality + " 국적 감독은 "
@@ -217,11 +284,21 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 			if (!historicalManagers && currentStandings.isEmpty()) {
 				return "현재 시즌 순위 데이터가 없어 감독 명단을 확인할 수 없습니다.";
 			}
-			List<Staffs> matchingManagers = managers.stream()
-					.filter(staff -> matchesNationality(staff, nationality))
-					.filter(staff -> !namedTeam || selectedTeams.stream()
-							.anyMatch(team -> team.getTeamId().equals(staff.getTeamId())))
-					.toList();
+			List<Staffs> matchingManagers = new ArrayList<>();
+			for (Staffs staff : managers) {
+				if (staff == null || !matchesNationality(staff, nationality)) continue;
+				if (namedTeam) {
+					boolean teamMatch = false;
+					for (Teams team : selectedTeams) {
+						if (team != null && team.getTeamId().equals(staff.getTeamId())) {
+							teamMatch = true;
+							break;
+						}
+					}
+					if (!teamMatch) continue;
+				}
+				matchingManagers.add(staff);
+			}
 			if (matchingManagers.isEmpty()) return "DB에 해당 국적 감독이 없습니다.";
 			StringBuilder answer = new StringBuilder(displayNationality(matchingManagers.get(0)))
 					.append(" 국적 감독 ").append(matchingManagers.size()).append("명");
@@ -254,8 +331,14 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 				selectedTeams.size() > 1 ? 30 : 5);
 		if (selectedTeams.size() > 1) {
 			Long secondTeamId = selectedTeams.get(1).getTeamId();
-			upcoming = upcoming.stream().filter(match -> secondTeamId.equals(match.getHomeTeamId())
-					|| secondTeamId.equals(match.getAwayTeamId())).limit(5).toList();
+			List<Matches> filtered = new ArrayList<>();
+			for (Matches match : upcoming) {
+				if (secondTeamId.equals(match.getHomeTeamId()) || secondTeamId.equals(match.getAwayTeamId())) {
+					filtered.add(match);
+					if (filtered.size() == 5) break;
+				}
+			}
+			upcoming = filtered;
 		}
 
 		// 일정 날짜를 묻는 질문에는 DB에 저장된 일시를 그대로 답합니다.
@@ -264,11 +347,15 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 			boolean asksClosest = trimmedQuestion.contains("가까운") || trimmedQuestion.contains("다음 경기")
 					|| trimmedQuestion.contains("예정일") || trimmedQuestion.contains("언제");
 			if (!asksClosest) {
+				int limit5 = Math.min(upcoming.size(), 5);
 				StringBuilder answer = new StringBuilder("DB 기준 향후 예정 경기 ")
-						.append(Math.min(upcoming.size(), 5)).append("건");
-				upcoming.stream().limit(5).forEach(match -> answer.append("\n- ")
-						.append(match.getMatchDate()).append(' ').append(match.getHomeTeamName())
-						.append(" vs ").append(match.getAwayTeamName()));
+						.append(limit5).append("건");
+				for (int i = 0; i < limit5; i++) {
+					Matches match = upcoming.get(i);
+					answer.append("\n- ")
+							.append(match.getMatchDate()).append(' ').append(match.getHomeTeamName())
+							.append(" vs ").append(match.getAwayTeamName());
+				}
 				return answer.toString();
 			}
 			Matches next = upcoming.get(0);
@@ -281,9 +368,13 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 			dbContext.append("확인된 향후 예정 경기 없음\n");
 		} else {
 			dbContext.append("향후 예정 경기:\n");
-			upcoming.stream().limit(5).forEach(match -> dbContext.append("- ")
-					.append(match.getMatchDate()).append(' ').append(match.getHomeTeamName())
-					.append(" vs ").append(match.getAwayTeamName()).append('\n'));
+			int limit5 = Math.min(upcoming.size(), 5);
+			for (int i = 0; i < limit5; i++) {
+				Matches match = upcoming.get(i);
+				dbContext.append("- ")
+						.append(match.getMatchDate()).append(' ').append(match.getHomeTeamName())
+						.append(" vs ").append(match.getAwayTeamName()).append('\n');
+			}
 		}
 
 		if (selectedTeams.isEmpty()) {
@@ -526,19 +617,37 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 				date.plusDays(1).atStartOfDay().minusNanos(1));
 		long[] score = question.contains("대") || question.contains("점수") || question.contains("스코어")
 				? parseScore(question) : null;
-		if (score != null) matches = matches.stream()
-				.filter(match -> match.getHomeScore() != null && match.getAwayScore() != null
-						&& match.getHomeScore() == score[0] && match.getAwayScore() == score[1]).toList();
+		if (score != null) {
+			List<Matches> filteredMatches = new ArrayList<>();
+			for (Matches match : matches) {
+				if (match.getHomeScore() != null && match.getAwayScore() != null
+						&& match.getHomeScore() == score[0] && match.getAwayScore() == score[1]) {
+					filteredMatches.add(match);
+				}
+			}
+			matches = filteredMatches;
+		}
 		for (Teams team : selectedTeams) {
-			matches = matches.stream().filter(match -> team.getTeamId().equals(match.getHomeTeamId())
-					|| team.getTeamId().equals(match.getAwayTeamId())).toList();
+			List<Matches> filteredMatches = new ArrayList<>();
+			for (Matches match : matches) {
+				if (team.getTeamId().equals(match.getHomeTeamId()) || team.getTeamId().equals(match.getAwayTeamId())) {
+					filteredMatches.add(match);
+				}
+			}
+			matches = filteredMatches;
 		}
 		if (matches.isEmpty()) return "DB에 " + date + "의 해당 경기 기록이 없습니다.";
-		Map<Long, Teams> teamsById = teamDAO.findAllTeams().stream()
-				.collect(Collectors.toMap(team -> team == null ? null : team.getTeamId(), team -> team));
+		Map<Long, Teams> teamsById = new HashMap<>();
+		for (Teams team : teamDAO.findAllTeams()) {
+			if (team != null && team.getTeamId() != null) {
+				teamsById.put(team.getTeamId(), team);
+			}
+		}
 		boolean scorerQuestion = isScoringEventQuestion(question);
-		StringBuilder answer = new StringBuilder(date + " 경기 " + Math.min(matches.size(), 10) + "건");
-		for (Matches match : matches.stream().limit(10).toList()) {
+		int matchLimit = Math.min(matches.size(), 10);
+		StringBuilder answer = new StringBuilder(date + " 경기 " + matchLimit + "건");
+		for (int i = 0; i < matchLimit; i++) {
+			Matches match = matches.get(i);
 			Teams home = teamsById.get(match.getHomeTeamId());
 			Teams away = teamsById.get(match.getAwayTeamId());
 			answer.append("\n- ").append(match.getMatchDate()).append(' ')
@@ -553,10 +662,16 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 
 	// 선택된 경기의 골·페널티킥 골·자책골 이벤트와 도움 선수를 표시합니다.
 	private void appendScoringEvents(StringBuilder answer, Long matchId) {
-		List<MatchEvents> scoringEvents = matchDAO.findEventsByMatchId(matchId).stream()
-				.filter(event -> event.getEventType() != null && event.getEventType() >= 1
-						&& event.getEventType() <= 3)
-				.toList();
+		List<MatchEvents> allEvents = matchDAO.findEventsByMatchId(matchId);
+		List<MatchEvents> scoringEvents = new ArrayList<>();
+		if (allEvents != null) {
+			for (MatchEvents event : allEvents) {
+				if (event != null && event.getEventType() != null
+						&& event.getEventType() >= 1 && event.getEventType() <= 3) {
+					scoringEvents.add(event);
+				}
+			}
+		}
 		if (scoringEvents.isEmpty()) {
 			answer.append("\n  ㄴ DB에 득점자 이벤트가 없습니다.");
 			return;
@@ -664,23 +779,49 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		}
 		List<TeamStats> standings = teamDAO.findAllTeamStandings(null);
 		if (standings.isEmpty()) return "현재 시즌 순위 데이터가 없어 선수 순위를 확인할 수 없습니다.";
-		Set<Long> currentTeamIds = standings.stream()
-				.map(stats -> stats == null ? null : stats.getTeamId()).collect(Collectors.toSet());
+		Set<Long> currentTeamIds = new java.util.HashSet<>();
+		for (TeamStats stats : standings) {
+			if (stats != null && stats.getTeamId() != null) {
+				currentTeamIds.add(stats.getTeamId());
+			}
+		}
 		List<PlayerStats> source = redCards ? teamDAO.findTopRedCards(1000)
 				: yellowCards ? teamDAO.findTopYellowCards(1000)
 				: mom ? teamDAO.findTopMomPlayers(1000)
 				: attackPoints ? teamDAO.findTopAttackPoints(1000)
 				: assists ? teamDAO.findTopAssists(1000) : teamDAO.findTopScorers(1000);
-		List<PlayerStats> allRankings = source.stream()
-				.filter(player -> currentTeamIds.contains(player.getTeamId()))
-				.filter(player -> selectedTeams.isEmpty() || selectedTeams.stream()
-						.anyMatch(team -> team.getTeamId().equals(player.getTeamId())))
-				.toList();
+		List<PlayerStats> allRankings = new ArrayList<>();
+		for (PlayerStats player : source) {
+			if (player == null || !currentTeamIds.contains(player.getTeamId())) {
+				continue;
+			}
+			if (selectedTeams.isEmpty()) {
+				allRankings.add(player);
+			} else {
+				boolean teamMatches = false;
+				for (Teams team : selectedTeams) {
+					if (team != null && team.getTeamId().equals(player.getTeamId())) {
+						teamMatches = true;
+						break;
+					}
+				}
+				if (teamMatches) {
+					allRankings.add(player);
+				}
+			}
+		}
 		Integer requestedRank = askedRank;
 		int requestedLimit = requestedTopLimit(question, leaderQuestion ? 1 : 20);
-		List<PlayerStats> rankings = requestedRank == null
-				? allRankings.stream().limit(requestedLimit).toList()
-				: playersAtRank(allRankings, requestedRank, redCards, yellowCards, mom, attackPoints, assists);
+		List<PlayerStats> rankings;
+		if (requestedRank == null) {
+			rankings = new ArrayList<>();
+			int maxCount = Math.min(allRankings.size(), requestedLimit);
+			for (int i = 0; i < maxCount; i++) {
+				rankings.add(allRankings.get(i));
+			}
+		} else {
+			rankings = playersAtRank(allRankings, requestedRank, redCards, yellowCards, mom, attackPoints, assists);
+		}
 		String title = redCards ? "퇴장" : yellowCards ? "경고" : mom ? "MOM"
 				: attackPoints ? "공격포인트" : assists ? "도움" : "득점";
 		String scope = selectedTeams.isEmpty() ? ""
@@ -832,16 +973,27 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		List<Matches> matches = matchDAO.findMatchesByDateRange(
 				startDate.atStartOfDay(), endDate.atStartOfDay().minusNanos(1));
 		for (Teams team : selectedTeams) {
-			matches = matches.stream().filter(match -> team.getTeamId().equals(match.getHomeTeamId())
-					|| team.getTeamId().equals(match.getAwayTeamId())).toList();
+			List<Matches> filtered = new ArrayList<>();
+			for (Matches match : matches) {
+				if (team.getTeamId().equals(match.getHomeTeamId()) || team.getTeamId().equals(match.getAwayTeamId())) {
+					filtered.add(match);
+				}
+			}
+			matches = filtered;
 		}
 		if (matches.isEmpty()) return "DB에 확인되는 " + period + " 경기 일정이 없습니다.";
 
-		Map<Long, Teams> teamsById = teamDAO.findAllTeams().stream()
-				.collect(Collectors.toMap(team -> team == null ? null : team.getTeamId(), team -> team));
+		Map<Long, Teams> teamsById = new HashMap<>();
+		for (Teams t : teamDAO.findAllTeams()) {
+			if (t != null && t.getTeamId() != null) {
+				teamsById.put(t.getTeamId(), t);
+			}
+		}
+		int matchLimit = Math.min(matches.size(), 10);
 		StringBuilder answer = new StringBuilder(period).append(" 경기 ")
-				.append(Math.min(matches.size(), 10)).append("건");
-		for (Matches match : matches.stream().limit(10).toList()) {
+				.append(matchLimit).append("건");
+		for (int i = 0; i < matchLimit; i++) {
+			Matches match = matches.get(i);
 			Teams home = teamsById.get(match.getHomeTeamId());
 			Teams away = teamsById.get(match.getAwayTeamId());
 			answer.append("\n- ").append(match.getMatchDate()).append(' ')
@@ -861,12 +1013,19 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	private String answerTeamManager(String question, List<Teams> selectedTeams) {
 		if (!isManagerQuestion(question) || selectedTeams.isEmpty()) return null;
 		Teams team = selectedTeams.get(0);
-		return teamDAO.findStaffsByTeamId(team.getTeamId()).stream()
-				.filter(staff -> "감독".equals(staff.getRoleName()))
-				.findFirst().map(manager -> displayTeamName(team) + "의 감독은 "
-						+ (manager.getNameKor() != null ? manager.getNameKor() : manager.getName())
-						+ "이며 국적은 " + displayNationality(manager) + "입니다.")
-				.orElse(displayTeamName(team) + "의 감독 정보가 DB에 없습니다.");
+		Staffs manager = null;
+		for (Staffs staff : teamDAO.findStaffsByTeamId(team.getTeamId())) {
+			if (staff != null && "감독".equals(staff.getRoleName())) {
+				manager = staff;
+				break;
+			}
+		}
+		if (manager != null) {
+			String name = manager.getNameKor() != null ? manager.getNameKor() : manager.getName();
+			return displayTeamName(team) + "의 감독은 " + name + "이며 국적은 " + displayNationality(manager) + "입니다.";
+		} else {
+			return displayTeamName(team) + "의 감독 정보가 DB에 없습니다.";
+		}
 	}
 
 	private String answerPlayerDetails(String question) {
@@ -878,10 +1037,15 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 				|| question.contains("어디팀") || question.contains("국적");
 		if (!detailQuestion) return null;
 		String lower = question.toLowerCase(java.util.Locale.ROOT);
-		Players player = teamDAO.findAllPlayers().stream().filter(item ->
-				(item.getNameKor() != null && question.contains(item.getNameKor()))
-						|| (item.getName() != null && lower.contains(
-								item.getName().toLowerCase(java.util.Locale.ROOT)))).findFirst().orElse(null);
+		Players player = null;
+		for (Players item : teamDAO.findAllPlayers()) {
+			if (item == null) continue;
+			if ((item.getNameKor() != null && question.contains(item.getNameKor()))
+					|| (item.getName() != null && lower.contains(item.getName().toLowerCase(java.util.Locale.ROOT)))) {
+				player = item;
+				break;
+			}
+		}
 		if (player == null) return null;
 		PlayerStats stats = teamDAO.findPlayerStats(player.getPlayerId());
 		Teams team = teamDAO.findTeamById(player.getTeamId());
@@ -920,31 +1084,66 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		String title = "선수 명단";
 		if (!selectedTeams.isEmpty()) {
 			Teams team = selectedTeams.get(0);
-			players = allPlayers.stream().filter(player -> team.getTeamId().equals(player.getTeamId())).toList();
+			List<Players> filtered = new ArrayList<>();
+			for (Players p : allPlayers) {
+				if (team.getTeamId().equals(p.getTeamId())) {
+					filtered.add(p);
+				}
+			}
+			players = filtered;
 			title = displayTeamName(team) + " 선수 명단";
 		} else {
 			if (nationality == null) {
 				return "어느 팀의 선수인지 확인할 수 없습니다. 팀 이름을 함께 알려주세요.";
 			}
-			players = allPlayers.stream().filter(player -> nationality.equalsIgnoreCase(player.getNationality())
-					|| nationality.equals(player.getNationalityKor())).toList();
+			List<Players> filtered = new ArrayList<>();
+			for (Players p : allPlayers) {
+				if (nationality.equalsIgnoreCase(p.getNationality()) || nationality.equals(p.getNationalityKor())) {
+					filtered.add(p);
+				}
+			}
+			players = filtered;
 			title = players.isEmpty() ? nationality + " 국적 선수"
 					: (players.get(0).getNationalityKor() != null
 							? players.get(0).getNationalityKor() : nationality) + " 국적 선수";
 		}
-		if (nationality != null) players = players.stream()
-				.filter(player -> nationality.equalsIgnoreCase(player.getNationality())
-						|| nationality.equals(player.getNationalityKor())).toList();
-		if (position != null) players = players.stream()
-				.filter(player -> position.equals(player.getMainPosition())).toList();
-		if (detailPosition != null) players = players.stream()
-				.filter(player -> detailPosition.equalsIgnoreCase(player.getDetailPosition())).toList();
+		if (nationality != null) {
+			List<Players> filtered = new ArrayList<>();
+			for (Players p : players) {
+				if (nationality.equalsIgnoreCase(p.getNationality()) || nationality.equals(p.getNationalityKor())) {
+					filtered.add(p);
+				}
+			}
+			players = filtered;
+		}
+		if (position != null) {
+			List<Players> filtered = new ArrayList<>();
+			for (Players p : players) {
+				if (position.equals(p.getMainPosition())) {
+					filtered.add(p);
+				}
+			}
+			players = filtered;
+		}
+		if (detailPosition != null) {
+			List<Players> filtered = new ArrayList<>();
+			for (Players p : players) {
+				if (detailPosition.equalsIgnoreCase(p.getDetailPosition())) {
+					filtered.add(p);
+				}
+			}
+			players = filtered;
+		}
 		if (players.isEmpty()) return "DB에 조건에 맞는 선수가 없습니다.";
 		StringBuilder answer = new StringBuilder(title).append(" · ").append(players.size()).append("명");
-		players.stream().limit(30).forEach(player -> answer.append("\n- ")
-				.append(player.getNameKor() != null ? player.getNameKor() : player.getName())
-				.append(" · ").append(player.getDetailPosition() != null
-						? player.getDetailPosition() : player.getMainPosition()));
+		int maxLimit = Math.min(players.size(), 30);
+		for (int i = 0; i < maxLimit; i++) {
+			Players player = players.get(i);
+			answer.append("\n- ")
+					.append(player.getNameKor() != null ? player.getNameKor() : player.getName())
+					.append(" · ").append(player.getDetailPosition() != null
+							? player.getDetailPosition() : player.getMainPosition());
+		}
 		if (players.size() > 30) answer.append("\n- 외 ").append(players.size() - 30).append("명");
 		return answer.toString();
 	}
@@ -955,22 +1154,38 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		boolean suspension = question.contains("출장 정지") || question.contains("출장정지")
 				|| question.contains("징계");
 		if ((!injury && !suspension) || (!question.contains("선수") && selectedTeams.isEmpty())) return null;
-		List<PlayerStats> players = teamDAO.findUnavailablePlayers().stream()
-				.filter(player -> selectedTeams.isEmpty() || selectedTeams.stream()
-						.anyMatch(team -> team.getTeamId().equals(player.getTeamId())))
-				.filter(player -> !injury || "Y".equals(player.getIsInjured()))
-				.filter(player -> !suspension || "Y".equals(player.getIsSuspended()))
-				.toList();
+		List<PlayerStats> allUnavailable = teamDAO.findUnavailablePlayers();
+		List<PlayerStats> players = new ArrayList<>();
+		if (allUnavailable != null) {
+			for (PlayerStats player : allUnavailable) {
+				if (player == null) continue;
+				if (!selectedTeams.isEmpty()) {
+					boolean teamMatch = false;
+					for (Teams t : selectedTeams) {
+						if (t != null && t.getTeamId().equals(player.getTeamId())) {
+							teamMatch = true;
+							break;
+						}
+					}
+					if (!teamMatch) continue;
+				}
+				if (injury && !"Y".equals(player.getIsInjured())) continue;
+				if (suspension && !"Y".equals(player.getIsSuspended())) continue;
+				players.add(player);
+			}
+		}
 		String condition = injury && suspension ? "부상·출장 정지" : injury ? "부상" : "출장 정지";
 		if (players.isEmpty()) return "DB에 확인되는 " + condition + " 선수가 없습니다.";
 		StringBuilder answer = new StringBuilder(condition).append(" 선수 ").append(players.size()).append("명");
-		players.stream().limit(30).forEach(player -> {
+		int unavailLimit = Math.min(players.size(), 30);
+		for (int i = 0; i < unavailLimit; i++) {
+			PlayerStats player = players.get(i);
 			answer.append("\n- ").append(player.getPlayerNameKor() != null
 					? player.getPlayerNameKor() : player.getPlayerName())
 					.append(" · ").append(player.getTeamNameKor() != null
 							? player.getTeamNameKor() : player.getTeamName());
 			if (injury && player.getInjuryNote() != null) answer.append(" · ").append(player.getInjuryNote());
-		});
+		}
 		if (players.size() > 30) answer.append("\n- 외 ").append(players.size() - 30).append("명");
 		return answer.toString();
 	}
@@ -1002,10 +1217,20 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		int season = standings.get(0).getSeason();
 		if (teamCount) return season + "시즌 PL 참가 팀은 " + standings.size() + "팀입니다.";
 		if (winRateQuestion) {
-			List<TeamStats> targets = selectedTeams.isEmpty() ? standings : standings.stream()
-					.filter(stats -> selectedTeams.stream()
-							.anyMatch(team -> team.getTeamId().equals(stats.getTeamId())))
-					.toList();
+			List<TeamStats> targets = new ArrayList<>();
+			if (selectedTeams.isEmpty()) {
+				targets.addAll(standings);
+			} else {
+				for (TeamStats stats : standings) {
+					if (stats == null) continue;
+					for (Teams team : selectedTeams) {
+						if (team != null && team.getTeamId().equals(stats.getTeamId())) {
+							targets.add(stats);
+							break;
+						}
+					}
+				}
+			}
 			if (targets.isEmpty()) return "현재 시즌 순위표에 해당 팀의 기록이 없습니다.";
 			StringBuilder answer = new StringBuilder(season + "시즌 PL 승률");
 			for (TeamStats stats : targets) {
@@ -1019,23 +1244,39 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		}
 		if (!selectedTeams.isEmpty()) {
 			Teams team = selectedTeams.get(0);
-			return standings.stream().filter(stats -> team.getTeamId().equals(stats.getTeamId()))
-					.findFirst().map(stats -> season + "시즌 " + displayTeamName(team)
-							+ "은 " + stats.getCurrentRank() + "위, 승점 " + stats.getPoints()
-							+ "점, " + stats.getWins() + "승 " + stats.getDraws() + "무 "
-							+ stats.getLosses() + "패, 득실차 " + stats.getGoalDiff() + "입니다.")
-						.orElse("현재 시즌 순위표에 " + displayTeamName(team) + " 기록이 없습니다.");
+			TeamStats matchedStats = null;
+			for (TeamStats stats : standings) {
+				if (stats != null && team.getTeamId().equals(stats.getTeamId())) {
+					matchedStats = stats;
+					break;
+				}
+			}
+			if (matchedStats != null) {
+				return season + "시즌 " + displayTeamName(team)
+						+ "은 " + matchedStats.getCurrentRank() + "위, 승점 " + matchedStats.getPoints()
+						+ "점, " + matchedStats.getWins() + "승 " + matchedStats.getDraws() + "무 "
+						+ matchedStats.getLosses() + "패, 득실차 " + matchedStats.getGoalDiff() + "입니다.";
+			} else {
+				return "현재 시즌 순위표에 " + displayTeamName(team) + " 기록이 없습니다.";
+			}
 		}
 		Integer rank = requestedRank(question);
 		if (rank != null) {
-			return standings.stream()
-					.filter(stats -> rank.longValue() == value(stats.getCurrentRank()))
-					.findFirst()
-					.map(stats -> season + "시즌 PL " + rank + "위는 " + displayStandingName(stats)
-							+ "이며 승점 " + value(stats.getPoints()) + "점, "
-							+ value(stats.getWins()) + "승 " + value(stats.getDraws()) + "무 "
-							+ value(stats.getLosses()) + "패, 득실차 " + value(stats.getGoalDiff()) + "입니다.")
-					.orElse(season + "시즌 PL " + rank + "위 팀 정보가 없습니다.");
+			TeamStats matchedStats = null;
+			for (TeamStats stats : standings) {
+				if (stats != null && rank.longValue() == value(stats.getCurrentRank())) {
+					matchedStats = stats;
+					break;
+				}
+			}
+			if (matchedStats != null) {
+				return season + "시즌 PL " + rank + "위는 " + displayStandingName(matchedStats)
+						+ "이며 승점 " + value(matchedStats.getPoints()) + "점, "
+						+ value(matchedStats.getWins()) + "승 " + value(matchedStats.getDraws()) + "무 "
+						+ value(matchedStats.getLosses()) + "패, 득실차 " + value(matchedStats.getGoalDiff()) + "입니다.";
+			} else {
+				return season + "시즌 PL " + rank + "위 팀 정보가 없습니다.";
+			}
 		}
 		if (question.contains("꼴찌")) {
 			TeamStats last = standings.get(standings.size() - 1);
@@ -1046,16 +1287,24 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		if (bottomMatcher.find()) {
 			int bottomLimit = Math.max(1, Math.min(Integer.parseInt(bottomMatcher.group(1)), standings.size()));
 			StringBuilder answer = new StringBuilder(season + "시즌 PL 하위 ").append(bottomLimit).append("팀");
-			standings.stream().skip(standings.size() - bottomLimit).forEach(stats -> answer.append("\n- ")
-					.append(value(stats.getCurrentRank())).append("위 ").append(displayStandingName(stats))
-					.append(" · 승점 ").append(value(stats.getPoints())).append("점"));
+			int startIndex = standings.size() - bottomLimit;
+			for (int i = startIndex; i < standings.size(); i++) {
+				TeamStats stats = standings.get(i);
+				answer.append("\n- ")
+						.append(value(stats.getCurrentRank())).append("위 ").append(displayStandingName(stats))
+						.append(" · 승점 ").append(value(stats.getPoints())).append("점");
+			}
 			return answer.toString();
 		}
 		int limit = requestedTopLimit(question, 10);
-		StringBuilder answer = new StringBuilder(season + "시즌 PL 상위 ").append(Math.min(limit, standings.size())).append("팀");
-		standings.stream().limit(limit).forEach(stats -> answer.append("\n- ")
-				.append(stats.getCurrentRank()).append("위 ").append(displayStandingName(stats))
-				.append(" · 승점 ").append(stats.getPoints()).append('점'));
+		int topLimit = Math.min(limit, standings.size());
+		StringBuilder answer = new StringBuilder(season + "시즌 PL 상위 ").append(topLimit).append("팀");
+		for (int i = 0; i < topLimit; i++) {
+			TeamStats stats = standings.get(i);
+			answer.append("\n- ")
+					.append(stats.getCurrentRank()).append("위 ").append(displayStandingName(stats))
+					.append(" · 승점 ").append(stats.getPoints()).append('점');
+		}
 		return answer.toString();
 	}
 
@@ -1069,8 +1318,15 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		boolean prediction = explicitPrediction || (inferFromTab && "prediction".equals(rankingTab));
 		boolean virtual = explicitVirtual || (inferFromTab && "virtual".equals(rankingTab));
 		if (!prediction && !virtual) return null;
-		if (hasMultipleRequestedRanks(question) || List.of("차이", "격차", "비교", "분석", "왜", "전망", "계산")
-				.stream().anyMatch(question::contains)) return null;
+		String[] excludedKeywords = {"차이", "격차", "비교", "분석", "왜", "전망", "계산"};
+		boolean hasExcluded = false;
+		for (String kw : excludedKeywords) {
+			if (question.contains(kw)) {
+				hasExcluded = true;
+				break;
+			}
+		}
+		if (hasMultipleRequestedRanks(question) || hasExcluded) return null;
 
 		Integer rank = requestedRank(question);
 		int limit = requestedTopLimit(question, 10);
@@ -1122,16 +1378,27 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	}
 
 	private boolean isExplicitPlayerRankingScope(String question) {
-		return List.of("득점", "득점왕", "골", "골 순위", "도움", "도움왕", "어시스트",
-				"공격포인트", "공포 순위", "MOM", "최우수 선수", "경고", "퇴장")
-				.stream().anyMatch(keyword -> question.toUpperCase(java.util.Locale.ROOT).contains(keyword));
+		String upper = question.toUpperCase(java.util.Locale.ROOT);
+		String[] keywords = {"득점", "득점왕", "골", "골 순위", "도움", "도움왕", "어시스트",
+				"공격포인트", "공포 순위", "MOM", "최우수 선수", "경고", "퇴장"};
+		for (String kw : keywords) {
+			if (upper.contains(kw.toUpperCase(java.util.Locale.ROOT))) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private boolean isExplicitLeagueRankingScope(String question) {
 		String upper = question.toUpperCase(java.util.Locale.ROOT);
-		return List.of("리그", "PL", "EPL", "승점", "득실차", "승무패", "강등", "챔스",
-				"챔피언스리그", "구단 순위")
-				.stream().anyMatch(upper::contains);
+		String[] keywords = {"리그", "PL", "EPL", "승점", "득실차", "승무패", "강등", "챔스",
+				"챔피언스리그", "구단 순위"};
+		for (String kw : keywords) {
+			if (upper.contains(kw)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private boolean isExplicitMemberRankingScope(String question) {
@@ -1149,30 +1416,59 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		if (!isPlayerQuestion(question) || !isCountQuestion(question)
 				|| question.contains("득점") || question.contains("도움")) return null;
 		List<Players> allPlayers = teamDAO.findAllPlayers();
-		List<Players> players = selectedTeams.isEmpty() ? allPlayers : allPlayers.stream()
-				.filter(player -> selectedTeams.get(0).getTeamId().equals(player.getTeamId())).toList();
+		List<Players> players = new ArrayList<>();
+		if (selectedTeams.isEmpty()) {
+			players.addAll(allPlayers);
+		} else {
+			Teams targetTeam = selectedTeams.get(0);
+			for (Players p : allPlayers) {
+				if (targetTeam.getTeamId().equals(p.getTeamId())) {
+					players.add(p);
+				}
+			}
+		}
 		String scope;
 		if (selectedTeams.isEmpty()) {
 			List<TeamStats> standings = teamDAO.findAllTeamStandings(null);
 			if (standings.isEmpty()) return "현재 시즌 순위 데이터가 없어 선수 인원을 확인할 수 없습니다.";
-			Set<Long> teamIds = standings.stream().map(stats -> stats == null ? null : stats.getTeamId()).collect(Collectors.toSet());
-			players = players.stream().filter(player -> teamIds.contains(player.getTeamId())).toList();
+			Set<Long> teamIds = new java.util.HashSet<>();
+			for (TeamStats stats : standings) {
+				if (stats != null && stats.getTeamId() != null) {
+					teamIds.add(stats.getTeamId());
+				}
+			}
+			List<Players> filteredBySeason = new ArrayList<>();
+			for (Players p : players) {
+				if (teamIds.contains(p.getTeamId())) {
+					filteredBySeason.add(p);
+				}
+			}
+			players = filteredBySeason;
 			scope = standings.get(0).getSeason() + "시즌 PL";
 		} else {
 			scope = displayTeamName(selectedTeams.get(0));
 		}
 		String nationality = findPlayerNationality(question, allPlayers);
 		String position = requestedPosition(question);
-		long count = players.stream()
-				.filter(player -> nationality == null || nationality.equalsIgnoreCase(player.getNationality())
-						|| nationality.equals(player.getNationalityKor()))
-				.filter(player -> position == null || position.equals(player.getMainPosition()))
-				.count();
-		String nationalityLabel = nationality == null ? null : allPlayers.stream()
-				.filter(player -> nationality.equalsIgnoreCase(player.getNationality())
-						|| nationality.equals(player.getNationalityKor()))
-				.findFirst().map(player -> player.getNationalityKor() != null
-						? player.getNationalityKor() : nationality).orElse(nationality);
+		long count = 0;
+		for (Players p : players) {
+			boolean matchNat = nationality == null || nationality.equalsIgnoreCase(p.getNationality())
+					|| nationality.equals(p.getNationalityKor());
+			boolean matchPos = position == null || position.equals(p.getMainPosition());
+			if (matchNat && matchPos) {
+				count++;
+			}
+		}
+		String nationalityLabel = null;
+		if (nationality != null) {
+			for (Players p : allPlayers) {
+				if (nationality.equalsIgnoreCase(p.getNationality()) || nationality.equals(p.getNationalityKor())) {
+					nationalityLabel = p.getNationalityKor() != null ? p.getNationalityKor() : nationality;
+					break;
+				}
+			}
+			if (nationalityLabel == null) nationalityLabel = nationality;
+		}
 		String description = (nationalityLabel == null ? "" : nationalityLabel + " 국적 ")
 				+ (position == null ? "" : positionName(position) + " ") + "선수";
 		return scope + "의 " + description + "는 " + count + "명입니다.";
@@ -1210,13 +1506,11 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	}
 
 	private String positionName(String position) {
-		return switch (position) {
-			case "GK" -> "골키퍼";
-			case "DF" -> "수비수";
-			case "MF" -> "미드필더";
-			case "FW" -> "공격수";
-			default -> position;
-		};
+		if ("GK".equals(position)) return "골키퍼";
+		if ("DF".equals(position)) return "수비수";
+		if ("MF".equals(position)) return "미드필더";
+		if ("FW".equals(position)) return "공격수";
+		return position;
 	}
 
 	private String answerTeamFacts(String question, List<Teams> selectedTeams) {
@@ -1326,24 +1620,38 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		List<Players> players = selectedTeams.isEmpty() ? teamDAO.findAllPlayers()
 				: teamDAO.findPlayersByTeamId(selectedTeams.get(0).getTeamId());
 		String lower = question.toLowerCase(java.util.Locale.ROOT);
-		List<Players> named = players.stream().filter(player ->
-				(player.getNameKor() != null && question.contains(player.getNameKor()))
-						|| (player.getName() != null && lower.contains(
-								player.getName().toLowerCase(java.util.Locale.ROOT)))).toList();
-		if (!named.isEmpty()) players = named;
-		else if (selectedTeams.isEmpty()) {
+		List<Players> named = new ArrayList<>();
+		for (Players player : players) {
+			if (player == null) continue;
+			if ((player.getNameKor() != null && question.contains(player.getNameKor()))
+					|| (player.getName() != null && lower.contains(player.getName().toLowerCase(java.util.Locale.ROOT)))) {
+				named.add(player);
+			}
+		}
+		if (!named.isEmpty()) {
+			players = named;
+		} else if (selectedTeams.isEmpty()) {
 			String nationality = findPlayerNationality(question, players);
 			if (nationality == null) return;
-			players = players.stream().filter(player -> nationality.equalsIgnoreCase(player.getNationality())
-					|| nationality.equals(player.getNationalityKor())).toList();
+			List<Players> filteredByNat = new ArrayList<>();
+			for (Players player : players) {
+				if (nationality.equalsIgnoreCase(player.getNationality()) || nationality.equals(player.getNationalityKor())) {
+					filteredByNat.add(player);
+				}
+			}
+			players = filteredByNat;
 		}
 		context.append("선수 정보:\n");
-		players.stream().limit(20).forEach(player -> context.append("- ")
-				.append(player.getNameKor() != null ? player.getNameKor() : player.getName())
-				.append(", 국적 ").append(player.getNationalityKor() != null
-						? player.getNationalityKor() : player.getNationality())
-				.append(", 포지션 ").append(player.getDetailPosition() != null
-						? player.getDetailPosition() : player.getMainPosition()).append('\n'));
+		int playerLimit = Math.min(players.size(), 20);
+		for (int i = 0; i < playerLimit; i++) {
+			Players player = players.get(i);
+			context.append("- ")
+					.append(player.getNameKor() != null ? player.getNameKor() : player.getName())
+					.append(", 국적 ").append(player.getNationalityKor() != null
+							? player.getNationalityKor() : player.getNationality())
+					.append(", 포지션 ").append(player.getDetailPosition() != null
+							? player.getDetailPosition() : player.getMainPosition()).append('\n');
+		}
 	}
 
 	private void appendClubPlayerRankingContext(StringBuilder context, String question,
@@ -1368,10 +1676,15 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 			return;
 		}
 		for (Teams team : selectedTeams) {
-			List<PlayerStats> rankings = source.stream()
-					.filter(player -> team.getTeamId().equals(player.getTeamId())).toList();
+			List<PlayerStats> rankings = new ArrayList<>();
+			for (PlayerStats player : source) {
+				if (player != null && team.getTeamId().equals(player.getTeamId())) {
+					rankings.add(player);
+				}
+			}
 			context.append(displayTeamName(team)).append(' ').append(label).append(" 순위(DB):\n");
-			for (int index = 0; index < Math.min(rankings.size(), 30); index++) {
+			int maxIndex = Math.min(rankings.size(), 30);
+			for (int index = 0; index < maxIndex; index++) {
 				PlayerStats player = rankings.get(index);
 				long score = rankingScore(player, metric);
 				int rank = 1;
@@ -1392,14 +1705,27 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	private void appendSquadCandidateContext(StringBuilder context, String question) {
 		List<Players> players = teamDAO.findAllPlayers();
 		List<TeamStats> standings = teamDAO.findAllTeamStandings(null);
-		Set<Long> currentTeamIds = standings.stream()
-				.map(TeamStats::getTeamId).collect(Collectors.toSet());
-		if (!currentTeamIds.isEmpty()) {
-			players = players.stream()
-					.filter(player -> currentTeamIds.contains(player.getTeamId())).toList();
+		Set<Long> currentTeamIds = new java.util.HashSet<>();
+		for (TeamStats stats : standings) {
+			if (stats != null && stats.getTeamId() != null) {
+				currentTeamIds.add(stats.getTeamId());
+			}
 		}
-		Map<Long, String> teamNames = teamDAO.findAllTeams().stream().collect(Collectors.toMap(
-				Teams::getTeamId, this::displayTeamName, (first, second) -> first));
+		if (!currentTeamIds.isEmpty()) {
+			List<Players> filtered = new ArrayList<>();
+			for (Players player : players) {
+				if (currentTeamIds.contains(player.getTeamId())) {
+					filtered.add(player);
+				}
+			}
+			players = filtered;
+		}
+		Map<Long, String> teamNames = new HashMap<>();
+		for (Teams t : teamDAO.findAllTeams()) {
+			if (t != null && t.getTeamId() != null) {
+				teamNames.put(t.getTeamId(), displayTeamName(t));
+			}
+		}
 		String requested = requestedPosition(question);
 		List<String> positions = requested == null
 				? List.of("GK", "DF", "MF", "FW") : List.of(requested);
@@ -1407,14 +1733,27 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		context.append("나만의 팀 EPL 선수 후보(DB):\n");
 		for (String position : positions) {
 			context.append(positionName(position)).append(":\n");
-			players.stream().filter(player -> position.equals(player.getMainPosition()))
-					.sorted((first, second) -> displayPlayerName(first)
-							.compareTo(displayPlayerName(second)))
-					.limit(limit).forEach(player -> context.append("- ")
-							.append(displayPlayerName(player)).append(" · ")
-							.append(teamNames.getOrDefault(player.getTeamId(), "소속 팀 미상"))
-							.append(" · ").append(player.getDetailPosition() != null
-									? player.getDetailPosition() : player.getMainPosition()).append('\n'));
+			List<Players> posPlayers = new ArrayList<>();
+			for (Players player : players) {
+				if (player != null && position.equals(player.getMainPosition())) {
+					posPlayers.add(player);
+				}
+			}
+			Collections.sort(posPlayers, new java.util.Comparator<Players>() {
+				@Override
+				public int compare(Players first, Players second) {
+					return displayPlayerName(first).compareTo(displayPlayerName(second));
+				}
+			});
+			int posLimit = Math.min(posPlayers.size(), limit);
+			for (int i = 0; i < posLimit; i++) {
+				Players player = posPlayers.get(i);
+				context.append("- ")
+						.append(displayPlayerName(player)).append(" · ")
+						.append(teamNames.getOrDefault(player.getTeamId(), "소속 팀 미상"))
+						.append(" · ").append(player.getDetailPosition() != null
+								? player.getDetailPosition() : player.getMainPosition()).append('\n');
+			}
 		}
 	}
 
@@ -1427,17 +1766,19 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		} else {
 			context.append("- 시즌: ").append(standings.get(0).getSeason())
 					.append(", 최근 갱신: ").append(standings.get(0).getUpdatedAt()).append('\n');
-			standings.forEach(stats -> context.append("- ")
-					.append(stats.getCurrentRank()).append("위 ")
-					.append(displayStandingName(stats))
-					.append(" · 경기 ").append(value(stats.getMatchesPlayed()))
-					.append(" · 승점 ").append(value(stats.getPoints()))
-					.append(" · ").append(value(stats.getWins())).append("승 ")
-					.append(value(stats.getDraws())).append("무 ")
-					.append(value(stats.getLosses())).append("패")
-					.append(" · 득점 ").append(value(stats.getGoalsFor()))
-					.append(" · 실점 ").append(value(stats.getGoalsAgainst()))
-					.append(" · 득실차 ").append(value(stats.getGoalDiff())).append('\n'));
+			for (TeamStats stats : standings) {
+				context.append("- ")
+						.append(stats.getCurrentRank()).append("위 ")
+						.append(displayStandingName(stats))
+						.append(" · 경기 ").append(value(stats.getMatchesPlayed()))
+						.append(" · 승점 ").append(value(stats.getPoints()))
+						.append(" · ").append(value(stats.getWins())).append("승 ")
+						.append(value(stats.getDraws())).append("무 ")
+						.append(value(stats.getLosses())).append("패")
+						.append(" · 득점 ").append(value(stats.getGoalsFor()))
+						.append(" · 실점 ").append(value(stats.getGoalsAgainst()))
+						.append(" · 득실차 ").append(value(stats.getGoalDiff())).append('\n');
+			}
 		}
 		appendPlayerRankingContext(context, "득점", "goals");
 		appendPlayerRankingContext(context, "도움", "assists");
@@ -1520,17 +1861,28 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	}
 
 	private boolean isSquadAdviceQuestion(String question) {
-		return List.of("추천", "넣", "빼", "바꿔", "교체", "배치", "조합", "포메이션",
-				"스쿼드", "전술", "약점", "보완", "균형", "어울", "누구로", "어떻게")
-				.stream().anyMatch(question::contains);
+		String[] keywords = {"추천", "넣", "빼", "바꿔", "교체", "배치", "조합", "포메이션",
+				"스쿼드", "전술", "약점", "보완", "균형", "어울", "누구로", "어떻게"};
+		for (String kw : keywords) {
+			if (question.contains(kw)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private boolean isRankingAnalysisQuestion(String question) {
-		boolean analysisKeyword = List.of("차이", "격차", "비교", "분석", "챔피언스리그", "챔스", "강등권",
+		String[] keywords = {"차이", "격차", "비교", "분석", "챔피언스리그", "챔스", "강등권",
 				"우승 가능", "진출 가능", "잔류 가능", "기준", "왜",
 				"추세", "전망", "계산", "몇 점 차", "몇골 차", "몇 골 차", "승부예측",
-				"적중 랭킹", "가상 대결", "가상대결", "회원 랭킹")
-				.stream().anyMatch(question::contains);
+				"적중 랭킹", "가상 대결", "가상대결", "회원 랭킹"};
+		boolean analysisKeyword = false;
+		for (String kw : keywords) {
+			if (question.contains(kw)) {
+				analysisKeyword = true;
+				break;
+			}
+		}
 		boolean tiedRankExplanation = requestedRank(question) == null
 				&& (question.contains("공동") || question.contains("동률"));
 		return hasMultipleRequestedRanks(question) || analysisKeyword || tiedRankExplanation;
@@ -1538,10 +1890,14 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 
 	private boolean containsMentionedPlayer(String question) {
 		String lower = question.toLowerCase(java.util.Locale.ROOT);
-		return teamDAO.findAllPlayers().stream().anyMatch(player ->
-				(player.getNameKor() != null && question.contains(player.getNameKor()))
-						|| (player.getName() != null
-								&& lower.contains(player.getName().toLowerCase(java.util.Locale.ROOT))));
+		for (Players player : teamDAO.findAllPlayers()) {
+			if (player == null) continue;
+			if ((player.getNameKor() != null && question.contains(player.getNameKor()))
+					|| (player.getName() != null && lower.contains(player.getName().toLowerCase(java.util.Locale.ROOT)))) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	// 질문에 명시된 구단을 DB 이름으로 찾습니다.
@@ -1567,13 +1923,34 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 				aliasOwners.computeIfAbsent(alias, key -> new ArrayList<>()).add(team);
 			}
 		}
-		aliasOwners.entrySet().stream()
-				.filter(entry -> entry.getValue().size() == 1 && lower.contains(entry.getKey()))
-				.sorted((left, right) -> Integer.compare(right.getKey().length(), left.getKey().length()))
-				.map(entry -> entry.getValue().get(0))
-				.filter(team -> result.stream().noneMatch(found -> found.getTeamId().equals(team.getTeamId())))
-				.limit(2 - result.size())
-				.forEach(result::add);
+		List<Map.Entry<String, List<Teams>>> singleAliasEntries = new ArrayList<>();
+		for (Map.Entry<String, List<Teams>> entry : aliasOwners.entrySet()) {
+			if (entry.getValue().size() == 1 && lower.contains(entry.getKey())) {
+				singleAliasEntries.add(entry);
+			}
+		}
+		// 별칭 길이가 긴 순서대로(내림차순) 정렬하여 더 구체적인 구단명을 우선 매칭
+		Collections.sort(singleAliasEntries, new java.util.Comparator<Map.Entry<String, List<Teams>>>() {
+			@Override
+			public int compare(Map.Entry<String, List<Teams>> left, Map.Entry<String, List<Teams>> right) {
+				return Integer.compare(right.getKey().length(), left.getKey().length());
+			}
+		});
+
+		for (Map.Entry<String, List<Teams>> entry : singleAliasEntries) {
+			if (result.size() >= 2) break;
+			Teams candidate = entry.getValue().get(0);
+			boolean alreadyExists = false;
+			for (Teams found : result) {
+				if (found.getTeamId().equals(candidate.getTeamId())) {
+					alreadyExists = true;
+					break;
+				}
+			}
+			if (!alreadyExists) {
+				result.add(candidate);
+			}
+		}
 		return result;
 	}
 
@@ -1676,100 +2053,15 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	}
 
 	/**
-	 * Gemini API 호출 공통 메서드 (최신 모델 자동 탐색 및 JSON 응답 보장)
+	 * Gemini API 호출 (GeminiApiClient에 위임)
 	 */
 	private String callGemini(String promptText) throws Exception {
-		return callGeminiRequest(promptText, false).text();
+		return geminiApiClient.callGemini(promptText);
 	}
 
 	private GeminiCallResult callGeminiWithSearch(String promptText) throws Exception {
-		return callGeminiRequest(promptText, true);
-	}
-
-	private GeminiCallResult callGeminiRequest(String promptText, boolean googleSearch) throws Exception {
-		if (apiKey == null || apiKey.trim().isEmpty() || "apikey".equalsIgnoreCase(apiKey.trim())) {
-			throw new IllegalStateException("application.properties에 유효한 gemini.api.key가 설정되지 않았습니다.");
-		}
-
-		// 요청 JSON 구성
-		Map<String, Object> textPart = new HashMap<>();
-		textPart.put("text", promptText);
-
-		List<Map<String, Object>> parts = new ArrayList<>();
-		parts.add(textPart);
-
-		Map<String, Object> contentMap = new HashMap<>();
-		contentMap.put("parts", parts);
-
-		List<Map<String, Object>> contents = new ArrayList<>();
-		contents.add(contentMap);
-
-		Map<String, Object> genConfig = new HashMap<>();
-		genConfig.put("responseMimeType", "application/json");
-
-		Map<String, Object> requestBody = new HashMap<>();
-		requestBody.put("contents", contents);
-		requestBody.put("generationConfig", genConfig);
-		if (googleSearch) {
-			requestBody.put("tools", List.of(Map.of("google_search", Map.of())));
-		}
-
-		String requestJson = objectMapper.writeValueAsString(requestBody);
-
-		// 이미 검증된 모델이 있으면 우선 사용, 없으면 후보 순차 시도
-		String cachedModel = googleSearch ? verifiedSearchModel : verifiedModel;
-		String[] searchCandidates = {
-			"gemini-3.1-flash-lite",
-			"gemini-flash-latest",
-			"gemini-flash-lite-latest"
-		};
-		String[] modelsToTry = cachedModel != null
-				? new String[]{cachedModel}
-				: googleSearch ? searchCandidates : CANDIDATE_MODELS;
-
-		String lastError = null;
-		for (String modelName : modelsToTry) {
-			String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + modelName + ":generateContent";
-
-			HttpRequest request = HttpRequest.newBuilder()
-					.uri(URI.create(apiUrl))
-					.header("Content-Type", "application/json; charset=utf-8")
-					.header("x-goog-api-key", apiKey.trim())
-					.timeout(Duration.ofSeconds(30))
-					.POST(HttpRequest.BodyPublishers.ofString(requestJson))
-					.build();
-
-			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-			if (response.statusCode() == 200) {
-				if (googleSearch) verifiedSearchModel = modelName;
-				else verifiedModel = modelName;
-				log.info("[Gemini API] 모델 연동 성공: {} (Google 검색: {})", modelName, googleSearch);
-
-				JsonNode rootNode = objectMapper.readTree(response.body());
-				JsonNode candidates = rootNode.path("candidates");
-				if (candidates.isArray() && candidates.size() > 0) {
-					JsonNode candidate = candidates.get(0);
-					for (JsonNode part : candidate.path("content").path("parts")) {
-						String text = part.path("text").asText("");
-						if (!text.isBlank()) {
-							return new GeminiCallResult(text, extractGroundingSources(candidate));
-						}
-					}
-				}
-			} else {
-				lastError = "모델 [" + modelName + "] 호출 실패 (HTTP " + response.statusCode() + "): " + response.body();
-				log.warn("[Gemini API] {}", lastError);
-				// 캐시된 모델이 실패하면 전체 후보를 다시 확인합니다.
-				if (cachedModel != null) {
-					if (googleSearch) verifiedSearchModel = null;
-					else verifiedModel = null;
-					return callGeminiRequest(promptText, googleSearch);
-				}
-			}
-		}
-
-		throw new RuntimeException("모든 Gemini 모델 호출 실패: " + lastError);
+		var result = geminiApiClient.callGeminiWithSearch(promptText);
+		return new GeminiCallResult(result.text(), result.sources());
 	}
 
 	private List<String> extractGroundingSources(JsonNode candidate) {
@@ -1777,7 +2069,15 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		for (JsonNode chunk : candidate.path("groundingMetadata").path("groundingChunks")) {
 			JsonNode web = chunk.path("web");
 			String uri = web.path("uri").asText("");
-			if (uri.isBlank() || sources.stream().anyMatch(source -> source.endsWith(uri))) continue;
+			if (uri.isBlank()) continue;
+			boolean alreadyExists = false;
+			for (String source : sources) {
+				if (source.endsWith(uri)) {
+					alreadyExists = true;
+					break;
+				}
+			}
+			if (alreadyExists) continue;
 			String title = web.path("title").asText("검색 결과");
 			sources.add(title + " · " + uri);
 			if (sources.size() == 3) break;
@@ -2289,33 +2589,34 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	 */
 	private String resolveKnownEmblem(Long teamId) {
 		if (teamId == null) return null;
-		String badgeId = switch (teamId.intValue()) {
-			case 57 -> "t3";     // Arsenal
-			case 58 -> "t7";     // Aston Villa
-			case 1044 -> "t91";  // AFC Bournemouth
-			case 402 -> "t94";   // Brentford
-			case 397 -> "t36";   // Brighton & Hove Albion
-			case 61 -> "t8";     // Chelsea
-			case 354 -> "t31";   // Crystal Palace
-			case 62 -> "t11";    // Everton
-			case 63 -> "t54";    // Fulham
-			case 349 -> "t40";   // Ipswich Town
-			case 338 -> "t13";   // Leicester City
-			case 64 -> "t14";    // Liverpool
-			case 65 -> "t43";    // Manchester City
-			case 66 -> "t1";     // Manchester United
-			case 67 -> "t4";     // Newcastle United
-			case 351 -> "t17";   // Nottingham Forest
-			case 340 -> "t20";   // Southampton
-			case 73 -> "t6";     // Tottenham Hotspur
-			case 563 -> "t21";   // West Ham United
-			case 76 -> "t39";    // Wolverhampton Wanderers
-			case 71 -> "t56";    // Sunderland
-			case 341 -> "t2";    // Leeds United
-			case 322 -> "t88";   // Hull City
-			case 1076 -> "t9";   // Coventry City
-			default -> null;
-		};
+		String badgeId = null;
+		switch (teamId.intValue()) {
+			case 57: badgeId = "t3"; break;     // Arsenal
+			case 58: badgeId = "t7"; break;     // Aston Villa
+			case 1044: badgeId = "t91"; break;  // AFC Bournemouth
+			case 402: badgeId = "t94"; break;   // Brentford
+			case 397: badgeId = "t36"; break;   // Brighton & Hove Albion
+			case 61: badgeId = "t8"; break;     // Chelsea
+			case 354: badgeId = "t31"; break;   // Crystal Palace
+			case 62: badgeId = "t11"; break;    // Everton
+			case 63: badgeId = "t54"; break;    // Fulham
+			case 349: badgeId = "t40"; break;   // Ipswich Town
+			case 338: badgeId = "t13"; break;   // Leicester City
+			case 64: badgeId = "t14"; break;    // Liverpool
+			case 65: badgeId = "t43"; break;    // Manchester City
+			case 66: badgeId = "t1"; break;     // Manchester United
+			case 67: badgeId = "t4"; break;     // Newcastle United
+			case 351: badgeId = "t17"; break;   // Nottingham Forest
+			case 340: badgeId = "t20"; break;   // Southampton
+			case 73: badgeId = "t6"; break;     // Tottenham Hotspur
+			case 563: badgeId = "t21"; break;   // West Ham United
+			case 76: badgeId = "t39"; break;    // Wolverhampton Wanderers
+			case 71: badgeId = "t56"; break;    // Sunderland
+			case 341: badgeId = "t2"; break;    // Leeds United
+			case 322: badgeId = "t88"; break;   // Hull City
+			case 1076: badgeId = "t9"; break;   // Coventry City
+			default: badgeId = null; break;
+		}
 		return badgeId != null ? "https://resources.premierleague.com/premierleague/badges/50/" + badgeId + ".png" : null;
 	}
 
@@ -2541,14 +2842,128 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		// Fallback: AI 호출 실패 시 시간순으로 가장 늦은 시간의 초과분 제외
 		List<Integer> fallbackList = new ArrayList<>();
 		List<Map<String, Object>> sorted = new ArrayList<>(candidateGoals);
-		sorted.sort((a, b) -> Integer.compare(
-				((Number) b.getOrDefault("minute", 0)).intValue(),
-				((Number) a.getOrDefault("minute", 0)).intValue()));
+		Collections.sort(sorted, new java.util.Comparator<Map<String, Object>>() {
+			@Override
+			public int compare(Map<String, Object> a, Map<String, Object> b) {
+				int minuteA = ((Number) a.getOrDefault("minute", 0)).intValue();
+				int minuteB = ((Number) b.getOrDefault("minute", 0)).intValue();
+				return Integer.compare(minuteB, minuteA); // 내림차순 정렬 (후반부 골 우선)
+			}
+		});
 
 		for (int i = 0; i < excessCount && i < sorted.size(); i++) {
 			fallbackList.add(((Number) sorted.get(i).get("minute")).intValue());
 		}
 		log.info("[Gemini AI Fallback] 시간순 후반부 초과골 {}건 제외: {}", excessCount, fallbackList);
 		return fallbackList;
+	}
+
+	@Override
+	public Map<String, Object> inspectAndBlindHarmfulCommunityBatch(int limit) {
+		int effectiveLimit = limit > 0 ? limit : 20;
+		int halfLimit = Math.max(effectiveLimit / 2, 5);
+
+		// 1. 최근 등록/수정된 정상 공개 상태의 게시글 조회 (최대 halfLimit 건)
+		Map<String, Object> postParams = new HashMap<>();
+		postParams.put("isBlind", "N");
+		postParams.put("isDeleted", "N");
+		List<Posts> normalPosts = adminDAO.selectAdminPosts(postParams);
+		if (normalPosts.size() > halfLimit) {
+			normalPosts = normalPosts.subList(0, halfLimit);
+		}
+
+		// 2. 최근 등록/수정된 정상 공개 상태의 댓글 조회 (최대 halfLimit 건)
+		Map<String, Object> commentParams = new HashMap<>();
+		commentParams.put("isBlind", "N");
+		commentParams.put("isDeleted", "N");
+		List<Comments> normalComments = adminDAO.selectAdminComments(commentParams);
+		if (normalComments.size() > halfLimit) {
+			normalComments = normalComments.subList(0, halfLimit);
+		}
+
+		// 검사 대상 조합
+		List<Map<String, Object>> targetItems = new ArrayList<>();
+		for (Posts p : normalPosts) {
+			Map<String, Object> item = new HashMap<>();
+			item.put("type", "POST");
+			item.put("id", p.getPostId());
+			item.put("title", p.getTitle());
+			item.put("content", p.getContent());
+			targetItems.add(item);
+		}
+		for (Comments c : normalComments) {
+			Map<String, Object> item = new HashMap<>();
+			item.put("type", "COMMENT");
+			item.put("id", c.getCommentId());
+			item.put("content", c.getContent());
+			targetItems.add(item);
+		}
+
+		Map<String, Object> result = new HashMap<>();
+		result.put("checkedCount", targetItems.size());
+		result.put("blindedPostCount", 0);
+		result.put("blindedCommentCount", 0);
+		result.put("details", new ArrayList<>());
+
+		if (targetItems.isEmpty()) {
+			result.put("message", "검사할 정상 게시글 및 댓글이 없습니다.");
+			return result;
+		}
+
+		try {
+			log.info("[AI Content Moderation] 게시글 {}건, 댓글 {}건 일괄 유해성 검증 시작 (총 {}건)",
+					normalPosts.size(), normalComments.size(), targetItems.size());
+
+			// 3. 프롬프트 생성 및 Gemini 호출
+			String prompt = geminiPromptBuilder.buildCommunityModerationPrompt(targetItems);
+			String geminiResponse = geminiApiClient.callGemini(prompt);
+
+			// 4. 응답 파싱
+			JsonNode rootNode = geminiResponseParser.parseJsonTree(geminiResponse);
+			JsonNode flaggedArray = rootNode != null ? rootNode.path("flaggedItems") : null;
+
+			int blindedPosts = 0;
+			int blindedComments = 0;
+			List<Map<String, Object>> details = new ArrayList<>();
+
+			if (flaggedArray != null && flaggedArray.isArray()) {
+				for (JsonNode flaggedNode : flaggedArray) {
+					String type = flaggedNode.path("type").asText("").toUpperCase();
+					long id = flaggedNode.path("id").asLong(0);
+					String reason = flaggedNode.path("reason").asText("AI 자동 감지 위반");
+
+					if (id > 0) {
+						if ("POST".equals(type)) {
+							int updated = adminDAO.updatePostBlind(id, "Y");
+							if (updated > 0) {
+								blindedPosts++;
+								log.warn("[AI Content Moderation] 🚨 유해 게시글 #{} 자동 블라인드 제재 완료: {}", id, reason);
+								details.add(Map.of("type", "POST", "id", id, "reason", reason));
+							}
+						} else if ("COMMENT".equals(type)) {
+							int updated = adminDAO.updateCommentBlind(id, "Y");
+							if (updated > 0) {
+								blindedComments++;
+								log.warn("[AI Content Moderation] 🚨 유해 댓글 #{} 자동 블라인드 제재 완료: {}", id, reason);
+								details.add(Map.of("type", "COMMENT", "id", id, "reason", reason));
+							}
+						}
+					}
+				}
+			}
+
+			result.put("blindedPostCount", blindedPosts);
+			result.put("blindedCommentCount", blindedComments);
+			result.put("details", details);
+			result.put("message", String.format("총 %d건 검사 완료 (유해 글 %d건, 댓글 %d건 자동 블라인드 제재)",
+					targetItems.size(), blindedPosts, blindedComments));
+			log.info("[AI Content Moderation] 배치 검사 완료: 글 {}건, 댓글 {}건 제재됨", blindedPosts, blindedComments);
+
+		} catch (Exception e) {
+			log.error("[AI Content Moderation] 유해성 검증 중 오류 발생: {}", e.getMessage(), e);
+			result.put("message", "AI 유해성 검증 중 오류가 발생했습니다: " + e.getMessage());
+		}
+
+		return result;
 	}
 }

@@ -23,6 +23,7 @@ import com.app.common.ResultCode;
 import com.app.dto.user.APILogin;
 import com.app.dto.user.Users;
 import com.app.service.user.UserService;
+import com.app.service.user.UserMailService;
 import com.app.util.JwtProvider;
 import com.app.util.LoginManager;
 
@@ -41,7 +42,7 @@ public class AuthController {
 	private UserService userService;
 
 	@Autowired
-	private com.app.service.user.UserMailService userMailService;
+	private UserMailService userMailService;
 
 	/**
 	 * 로그인 처리 (아이디/비밀번호 검증, 세션 및 JWT 발급)

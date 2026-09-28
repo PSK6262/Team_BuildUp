@@ -33,6 +33,7 @@ import com.app.dto.prediction.PointHistory;
 import com.app.dto.team.PlayerStats;
 import com.app.dto.user.Users;
 import com.app.service.admin.AdminService;
+import com.app.service.api.GeminiApiService;
 import com.app.util.JwtProvider;
 import com.app.util.LoginManager;
 
@@ -44,6 +45,9 @@ public class AdminController {
 
 	@Autowired
 	private AdminService adminService;
+
+	@Autowired
+	private GeminiApiService geminiApiService;
 
 	@Autowired
 	private UserDAO userDAO;
@@ -317,6 +321,24 @@ public class AdminController {
 		String isBlind = (body != null) ? body.getOrDefault("isBlind", "N") : "N";
 		boolean success = adminService.toggleCommentBlind(commentId, isBlind);
 		return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
+	}
+
+	// 12-1. AI 유해 게시글 / 욕설 문맥 자동 모더레이션 즉시 일괄 검사 실행
+	@PostMapping("/community/ai-moderation")
+	public ApiResponse<Map<String, Object>> runAiModerationBatch(
+			@RequestBody(required = false) Map<String, Object> body,
+			HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		int limit = 30;
+		if (body != null && body.containsKey("limit")) {
+			try {
+				limit = Integer.parseInt(body.get("limit").toString());
+			} catch (Exception e) {}
+		}
+		Map<String, Object> result = geminiApiService.inspectAndBlindHarmfulCommunityBatch(limit);
+		return ApiResponse.success(result);
 	}
 
 	// 13. 회원 목록 조회

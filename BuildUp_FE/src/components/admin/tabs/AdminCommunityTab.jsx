@@ -28,24 +28,36 @@ export default function AdminCommunityTab({ showAlert }) {
     handleTogglePostBlind,
     handleDeletePost,
     handleToggleCommentBlind,
+    moderationLoading,
+    handleRunAiModeration,
   } = useAdminCommunity({ showAlert });
 
   return (
     <div>
-      {/* AI 모더레이션 연동 대비 안내 배너 */}
+      {/* AI 모더레이션 연동 안내 배너 */}
       <div className="ai-moderation-banner">
         <div className="ai-moderation-banner__text">
           <h4>🤖 AI 유해 게시글 / 욕설 문맥 자동 감지 시스템</h4>
           <p>
-            현재 수동 블라인드 제재가 활성화되어 있습니다. 차후 Gemini AI 연동 시 문맥과 비속어를 자동 판별하여 사전 블라인드 제재하며, 유저는 경고 확인 후 열람하게 됩니다.
+            Gemini AI가 최근 등록 및 수정된 게시글과 댓글의 문맥을 일괄 분석하여 비속어, 패드립, 혐오 표현을 자동 블라인드 제재합니다.<br />
+            <span style={{ fontSize: 12, opacity: 0.85 }}>※ 서버 스케줄러를 통해 5분마다 자동 실행되며, 아래 버튼으로 지금 즉시 수동 실행할 수 있습니다.</span>
           </p>
         </div>
         <button
           type="button"
           className="btn-action btn-action--primary"
-          onClick={() => showAlert?.('AI 자동 블라인드 검사 백그라운드 태스크가 대기 상태입니다.')}
+          disabled={moderationLoading}
+          onClick={() => handleRunAiModeration(30)}
+          style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}
         >
-          AI 블라인드 검사 예약
+          {moderationLoading ? (
+            <>
+              <span className="admin-spinner">🔄</span>
+              <span>AI 분석 중...</span>
+            </>
+          ) : (
+            '⚡ AI 유해성 일괄 검사 실행'
+          )}
         </button>
       </div>
 
