@@ -183,7 +183,7 @@ function isStandingRow(row) {
 }
 
 export function StandingsPage() {
-  const tabs = [ ['league', '리그 순위표'], ['goals', '득점 랭킹'], ['assists', '도움 랭킹'], ['contributions', '공격포인트'], ['prediction', '승부예측 적중'], ['virtual', '가상 대결 승리수'] ];
+  const tabs = [ ['league', '리그 순위표'], ['goals', '득점랭킹'], ['assists', '도움랭킹'], ['contributions', '공격포인트 순위'] ];
   const [ tab, setTab ] = useState(() => {
     const value = new URLSearchParams(window.location.search).get('tab');
     return tabs.some(([ id ]) => id === value) ? value : 'league';
@@ -201,7 +201,7 @@ export function StandingsPage() {
       <div className="teams-page-wrapper">
         <header className="teams-page-header">
           <span className="teams-page-eyebrow">프리미어리그 (EPL) · 2026/27 시즌</span>
-          <h1 className="teams-page-title">리그 · 선수 · 회원 랭킹</h1>
+          <h1 className="teams-page-title">리그 · 선수 랭킹</h1>
           <p className="teams-page-desc">프리미어리그 20개 구단 실시간 순위부터 득점왕, 도움왕, 공격포인트까지 한눈에 확인하세요.</p>
         </header>
         <div className="ranking-tabs" role="tablist" aria-label="랭킹 종류">
@@ -221,7 +221,6 @@ export function StandingsPage() {
         </div>
         <section id="ranking-panel" role="tabpanel" aria-labelledby={`ranking-tab-${tab}`} tabIndex={0}>
         {tab === 'league' ? <StandingsTable season={2026} />
-          : ['prediction', 'virtual'].includes(tab) ? <MemberRankings key={tab} type={tab} />
           : <PlayerRankings key={tab} metric={tab} label={tabs.find(([ id ]) => id === tab)[1]} />}
         </section>
       </div>
