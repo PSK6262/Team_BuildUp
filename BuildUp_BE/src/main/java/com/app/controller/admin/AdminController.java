@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.app.common.ApiResponse;
 import com.app.common.CommonCode;
+import com.app.common.ExternalApiException;
 import com.app.common.ResultCode;
 import com.app.dao.user.UserDAO;
 import com.app.dto.community.Comments;
@@ -415,6 +416,10 @@ public class AdminController {
 			Map<String, Object> data = new HashMap<>();
 			data.put("syncedEvents", count);
 			return ApiResponse.success(data);
+		} catch (ExternalApiException e) {
+			log.error("[AdminController] 이벤트 동기화 중 외부 API 연동 실패 (HTTP {}, Code: {}): {}",
+					e.getStatusCode(), e.getResultCode().getCode(), e.getMessage());
+			return ApiResponse.error(e.getResultCode(), e.getMessage());
 		} catch (Exception e) {
 			log.error("[AdminController] 이벤트 동기화 실패: {}", e.getMessage(), e);
 			return ApiResponse.error(ResultCode.FAIL, "이벤트 동기화 중 오류가 발생했습니다: " + e.getMessage());
@@ -436,6 +441,10 @@ public class AdminController {
 			String to = (endDate != null && !endDate.trim().isEmpty()) ? endDate.trim() : from;
 			Map<String, Object> result = adminService.forceAiAlignMatchEventsByDateRange(from, to);
 			return ApiResponse.success(result);
+		} catch (ExternalApiException e) {
+			log.error("[AdminController] AI 강제 일치 중 외부 API 연동 실패 (HTTP {}, Code: {}): {}",
+					e.getStatusCode(), e.getResultCode().getCode(), e.getMessage());
+			return ApiResponse.error(e.getResultCode(), e.getMessage());
 		} catch (Exception e) {
 			log.error("[AdminController] AI 강제 일치 실패: {}", e.getMessage(), e);
 			return ApiResponse.error(ResultCode.FAIL, "AI 강제 일치 중 오류가 발생했습니다: " + e.getMessage());
@@ -455,6 +464,10 @@ public class AdminController {
 			Map<String, Object> data = new HashMap<>();
 			data.put("syncedStandings", count);
 			return ApiResponse.success(data);
+		} catch (ExternalApiException e) {
+			log.error("[AdminController] 순위표 동기화 중 외부 API 연동 실패 (HTTP {}, Code: {}): {}",
+					e.getStatusCode(), e.getResultCode().getCode(), e.getMessage());
+			return ApiResponse.error(e.getResultCode(), e.getMessage());
 		} catch (Exception e) {
 			log.error("[AdminController] 순위표 동기화 실패: {}", e.getMessage(), e);
 			return ApiResponse.error(ResultCode.FAIL, "순위표 동기화 중 오류가 발생했습니다: " + e.getMessage());
@@ -474,6 +487,10 @@ public class AdminController {
 			Map<String, Object> data = new HashMap<>();
 			data.put("syncedScorers", count);
 			return ApiResponse.success(data);
+		} catch (ExternalApiException e) {
+			log.error("[AdminController] 득점순위 동기화 중 외부 API 연동 실패 (HTTP {}, Code: {}): {}",
+					e.getStatusCode(), e.getResultCode().getCode(), e.getMessage());
+			return ApiResponse.error(e.getResultCode(), e.getMessage());
 		} catch (Exception e) {
 			log.error("[AdminController] 득점순위 동기화 실패: {}", e.getMessage(), e);
 			return ApiResponse.error(ResultCode.FAIL, "득점순위 동기화 중 오류가 발생했습니다: " + e.getMessage());
@@ -493,6 +510,10 @@ public class AdminController {
 			Map<String, Object> data = new HashMap<>();
 			data.put("syncedMatches", count);
 			return ApiResponse.success(data);
+		} catch (ExternalApiException e) {
+			log.error("[AdminController] 시즌 경기 동기화 중 외부 API 연동 실패 (HTTP {}, Code: {}): {}",
+					e.getStatusCode(), e.getResultCode().getCode(), e.getMessage());
+			return ApiResponse.error(e.getResultCode(), e.getMessage());
 		} catch (Exception e) {
 			log.error("[AdminController] 시즌 경기 동기화 실패: {}", e.getMessage(), e);
 			return ApiResponse.error(ResultCode.FAIL, "시즌 경기 동기화 중 오류가 발생했습니다: " + e.getMessage());
@@ -510,6 +531,10 @@ public class AdminController {
 			Map<String, Object> data = new HashMap<>();
 			data.put("syncedPlayers", count);
 			return ApiResponse.success(data);
+		} catch (ExternalApiException e) {
+			log.error("[AdminController] 구단/선수단 동기화 중 외부 API 연동 실패 (HTTP {}, Code: {}): {}",
+					e.getStatusCode(), e.getResultCode().getCode(), e.getMessage());
+			return ApiResponse.error(e.getResultCode(), e.getMessage());
 		} catch (Exception e) {
 			log.error("[AdminController] 구단 및 선수단 동기화 실패: {}", e.getMessage(), e);
 			return ApiResponse.error(ResultCode.FAIL, "구단/선수단 동기화 중 오류가 발생했습니다: " + e.getMessage());
@@ -527,6 +552,10 @@ public class AdminController {
 			Map<String, Object> data = new HashMap<>();
 			data.put("resyncedMatches", count);
 			return ApiResponse.success(data);
+		} catch (ExternalApiException e) {
+			log.error("[AdminController] 불일치 경기 재동기화 중 외부 API 연동 실패 (HTTP {}, Code: {}): {}",
+					e.getStatusCode(), e.getResultCode().getCode(), e.getMessage());
+			return ApiResponse.error(e.getResultCode(), e.getMessage());
 		} catch (Exception e) {
 			log.error("[AdminController] 불일치 경기 재동기화 실패: {}", e.getMessage(), e);
 			return ApiResponse.error(ResultCode.FAIL, "불일치 경기 재동기화 중 오류가 발생했습니다: " + e.getMessage());
