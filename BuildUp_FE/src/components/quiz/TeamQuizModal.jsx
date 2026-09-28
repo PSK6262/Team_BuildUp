@@ -429,7 +429,7 @@ export default function TeamQuizModal({ isOpen, onClose, teams = [] }) {
       aria-labelledby="quiz-modal-title"
     >
       <div
-        className={`team-quiz-card ${isTieBreakerActive || isTieBreakerBanner ? 'is-tie-breaker-mode' : ''}`}
+        className={`team-quiz-card ${isTieBreakerActive || isTieBreakerBanner ? 'is-tie-breaker-mode' : ''} ${isCompleted ? 'is-result-mode' : ''}`}
       >
         {/* 상단 닫기 버튼 */}
         <button
