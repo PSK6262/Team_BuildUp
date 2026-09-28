@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.app.common.CommonCode;
 import com.app.dao.user.UserDAO;
 import com.app.dto.prediction.Predictions;
 import com.app.dto.user.UserPredicts;
@@ -189,11 +190,21 @@ public class PredictionController {
 	}
 
 	/**
-	 * 특정 경기 결과 정산 수동 실행 (테스트 및 경기 종료 시 호출용)
+	 * [인가 보안 개선 - 질문 3]
+	 * 특정 경기 결과 정산 수동 실행 (관리자 권한 필수)
 	 * POST /api/predictions/matches/{matchId}/settle
 	 */
 	@PostMapping("/matches/{matchId}/settle")
-	public ResponseEntity<Map<String, Object>> settleMatch(@PathVariable("matchId") Long matchId) {
+	public ResponseEntity<Map<String, Object>> settleMatch(
+			@PathVariable("matchId") Long matchId,
+			HttpServletRequest request) {
+
+		// 관리자 권한 검증: 비인가자/일반 사용자의 무단 포인트 정산 차단
+		if (!isAdmin(request)) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN)
+					.body(failResponse("승부예측 정산 작업은 관리자(ADMIN) 권한이 필요합니다."));
+		}
+
 		try {
 			Map<String, Object> result = predictionService.settleMatchPredictions(matchId);
 			return ResponseEntity.ok(result);
@@ -207,22 +218,42 @@ public class PredictionController {
 	}
 
 	/**
-	 * 세션 또는 JWT 토큰에서 현재 로그인 회원 객체 추출
+	 * [인증 우선순위 개선 - 질문 6]
+	 * 세션보다 클라이언트의 Authorization Bearer JWT 토큰을 최우선으로 검증합니다.
+	 * 1순위: Authorization 헤더에 실린 JWT 토큰 유효성 검증 -> 최신 사용자 식별
+	 * 2순위: 토큰이 없는 브라우저/레거시 요청 시 세션(LoginManager) Fallback
 	 */
 	private Users resolveLoginUser(HttpServletRequest request) {
-		String loginId = LoginManager.getLoginUserId(request);
-
-		if (loginId == null) {
-			String token = JwtProvider.extractToken(request);
-			if (token != null && JwtProvider.isValidToken(token)) {
-				loginId = JwtProvider.getLoginIdFromToken(token);
-			}
+		if (request == null) {
+			return null;
 		}
 
-		if (loginId != null) {
+		String loginId = null;
+
+		// 1순위: 클라이언트가 전송한 Authorization Bearer JWT 토큰을 최우선으로 검증합니다.
+		String token = JwtProvider.extractToken(request);
+		if (token != null && JwtProvider.isValidToken(token)) {
+			loginId = JwtProvider.getLoginIdFromToken(token);
+		}
+
+		// 2순위: JWT 토큰이 없는 경우에만 세션 확인 (인증 덮어쓰기/세션 하이재킹 방지)
+		if (loginId == null) {
+			loginId = LoginManager.getLoginUserId(request);
+		}
+
+		if (loginId != null && userDAO != null) {
 			return userDAO.selectUserByLoginId(loginId);
 		}
 
 		return null;
+	}
+
+	/**
+	 * [인가 보안 개선 - 질문 3]
+	 * 현재 요청자가 관리자(ROLE_ADMIN, 9L) 권한을 보유하고 있는지 확인합니다.
+	 */
+	private boolean isAdmin(HttpServletRequest request) {
+		Users user = resolveLoginUser(request);
+		return user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode());
 	}
 }
