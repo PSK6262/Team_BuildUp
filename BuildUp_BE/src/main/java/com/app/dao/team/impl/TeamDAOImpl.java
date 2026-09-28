@@ -157,6 +157,36 @@ public class TeamDAOImpl implements TeamDAO {
 	}
 
 	@Override
+	public List<PlayerStats> findTopAssists(Integer limit) {
+		return sqlSession.selectList("TeamMapper.selectTopAssists", limit);
+	}
+
+	@Override
+	public List<PlayerStats> findTopAttackPoints(Integer limit) {
+		return sqlSession.selectList("TeamMapper.selectTopAttackPoints", limit);
+	}
+
+	@Override
+	public List<PlayerStats> findTopMomPlayers(Integer limit) {
+		return sqlSession.selectList("TeamMapper.selectTopMomPlayers", limit);
+	}
+
+	@Override
+	public List<PlayerStats> findTopYellowCards(Integer limit) {
+		return sqlSession.selectList("TeamMapper.selectTopYellowCards", limit);
+	}
+
+	@Override
+	public List<PlayerStats> findTopRedCards(Integer limit) {
+		return sqlSession.selectList("TeamMapper.selectTopRedCards", limit);
+	}
+
+	@Override
+	public List<PlayerStats> findUnavailablePlayers() {
+		return sqlSession.selectList("TeamMapper.selectUnavailablePlayers");
+	}
+
+	@Override
 	public PlayerStats findPlayerStats(Long playerId) {
 		return sqlSession.selectOne("TeamMapper.selectPlayerStatsByPlayerId", playerId);
 	}

@@ -15,6 +15,7 @@ public class Users {
 	private Long favoriteTeamId;
 	private Long roleCode;
 	private Long point;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
@@ -31,3 +32,4 @@ public class Users {
     // 조인용 (USER_ROLES)
     private String roleName;
 }
+

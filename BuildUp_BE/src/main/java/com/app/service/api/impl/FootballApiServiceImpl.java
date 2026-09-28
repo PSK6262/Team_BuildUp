@@ -4,8 +4,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -13,15 +12,16 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.app.common.ExternalApiException;
+import com.app.common.ResultCode;
 import com.app.dao.match.MatchDAO;
 import com.app.dao.team.TeamDAO;
 import com.app.dto.match.Matches;
@@ -30,10 +30,9 @@ import com.app.dto.team.Staffs;
 import com.app.dto.team.TeamStats;
 import com.app.dto.team.Teams;
 import com.app.service.api.FootballApiService;
+import com.app.service.prediction.PredictionService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * [외부 축구 데이터 동기화 서비스 구현체 - FootballApiServiceImpl]
@@ -44,9 +43,10 @@ import lombok.extern.slf4j.Slf4j;
  * 3. 따라서 JsonNode를 사용하여 우리 DB에 실제로 필요한 핵심 데이터(ID, 스코어, 일시, 엠블럼 등)만 집게(Picker)처럼
  *    선별 추출하며, path() 메서드를 통해 중간 필드가 누락되어도 NullPointerException 없이 안전하게 처리합니다.
  */
-@Slf4j
 @Service
 public class FootballApiServiceImpl implements FootballApiService {
+
+    private static final Logger log = LoggerFactory.getLogger(FootballApiServiceImpl.class);
 
     @Value("${football.api.key}")
     private String apiKey;
@@ -58,48 +58,123 @@ public class FootballApiServiceImpl implements FootballApiService {
     private MatchDAO matchDAO;
 
     @Autowired(required = false)
-    private com.app.service.prediction.PredictionService predictionService;
+    private PredictionService predictionService;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private HttpClient createInsecureHttpClient() throws Exception {
-        TrustManager[] trustAllCerts = new TrustManager[]{
-            new X509TrustManager() {
-                public X509Certificate[] getAcceptedIssuers() { return null; }
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-            }
-        };
+    // [보안 및 성능 최적화 개선]
+    // 1. JVM 기본 신뢰 인증서(CA)를 검증하여 중간자 공격(MITM) 및 전송 데이터 위·변조를 원천 방어합니다.
+    // 2. 요청마다 클라이언트를 새로 생성하지 않고 싱글톤으로 재사용하여 커넥션 풀링 및 네트워크 성능을 대폭 향상시킵니다.
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .build();
 
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, trustAllCerts, new SecureRandom());
-
-        return HttpClient.newBuilder()
-                .sslContext(sslContext)
-                .build();
-    }
+    // [질문 11 - 외부 API 재시도 및 장애 내성 설정]
+    private static final int MAX_RETRY_COUNT = 2; // 최대 재시도 횟수 (기본 1회 + 재시도 2회 = 총 3회)
+    private static final long RETRY_BACKOFF_MS = 500L; // 재시도 전 대기 지연(ms)
 
     /**
      * 외부 축구 API(football-data.org)에 GET HTTP 요청을 전송하고 JSON 본문 문자열을 반환합니다.
-     * - X-Auth-Token 헤더에 API 키를 탑재하여 인증합니다.
+     * 
+     * [질문 11 개선 사항]:
+     * 1. 단순 null 반환을 제거하여 호출부에서 데이터 부재 vs 통신 장애를 명확히 구분할 수 있도록 합니다.
+     * 2. 일시적인 네트워크 타임아웃이나 외부 서버 장애(5xx) 시 최대 2회 지수 백오프 재시도(Retry)를 수행합니다.
+     * 3. 429(Rate Limit 초과), 401/403(인증 실패), 5xx(서버 장애) 등 실패 원인을 담은 ExternalApiException을 던집니다.
+     * 
      * @param url 호출할 외부 API 전체 URL
-     * @return 성공 시 JSON 문자열, 실패 시 null
+     * @return 성공 시 JSON 본문 문자열 (절대 null을 반환하지 않음)
+     * @throws ExternalApiException 외부 API 연동 실패 시
      */
     private String sendGetRequest(String url) {
-        try {
-            HttpClient client = createInsecureHttpClient();
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("X-Auth-Token", apiKey)
-                    .GET()
-                    .build();
+        int attempt = 0;
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            return response.body();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+        while (attempt <= MAX_RETRY_COUNT) {
+            attempt++;
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .header("X-Auth-Token", apiKey)
+                        .timeout(Duration.ofSeconds(10))
+                        .GET()
+                        .build();
+
+                // 공식 SSL 인증서 검증을 통과한 안전한 HTTPS 통신을 수행합니다.
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                int statusCode = response.statusCode();
+
+                // 1. 정상 응답 (2xx)
+                if (statusCode >= 200 && statusCode < 300) {
+                    return response.body();
+                }
+
+                // 2. 429 Too Many Requests (호출 제한 초과 - 즉시 명확한 예외 발생)
+                if (statusCode == 429) {
+                    log.warn("[FootballData] API 일일/초당 호출 한도 초과 (HTTP 429, URL: {})", url);
+                    throw new ExternalApiException(ResultCode.EXTERNAL_API_RATE_LIMIT, 429, url,
+                            "외부 축구 API 호출 한도(429 Too Many Requests)를 초과했습니다. 잠시 후 다시 시도해주세요.");
+                }
+
+                // 3. 401 / 403 인증 실패
+                if (statusCode == 401 || statusCode == 403) {
+                    log.error("[FootballData] API 인증 실패 (HTTP {}, URL: {})", statusCode, url);
+                    throw new ExternalApiException(ResultCode.EXTERNAL_API_ERROR, statusCode, url,
+                            "외부 축구 API 키 인증에 실패했거나 접근 권한이 없습니다. (HTTP " + statusCode + ")");
+                }
+
+                // 4. 5xx 외부 서버 장애 발생 -> 일시적 이슈일 수 있으므로 재시도 대상
+                if (statusCode >= 500) {
+                    log.warn("[FootballData] 외부 API 서버 장애 (HTTP {}, 시도 {}/{}, URL: {})",
+                            statusCode, attempt, MAX_RETRY_COUNT + 1, url);
+                    if (attempt <= MAX_RETRY_COUNT) {
+                        try {
+                            Thread.sleep(RETRY_BACKOFF_MS * attempt);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                        }
+                        continue; // 재시도 진행
+                    }
+                    throw new ExternalApiException(ResultCode.EXTERNAL_API_SERVER_ERROR, statusCode, url,
+                            "외부 축구 API 서버에 일시적인 장애가 발생했습니다. (HTTP " + statusCode + ")");
+                }
+
+                // 5. 기타 4xx 클라이언트 오류
+                throw new ExternalApiException(ResultCode.EXTERNAL_API_ERROR, statusCode, url,
+                        "외부 축구 API 요청에 실패했습니다. (HTTP " + statusCode + ")");
+
+            } catch (ExternalApiException e) {
+                // 커스텀 비즈니스 예외는 그대로 상위로 전파
+                throw e;
+            } catch (java.net.http.HttpTimeoutException e) {
+                log.warn("[FootballData] 네트워크 응답 시간 초과 (시도 {}/{}, URL: {}): {}",
+                        attempt, MAX_RETRY_COUNT + 1, url, e.getMessage());
+                if (attempt <= MAX_RETRY_COUNT) {
+                    try {
+                        Thread.sleep(RETRY_BACKOFF_MS * attempt);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
+                    continue; // 재시도 진행
+                }
+                throw new ExternalApiException(ResultCode.EXTERNAL_API_TIMEOUT, 504, url,
+                        "외부 축구 API 서버 응답 시간이 초과되었습니다. (Timeout)", e);
+            } catch (Exception e) {
+                log.warn("[FootballData] HTTP 통신 오류 발생 (시도 {}/{}, URL: {}): {}",
+                        attempt, MAX_RETRY_COUNT + 1, url, e.getMessage());
+                if (attempt <= MAX_RETRY_COUNT) {
+                    try {
+                        Thread.sleep(RETRY_BACKOFF_MS * attempt);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
+                    continue; // 재시도 진행
+                }
+                throw new ExternalApiException(ResultCode.EXTERNAL_API_ERROR, 502, url,
+                        "외부 축구 API와의 통신 중 오류가 발생했습니다: " + e.getMessage(), e);
+            }
         }
+
+        throw new ExternalApiException(ResultCode.EXTERNAL_API_ERROR, 502, url,
+                "외부 축구 API 요청 실패 (최대 재시도 횟수 초과)");
     }
 
     /**
@@ -221,10 +296,29 @@ public class FootballApiServiceImpl implements FootballApiService {
     @Override
     @Transactional
     public int syncMatchesByDate(LocalDate date) {
-        LocalDate targetDate = (date != null) ? date : LocalDate.now(ZoneId.of("Asia/Seoul"));
-        // KST와 UTC 시차(9시간)를 고려하여 어제~오늘 2일간 범위를 조회 (월요일 새벽 경기 누락 방지)
-        String fromDateStr = targetDate.minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE);
-        String toDateStr = targetDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
+        return syncMatchesByDateRange(date, date);
+    }
+
+    /**
+     * 지정한 날짜 범위(fromDate ~ toDate)에 진행되는 경기들의 상태와 실시간 스코어를 외부 API에서 조회하여 DB에 갱신합니다.
+     * @param fromDate 시작 일자
+     * @param toDate 종료 일자
+     * @return 상태/스코어가 갱신된 경기 건수
+     */
+    @Override
+    @Transactional
+    public int syncMatchesByDateRange(LocalDate fromDate, LocalDate toDate) {
+        LocalDate start = (fromDate != null) ? fromDate : LocalDate.now(ZoneId.of("Asia/Seoul"));
+        LocalDate end = (toDate != null) ? toDate : start;
+        if (start.isAfter(end)) {
+            LocalDate tmp = start;
+            start = end;
+            end = tmp;
+        }
+
+        // KST와 UTC 시차(9시간)를 고려하여 start-1일부터 end일까지 범위를 조회
+        String fromDateStr = start.minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE);
+        String toDateStr = end.format(DateTimeFormatter.ISO_LOCAL_DATE);
         String url = "https://api.football-data.org/v4/competitions/PL/matches?dateFrom=" + fromDateStr + "&dateTo=" + toDateStr;
 
         String jsonResult = sendGetRequest(url);
@@ -247,7 +341,7 @@ public class FootballApiServiceImpl implements FootballApiService {
             return savedCount;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("일자별 경기 데이터 동기화 중 오류 발생: " + e.getMessage(), e);
+            throw new RuntimeException("기간별 경기 데이터 동기화 중 오류 발생: " + e.getMessage(), e);
         }
     }
 

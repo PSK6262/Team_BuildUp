@@ -47,4 +47,9 @@ public interface UserService {
 	 * 회원 탈퇴 (회원 데이터 및 연관 데이터 삭제)
 	 */
 	boolean withdraw(Long userId, String email);
+
+	/**
+	 * 로그인 아이디로 사용자 정보 조회 (비밀번호 제외)
+	 */
+	Users getUserByLoginId(String loginId);
 }

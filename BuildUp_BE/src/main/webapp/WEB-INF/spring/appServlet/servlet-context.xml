@@ -19,6 +19,13 @@
 					</beans:list>		
 				</beans:property>			
 			</beans:bean>				
+			<beans:bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+				<beans:property name="supportedMediaTypes">
+					<beans:list>
+						<beans:value>application/json;charset=UTF-8</beans:value>
+					</beans:list>
+				</beans:property>
+			</beans:bean>
 		</message-converters>					
 	</annotation-driven>
 
@@ -26,8 +33,12 @@
 
 	<context:component-scan	base-package="com.app.controller"/>
 	<context:component-scan base-package="com.app.common"/>
+	<context:component-scan base-package="com.app.util"/>
 	<context:component-scan base-package="com.app.service"/>
 	<context:component-scan base-package="com.app.dao"/>
+
+	<!-- Servlet multipart 설정으로 게시글 첨부파일을 받습니다. -->
+	<beans:bean id="multipartResolver" class="org.springframework.web.multipart.support.StandardServletMultipartResolver" />
 
 	<beans:bean
 		class="org.springframework.web.servlet.view.InternalResourceViewResolver">

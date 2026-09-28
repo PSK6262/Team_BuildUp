@@ -1,0 +1,793 @@
+/* ========================================================
+   FC 온라인 감독모드 스타일 경기 중계 & 2D 피치 모달 스타일
+   ======================================================== */
+
+.fcm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: rgba(6, 11, 25, 0.82);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fcmFadeIn 0.25s ease-out;
+}
+
+@keyframes fcmFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fcm-modal-container {
+  width: 100%;
+  max-width: 1180px;
+  max-height: 92vh;
+  background: linear-gradient(145deg, #0e172a 0%, #090e1c 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(56, 0, 60, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: #f8fafc;
+  animation: fcmSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fcmSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* --------------------------------------------------------
+   1. 헤더: FC 온라인 감독모드 스타일 스코어보드
+   -------------------------------------------------------- */
+.fcm-header {
+  position: relative;
+  background: linear-gradient(90deg, #1b0a2a 0%, #111a36 50%, #0d1b2a 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 18px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fcm-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fcm-badge-tag {
+  background: linear-gradient(135deg, #00ff85 0%, #059669 100%);
+  color: #042f1a;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.fcm-header__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+}
+
+.fcm-header__close {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fcm-header__close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #ffffff;
+  transform: rotate(90deg);
+}
+
+/* 스코어보드 중앙부 */
+.fcm-scoreboard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  flex: 1;
+}
+
+.fcm-score-team {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+}
+
+.fcm-score-team--home {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.fcm-score-team--away {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.fcm-team-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.fcm-team-meta__kor {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.fcm-team-meta__eng {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.fcm-emblem-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #ffffff;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.fcm-emblem {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.fcm-score-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.fcm-score-digits {
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 255, 133, 0.4);
+}
+
+.fcm-status-pill {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fcm-status-pill--live {
+  background: #dc2626;
+  color: #ffffff;
+  animation: fcmPulse 1.5s infinite;
+}
+
+.fcm-status-pill--finished {
+  background: #6d28d9;
+  color: #ede9fe;
+}
+
+.fcm-status-pill--scheduled {
+  background: #334155;
+  color: #cbd5e1;
+}
+
+@keyframes fcmPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.fcm-stadium-info {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* --------------------------------------------------------
+   2. 메인 바디 그리드 (좌측: 2D 피치 / 우측: 타임라인 텍스트 중계)
+   -------------------------------------------------------- */
+.fcm-body {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------
+   3. 좌측 영역: 2D 미니 피치 (그라운드 레이더 전술 화면)
+   -------------------------------------------------------- */
+.fcm-pitch-section {
+  background: radial-gradient(circle at center, #132238 0%, #0a1020 100%);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  overflow-y: auto;
+}
+
+.fcm-pitch-title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fcm-pitch-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.fcm-formations {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.fcm-form-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.fcm-form-badge--home {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.fcm-form-badge--away {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+/* 축구장 2D 피치 */
+.fcm-pitch {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10.5;
+  background: 
+    repeating-linear-gradient(
+      90deg,
+      #1e4620 0px,
+      #1e4620 40px,
+      #235326 40px,
+      #235326 80px
+    );
+  border: 3px solid rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+/* 피치 라인 요소들 */
+.fcm-pitch__halfway {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.7);
+  transform: translateX(-50%);
+}
+
+.fcm-pitch__center-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 22%;
+  aspect-ratio: 1;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.fcm-pitch__center-spot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* 페널티 박스 - 홈 (좌측) */
+.fcm-pitch__box-left {
+  position: absolute;
+  top: 22%;
+  bottom: 22%;
+  left: 0;
+  width: 17%;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-left: none;
+}
+
+.fcm-pitch__goal-left {
+  position: absolute;
+  top: 36%;
+  bottom: 36%;
+  left: 0;
+  width: 6%;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-left: none;
+}
+
+/* 페널티 박스 - 원정 (우측) */
+.fcm-pitch__box-right {
+  position: absolute;
+  top: 22%;
+  bottom: 22%;
+  right: 0;
+  width: 17%;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-right: none;
+}
+
+.fcm-pitch__goal-right {
+  position: absolute;
+  top: 36%;
+  bottom: 36%;
+  right: 0;
+  width: 6%;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-right: none;
+}
+
+/* 2D 선수 마커 */
+.fcm-player-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: default;
+  transition: transform 0.2s ease;
+  z-index: 5;
+}
+
+.fcm-player-node:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+  z-index: 10;
+}
+
+.fcm-player-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  border: 2px solid #ffffff;
+}
+
+.fcm-player-node--home .fcm-player-circle {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  color: #ffffff;
+}
+
+.fcm-player-node--away .fcm-player-circle {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #ffffff;
+}
+
+.fcm-player-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 1px 4px;
+  border-radius: 3px;
+  white-space: nowrap;
+  letter-spacing: -0.2px;
+  pointer-events: none;
+}
+
+/* 공 (Ball) 마커 */
+.fcm-ball {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 10px #ffffff, 0 3px 6px rgba(0, 0, 0, 0.8);
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  z-index: 8;
+  animation: fcmBallFloat 2s infinite ease-in-out;
+}
+
+@keyframes fcmBallFloat {
+  0%, 100% {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-3px);
+  }
+}
+
+/* --------------------------------------------------------
+   4. 매치 스탯 바 (점유율, 슈팅, 유효슈팅, 파울 등)
+   -------------------------------------------------------- */
+.fcm-stats-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fcm-stats-header {
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fcm-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fcm-stat-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.fcm-stat-name {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.fcm-stat-bar {
+  height: 6px;
+  background: #1e293b;
+  border-radius: 3px;
+  display: flex;
+  overflow: hidden;
+}
+
+.fcm-stat-bar__home {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  transition: width 0.4s ease;
+}
+
+.fcm-stat-bar__away {
+  background: linear-gradient(90deg, #60a5fa, #3b82f6);
+  transition: width 0.4s ease;
+}
+
+/* --------------------------------------------------------
+   5. 우측 영역: 주요 이벤트 타임라인형 텍스트 중계 피드
+   -------------------------------------------------------- */
+.fcm-timeline-section {
+  display: flex;
+  flex-direction: column;
+  background: #090e1a;
+  min-height: 0;
+}
+
+/* 이벤트 필터 탭 바 */
+.fcm-filter-bar {
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.fcm-filter-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.fcm-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.fcm-filter-btn.active {
+  background: #38003c;
+  color: #00ff85;
+  border-color: #00ff85;
+  box-shadow: 0 0 10px rgba(0, 255, 133, 0.2);
+}
+
+/* 타임라인 피드 스크롤 목록 */
+.fcm-feed-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.fcm-feed-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fcm-feed-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+/* 개별 타임라인 아이템 */
+.fcm-feed-item {
+  display: flex;
+  gap: 14px;
+  position: relative;
+  animation: fcmItemFade 0.25s ease-out;
+}
+
+@keyframes fcmItemFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 타임 스탬프 칩 */
+.fcm-time-tag {
+  min-width: 44px;
+  font-size: 13px;
+  font-weight: 900;
+  color: #38bdf8;
+  text-align: right;
+  padding-top: 4px;
+  flex-shrink: 0;
+}
+
+/* 중앙 연결선 & 아이콘 노드 */
+.fcm-icon-node {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  position: relative;
+  z-index: 2;
+}
+
+.fcm-icon-node--goal {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  border: 2px solid #34d399;
+}
+
+.fcm-icon-node--card {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: 2px solid #fbbf24;
+}
+
+.fcm-icon-node--redcard {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  border: 2px solid #f87171;
+}
+
+.fcm-icon-node--sub {
+  background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+  border: 2px solid #818cf8;
+}
+
+.fcm-icon-node--whistle {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  border: 2px solid #a78bfa;
+}
+
+/* 이벤트 설명 카드 */
+.fcm-event-card {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background 0.2s ease;
+}
+
+.fcm-event-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.fcm-event-card--goal {
+  border-left: 3px solid #10b981;
+}
+
+.fcm-event-card--card {
+  border-left: 3px solid #f59e0b;
+}
+
+.fcm-event-card--redcard {
+  border-left: 3px solid #ef4444;
+}
+
+.fcm-event-card--sub {
+  border-left: 3px solid #6366f1;
+}
+
+.fcm-event-card--whistle {
+  border-left: 3px solid #8b5cf6;
+}
+
+.fcm-event-headline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fcm-event-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #f1f5f9;
+}
+
+.fcm-event-team {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fcm-event-team__emblem {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+
+.fcm-event-desc {
+  font-size: 12px;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+.fcm-event-sub-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.fcm-sub-chip {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.fcm-sub-chip--in {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.fcm-sub-chip--out {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+/* 이벤트 없음 상태 */
+.fcm-feed-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #64748b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.fcm-feed-empty__icon {
+  font-size: 32px;
+}
+
+/* --------------------------------------------------------
+   6. 반응형 모바일 대응
+   -------------------------------------------------------- */
+@media (max-width: 900px) {
+  .fcm-modal-container {
+    max-height: 96vh;
+    border-radius: 16px;
+  }
+
+  .fcm-scoreboard {
+    gap: 16px;
+  }
+
+  .fcm-body {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  .fcm-pitch-section {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .fcm-score-digits {
+    font-size: 24px;
+  }
+}
+

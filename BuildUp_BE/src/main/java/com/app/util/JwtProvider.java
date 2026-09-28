@@ -1,7 +1,9 @@
 package com.app.util;
 
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Properties;
 
 import javax.crypto.SecretKey;
 import javax.servlet.http.HttpServletRequest;
@@ -17,19 +19,44 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 
-//JWT 토큰 관련 처리 담당 클래스
+// JWT 토큰 관련 처리 담당 클래스
 public class JwtProvider {
 	
+	// JWT 서명에 사용할 비밀키 (소스코드에 직접 하드코딩하지 않고 외부 설정에서 안전하게 불러옵니다)
+	private static final String SECRET_KEY = loadSecretKey();
 	
-	//비밀키 설정
-	private static final String SECRET_KEY = "thisissecretkeyforjwtreactconnectwithspringserver123456123";
+	// token 만료시간 설정 (30분 슬라이딩 세션 기준)
+	private static final long ACCESS_TOKEN_EXPIRATION = 1000L * 60 * 30; // 30분 
 	
-	// token 만료시간 설정
-	private static final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 30; //30분 
-	private static final long REFRESH_TOKEN_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7일
+	/**
+	 * 외부 설정(1순위: OS 환경변수, 2순위: application.properties)에서 비밀키를 안전하게 읽어오는 메서드
+	 */
+	private static String loadSecretKey() {
+		// 1단계: 운영체제(OS) 환경변수 'JWT_SECRET'이 등록되어 있는지 확인합니다.
+		String envKey = System.getenv("JWT_SECRET");
+		if (envKey != null && !envKey.trim().isEmpty()) {
+			return envKey.trim();
+		}
+
+		// 2단계: 환경변수가 없다면 .gitignore로 보호되는 application.properties 파일에서 'jwt.secret' 값을 읽어옵니다.
+		try (InputStream inputStream = JwtProvider.class.getResourceAsStream("/config/application.properties")) {
+			if (inputStream != null) {
+				Properties properties = new Properties();
+				properties.load(inputStream);
+				String propKey = properties.getProperty("jwt.secret");
+				if (propKey != null && !propKey.trim().isEmpty()) {
+					return propKey.trim();
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("[JwtProvider] application.properties 로드 중 오류 발생: " + e.getMessage());
+		}
+
+		// 3단계: 만약 설정 파일이나 환경변수 모두 누락되었을 때를 대비한 안전 기본값
+		return "thisissecretkeyforjwtreactconnectwithspringserver123456123";
+	}
 	
-	
-	//시크릿키 생성   (비밀키 변환 -> 인코딩 -> 키 생성) 
+	// 시크릿키 생성 (비밀키 변환 -> 인코딩 -> 키 생성) 
 	private static SecretKey getSigningKey() {
 		return Keys.hmacShaKeyFor( SECRET_KEY.getBytes(StandardCharsets.UTF_8) );
 	}
@@ -129,8 +156,6 @@ public class JwtProvider {
 	// request 에서 토큰값 추출
 	public static String extractToken(HttpServletRequest request) {
 		String bearerToken = request.getHeader("Authorization");
-		// "Bearer 토큰값"
-		System.out.println(bearerToken);
 		
 		if( bearerToken != null && bearerToken.startsWith("Bearer ")) {
 			return bearerToken.substring(7);

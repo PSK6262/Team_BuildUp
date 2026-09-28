@@ -23,24 +23,26 @@ import com.app.common.ResultCode;
 import com.app.dto.user.APILogin;
 import com.app.dto.user.Users;
 import com.app.service.user.UserService;
+import com.app.service.user.UserMailService;
 import com.app.util.JwtProvider;
 import com.app.util.LoginManager;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
 	private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9](?!.*\\.\\.)[a-zA-Z0-9._-]{2,28}[a-zA-Z0-9]@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+	private static final Pattern LOGIN_ID_PATTERN = Pattern.compile("^[a-z0-9]{4,20}$");
+	private static final Pattern NICKNAME_PATTERN = Pattern.compile("^[\\uAC00-\\uD7A3a-zA-Z0-9]{2,20}$");
 
 	@Autowired
 	private UserService userService;
 
 	@Autowired
-	private com.app.service.user.UserMailService userMailService;
+	private UserMailService userMailService;
 
 	/**
 	 * 로그인 처리 (아이디/비밀번호 검증, 세션 및 JWT 발급)
@@ -86,11 +88,17 @@ public class AuthController {
 		if (user.getLoginId() == null || user.getLoginId().trim().isEmpty()) {
 			return ApiResponse.error(ResultCode.INVALID_INPUT);
 		}
+		if (!LOGIN_ID_PATTERN.matcher(user.getLoginId().trim()).matches()) {
+			return ApiResponse.error(ResultCode.INVALID_LOGIN_ID);
+		}
 		if (!userService.isLoginIdAvailable(user.getLoginId().trim())) {
 			return ApiResponse.error(ResultCode.DUPLICATE_LOGIN_ID);
 		}
 		if (user.getNickname() == null || user.getNickname().trim().isEmpty()) {
 			return ApiResponse.error(ResultCode.INVALID_INPUT);
+		}
+		if (!NICKNAME_PATTERN.matcher(user.getNickname().trim()).matches()) {
+			return ApiResponse.error(ResultCode.INVALID_NICKNAME);
 		}
 		if (!userService.isNicknameAvailable(user.getNickname().trim())) {
 			return ApiResponse.error(ResultCode.DUPLICATE_NICKNAME);
@@ -162,6 +170,9 @@ public class AuthController {
 		if (loginId == null || loginId.trim().isEmpty()) {
 			return ApiResponse.error(ResultCode.INVALID_INPUT);
 		}
+		if (!LOGIN_ID_PATTERN.matcher(loginId.trim()).matches()) {
+			return ApiResponse.error(ResultCode.INVALID_LOGIN_ID);
+		}
 
 		boolean available = userService.isLoginIdAvailable(loginId.trim());
 		if (!available) {
@@ -178,6 +189,9 @@ public class AuthController {
 	public ApiResponse<Boolean> checkNickname(@RequestParam("nickname") String nickname) {
 		if (nickname == null || nickname.trim().isEmpty()) {
 			return ApiResponse.error(ResultCode.INVALID_INPUT);
+		}
+		if (!NICKNAME_PATTERN.matcher(nickname.trim()).matches()) {
+			return ApiResponse.error(ResultCode.INVALID_NICKNAME);
 		}
 
 		boolean available = userService.isNicknameAvailable(nickname.trim());
@@ -239,5 +253,112 @@ public class AuthController {
 		data.put("user", user);
 
 		return ApiResponse.success(data);
+	}
+
+	/**
+	 * 토큰 갱신 (Sliding Session: 사용자가 사이트에 들어오거나 활동할 때마다 30분 연장)
+	 */
+	@PostMapping("/refresh")
+	public ApiResponse<Map<String, Object>> refreshToken(HttpServletRequest request) {
+		String token = JwtProvider.extractToken(request);
+		if (token != null && JwtProvider.isValidToken(token)) {
+			String loginId = JwtProvider.getLoginIdFromToken(token);
+			if (loginId != null) {
+				Users user = userService.getUserByLoginId(loginId);
+				if (user != null) {
+					String newToken = JwtProvider.createAccessToken(user);
+					LoginManager.setSessionLoginUserId(request, user.getLoginId());
+					request.getSession().setAttribute(CommonCode.SESSION_LOGIN_USER, user);
+
+					Map<String, Object> data = new HashMap<>();
+					data.put("token", newToken);
+					data.put("user", user);
+					return ApiResponse.success(data);
+				}
+			}
+		}
+		return ApiResponse.error(ResultCode.UNAUTHORIZED);
+	}
+
+	/**
+	 * 이메일 변경 인증코드 발송 (로그인 필요, 형식/중복 선검증)
+	 */
+	@PostMapping("/send-email-change-code")
+	public ApiResponse<Void> sendEmailChangeCode(
+			@RequestParam("email") String email,
+			HttpServletRequest request) {
+
+		String loginId = resolveLoginId(request);
+		if (loginId == null) {
+			return ApiResponse.error(ResultCode.UNAUTHORIZED);
+		}
+
+		String trimmed = email.trim();
+		if (!EMAIL_PATTERN.matcher(trimmed).matches()) {
+			return ApiResponse.error(ResultCode.INVALID_EMAIL);
+		}
+
+		Users currentUser = userService.getUserByLoginId(loginId);
+		if (currentUser == null) {
+			return ApiResponse.error(ResultCode.USER_NOT_FOUND);
+		}
+
+		// 현재 본인 이메일이면 인증 불필요
+		if (trimmed.equals(currentUser.getEmail())) {
+			return ApiResponse.error(ResultCode.INVALID_INPUT);
+		}
+
+		// 다른 회원이 사용 중인 이메일 중복 체크
+		if (!userService.isEmailAvailable(trimmed)) {
+			return ApiResponse.error(ResultCode.DUPLICATE_EMAIL);
+		}
+
+		try {
+			userMailService.sendEmailChangeCode(trimmed, currentUser.getNickname());
+			return ApiResponse.success();
+		} catch (Exception e) {
+			log.error("[AuthController] 이메일 변경 인증코드 발송 실패: {}", e.getMessage());
+			return ApiResponse.error(ResultCode.EMAIL_SEND_FAIL);
+		}
+	}
+
+	/**
+	 * 이메일 변경 인증코드 검증
+	 */
+	@PostMapping("/verify-email-change-code")
+	public ApiResponse<Void> verifyEmailChangeCode(
+			@RequestParam("email") String email,
+			@RequestParam("code") String code,
+			HttpServletRequest request) {
+
+		String loginId = resolveLoginId(request);
+		if (loginId == null) {
+			return ApiResponse.error(ResultCode.UNAUTHORIZED);
+		}
+
+		String trimmedEmail = email.trim();
+		String trimmedCode = code.trim();
+		if (trimmedEmail.isEmpty() || trimmedCode.isEmpty()) {
+			return ApiResponse.error(ResultCode.INVALID_INPUT);
+		}
+
+		boolean verified = userMailService.verifyEmailChangeCode(trimmedEmail, trimmedCode);
+		if (!verified) {
+			return ApiResponse.error(ResultCode.EMAIL_CHANGE_CODE_INVALID);
+		}
+		return ApiResponse.success();
+	}
+
+	/**
+	 * 세션 또는 JWT 토큰에서 로그인 아이디 추출 (내부 유틸)
+	 */
+	private String resolveLoginId(HttpServletRequest request) {
+		String loginId = LoginManager.getLoginUserId(request);
+		if (loginId != null) return loginId;
+		String token = JwtProvider.extractToken(request);
+		if (token != null && JwtProvider.isValidToken(token)) {
+			return JwtProvider.getLoginIdFromToken(token);
+		}
+		return null;
 	}
 }

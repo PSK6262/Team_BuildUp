@@ -322,10 +322,16 @@ public class ApiBridgeUtil {
      */
     private static String normalizeText(String input) {
         if (input == null) return "";
-        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
+        String text = input.replace("ß", "ss")
+                           .replace("ẞ", "SS")
+                           .replace("æ", "ae")
+                           .replace("Æ", "AE")
+                           .replace("œ", "oe")
+                           .replace("Œ", "OE")
+                           .replace("ø", "o")
+                           .replace("Ø", "O");
+        String normalized = Normalizer.normalize(text, Normalizer.Form.NFD);
         return normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
-                         .replace("ø", "o")
-                         .replace("Ø", "O")
                          .toLowerCase(Locale.ROOT)
                          .trim();
     }

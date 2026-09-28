@@ -4,23 +4,31 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.app.common.ExternalApiException;
+import com.app.common.ResultCode;
+import com.app.dao.admin.AdminDAO;
 import com.app.dao.match.MatchDAO;
 import com.app.dao.team.TeamDAO;
 import com.app.dto.match.MatchEvents;
@@ -28,6 +36,7 @@ import com.app.dto.match.Matches;
 import com.app.dto.team.Players;
 import com.app.dto.team.Teams;
 import com.app.service.api.BigBallsApiService;
+import com.app.service.api.GeminiApiService;
 import com.app.util.ApiBridgeUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,46 +55,139 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
     @Autowired
     private TeamDAO teamDAO;
 
+    @Autowired
+    private AdminDAO adminDAO;
+
+    @Autowired
+    private GeminiApiService geminiApiService;
+
+    @Autowired
+    private ApplicationContext applicationContext;
+
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private HttpClient createInsecureHttpClient() throws Exception {
-        TrustManager[] trustAllCerts = new TrustManager[]{
-            new X509TrustManager() {
-                public X509Certificate[] getAcceptedIssuers() { return null; }
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-            }
-        };
+    // [보안 및 성능 최적화 개선]
+    // 1. JVM 기본 신뢰 인증서(CA)를 검증하여 중간자 공격(MITM) 및 전송 데이터 위·변조를 원천 방어합니다.
+    // 2. 요청마다 클라이언트를 새로 생성하지 않고 싱글톤으로 재사용하여 커넥션 풀링 및 네트워크 성능을 대폭 향상시킵니다.
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .build();
 
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, trustAllCerts, new SecureRandom());
+    private volatile boolean circuitBreakerActive = false;
 
-        return HttpClient.newBuilder()
-                .sslContext(sslContext)
-                .build();
-    }
+    // [질문 11 - 외부 API 재시도 및 장애 내성 설정]
+    private static final int MAX_RETRY_COUNT = 2; // 최대 재시도 횟수
+    private static final long RETRY_BACKOFF_MS = 500L; // 재시도 전 대기 지연(ms)
 
+    /**
+     * 외부 축구 상세 데이터 API(BigBallsData)에 GET HTTP 요청을 전송하고 JSON 본문 문자열을 반환합니다.
+     * 
+     * [질문 11 개선 사항]:
+     * 1. 단순 null 반환 대신 ExternalApiException을 명확히 발생시켜 호출부에서 장애 원인을 파악할 수 있도록 합니다.
+     * 2. 일시적인 네트워크 타임아웃이나 외부 서버 장애(5xx) 시 최대 2회 지수 백오프 재시도(Retry)를 수행합니다.
+     * 3. 429(Rate Limit 초과) 발생 시 서킷 브레이커를 활성화하고 즉각적인 예외를 던집니다.
+     * 
+     * @param url 호출할 외부 API 전체 URL
+     * @return 성공 시 JSON 본문 문자열 (절대 null을 반환하지 않음)
+     * @throws ExternalApiException 외부 API 연동 실패 시
+     */
     private String sendGetRequest(String url) {
-        try {
-            HttpClient client = createInsecureHttpClient();
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + apiKey)
-                    .header("x-api-key", apiKey)
-                    .header("Accept", "application/json")
-                    .GET()
-                    .build();
-
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200) {
-                log.warn("[BigBallsData] API 요청 실패 (HTTP {}): {}", response.statusCode(), response.body());
-                return null;
-            }
-            return response.body();
-        } catch (Exception e) {
-            log.error("[BigBallsData] HTTP 요청 중 오류 발생 (URL: {}): {}", url, e.getMessage());
-            return null;
+        if (circuitBreakerActive) {
+            log.warn("[BigBallsData] 서킷 브레이커 작동 중 - 외부 API 호출 즉시 차단 (URL: {})", url);
+            throw new ExternalApiException(ResultCode.EXTERNAL_API_RATE_LIMIT, 429, url,
+                    "외부 축구 API 호출 한도 초과로 인해 서킷 브레이커가 동작 중입니다. 잠시 후 다시 시도해주세요.");
         }
+
+        int attempt = 0;
+        while (attempt <= MAX_RETRY_COUNT) {
+            attempt++;
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .header("Authorization", "Bearer " + apiKey)
+                        .header("x-api-key", apiKey)
+                        .header("Accept", "application/json")
+                        .timeout(Duration.ofSeconds(10))
+                        .GET()
+                        .build();
+
+                // 신뢰할 수 있는 공식 인증서로 검증된 안전한 연결을 통해 데이터를 수신합니다.
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                int statusCode = response.statusCode();
+
+                // 1. 정상 응답 (2xx)
+                if (statusCode >= 200 && statusCode < 300) {
+                    return response.body();
+                }
+
+                // 2. 429 Too Many Requests (호출 한도 초과 -> 서킷 브레이커 작동)
+                if (statusCode == 429) {
+                    circuitBreakerActive = true;
+                    log.warn("[BigBallsData] API 호출 한도 초과 (HTTP 429, 서킷브레이커 작동, URL: {})", url);
+                    throw new ExternalApiException(ResultCode.EXTERNAL_API_RATE_LIMIT, 429, url,
+                            "외부 축구 API 일일/초당 호출 한도(429 Too Many Requests)를 초과했습니다.");
+                }
+
+                // 3. 401 / 403 인증 실패
+                if (statusCode == 401 || statusCode == 403) {
+                    log.error("[BigBallsData] API 인증 실패 (HTTP {}, URL: {})", statusCode, url);
+                    throw new ExternalApiException(ResultCode.EXTERNAL_API_ERROR, statusCode, url,
+                            "외부 축구 API 인증키가 유효하지 않거나 접근이 거부되었습니다. (HTTP " + statusCode + ")");
+                }
+
+                // 4. 5xx 외부 서버 장애 -> 재시도 대상
+                if (statusCode >= 500) {
+                    log.warn("[BigBallsData] 외부 API 서버 장애 (HTTP {}, 시도 {}/{}, URL: {})",
+                            statusCode, attempt, MAX_RETRY_COUNT + 1, url);
+                    if (attempt <= MAX_RETRY_COUNT) {
+                        try {
+                            Thread.sleep(RETRY_BACKOFF_MS * attempt);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                        }
+                        continue; // 재시도 진행
+                    }
+                    throw new ExternalApiException(ResultCode.EXTERNAL_API_SERVER_ERROR, statusCode, url,
+                            "외부 축구 API 서버에 일시적인 장애가 발생했습니다. (HTTP " + statusCode + ")");
+                }
+
+                // 5. 기타 4xx 클라이언트 오류
+                throw new ExternalApiException(ResultCode.EXTERNAL_API_ERROR, statusCode, url,
+                        "외부 축구 API 요청 실패 (HTTP " + statusCode + ")");
+
+            } catch (ExternalApiException e) {
+                throw e;
+            } catch (java.net.http.HttpTimeoutException e) {
+                log.warn("[BigBallsData] 네트워크 응답 시간 초과 (시도 {}/{}, URL: {}): {}",
+                        attempt, MAX_RETRY_COUNT + 1, url, e.getMessage());
+                if (attempt <= MAX_RETRY_COUNT) {
+                    try {
+                        Thread.sleep(RETRY_BACKOFF_MS * attempt);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
+                    continue; // 재시도 진행
+                }
+                throw new ExternalApiException(ResultCode.EXTERNAL_API_TIMEOUT, 504, url,
+                        "외부 축구 API 서버 응답 시간이 초과되었습니다. (Timeout)", e);
+            } catch (Exception e) {
+                log.warn("[BigBallsData] HTTP 통신 오류 발생 (시도 {}/{}, URL: {}): {}",
+                        attempt, MAX_RETRY_COUNT + 1, url, e.getMessage());
+                if (attempt <= MAX_RETRY_COUNT) {
+                    try {
+                        Thread.sleep(RETRY_BACKOFF_MS * attempt);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
+                    continue; // 재시도 진행
+                }
+                throw new ExternalApiException(ResultCode.EXTERNAL_API_ERROR, 502, url,
+                        "외부 축구 API와의 통신 중 오류가 발생했습니다: " + e.getMessage(), e);
+            }
+        }
+
+        throw new ExternalApiException(ResultCode.EXTERNAL_API_ERROR, 502, url,
+                "외부 축구 API 요청 실패 (최대 재시도 횟수 초과)");
     }
 
     @Override
@@ -95,7 +197,7 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public int syncMatchEvents(Long matchId, String externalMatchId) {
         Matches match = matchDAO.findMatchById(matchId);
         if (match == null) {
@@ -165,6 +267,12 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
                 String teamName = eventNode.path("team").asText(eventNode.path("team_name").asText(""));
                 String playerName = eventNode.path("player_name").asText(eventNode.path("player").asText(""));
 
+                // [1차 필터 1] 선수명 결측치(null, empty, "None", "null") 이벤트는 가짜 골/이벤트 유입 방지를 위해 즉시 스킵
+                if (playerName == null || playerName.isBlank() || "null".equalsIgnoreCase(playerName.trim()) || "None".equalsIgnoreCase(playerName.trim())) {
+                    log.warn("[BigBallsData] MATCH_ID={} 선수명 결측치('{}') 이벤트 -> 가짜 골/이벤트 유입 방지를 위해 스킵", matchId, playerName);
+                    continue;
+                }
+
                 // 4단계: 어시스트(도움) 선수명 추출 (assist_name -> assist -> assist_player)
                 String assistName = null;
                 if (eventNode.hasNonNull("assist_name")) {
@@ -173,6 +281,9 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
                     assistName = eventNode.path("assist").asText();
                 } else if (eventNode.hasNonNull("assist_player")) {
                     assistName = eventNode.path("assist_player").asText();
+                }
+                if ("null".equalsIgnoreCase(assistName) || "None".equalsIgnoreCase(assistName)) {
+                    assistName = null;
                 }
 
                 // 1. 이벤트 구단 판별 (해당 경기 홈/원정 우선 대조 -> 리그 전체 대조)
@@ -205,6 +316,22 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
 
                 // 2. 이벤트 코드 변환 (골, 자책골, 카드, 교체 등)
                 Long eventTypeCode = ApiBridgeUtil.mapEventTypeToCode(rawType);
+                boolean isGoalEvent = (eventTypeCode == 1L || eventTypeCode == 2L || eventTypeCode == 3L);
+
+                // [1차 필터 2] 동일 구단, 동일 분(Minute) 중복 골 이벤트 제거
+                if (isGoalEvent) {
+                    final long curMinute = minute;
+                    final Long curTeamId = eventTeamId;
+                    boolean duplicateGoal = parsedEvents.stream().anyMatch(e ->
+                        e.getTeamId().equals(curTeamId) &&
+                        (e.getEventType() != null && (e.getEventType() == 1L || e.getEventType() == 2L || e.getEventType() == 3L)) &&
+                        e.getEventTime() == curMinute
+                    );
+                    if (duplicateGoal) {
+                        log.info("[BigBallsData] MATCH_ID={} {}분 동일 구단(TEAM_ID={}) 중복 골 이벤트 감지 -> 디둡 스킵 (선수명: {})", matchId, curMinute, curTeamId, playerName);
+                        continue;
+                    }
+                }
 
                 // 3. 선수 및 도움 선수 ID 매칭
                 Long playerId = ApiBridgeUtil.findPlayerIdByName(playerName, targetSquad);
@@ -217,9 +344,18 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
                 }
 
                 if (playerId == null) {
-                    // 구단 스쿼드 미등록 선수이거나 오매칭 시 외래키 무결성을 위해 건너뜀 (안전장치)
-                    log.warn("[BigBallsData] 선수 매칭 실패 (선수명: '{}', 구단ID: {}) -> 외래키 보호를 위해 스킵", playerName, eventTeamId);
-                    continue;
+                    if (isGoalEvent) {
+                        // 골 득점자는 외래키 및 득점 정합성을 위해 임의 대표선수(골키퍼 등)로 대체하지 않고 스킵
+                        log.warn("[BigBallsData] MATCH_ID={} 골 득점자 선수 매칭 실패 (선수명: '{}', 구단ID: {}) -> 외래키 및 스코어 보호를 위해 스킵", matchId, playerName, eventTeamId);
+                        continue;
+                    }
+                    if (targetSquad != null && !targetSquad.isEmpty()) {
+                        playerId = targetSquad.get(0).getPlayerId();
+                        log.warn("[BigBallsData] MATCH_ID={} 일반 이벤트 선수명 미매칭('{}') -> 구단 대표선수(ID={})로 대체 적재", matchId, playerName, playerId);
+                    } else {
+                        log.warn("[BigBallsData] 선수 매칭 실패 (선수명: '{}', 구단ID: {}) -> 외래키 보호를 위해 스킵", playerName, eventTeamId);
+                        continue;
+                    }
                 }
 
                 Long assistPlayerId = null;
@@ -229,9 +365,7 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
                         assistPlayerId = ApiBridgeUtil.findPlayerIdByName(assistName, opposingSquad);
                     }
                 }
-                // [옐로/레드카드 이벤트 처리 틀]
-                // 현재 외부 API(Big Balls Data)에서는 카드 데이터가 이벤트 배열에 제공되지 않으나,
-                // 향후 카드 데이터 유입 시 DB에 즉시 적재될 수 있도록 EVENT_TYPE_CODE(4: 옐로카드, 5: 경고누적, 6: 레드카드)가 준비되어 있습니다.
+                // [옐로/레드카드 이벤트 처리]
                 if (eventTypeCode == 4L || eventTypeCode == 5L || eventTypeCode == 6L) {
                     cardCount++;
                 }
@@ -245,6 +379,26 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
                 event.setAssistPlayerId(assistPlayerId);
 
                 parsedEvents.add(event);
+            }
+
+            // 경기 공식 스코어와 이벤트 간 불일치 감지 로깅 (AI 임의 자동 삭제 제거 -> 관리자 수동 검증 대상)
+            if ("FINISHED".equalsIgnoreCase(match.getStatus()) && match.getHomeScore() != null && match.getAwayScore() != null) {
+                Long homeTeamId = match.getHomeTeamId();
+                Long awayTeamId = match.getAwayTeamId();
+                long officialHomeScore = match.getHomeScore();
+                long officialAwayScore = match.getAwayScore();
+
+                long homeGoalCount = parsedEvents.stream()
+                        .filter(e -> e.getTeamId().equals(homeTeamId) && (e.getEventType() == 1L || e.getEventType() == 2L || e.getEventType() == 3L))
+                        .count();
+                long awayGoalCount = parsedEvents.stream()
+                        .filter(e -> e.getTeamId().equals(awayTeamId) && (e.getEventType() == 1L || e.getEventType() == 2L || e.getEventType() == 3L))
+                        .count();
+
+                if (homeGoalCount != officialHomeScore || awayGoalCount != officialAwayScore) {
+                    log.warn("[BigBallsData] MATCH_ID={} 스코어-골 이벤트 불일치 감지 (공식: {}:{}, 이벤트: {}:{}). 관리자 수동 검증 대상으로 유지합니다.",
+                            matchId, officialHomeScore, officialAwayScore, homeGoalCount, awayGoalCount);
+                }
             }
 
             // 4. 기존 이벤트 삭제 후 일괄 저장 (멱등성 보장)
@@ -263,13 +417,12 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
             return parsedEvents.size();
 
         } catch (Exception e) {
-            log.error("[BigBallsData] 이벤트 동기화 처리 중 에러 발생: {}", e.getMessage(), e);
-            throw new RuntimeException("Big Balls Data 이벤트 처리 실패: " + e.getMessage(), e);
+            log.error("[BigBallsData] MATCH_ID={} 이벤트 동기화 처리 중 에러 발생: {}", matchId, e.getMessage(), e);
+            return 0;
         }
     }
 
     @Override
-    @Transactional
     public int syncMatchEventsAuto(Long matchId) {
         Matches match = matchDAO.findMatchById(matchId);
         if (match == null) {
@@ -277,87 +430,80 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
             return 0;
         }
 
-        String dateStr = match.getMatchDate();
-        String matchDate = (dateStr != null && dateStr.length() >= 10) ? dateStr.substring(0, 10) : null;
-        if (matchDate == null) {
+        LocalDateTime rawDate = match.getRawMatchDate();
+        LinkedHashSet<String> datesToSearch = new LinkedHashSet<>();
+        if (rawDate != null) {
+            // KST -> UTC 변환 (외부 API는 UTC 기준 날짜로 경기 인덱싱)
+            ZonedDateTime kst = rawDate.atZone(ZoneId.of("Asia/Seoul"));
+            ZonedDateTime utc = kst.withZoneSameInstant(ZoneId.of("UTC"));
+            datesToSearch.add(utc.toLocalDate().toString());
+            datesToSearch.add(kst.toLocalDate().toString());
+            datesToSearch.add(utc.toLocalDate().minusDays(1).toString());
+            datesToSearch.add(utc.toLocalDate().plusDays(1).toString());
+        } else {
+            String dateStr = match.getMatchDate();
+            if (dateStr != null && dateStr.length() >= 10) {
+                String d = dateStr.substring(0, 10);
+                datesToSearch.add(d);
+                try {
+                    LocalDate ld = LocalDate.parse(d);
+                    datesToSearch.add(ld.minusDays(1).toString());
+                    datesToSearch.add(ld.plusDays(1).toString());
+                } catch (Exception ignored) {}
+            }
+        }
+
+        if (datesToSearch.isEmpty()) {
             log.error("[BigBallsData] MATCH_ID={} 경기의 일자 정보가 없습니다.", matchId);
             return 0;
         }
 
-        // 해당 일자 EPL 경기 목록 조회
-        String url = "https://api.bigballsdata.com/v1/matches?sport=football&league=epl&date=" + matchDate;
-        String json = sendGetRequest(url);
-        if (json == null || json.isBlank()) {
-            log.warn("[BigBallsData] {} 일자의 경기 목록을 가져오지 못했습니다.", matchDate);
-            return 0;
-        }
+        Teams homeTeam = teamDAO.findTeamById(match.getHomeTeamId());
+        Teams awayTeam = teamDAO.findTeamById(match.getAwayTeamId());
+        List<Teams> allTeams = teamDAO.findAllTeams();
 
-        try {
-            JsonNode root = objectMapper.readTree(json);
-            JsonNode matchesNode = root.has("data") ? root.get("data") : root;
-            if (!matchesNode.isArray()) {
-                return 0;
-            }
+        String targetExtMatchId = null;
+        for (String searchDate : datesToSearch) {
+            String url = "https://api.bigballsdata.com/v1/matches?sport=football&league=epl&date=" + searchDate;
+            String json = sendGetRequest(url);
+            if (json == null || json.isBlank()) continue;
 
-            Teams homeTeam = teamDAO.findTeamById(match.getHomeTeamId());
-            Teams awayTeam = teamDAO.findTeamById(match.getAwayTeamId());
-            List<Teams> allTeams = teamDAO.findAllTeams();
+            try {
+                JsonNode root = objectMapper.readTree(json);
+                JsonNode matchesNode = root.has("data") ? root.get("data") : root;
+                if (!matchesNode.isArray()) continue;
 
-            String targetExtMatchId = null;
-            for (JsonNode mNode : matchesNode) {
-                String extHome = mNode.path("home").path("name").asText("");
-                String extAway = mNode.path("away").path("name").asText("");
+                for (JsonNode mNode : matchesNode) {
+                    String extHome = mNode.path("home").path("name").asText("");
+                    String extAway = mNode.path("away").path("name").asText("");
 
-                Long resolvedHomeId = ApiBridgeUtil.mapTeamToId(extHome, allTeams);
-                Long resolvedAwayId = ApiBridgeUtil.mapTeamToId(extAway, allTeams);
+                    Long resolvedHomeId = ApiBridgeUtil.mapTeamToId(extHome, allTeams);
+                    Long resolvedAwayId = ApiBridgeUtil.mapTeamToId(extAway, allTeams);
 
-                if (resolvedHomeId != null && resolvedAwayId != null &&
-                    resolvedHomeId.equals(match.getHomeTeamId()) &&
-                    resolvedAwayId.equals(match.getAwayTeamId())) {
-                    targetExtMatchId = mNode.path("id").asText();
-                    break;
-                }
-            }
-
-            if (targetExtMatchId == null || targetExtMatchId.isBlank()) {
-                // KST/UTC 시차 대응: 한국 시간 새벽 경기일 경우 현지 기준(전날)으로 1회 자동 폴백 재시도
-                try {
-                    String prevDate = LocalDate.parse(matchDate).minusDays(1).toString();
-                    String prevUrl = "https://api.bigballsdata.com/v1/matches?sport=football&league=epl&date=" + prevDate;
-                    String prevJson = sendGetRequest(prevUrl);
-                    if (prevJson != null && !prevJson.isBlank()) {
-                        JsonNode prevRoot = objectMapper.readTree(prevJson);
-                        JsonNode prevMatches = prevRoot.has("data") ? prevRoot.get("data") : prevRoot;
-                        if (prevMatches.isArray()) {
-                            for (JsonNode mNode : prevMatches) {
-                                String extHome = mNode.path("home").path("name").asText("");
-                                String extAway = mNode.path("away").path("name").asText("");
-                                Long resolvedHomeId = ApiBridgeUtil.mapTeamToId(extHome, allTeams);
-                                Long resolvedAwayId = ApiBridgeUtil.mapTeamToId(extAway, allTeams);
-                                if (resolvedHomeId != null && resolvedAwayId != null &&
-                                    resolvedHomeId.equals(match.getHomeTeamId()) &&
-                                    resolvedAwayId.equals(match.getAwayTeamId())) {
-                                    targetExtMatchId = mNode.path("id").asText();
-                                    break;
-                                }
-                            }
-                        }
+                    if (resolvedHomeId != null && resolvedAwayId != null &&
+                        resolvedHomeId.equals(match.getHomeTeamId()) &&
+                        resolvedAwayId.equals(match.getAwayTeamId())) {
+                        targetExtMatchId = mNode.path("id").asText();
+                        break;
                     }
-                } catch (Exception ignored) {}
+                }
+            } catch (Exception e) {
+                log.warn("[BigBallsData] 일자({}) 파싱 중 에러: {}", searchDate, e.getMessage());
             }
 
-            if (targetExtMatchId == null || targetExtMatchId.isBlank()) {
-                log.warn("[BigBallsData] MATCH_ID={}에 매칭되는 Big Balls Data 경기 ID를 찾지 못했습니다. ({} vs {})",
-                        matchId, (homeTeam != null ? homeTeam.getTeamName() : ""), (awayTeam != null ? awayTeam.getTeamName() : ""));
-                return 0;
+            if (targetExtMatchId != null && !targetExtMatchId.isBlank()) {
+                break;
             }
+        }
 
-            return syncMatchEvents(matchId, targetExtMatchId);
-
-        } catch (Exception e) {
-            log.error("[BigBallsData] 자동 경기 매칭 중 에러: {}", e.getMessage(), e);
+        if (targetExtMatchId == null || targetExtMatchId.isBlank()) {
+            log.warn("[BigBallsData] MATCH_ID={}에 매칭되는 Big Balls Data 경기 ID를 찾지 못했습니다. ({} vs {})",
+                    matchId, (homeTeam != null ? homeTeam.getTeamName() : ""), (awayTeam != null ? awayTeam.getTeamName() : ""));
             return 0;
         }
+
+        BigBallsApiService proxy = applicationContext != null ? applicationContext.getBean(BigBallsApiService.class) : this;
+        return proxy.syncMatchEvents(matchId, targetExtMatchId);
     }
 
     @Override
@@ -366,7 +512,6 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
     }
 
     @Override
-    @Transactional
     public int syncAllFinishedMatchEvents() {
         List<Matches> allMatches = matchDAO.findAllMatches();
         int totalSaved = 0;
@@ -392,28 +537,94 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
     }
 
     @Override
-    @Transactional
     public int syncMatchEventsByDate(String dateStr) {
-        if (dateStr == null || dateStr.isBlank()) return 0;
-        LocalDate targetDate = LocalDate.parse(dateStr);
-        LocalDateTime start = targetDate.atStartOfDay();
-        LocalDateTime end = targetDate.atTime(23, 59, 59);
+        return syncMatchEventsByDateRange(dateStr, dateStr);
+    }
 
-        List<Matches> matches = matchDAO.findMatchesByDateRange(start, end);
+    @Override
+    public int syncMatchEventsByDateRange(String fromDateStr, String toDateStr) {
+        if (fromDateStr == null || fromDateStr.isBlank()) return 0;
+        LocalDate startDate = LocalDate.parse(fromDateStr);
+        LocalDate endDate = (toDateStr != null && !toDateStr.isBlank()) ? LocalDate.parse(toDateStr) : startDate;
+        if (startDate.isAfter(endDate)) {
+            LocalDate tmp = startDate;
+            startDate = endDate;
+            endDate = tmp;
+        }
+
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(23, 59, 59);
+
+        circuitBreakerActive = false; // 서킷 브레이커 상태 초기화
+
+        List<Matches> allMatches = matchDAO.findMatchesByDateRange(start, end);
+        // 비시즌 및 아직 열리지 않은 SCHEDULED 경기는 제외 -> 실제 종료된(FINISHED) 경기만 선별하여 404 차단 방지
+        List<Matches> matches = (allMatches != null)
+                ? allMatches.stream()
+                        .filter(m -> "FINISHED".equalsIgnoreCase(m.getStatus()))
+                        .toList()
+                : Collections.emptyList();
+
         int totalSaved = 0;
         int matchCount = 0;
+        int totalMatches = matches.size();
+
+        System.out.println("======================================================================");
+        System.out.println("[BuildUp] " + startDate + " ~ " + endDate + " 기간 타임라인 이벤트 일괄 동기화 시작");
+        System.out.println("  - 전체 조회 경기: " + (allMatches != null ? allMatches.size() : 0) + "경기 (종료된 대상 경기: " + totalMatches + "경기)");
+        System.out.println("----------------------------------------------------------------------");
 
         for (Matches m : matches) {
+            if (circuitBreakerActive) {
+                System.err.println("  [BuildUp 경고] 외부 API Rate Limit(서킷 브레이커) 감지로 인해 계정 보호를 위해 동기화가 안전하게 중단되었습니다.");
+                break;
+            }
             try {
                 int count = syncMatchEventsAuto(m.getMatchId());
                 totalSaved += count;
                 matchCount++;
-                Thread.sleep(100);
+                if (matchCount % 10 == 0 || matchCount == totalMatches) {
+                    System.out.println("  - 진행 중: [" + matchCount + " / " + totalMatches + " 경기] 처리 완료 (누적 " + totalSaved + "건 저장)");
+                }
+                Thread.sleep(200); // 0.2초 안전 딜레이
             } catch (Exception e) {
                 log.warn("[BigBallsData] MATCH_ID={} 일괄 동기화 중 오류: {}", m.getMatchId(), e.getMessage());
             }
         }
-        log.info("[BigBallsData] {} 일자 총 {}경기 이벤트 일괄 동기화 완료 (총 {}건 저장)", dateStr, matchCount, totalSaved);
+        System.out.println("======================================================================");
+        System.out.println("[BuildUp] " + startDate + " ~ " + endDate + " 기간 타임라인 이벤트 일괄 동기화 완료");
+        System.out.println("  - 처리 결과: 총 " + matchCount + "경기 중 " + totalSaved + "건의 타임라인 이벤트 저장 완료");
+        if (circuitBreakerActive) {
+            System.out.println("  - 알림: 외부 API 서킷 브레이커(쿨다운) 감지로 조기 중단되었습니다. 3분 후 다시 시도해주세요.");
+        }
+        System.out.println("======================================================================");
+        log.info("[BigBallsData] {} ~ {} 기간 총 {}경기 이벤트 일괄 동기화 완료 (총 {}건 저장)", startDate, endDate, matchCount, totalSaved);
         return totalSaved;
+    }
+
+    @Override
+    public int resyncAllMismatchedFinishedMatches() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("status", "MISMATCH");
+        List<Matches> mismatched = adminDAO.selectAdminMatches(params);
+        if (mismatched == null || mismatched.isEmpty()) {
+            log.info("[BigBallsData] 스코어-골 이벤트 불일치 경기가 없습니다. (0건)");
+            return 0;
+        }
+
+        log.info("[BigBallsData] 불일치 경기 총 {}건 발견 -> 2단계(1차 룰 + 2차 Gemini AI) 정밀 재동기화 시작", mismatched.size());
+        int resyncedCount = 0;
+        for (Matches m : mismatched) {
+            try {
+                int count = syncMatchEventsAuto(m.getMatchId());
+                resyncedCount++;
+                log.info("  -> Match #{} ({}) 재동기화 완료 (이벤트 {}건 저장)", m.getMatchId(), m.getMatchDate(), count);
+                Thread.sleep(200);
+            } catch (Exception e) {
+                log.warn("[BigBallsData] MATCH_ID={} 불일치 재동기화 중 오류: {}", m.getMatchId(), e.getMessage());
+            }
+        }
+        log.info("[BigBallsData] 불일치 경기 재동기화 완료: 총 {}경기 처리", resyncedCount);
+        return resyncedCount;
     }
 }

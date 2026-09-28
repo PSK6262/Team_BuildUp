@@ -20,6 +20,12 @@ public class MatchDAOImpl implements MatchDAO {
 	private SqlSessionTemplate sqlSession;
 
 	@Override
+	public List<MatchEvents> findPlayerEvents(Long playerId, LocalDateTime startDate, LocalDateTime endDate) {
+		return sqlSession.selectList("MatchMapper.selectPlayerEvents",
+				Map.of("playerId", playerId, "startDate", startDate, "endDate", endDate));
+	}
+
+	@Override
 	public void mergeMatch(Matches match) {
 		sqlSession.insert("MatchMapper.mergeMatch", match);
 	}
@@ -57,6 +63,27 @@ public class MatchDAOImpl implements MatchDAO {
 		params.put("teamId", teamId);
 		params.put("limit", limit);
 		return sqlSession.selectList("MatchMapper.selectRecentMatches", params);
+	}
+
+	@Override
+	public List<Matches> findHeadToHeadMatches(Long firstTeamId, Long secondTeamId, int limit) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("firstTeamId", firstTeamId);
+		params.put("secondTeamId", secondTeamId);
+		params.put("limit", limit);
+		return sqlSession.selectList("MatchMapper.selectHeadToHeadMatches", params);
+	}
+
+	@Override
+	public List<Matches> findFinishedMatchesByScore(long homeScore, long awayScore,
+			Long teamId, Long opponentTeamId, int limit) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("homeScore", homeScore);
+		params.put("awayScore", awayScore);
+		params.put("teamId", teamId);
+		params.put("opponentTeamId", opponentTeamId);
+		params.put("limit", limit);
+		return sqlSession.selectList("MatchMapper.selectFinishedMatchesByScore", params);
 	}
 
 	@Override
