@@ -22,10 +22,8 @@ import com.app.util.JwtProvider;
 import com.app.util.LoginManager;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 @Slf4j
-@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/users")
 public class UserController {

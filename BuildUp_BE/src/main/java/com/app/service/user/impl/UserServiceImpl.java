@@ -78,8 +78,8 @@ public class UserServiceImpl implements UserService {
 			throw new IllegalStateException("이미 등록된 이메일입니다.");
 		}
 
-		// 비밀번호 SHA-256 암호화
-		String encryptedPassword = SHA256Encryptor.encrypt(user.getPassword());
+		// 비밀번호 암호화 (사용자별 고유 Salt인 loginId를 결합하고 1,000회 키 스트레칭 적용)
+		String encryptedPassword = SHA256Encryptor.encrypt(user.getPassword(), user.getLoginId());
 		user.setPassword(encryptedPassword);
 
 		// 기본 권한(1: 일반회원) 및 가입 포인트(100) 설정
@@ -115,8 +115,22 @@ public class UserServiceImpl implements UserService {
 			throw new IllegalArgumentException("존재하지 않는 아이디입니다.");
 		}
 
-		String encryptedInputPassword = SHA256Encryptor.encrypt(password);
-		if (!encryptedInputPassword.equals(user.getPassword())) {
+		// 1단계: 사용자별 고유 Salt(loginId) + 1,000회 키 스트레칭 방식으로 검증
+		String encryptedInputPassword = SHA256Encryptor.encrypt(password, user.getLoginId());
+		boolean passwordMatches = encryptedInputPassword.equals(user.getPassword());
+
+		// 2단계: 만약 불일치 시, 기존 단일 Salt 방식으로 가입했던 사용자인지 하위 호환성 확인
+		if (!passwordMatches) {
+			String legacyEncrypted = SHA256Encryptor.encrypt(password);
+			if (legacyEncrypted.equals(user.getPassword())) {
+				passwordMatches = true;
+				// 기존 방식 사용자가 로그인에 성공하면 새 보안 방식(고유 Salt + 키 스트레칭)으로 비밀번호 자동 업그레이드
+				userDAO.updatePassword(user.getUserId(), encryptedInputPassword);
+				log.info("[보안 자동 업그레이드] 사용자 {}의 비밀번호 해시가 고유 Salt 방식으로 마이그레이션되었습니다.", user.getLoginId());
+			}
+		}
+
+		if (!passwordMatches) {
 			throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
 		}
 
@@ -189,13 +203,24 @@ public class UserServiceImpl implements UserService {
 			return false;
 		}
 
-		String encryptedCurrent = SHA256Encryptor.encrypt(currentPassword);
-		if (!encryptedCurrent.equals(user.getPassword())) {
+		// 1단계: 현재 비밀번호 검증 (신규 고유 Salt 방식 우선, 기존 방식 하위 호환)
+		String encryptedCurrent = SHA256Encryptor.encrypt(currentPassword, user.getLoginId());
+		boolean currentMatches = encryptedCurrent.equals(user.getPassword());
+		if (!currentMatches) {
+			String legacyCurrent = SHA256Encryptor.encrypt(currentPassword);
+			if (legacyCurrent.equals(user.getPassword())) {
+				currentMatches = true;
+			}
+		}
+
+		if (!currentMatches) {
 			throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
 		}
 
-		String encryptedNew = SHA256Encryptor.encrypt(newPassword);
+		// 2단계: 새 비밀번호는 무조건 신규 보안 방식(loginId 고유 Salt + 1,000회 키 스트레칭)으로 암호화하여 저장
+		String encryptedNew = SHA256Encryptor.encrypt(newPassword, user.getLoginId());
 		userDAO.updatePassword(userId, encryptedNew);
+		log.info("[비밀번호 변경 완료] userId={}, loginId={}", user.getUserId(), user.getLoginId());
 		return true;
 	}
 
