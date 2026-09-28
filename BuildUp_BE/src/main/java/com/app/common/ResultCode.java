@@ -45,7 +45,13 @@ public enum ResultCode {
     COMMUNITY_ATTACHMENT_STORAGE_FAIL("REJ_212", "첨부파일 저장 중 오류가 발생했습니다."),
     COMMUNITY_POST_TOO_LONG("REJ_213", "게시글 내용은 1000자까지 입력할 수 있습니다."),
     COMMUNITY_POST_TITLE_TOO_LONG("REJ_214", "게시글 제목은 50자까지 입력할 수 있습니다."),
-    COMMUNITY_NEWS_WRITE_DISABLED("REJ_215", "뉴스 게시글 작성은 현재 사용할 수 없습니다.");
+    COMMUNITY_NEWS_WRITE_DISABLED("REJ_215", "뉴스 게시글 작성은 현재 사용할 수 없습니다."),
+
+    // 외부 API 연동 오류 코드 (질문 11)
+    EXTERNAL_API_ERROR("REJ_501", "외부 축구 데이터 제공처(API) 통신 중 오류가 발생했습니다."),
+    EXTERNAL_API_RATE_LIMIT("REJ_502", "외부 API 호출 한도(429 Too Many Requests)를 초과했습니다. 잠시 후 다시 시도해주세요."),
+    EXTERNAL_API_TIMEOUT("REJ_503", "외부 API 서버 응답 시간이 초과되었습니다. (Timeout)"),
+    EXTERNAL_API_SERVER_ERROR("REJ_504", "외부 데이터 제공 서버에 일시적인 장애(5xx)가 발생했습니다.");
 
     private final String code;
     private final String message;
