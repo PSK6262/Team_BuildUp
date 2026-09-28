@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.app.dto.community.Comments;
 import com.app.dto.community.Posts;
+import com.app.dto.match.MatchEvents;
 import com.app.dto.match.Matches;
 import com.app.dto.prediction.PointHistory;
 import com.app.dto.team.PlayerStats;
@@ -21,6 +22,13 @@ public interface AdminService {
 	}
 	boolean updateMatchNotice(Long matchId, String notice);
 	boolean updateMatchScore(Long matchId, Long homeScore, Long awayScore, String status);
+
+	// 경기 타임라인 이벤트 관리 및 수동 정정
+	List<MatchEvents> getMatchEvents(Long matchId);
+	boolean deleteMatchEvent(Long eventId);
+	boolean addMatchEvent(MatchEvents event);
+	Map<String, Object> resyncSingleMatch(Long matchId);
+	Map<String, Object> getAiMismatchAdvice(Long matchId);
 
 	// 구단 선수 및 부상/징계 관리
 	List<PlayerStats> getTeamPlayers(Long teamId);
@@ -48,7 +56,9 @@ public interface AdminService {
 
 	// 외부 데이터 수동 동기화 제어
 	int syncMatchesByDate(String dateStr);
+	int syncMatchesByDateRange(String fromDateStr, String toDateStr);
 	int syncMatchEventsByDate(String dateStr);
+	int syncMatchEventsByDateRange(String fromDateStr, String toDateStr);
 	int syncStandings(Integer season);
 	int syncScorers(Integer limit);
 	int syncSeasonMatches(Integer season);

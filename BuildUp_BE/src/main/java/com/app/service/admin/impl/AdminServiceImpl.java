@@ -1,39 +1,55 @@
 package com.app.service.admin.impl;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.app.dao.admin.AdminDAO;
+import com.app.dao.match.MatchDAO;
+import com.app.dao.team.TeamDAO;
 import com.app.dto.community.Comments;
 import com.app.dto.community.Posts;
+import com.app.dto.match.MatchEvents;
 import com.app.dto.match.Matches;
 import com.app.dto.prediction.PointHistory;
 import com.app.dto.team.PlayerStats;
+import com.app.dto.team.Teams;
 import com.app.dto.user.Users;
 import com.app.service.admin.AdminService;
 import com.app.service.api.BigBallsApiService;
 import com.app.service.api.FootballApiService;
+import com.app.service.api.GeminiApiService;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @Service
 public class AdminServiceImpl implements AdminService {
 
+	private static final Logger log = LoggerFactory.getLogger(AdminServiceImpl.class);
+
 	@Autowired
 	private AdminDAO adminDAO;
+
+	@Autowired
+	private MatchDAO matchDAO;
+
+	@Autowired
+	private TeamDAO teamDAO;
 
 	@Autowired
 	private FootballApiService footballApiService;
 
 	@Autowired
 	private BigBallsApiService bigBallsApiService;
+
+	@Autowired
+	private GeminiApiService geminiApiService;
 
 	@Override
 	public Map<String, Object> getAdminSummary() {
@@ -62,6 +78,128 @@ public class AdminServiceImpl implements AdminService {
 		match.setAwayScore(awayScore);
 		match.setStatus(status);
 		return adminDAO.updateMatchScore(match) > 0;
+	}
+
+	@Override
+	public List<MatchEvents> getMatchEvents(Long matchId) {
+		return matchDAO.findEventsByMatchId(matchId);
+	}
+
+	@Override
+	@Transactional
+	public boolean deleteMatchEvent(Long eventId) {
+		return adminDAO.deleteMatchEvent(eventId) > 0;
+	}
+
+	@Override
+	@Transactional
+	public boolean addMatchEvent(MatchEvents event) {
+		return adminDAO.insertMatchEvent(event) > 0;
+	}
+
+	@Override
+	@Transactional
+	public Map<String, Object> resyncSingleMatch(Long matchId) {
+		Matches match = matchDAO.findMatchById(matchId);
+		if (match == null) {
+			throw new IllegalArgumentException("대상 경기를 찾을 수 없습니다: matchId=" + matchId);
+		}
+		Map<String, Object> result = new HashMap<>();
+
+		// 1. 경기 일정 및 공식 결과(스코어) Football API에서 다시 불러오기
+		String matchDateStr = match.getMatchDate();
+		if (matchDateStr != null && matchDateStr.length() >= 10) {
+			try {
+				LocalDate targetDate = LocalDate.parse(matchDateStr.substring(0, 10));
+				footballApiService.syncMatchesByDate(targetDate);
+			} catch (Exception e) {
+				log.warn("[AdminService] matchId={} 날짜({}) 공식 스코어 재동기화 중 오류 (스킵): {}", matchId, matchDateStr, e.getMessage());
+			}
+		}
+
+		// 2. 경기 타임라인 원본 이벤트 BigBalls API에서 다시 불러오기 (AI 자동 삭제 없음)
+		int syncedEvents = bigBallsApiService.syncMatchEventsAuto(matchId);
+		result.put("syncedEvents", syncedEvents);
+
+		Matches updatedMatch = matchDAO.findMatchById(matchId);
+		List<MatchEvents> events = matchDAO.findEventsByMatchId(matchId);
+		result.put("match", updatedMatch);
+		result.put("events", events);
+
+		return result;
+	}
+
+	@Override
+	public Map<String, Object> getAiMismatchAdvice(Long matchId) {
+		Matches match = matchDAO.findMatchById(matchId);
+		if (match == null) {
+			throw new IllegalArgumentException("대상 경기를 찾을 수 없습니다: matchId=" + matchId);
+		}
+		List<MatchEvents> events = matchDAO.findEventsByMatchId(matchId);
+		Teams homeTeam = teamDAO.findTeamById(match.getHomeTeamId());
+		Teams awayTeam = teamDAO.findTeamById(match.getAwayTeamId());
+
+		String hName = homeTeam != null ? homeTeam.getTeamName() : "Home";
+		String aName = awayTeam != null ? awayTeam.getTeamName() : "Away";
+		String mDate = match.getMatchDate() != null && match.getMatchDate().length() >= 10 ? match.getMatchDate().substring(0, 10) : "";
+
+		long officialHome = match.getHomeScore() != null ? match.getHomeScore() : 0L;
+		long officialAway = match.getAwayScore() != null ? match.getAwayScore() : 0L;
+
+		List<MatchEvents> homeGoals = events.stream()
+				.filter(e -> e.getTeamId().equals(match.getHomeTeamId()) && (e.getEventType() != null && (e.getEventType() == 1L || e.getEventType() == 2L || e.getEventType() == 3L)))
+				.toList();
+		List<MatchEvents> awayGoals = events.stream()
+				.filter(e -> e.getTeamId().equals(match.getAwayTeamId()) && (e.getEventType() != null && (e.getEventType() == 1L || e.getEventType() == 2L || e.getEventType() == 3L)))
+				.toList();
+
+		List<Integer> homeDisallowedMinutes = new ArrayList<>();
+		if (homeGoals.size() > officialHome) {
+			List<Map<String, Object>> candidates = new ArrayList<>();
+			for (MatchEvents g : homeGoals) {
+				Map<String, Object> map = new HashMap<>();
+				map.put("minute", g.getEventTime());
+				map.put("playerName", g.getPlayerName() != null ? g.getPlayerName() : "Unknown");
+				candidates.add(map);
+			}
+			try {
+				List<Integer> mins = geminiApiService.identifyDisallowedGoalMinutes(
+						mDate, hName, aName, hName, (int) officialHome, candidates);
+				if (mins != null) homeDisallowedMinutes.addAll(mins);
+			} catch (Exception e) {
+				log.warn("[AdminService] 홈팀 취소골 AI 분석 중 오류: {}", e.getMessage());
+			}
+		}
+
+		List<Integer> awayDisallowedMinutes = new ArrayList<>();
+		if (awayGoals.size() > officialAway) {
+			List<Map<String, Object>> candidates = new ArrayList<>();
+			for (MatchEvents g : awayGoals) {
+				Map<String, Object> map = new HashMap<>();
+				map.put("minute", g.getEventTime());
+				map.put("playerName", g.getPlayerName() != null ? g.getPlayerName() : "Unknown");
+				candidates.add(map);
+			}
+			try {
+				List<Integer> mins = geminiApiService.identifyDisallowedGoalMinutes(
+						mDate, hName, aName, aName, (int) officialAway, candidates);
+				if (mins != null) awayDisallowedMinutes.addAll(mins);
+			} catch (Exception e) {
+				log.warn("[AdminService] 원정팀 취소골 AI 분석 중 오류: {}", e.getMessage());
+			}
+		}
+
+		Map<String, Object> advice = new HashMap<>();
+		advice.put("matchId", matchId);
+		advice.put("officialHomeScore", officialHome);
+		advice.put("officialAwayScore", officialAway);
+		advice.put("homeGoalCount", homeGoals.size());
+		advice.put("awayGoalCount", awayGoals.size());
+		advice.put("homeDisallowedMinutes", homeDisallowedMinutes);
+		advice.put("awayDisallowedMinutes", awayDisallowedMinutes);
+		advice.put("isMismatch", (homeGoals.size() != officialHome || awayGoals.size() != officialAway));
+
+		return advice;
 	}
 
 	@Override
@@ -176,18 +314,34 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public int syncMatchesByDate(String dateStr) {
-		LocalDate targetDate = (dateStr != null && !dateStr.trim().isEmpty())
-				? LocalDate.parse(dateStr.trim())
+		return syncMatchesByDateRange(dateStr, dateStr);
+	}
+
+	@Override
+	public int syncMatchesByDateRange(String fromDateStr, String toDateStr) {
+		LocalDate fromDate = (fromDateStr != null && !fromDateStr.trim().isEmpty())
+				? LocalDate.parse(fromDateStr.trim())
 				: LocalDate.now();
-		return footballApiService.syncMatchesByDate(targetDate);
+		LocalDate toDate = (toDateStr != null && !toDateStr.trim().isEmpty())
+				? LocalDate.parse(toDateStr.trim())
+				: fromDate;
+		return footballApiService.syncMatchesByDateRange(fromDate, toDate);
 	}
 
 	@Override
 	public int syncMatchEventsByDate(String dateStr) {
-		String targetDate = (dateStr != null && !dateStr.trim().isEmpty())
-				? dateStr.trim()
+		return syncMatchEventsByDateRange(dateStr, dateStr);
+	}
+
+	@Override
+	public int syncMatchEventsByDateRange(String fromDateStr, String toDateStr) {
+		String from = (fromDateStr != null && !fromDateStr.trim().isEmpty())
+				? fromDateStr.trim()
 				: LocalDate.now().toString();
-		return bigBallsApiService.syncMatchEventsByDate(targetDate);
+		String to = (toDateStr != null && !toDateStr.trim().isEmpty())
+				? toDateStr.trim()
+				: from;
+		return bigBallsApiService.syncMatchEventsByDateRange(from, to);
 	}
 
 	@Override

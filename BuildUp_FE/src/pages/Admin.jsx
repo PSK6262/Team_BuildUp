@@ -58,12 +58,19 @@ export default function Admin() {
   const [pointModal, setPointModal] = useState(null)   // { userId, nickname, amount, description }
   const [roleModal, setRoleModal] = useState(null)     // { userId, nickname, roleCode }
   const [viewPostModal, setViewPostModal] = useState(null) // { title, content, nickname, isBlind, unblurred }
+  const [eventModal, setEventModal] = useState(null)   // { matchId, match, events, loading, aiAdvice, aiLoading, newEvent }
+  const [eventModalPlayers, setEventModalPlayers] = useState([]) // 해당 경기 팀 선수 목록
 
   // 6. 데이터 동기화 제어
-  const [syncDate, setSyncDate] = useState(() => {
-    const today = new Date()
-    return today.toISOString().split('T')[0]
-  })
+  const todayStr = new Date().toISOString().split('T')[0]
+  const [matchSyncRange, setMatchSyncRange] = useState(false)
+  const [matchSyncFrom, setMatchSyncFrom] = useState(todayStr)
+  const [matchSyncTo, setMatchSyncTo] = useState(todayStr)
+
+  const [eventSyncRange, setEventSyncRange] = useState(false)
+  const [eventSyncFrom, setEventSyncFrom] = useState(todayStr)
+  const [eventSyncTo, setEventSyncTo] = useState(todayStr)
+
   const [syncLoading, setSyncLoading] = useState(false)
   const [syncStatus, setSyncStatus] = useState(null) // { active: true, message: '...' }
 
@@ -440,6 +447,217 @@ export default function Admin() {
     }
   }
 
+  // 2-1. 경기 타임라인 이벤트 모달 열기 및 데이터 조회
+  const handleOpenEventModal = async (match) => {
+    setEventModal({
+      matchId: match.matchId,
+      match,
+      events: [],
+      loading: true,
+      aiAdvice: null,
+      aiLoading: true, // 검증을 위해 모달 열자마자 AI 분석 자동 시작
+      newEvent: {
+        eventTime: '',
+        teamId: match.homeTeamId,
+        playerId: '',
+        eventType: 1, // 기본값: 일반 골 (1)
+      },
+    })
+
+    try {
+      // 1) 이벤트 목록 조회
+      const res = await fetch(`/api/admin/matches/${match.matchId}/events`, {
+        headers: getAuthHeaders(),
+        credentials: 'include',
+      })
+      const json = await res.json()
+      const evts = (json.code === 'SUC_001' && json.data) ? json.data : []
+
+      // 2) 홈/원정 양 팀 선수단 목록 조회 (수동 추가 드롭다운용)
+      const [homeRes, awayRes] = await Promise.all([
+        fetch(`/api/admin/teams/${match.homeTeamId}/players`, { headers: getAuthHeaders(), credentials: 'include' }),
+        fetch(`/api/admin/teams/${match.awayTeamId}/players`, { headers: getAuthHeaders(), credentials: 'include' }),
+      ])
+      const [homeJson, awayJson] = await Promise.all([homeRes.json(), awayRes.json()])
+      const allPlayers = [
+        ...(homeJson.code === 'SUC_001' && homeJson.data ? homeJson.data.map(p => ({ ...p, teamType: 'HOME', teamName: match.homeTeamNameKor || match.homeTeamName })) : []),
+        ...(awayJson.code === 'SUC_001' && awayJson.data ? awayJson.data.map(p => ({ ...p, teamType: 'AWAY', teamName: match.awayTeamNameKor || match.awayTeamName })) : []),
+      ]
+
+      setEventModalPlayers(allPlayers)
+      setEventModal(prev => prev ? {
+        ...prev,
+        events: evts,
+        loading: false,
+        newEvent: {
+          ...prev.newEvent,
+          playerId: allPlayers.length > 0 ? allPlayers[0].playerId : '',
+        },
+      } : null)
+
+      // 3) 모달 진입 시 Gemini AI 분석 참고의견 자동 호출
+      fetchAiAdvice(match.matchId)
+    } catch (e) {
+      showAlert('경기 이벤트를 불러오는 중 통신 오류가 발생했습니다.', 'error')
+      setEventModal(prev => prev ? { ...prev, loading: false, aiLoading: false } : null)
+    }
+  }
+
+  // 2-2. 경기 이벤트 단건 수동 삭제 (취소골/오적재 이벤트 제거)
+  const handleDeleteEvent = async (eventId, eventDesc) => {
+    if (!window.confirm(`선택한 이벤트(${eventDesc})를 정말 삭제하시겠습니까?\n삭제 후 스코어 정합성이 다시 계산됩니다.`)) return
+    try {
+      const res = await fetch(`/api/admin/matches/events/${eventId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+      })
+      const json = await res.json()
+      if (json.code === 'SUC_001') {
+        showAlert('이벤트가 성공적으로 삭제되었습니다.')
+        // 모달 내 이벤트 목록 갱신
+        if (eventModal) {
+          const updatedEvents = eventModal.events.filter(e => e.eventId !== eventId && e.event_id !== eventId)
+          setEventModal({ ...eventModal, events: updatedEvents })
+        }
+        fetchMatches()
+        fetchSummary()
+      } else {
+        showAlert(json.message || '이벤트 삭제 실패', 'error')
+      }
+    } catch (e) {
+      showAlert('이벤트 삭제 중 오류가 발생했습니다.', 'error')
+    }
+  }
+
+  // 2-3. 경기 이벤트 단건 수동 추가
+  const handleAddEvent = async () => {
+    if (!eventModal) return
+    const { newEvent, matchId } = eventModal
+    if (!newEvent.eventTime || isNaN(newEvent.eventTime)) {
+      showAlert('발생 시간을 숫자로 입력해주세요 (예: 45).', 'error')
+      return
+    }
+    if (!newEvent.playerId) {
+      showAlert('이벤트 발생 선수를 선택해주세요.', 'error')
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/admin/matches/${matchId}/events`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+        body: JSON.stringify({
+          matchId,
+          teamId: Number(newEvent.teamId),
+          eventTime: Number(newEvent.eventTime),
+          eventType: Number(newEvent.eventType),
+          playerId: Number(newEvent.playerId),
+        }),
+      })
+      const json = await res.json()
+      if (json.code === 'SUC_001') {
+        showAlert('새로운 경기 이벤트가 등록되었습니다.')
+        // 이벤트 재조회
+        const evRes = await fetch(`/api/admin/matches/${matchId}/events`, {
+          headers: getAuthHeaders(),
+          credentials: 'include',
+        })
+        const evJson = await evRes.json()
+        if (evJson.code === 'SUC_001') {
+          setEventModal(prev => ({
+            ...prev,
+            events: evJson.data || [],
+            newEvent: { ...prev.newEvent, eventTime: '' },
+          }))
+        }
+        fetchMatches()
+        fetchSummary()
+      } else {
+        showAlert(json.message || '이벤트 등록 실패', 'error')
+      }
+    } catch (e) {
+      showAlert('이벤트 등록 중 오류가 발생했습니다.', 'error')
+    }
+  }
+
+  // 2-4. 외부 API 원본 결과 및 이벤트 다시 불러오기 (AI 임의 삭제 없음)
+  const handleResyncSingleMatch = async () => {
+    if (!eventModal) return
+    if (!window.confirm('외부 축구 API에서 이 경기의 공식 결과(스코어)와 원본 타임라인 이벤트를 다시 불러오시겠습니까?\nAI 임의 삭제 없이 순수 원본 데이터로 재적재됩니다.')) return
+
+    try {
+      setEventModal(prev => ({ ...prev, loading: true }))
+      const res = await fetch(`/api/admin/matches/${eventModal.matchId}/resync`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+      })
+      const json = await res.json()
+      if (json.code === 'SUC_001') {
+        showAlert(`경기 데이터 및 원본 이벤트(${json.data?.syncedEvents ?? 0}건)를 다시 불러왔습니다.`)
+        // 경기 정보 및 이벤트 갱신
+        const evRes = await fetch(`/api/admin/matches/${eventModal.matchId}/events`, {
+          headers: getAuthHeaders(),
+          credentials: 'include',
+        })
+        const evJson = await evRes.json()
+        setEventModal(prev => ({
+          ...prev,
+          match: json.data?.match || prev.match,
+          events: evJson.data || [],
+          loading: false,
+          aiAdvice: null,
+        }))
+        fetchMatches()
+        fetchSummary()
+        // 재동기화 후에도 AI 분석 다시 호출
+        fetchAiAdvice(eventModal.matchId)
+      } else {
+        showAlert(json.message || '다시 불러오기 실패', 'error')
+        setEventModal(prev => ({ ...prev, loading: false }))
+      }
+    } catch (e) {
+      showAlert('외부 API 재동기화 중 오류가 발생했습니다.', 'error')
+      setEventModal(prev => ({ ...prev, loading: false }))
+    }
+  }
+
+  // 2-5. Gemini AI 불일치 분석 제안 조회 공통 함수 (Read-only, DB 변경 없음)
+  const fetchAiAdvice = async (matchId) => {
+    try {
+      setEventModal(prev => prev && prev.matchId === matchId ? { ...prev, aiLoading: true } : prev)
+      const res = await fetch(`/api/admin/matches/${matchId}/ai-advice`, {
+        headers: getAuthHeaders(),
+        credentials: 'include',
+      })
+      const json = await res.json()
+      if (json.code === 'SUC_001') {
+        setEventModal(prev => prev && prev.matchId === matchId ? {
+          ...prev,
+          aiAdvice: json.data,
+          aiLoading: false,
+        } : prev)
+      } else {
+        setEventModal(prev => prev && prev.matchId === matchId ? {
+          ...prev,
+          aiLoading: false,
+        } : prev)
+      }
+    } catch (e) {
+      setEventModal(prev => prev && prev.matchId === matchId ? {
+        ...prev,
+        aiLoading: false,
+      } : prev)
+    }
+  }
+
+  const handleGetAiAdvice = () => {
+    if (!eventModal) return
+    fetchAiAdvice(eventModal.matchId)
+  }
+
   // 3. 선수 부상 및 사유 저장
   const handleSaveInjury = async () => {
     if (!injuryModal) return
@@ -588,16 +806,27 @@ export default function Admin() {
   }
 
   // 9. 데이터 동기화 트리거
-  const handleTriggerSync = async (endpoint, paramKey = null, paramVal = null, label = '') => {
+  const handleTriggerSync = async (endpoint, paramKeyOrParams = null, paramVal = null, label = '') => {
     try {
       setSyncLoading(true)
       setAlert(null)
-      setSyncStatus({ active: true, message: `${label}을(를) 외부 API와 동기화하는 중입니다...` })
+      let actualLabel = label
 
       let url = `/api/admin/sync/${endpoint}`
-      if (paramKey && paramVal) {
-        url += `?${paramKey}=${encodeURIComponent(paramVal)}`
+      if (paramKeyOrParams) {
+        if (typeof paramKeyOrParams === 'object' && paramKeyOrParams !== null) {
+          actualLabel = paramVal || ''
+          const qs = Object.entries(paramKeyOrParams)
+            .filter(([_, v]) => v !== undefined && v !== null && v !== '')
+            .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+            .join('&')
+          if (qs) url += `?${qs}`
+        } else if (paramVal !== null) {
+          url += `?${paramKeyOrParams}=${encodeURIComponent(paramVal)}`
+        }
       }
+
+      setSyncStatus({ active: true, message: `${actualLabel || '데이터'}을(를) 외부 API와 동기화하는 중입니다...` })
       const res = await fetch(url, {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -938,6 +1167,43 @@ export default function Admin() {
               </div>
             </div>
 
+            {/* 스코어-이벤트 불일치 안내 배너 */}
+            {Number(summary.MISMATCH_MATCHES || 0) > 0 && (
+              <div style={{
+                background: '#fff1f2',
+                border: '1px solid #fecdd3',
+                borderRadius: 8,
+                padding: '12px 18px',
+                marginBottom: 16,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 10,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#be123c', fontWeight: 600, fontSize: 13 }}>
+                  <span style={{ fontSize: 18 }}>⚠️</span>
+                  <span>
+                    현재 공식 스코어와 골 타임라인 이벤트가 일치하지 않는 경기가 <strong>{summary.MISMATCH_MATCHES}건</strong> 있습니다.
+                    AI가 임의로 수정하지 않도록 안전 조치되었으므로, 관리자가 직접 <strong>[이벤트 관리]</strong>를 통해 취소골을 삭제하거나 스코어를 정정해주세요.
+                  </span>
+                </div>
+                {matchStatusFilter !== 'MISMATCH' && (
+                  <button
+                    type="button"
+                    className="btn-action btn-action--danger"
+                    style={{ fontSize: 12, padding: '6px 12px', whiteSpace: 'nowrap' }}
+                    onClick={() => {
+                      setMatchStatusFilter('MISMATCH')
+                      fetchMatches('DESC')
+                    }}
+                  >
+                    불일치 경기만 모아보기 ({summary.MISMATCH_MATCHES}건)
+                  </button>
+                )}
+              </div>
+            )}
+
             <div className="admin-table-wrapper">
               <table className="admin-table">
                 <thead>
@@ -956,87 +1222,98 @@ export default function Admin() {
                   ) : matches.length === 0 ? (
                     <tr><td colSpan="6" style={{ textAlign: 'center', padding: 30, color: '#94a3b8' }}>해당 조건의 경기가 없습니다.</td></tr>
                   ) : (
-                    matches.slice(0, 50).map((m) => (
-                      <tr key={m.matchId}>
-                        <td style={{ whiteSpace: 'nowrap' }}>{m.matchDate}</td>
-                        <td>
-                          <div className="match-team-cell">
-                            {m.homeEmblemUrl && <img src={m.homeEmblemUrl} alt="" className="match-emblem" />}
-                            <span>{m.homeTeamNameKor || m.homeTeamName}</span>
-                            <span style={{ color: '#94a3b8', margin: '0 4px' }}>vs</span>
-                            {m.awayEmblemUrl && <img src={m.awayEmblemUrl} alt="" className="match-emblem" />}
-                            <span>{m.awayTeamNameKor || m.awayTeamName}</span>
-                          </div>
-                        </td>
-                        <td style={{ fontWeight: 700 }}>
-                          <div>
-                            {m.homeScore !== null && m.awayScore !== null
-                              ? `${m.homeScore} : ${m.awayScore}`
-                              : '-'}
-                          </div>
-                          {m.status === 'FINISHED' && m.homeScore !== null && m.awayScore !== null && (
-                            (m.homeScore !== (m.homeGoalEvents ?? 0)) || (m.awayScore !== (m.awayGoalEvents ?? 0))
-                          ) && (
-                            <div style={{ marginTop: 4 }}>
-                              <span
-                                className="badge badge--red"
-                                title={`최종 스코어 (${m.homeScore}:${m.awayScore}) vs 타임라인 골 이벤트 (${m.homeGoalEvents ?? 0}:${m.awayGoalEvents ?? 0}) - 총 이벤트 ${m.totalEvents ?? 0}건`}
-                                style={{ fontSize: 11, cursor: 'help' }}
-                              >
-                                ⚠️ 이벤트 {m.homeGoalEvents ?? 0}:{m.awayGoalEvents ?? 0}
-                              </span>
+                    matches.slice(0, 50).map((m) => {
+                      const isMismatch = m.status === 'FINISHED' && m.homeScore !== null && m.awayScore !== null &&
+                        ((m.homeScore !== (m.homeGoalEvents ?? 0)) || (m.awayScore !== (m.awayGoalEvents ?? 0)))
+
+                      return (
+                        <tr key={m.matchId} style={isMismatch ? { background: '#fff5f5' } : {}}>
+                          <td style={{ whiteSpace: 'nowrap' }}>{m.matchDate}</td>
+                          <td>
+                            <div className="match-team-cell">
+                              {m.homeEmblemUrl && <img src={m.homeEmblemUrl} alt="" className="match-emblem" />}
+                              <span>{m.homeTeamNameKor || m.homeTeamName}</span>
+                              <span style={{ color: '#94a3b8', margin: '0 4px' }}>vs</span>
+                              {m.awayEmblemUrl && <img src={m.awayEmblemUrl} alt="" className="match-emblem" />}
+                              <span>{m.awayTeamNameKor || m.awayTeamName}</span>
                             </div>
-                          )}
-                        </td>
-                        <td>
-                          <span className={`badge ${
-                            m.status === 'FINISHED' ? 'badge--gray' :
-                            m.status === 'LIVE' ? 'badge--red' : 'badge--green'
-                          }`}>
-                            {m.status}
-                          </span>
-                        </td>
-                        <td>
-                          {m.notice ? (
-                            <span className="match-notice-text" title={m.notice}>📢 {m.notice}</span>
-                          ) : (
-                            <span style={{ color: '#94a3b8', fontSize: 13 }}>공지 없음</span>
-                          )}
-                        </td>
-                        <td>
-                          <div style={{ display: 'flex', gap: 6 }}>
-                            <button
-                              type="button"
-                              className="btn-action btn-action--warning"
-                              onClick={() => {
-                                setNoticeModal({
-                                  matchId: m.matchId,
-                                  title: `${m.homeTeamNameKor || m.homeTeamName} vs ${m.awayTeamNameKor || m.awayTeamName}`,
-                                  notice: m.notice || '',
-                                })
-                              }}
-                            >
-                              공지 편집
-                            </button>
-                            <button
-                              type="button"
-                              className="btn-action btn-action--outline"
-                              onClick={() => {
-                                setScoreModal({
-                                  matchId: m.matchId,
-                                  title: `${m.homeTeamNameKor || m.homeTeamName} vs ${m.awayTeamNameKor || m.awayTeamName}`,
-                                  homeScore: m.homeScore !== null ? m.homeScore : '',
-                                  awayScore: m.awayScore !== null ? m.awayScore : '',
-                                  status: m.status,
-                                })
-                              }}
-                            >
-                              스코어 정정
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
+                          </td>
+                          <td style={{ fontWeight: 700 }}>
+                            <div>
+                              {m.homeScore !== null && m.awayScore !== null
+                                ? `${m.homeScore} : ${m.awayScore}`
+                                : '-'}
+                            </div>
+                            {isMismatch && (
+                              <div style={{ marginTop: 4 }}>
+                                <span
+                                  className="badge badge--red"
+                                  title={`공식 스코어 (${m.homeScore}:${m.awayScore}) vs 골 이벤트 (${m.homeGoalEvents ?? 0}:${m.awayGoalEvents ?? 0}) - 총 이벤트 ${m.totalEvents ?? 0}건`}
+                                  style={{ fontSize: 11, cursor: 'help' }}
+                                >
+                                  ⚠️ 불일치 (이벤트 {m.homeGoalEvents ?? 0}:{m.awayGoalEvents ?? 0})
+                                </span>
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            <span className={`badge ${
+                              m.status === 'FINISHED' ? 'badge--gray' :
+                              m.status === 'LIVE' ? 'badge--red' : 'badge--green'
+                            }`}>
+                              {m.status}
+                            </span>
+                          </td>
+                          <td>
+                            {m.notice ? (
+                              <span className="match-notice-text" title={m.notice}>📢 {m.notice}</span>
+                            ) : (
+                              <span style={{ color: '#94a3b8', fontSize: 13 }}>공지 없음</span>
+                            )}
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                              <button
+                                type="button"
+                                className={`btn-action ${isMismatch ? 'btn-action--danger' : 'btn-action--outline'}`}
+                                onClick={() => handleOpenEventModal(m)}
+                                title="경기 타임라인 상세 이벤트 목록 확인 및 관리"
+                              >
+                                {isMismatch ? '⚠️ 이벤트 관리' : '이벤트 확인'}
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-action btn-action--warning"
+                                onClick={() => {
+                                  setNoticeModal({
+                                    matchId: m.matchId,
+                                    title: `${m.homeTeamNameKor || m.homeTeamName} vs ${m.awayTeamNameKor || m.awayTeamName}`,
+                                    notice: m.notice || '',
+                                  })
+                                }}
+                              >
+                                공지 편집
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-action btn-action--outline"
+                                onClick={() => {
+                                  setScoreModal({
+                                    matchId: m.matchId,
+                                    title: `${m.homeTeamNameKor || m.homeTeamName} vs ${m.awayTeamNameKor || m.awayTeamName}`,
+                                    homeScore: m.homeScore !== null ? m.homeScore : '',
+                                    awayScore: m.awayScore !== null ? m.awayScore : '',
+                                    status: m.status,
+                                  })
+                                }}
+                              >
+                                스코어 정정
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })
                   )}
                 </tbody>
               </table>
@@ -1540,22 +1817,82 @@ export default function Admin() {
               <div>
                 <div className="sync-card__title">⚽ 경기 일정 및 스코어 동기화</div>
                 <div className="sync-card__desc">
-                  Football-Data API를 호출하여 특정 날짜의 프리미어리그 경기 일정 및 스코어 결과를 즉시 DB에 업데이트합니다.
+                  {matchSyncRange
+                    ? '지정한 기간(From ~ To) 동안의 프리미어리그 경기 일정 및 스코어 결과를 외부 API에서 일괄 업데이트합니다.'
+                    : 'Football-Data API를 호출하여 특정 날짜의 프리미어리그 경기 일정 및 스코어 결과를 즉시 DB에 업데이트합니다.'}
                 </div>
               </div>
-              <div className="sync-card__actions">
-                <input
-                  type="date"
-                  className="admin-input"
-                  value={syncDate}
-                  onChange={(e) => setSyncDate(e.target.value)}
-                  style={{ width: '150px' }}
-                />
+              <div className="sync-card__actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                {matchSyncRange ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    <input
+                      type="date"
+                      className="admin-input"
+                      value={matchSyncFrom}
+                      onChange={(e) => setMatchSyncFrom(e.target.value)}
+                      style={{ width: '135px' }}
+                      title="시작일 (From)"
+                    />
+                    <span style={{ color: '#64748b', fontWeight: 700 }}>~</span>
+                    <input
+                      type="date"
+                      className="admin-input"
+                      value={matchSyncTo}
+                      onChange={(e) => setMatchSyncTo(e.target.value)}
+                      style={{ width: '135px' }}
+                      title="종료일 (To)"
+                    />
+                    <button
+                      type="button"
+                      className="btn-action btn-action--outline"
+                      style={{ padding: '6px 10px', fontSize: 13, minWidth: 32 }}
+                      onClick={() => setMatchSyncRange(false)}
+                      title="단일 일자 선택으로 돌아가기 (−)"
+                    >
+                      − 단일
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <input
+                      type="date"
+                      className="admin-input"
+                      value={matchSyncFrom}
+                      onChange={(e) => {
+                        setMatchSyncFrom(e.target.value)
+                        setMatchSyncTo(e.target.value)
+                      }}
+                      style={{ width: '145px' }}
+                      title="동기화 일자"
+                    />
+                    <button
+                      type="button"
+                      className="btn-action btn-action--outline"
+                      style={{
+                        padding: '6px 10px',
+                        fontSize: 13,
+                        color: '#0284c7',
+                        borderColor: '#38bdf8',
+                        fontWeight: 600,
+                      }}
+                      onClick={() => setMatchSyncRange(true)}
+                      title="기간(From ~ To) 범위 선택 모드로 전환 (+)"
+                    >
+                      + 기간
+                    </button>
+                  </div>
+                )}
                 <button
                   type="button"
                   className="btn-action btn-action--primary"
                   disabled={syncLoading}
-                  onClick={() => handleTriggerSync('matches', 'date', syncDate, '경기 일정')}
+                  onClick={() => {
+                    if (matchSyncRange) {
+                      handleTriggerSync('matches', { startDate: matchSyncFrom, endDate: matchSyncTo }, `${matchSyncFrom} ~ ${matchSyncTo} 경기 일정`)
+                    } else {
+                      handleTriggerSync('matches', { date: matchSyncFrom }, `${matchSyncFrom} 경기 일정`)
+                    }
+                  }}
                 >
                   동기화
                 </button>
@@ -1567,22 +1904,82 @@ export default function Admin() {
               <div>
                 <div className="sync-card__title">⏱️ 경기 타임라인 이벤트 동기화</div>
                 <div className="sync-card__desc">
-                  BigBalls API를 연동하여 특정 날짜의 골, 어시스트, 카드 등 타임라인 상세 이벤트를 MATCH_EVENTS에 동기화합니다.
+                  {eventSyncRange
+                    ? '지정한 기간(From ~ To) 동안 치러진 모든 경기의 타임라인 상세 이벤트를 MATCH_EVENTS에 일괄 동기화합니다.'
+                    : 'BigBalls API를 연동하여 특정 날짜의 골, 어시스트, 카드 등 타임라인 상세 이벤트를 MATCH_EVENTS에 동기화합니다.'}
                 </div>
               </div>
-              <div className="sync-card__actions">
-                <input
-                  type="date"
-                  className="admin-input"
-                  value={syncDate}
-                  onChange={(e) => setSyncDate(e.target.value)}
-                  style={{ width: '150px' }}
-                />
+              <div className="sync-card__actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                {eventSyncRange ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    <input
+                      type="date"
+                      className="admin-input"
+                      value={eventSyncFrom}
+                      onChange={(e) => setEventSyncFrom(e.target.value)}
+                      style={{ width: '135px' }}
+                      title="시작일 (From)"
+                    />
+                    <span style={{ color: '#64748b', fontWeight: 700 }}>~</span>
+                    <input
+                      type="date"
+                      className="admin-input"
+                      value={eventSyncTo}
+                      onChange={(e) => setEventSyncTo(e.target.value)}
+                      style={{ width: '135px' }}
+                      title="종료일 (To)"
+                    />
+                    <button
+                      type="button"
+                      className="btn-action btn-action--outline"
+                      style={{ padding: '6px 10px', fontSize: 13, minWidth: 32 }}
+                      onClick={() => setEventSyncRange(false)}
+                      title="단일 일자 선택으로 돌아가기 (−)"
+                    >
+                      − 단일
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <input
+                      type="date"
+                      className="admin-input"
+                      value={eventSyncFrom}
+                      onChange={(e) => {
+                        setEventSyncFrom(e.target.value)
+                        setEventSyncTo(e.target.value)
+                      }}
+                      style={{ width: '145px' }}
+                      title="동기화 일자"
+                    />
+                    <button
+                      type="button"
+                      className="btn-action btn-action--outline"
+                      style={{
+                        padding: '6px 10px',
+                        fontSize: 13,
+                        color: '#0284c7',
+                        borderColor: '#38bdf8',
+                        fontWeight: 600,
+                      }}
+                      onClick={() => setEventSyncRange(true)}
+                      title="기간(From ~ To) 범위 선택 모드로 전환 (+)"
+                    >
+                      + 기간
+                    </button>
+                  </div>
+                )}
                 <button
                   type="button"
                   className="btn-action btn-action--primary"
                   disabled={syncLoading}
-                  onClick={() => handleTriggerSync('events', 'date', syncDate, '타임라인 이벤트')}
+                  onClick={() => {
+                    if (eventSyncRange) {
+                      handleTriggerSync('events', { startDate: eventSyncFrom, endDate: eventSyncTo }, `${eventSyncFrom} ~ ${eventSyncTo} 타임라인 이벤트`)
+                    } else {
+                      handleTriggerSync('events', { date: eventSyncFrom }, `${eventSyncFrom} 타임라인 이벤트`)
+                    }
+                  }}
                 >
                   동기화
                 </button>
@@ -1761,6 +2158,387 @@ export default function Admin() {
               </button>
               <button type="button" className="btn-action btn-action--primary" onClick={handleSaveScore}>
                 정정 완료
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2-1. 경기 타임라인 이벤트 관리 및 불일치 수동 정정 모달 */}
+      {eventModal && (
+        <div className="admin-modal-backdrop" onClick={() => setEventModal(null)}>
+          <div className="admin-modal" style={{ maxWidth: 860, width: '95%' }} onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal__header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 20 }}>⏱️</span>
+                <h3 style={{ margin: 0 }}>경기 타임라인 이벤트 검증 및 관리</h3>
+              </div>
+              <button type="button" className="admin-modal__close" onClick={() => setEventModal(null)}>×</button>
+            </div>
+
+            <div className="admin-modal__body" style={{ maxHeight: '75vh', overflowY: 'auto' }}>
+              {/* 경기 요약 & 스코어 대조 카드 */}
+              {eventModal.match && (() => {
+                const m = eventModal.match
+                const homeGoals = eventModal.events.filter(e => e.teamId === m.homeTeamId && [1, 2, 3].includes(Number(e.eventType || e.event_type))).length
+                const awayGoals = eventModal.events.filter(e => e.teamId === m.awayTeamId && [1, 2, 3].includes(Number(e.eventType || e.event_type))).length
+                const isGoalMismatch = m.status === 'FINISHED' && m.homeScore !== null && m.awayScore !== null &&
+                  (m.homeScore !== homeGoals || m.awayScore !== awayGoals)
+
+                return (
+                  <div style={{
+                    background: isGoalMismatch ? '#fff1f2' : '#f8fafc',
+                    border: `1px solid ${isGoalMismatch ? '#fecdd3' : '#e2e8f0'}`,
+                    borderRadius: 10,
+                    padding: '16px 20px',
+                    marginBottom: 16,
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {m.homeEmblemUrl && <img src={m.homeEmblemUrl} alt="" style={{ width: 26, height: 26, objectFit: 'contain' }} />}
+                          <strong style={{ fontSize: 16 }}>{m.homeTeamNameKor || m.homeTeamName}</strong>
+                        </div>
+                        <span style={{ color: '#94a3b8', fontWeight: 700 }}>VS</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {m.awayEmblemUrl && <img src={m.awayEmblemUrl} alt="" style={{ width: 26, height: 26, objectFit: 'contain' }} />}
+                          <strong style={{ fontSize: 16 }}>{m.awayTeamNameKor || m.awayTeamName}</strong>
+                        </div>
+                        <span className="badge badge--gray" style={{ marginLeft: 8 }}>{m.matchDate}</span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <button
+                          type="button"
+                          className="btn-action btn-action--outline"
+                          style={{ fontSize: 12, padding: '5px 10px' }}
+                          onClick={() => {
+                            setScoreModal({
+                              matchId: m.matchId,
+                              title: `${m.homeTeamNameKor || m.homeTeamName} vs ${m.awayTeamNameKor || m.awayTeamName}`,
+                              homeScore: m.homeScore !== null ? m.homeScore : '',
+                              awayScore: m.awayScore !== null ? m.awayScore : '',
+                              status: m.status,
+                            })
+                          }}
+                        >
+                          ✏️ 스코어 정정
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-action btn-action--primary"
+                          style={{ fontSize: 12, padding: '5px 10px' }}
+                          disabled={eventModal.loading}
+                          onClick={handleResyncSingleMatch}
+                          title="Football API 결과 및 BigBalls 원본 이벤트를 AI 임의 삭제 없이 다시 불러옵니다."
+                        >
+                          🔄 외부 원본 다시 불러오기
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-action btn-action--warning"
+                          style={{ fontSize: 12, padding: '5px 10px' }}
+                          disabled={eventModal.aiLoading}
+                          onClick={handleGetAiAdvice}
+                          title="Gemini AI에게 불일치 원인 및 취소골 추론 분석 조언을 다시 요청합니다 (참고용)"
+                        >
+                          {eventModal.aiLoading ? '🤖 AI 분석중...' : '🔄 AI 재분석'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 스코어 vs 이벤트 카운트 대조 바 */}
+                    <div style={{
+                      marginTop: 14,
+                      paddingTop: 12,
+                      borderTop: `1px solid ${isGoalMismatch ? '#fecdd3' : '#e2e8f0'}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: 12,
+                    }}>
+                      <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+                        <div>
+                          <span style={{ fontSize: 12, color: '#64748b' }}>공식 최종 스코어: </span>
+                          <strong style={{ fontSize: 16, color: '#0f172a' }}>
+                            {m.homeScore !== null ? m.homeScore : '-'} : {m.awayScore !== null ? m.awayScore : '-'}
+                          </strong>
+                        </div>
+                        <div>
+                          <span style={{ fontSize: 12, color: '#64748b' }}>타임라인 골 이벤트: </span>
+                          <strong style={{ fontSize: 16, color: isGoalMismatch ? '#e11d48' : '#059669' }}>
+                            {homeGoals} : {awayGoals}
+                          </strong>
+                        </div>
+                      </div>
+
+                      <div>
+                        {isGoalMismatch ? (
+                          <span className="badge badge--red" style={{ fontSize: 12, padding: '4px 10px' }}>
+                            ⚠️ 불일치 발생! (골 이벤트 {homeGoals + awayGoals}건 vs 공식 스코어 {(m.homeScore ?? 0) + (m.awayScore ?? 0)}점)
+                          </span>
+                        ) : (
+                          <span className="badge badge--green" style={{ fontSize: 12, padding: '4px 10px' }}>
+                            ✅ 정합성 일치 (공식 스코어와 골 이벤트 수 동일)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* AI 분석 진행 중 로딩 카드 (모달 진입 시 자동 실행) */}
+              {eventModal.aiLoading && (
+                <div style={{
+                  background: '#f8fafc',
+                  border: '1px dashed #cbd5e1',
+                  borderRadius: 8,
+                  padding: '12px 16px',
+                  marginBottom: 16,
+                  fontSize: 13,
+                  color: '#475569',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                }}>
+                  <span style={{ fontSize: 18 }}>🤖</span>
+                  <div>
+                    <strong style={{ color: '#1e293b' }}>Gemini AI 분석 참고의견 조회 중...</strong>
+                    <span style={{ marginLeft: 6, fontSize: 12, color: '#64748b' }}>공식 스코어와 타임라인 이벤트의 일치 여부 및 취소골 가능성을 분석하고 있습니다.</span>
+                  </div>
+                </div>
+              )}
+
+              {/* AI 분석 조언 결과 알림창 (있을 때만) */}
+              {eventModal.aiAdvice && (
+                <div style={{
+                  background: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: 8,
+                  padding: '12px 16px',
+                  marginBottom: 16,
+                  fontSize: 13,
+                  color: '#166534',
+                }}>
+                  <div style={{ fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>🤖 Gemini AI 분석 참고의견</span>
+                    <span style={{ fontSize: 11, color: '#15803d', fontWeight: 400 }}>(DB에 자동 반영되지 않으며, 관리자 검토 후 직접 삭제 버튼을 눌러야 합니다)</span>
+                  </div>
+                  <div>
+                    {eventModal.aiAdvice.isMismatch ? (
+                      <div>
+                        {eventModal.aiAdvice.homeDisallowedMinutes?.length > 0 && (
+                          <p style={{ margin: '4px 0' }}>
+                            • 홈팀 취소/무효 의심 골 시간대: <strong>{eventModal.aiAdvice.homeDisallowedMinutes.join(', ')}분</strong> (VAR 판독 취소 가능성)
+                          </p>
+                        )}
+                        {eventModal.aiAdvice.awayDisallowedMinutes?.length > 0 && (
+                          <p style={{ margin: '4px 0' }}>
+                            • 원정팀 취소/무효 의심 골 시간대: <strong>{eventModal.aiAdvice.awayDisallowedMinutes.join(', ')}분</strong> (VAR 판독 취소 가능성)
+                          </p>
+                        )}
+                        {(!eventModal.aiAdvice.homeDisallowedMinutes?.length && !eventModal.aiAdvice.awayDisallowedMinutes?.length) && (
+                          <p style={{ margin: '4px 0' }}>
+                            • AI 분석 결과 명확한 취소골 기록을 특정하지 못했습니다. 실제 매치리포트를 참고하여 아래 이벤트 목록에서 수동으로 정정해주세요.
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <p style={{ margin: '4px 0' }}>• 스코어와 골 이벤트 수가 일치하여 별도의 취소골 제거가 필요하지 않습니다.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 이벤트 목록 테이블 */}
+              <div style={{ marginBottom: 20 }}>
+                <h4 style={{ margin: '0 0 10px 0', fontSize: 14, color: '#334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>📋 등록된 경기 타임라인 이벤트 ({eventModal.events.length}건)</span>
+                  <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 400 }}>잘못 기재된 취소골/중복골은 [삭제] 버튼을 눌러주세요</span>
+                </h4>
+
+                <div className="admin-table-wrapper" style={{ maxHeight: 280, overflowY: 'auto' }}>
+                  <table className="admin-table" style={{ fontSize: 13 }}>
+                    <thead>
+                      <tr>
+                        <th style={{ width: 60 }}>시간</th>
+                        <th>구단</th>
+                        <th>유형</th>
+                        <th>선수명</th>
+                        <th>도움 선수</th>
+                        <th style={{ width: 70 }}>삭제</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {eventModal.loading ? (
+                        <tr><td colSpan="6" style={{ textAlign: 'center', padding: 20, color: '#0369a1' }}>이벤트를 불러오는 중입니다...</td></tr>
+                      ) : eventModal.events.length === 0 ? (
+                        <tr><td colSpan="6" style={{ textAlign: 'center', padding: 20, color: '#94a3b8' }}>등록된 타임라인 이벤트가 없습니다. [외부 원본 다시 불러오기]를 실행해보세요.</td></tr>
+                      ) : (
+                        eventModal.events.map((ev) => {
+                          const evId = ev.eventId || ev.event_id
+                          const evTime = ev.eventTime || ev.event_time
+                          const evType = Number(ev.eventType || ev.event_type)
+                          const isGoal = [1, 2, 3].includes(evType)
+                          const pName = ev.playerNameKor || ev.playerName || ev.player_name || '선수 미확인'
+                          const aName = ev.assistPlayerNameKor || ev.assistPlayerName || ev.assist_player_name || '-'
+                          const tName = ev.teamNameKor || ev.teamName || (ev.teamId === eventModal.match?.homeTeamId ? (eventModal.match?.homeTeamNameKor || eventModal.match?.homeTeamName) : (eventModal.match?.awayTeamNameKor || eventModal.match?.awayTeamName))
+
+                          const typeBadge =
+                            evType === 1 ? <span className="badge badge--green">⚽ 골</span> :
+                            evType === 2 ? <span className="badge badge--green">⚽ PK 골</span> :
+                            evType === 3 ? <span className="badge badge--red">🥅 자책골</span> :
+                            evType === 4 ? <span className="badge badge--warning">🟨 옐로카드</span> :
+                            evType === 5 ? <span className="badge badge--red">🟨🟥 경고누적</span> :
+                            evType === 6 ? <span className="badge badge--red">🟥 다이렉트 퇴장</span> :
+                            evType === 7 ? <span className="badge badge--gray">🔄 교체</span> :
+                            evType === 8 ? <span className="badge badge--gray">❌ PK 실축</span> :
+                            <span className="badge badge--gray">{ev.eventTypeName || `기타(${evType})`}</span>
+
+                          return (
+                            <tr key={evId || `${evTime}-${ev.playerId}`} style={isGoal ? { background: '#f8fafc' } : {}}>
+                              <td style={{ fontWeight: 700 }}>{evTime}&apos;</td>
+                              <td>{tName}</td>
+                              <td>{typeBadge}</td>
+                              <td><strong>{pName}</strong></td>
+                              <td style={{ color: '#64748b' }}>{aName}</td>
+                              <td>
+                                <button
+                                  type="button"
+                                  className="btn-action btn-action--danger"
+                                  style={{ fontSize: 11, padding: '3px 8px' }}
+                                  onClick={() => handleDeleteEvent(evId, `${evTime}분 ${pName} ${isGoal ? '골' : '이벤트'}`)}
+                                >
+                                  삭제
+                                </button>
+                              </td>
+                            </tr>
+                          )
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* 이벤트 수동 추가 섹션 */}
+              <div style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: 8,
+                padding: '14px 16px',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <h4 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#334155', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>➕</span> 이벤트 수동 직접 추가 <span style={{ fontSize: 11, fontWeight: 400, color: '#64748b' }}>(누락된 골/카드 등록)</span>
+                  </h4>
+                </div>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '85px minmax(160px, 1.8fr) minmax(135px, 1.2fr) minmax(160px, 1.8fr) auto',
+                  gap: 10,
+                  alignItems: 'end',
+                }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
+                      시간(분)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="130"
+                      className="admin-input"
+                      style={{ width: '100%', height: 38, boxSizing: 'border-box' }}
+                      placeholder="예: 45"
+                      value={eventModal.newEvent.eventTime}
+                      onChange={(e) => setEventModal({
+                        ...eventModal,
+                        newEvent: { ...eventModal.newEvent, eventTime: e.target.value }
+                      })}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
+                      소속 구단
+                    </label>
+                    <select
+                      className="admin-select"
+                      style={{ width: '100%', height: 38, boxSizing: 'border-box' }}
+                      value={eventModal.newEvent.teamId}
+                      onChange={(e) => setEventModal({
+                        ...eventModal,
+                        newEvent: { ...eventModal.newEvent, teamId: Number(e.target.value), playerId: '' }
+                      })}
+                    >
+                      <option value={eventModal.match?.homeTeamId}>[홈] {eventModal.match?.homeTeamNameKor || eventModal.match?.homeTeamName}</option>
+                      <option value={eventModal.match?.awayTeamId}>[원정] {eventModal.match?.awayTeamNameKor || eventModal.match?.awayTeamName}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
+                      이벤트 유형
+                    </label>
+                    <select
+                      className="admin-select"
+                      style={{ width: '100%', height: 38, boxSizing: 'border-box' }}
+                      value={eventModal.newEvent.eventType}
+                      onChange={(e) => setEventModal({
+                        ...eventModal,
+                        newEvent: { ...eventModal.newEvent, eventType: Number(e.target.value) }
+                      })}
+                    >
+                      <option value="1">⚽ 일반 골 (1)</option>
+                      <option value="2">⚽ PK 골 (2)</option>
+                      <option value="3">🥅 자책골 (3)</option>
+                      <option value="4">🟨 옐로카드 (4)</option>
+                      <option value="5">🟨🟥 경고누적 (5)</option>
+                      <option value="6">🟥 퇴장 (6)</option>
+                      <option value="8">❌ PK 실축 (8)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
+                      선수 선택
+                    </label>
+                    <select
+                      className="admin-select"
+                      style={{ width: '100%', height: 38, boxSizing: 'border-box' }}
+                      value={eventModal.newEvent.playerId}
+                      onChange={(e) => setEventModal({
+                        ...eventModal,
+                        newEvent: { ...eventModal.newEvent, playerId: e.target.value }
+                      })}
+                    >
+                      <option value="">-- 선수 선택 --</option>
+                      {eventModalPlayers
+                        .filter(p => Number(p.teamId) === Number(eventModal.newEvent.teamId))
+                        .map(p => (
+                          <option key={p.playerId} value={p.playerId}>
+                            {p.nameKor || p.name} ({p.position || '선수'})
+                          </option>
+                        ))
+                      }
+                    </select>
+                  </div>
+                  <div>
+                    <button
+                      type="button"
+                      className="btn-action btn-action--primary"
+                      style={{ height: 38, padding: '0 16px', fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      onClick={handleAddEvent}
+                    >
+                      등록하기
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="admin-modal__footer">
+              <button type="button" className="btn-action btn-action--outline" onClick={() => setEventModal(null)}>
+                닫기
               </button>
             </div>
           </div>

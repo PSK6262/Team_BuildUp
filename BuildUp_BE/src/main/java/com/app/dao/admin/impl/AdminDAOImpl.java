@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import com.app.dao.admin.AdminDAO;
 import com.app.dto.community.Comments;
 import com.app.dto.community.Posts;
+import com.app.dto.match.MatchEvents;
 import com.app.dto.match.Matches;
 import com.app.dto.prediction.PointHistory;
 import com.app.dto.team.PlayerStats;
@@ -43,6 +44,16 @@ public class AdminDAOImpl implements AdminDAO {
 	@Override
 	public int updateMatchScore(Matches match) {
 		return sqlSession.update("AdminMapper.updateMatchScore", match);
+	}
+
+	@Override
+	public int deleteMatchEvent(Long eventId) {
+		return sqlSession.delete("AdminMapper.deleteMatchEvent", eventId);
+	}
+
+	@Override
+	public int insertMatchEvent(MatchEvents event) {
+		return sqlSession.insert("AdminMapper.insertMatchEvent", event);
 	}
 
 	@Override

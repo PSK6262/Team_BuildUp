@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.app.dto.community.Comments;
 import com.app.dto.community.Posts;
+import com.app.dto.match.MatchEvents;
 import com.app.dto.match.Matches;
 import com.app.dto.prediction.PointHistory;
 import com.app.dto.team.PlayerStats;
@@ -14,10 +15,12 @@ public interface AdminDAO {
 	// 관리자 대시보드 통계 지표 조회
 	Map<String, Object> selectAdminSummary();
 
-	// 경기 목록 조회 및 공지/스코어 수정
+	// 경기 목록 조회 및 공지/스코어/이벤트 수정
 	List<Matches> selectAdminMatches(Map<String, Object> params);
 	int updateMatchNotice(Long matchId, String notice);
 	int updateMatchScore(Matches match);
+	int deleteMatchEvent(Long eventId);
+	int insertMatchEvent(MatchEvents event);
 
 	// 구단별 선수 및 부상 정보 관리
 	List<PlayerStats> selectPlayersByTeam(Long teamId);

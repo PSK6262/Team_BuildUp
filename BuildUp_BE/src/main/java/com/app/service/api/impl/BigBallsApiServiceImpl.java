@@ -298,81 +298,23 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
                 parsedEvents.add(event);
             }
 
-            // 경기 공식 스코어 기반 1차 및 2차 정밀 보정 (종료된 경기인 경우)
+            // 경기 공식 스코어와 이벤트 간 불일치 감지 로깅 (AI 임의 자동 삭제 제거 -> 관리자 수동 검증 대상)
             if ("FINISHED".equalsIgnoreCase(match.getStatus()) && match.getHomeScore() != null && match.getAwayScore() != null) {
                 Long homeTeamId = match.getHomeTeamId();
                 Long awayTeamId = match.getAwayTeamId();
                 long officialHomeScore = match.getHomeScore();
                 long officialAwayScore = match.getAwayScore();
 
-                // [1차 필터 3] 공식 스코어가 0점인 팀의 모든 골 이벤트 제거 (100% VAR 취소골)
-                if (officialHomeScore == 0) {
-                    parsedEvents.removeIf(e -> e.getTeamId().equals(homeTeamId) && (e.getEventType() == 1L || e.getEventType() == 2L || e.getEventType() == 3L));
-                }
-                if (officialAwayScore == 0) {
-                    parsedEvents.removeIf(e -> e.getTeamId().equals(awayTeamId) && (e.getEventType() == 1L || e.getEventType() == 2L || e.getEventType() == 3L));
-                }
-
-                // [2차 필터] 홈팀 골 이벤트 수가 공식 점수를 초과할 때 Gemini AI 크로스체킹
-                List<MatchEvents> homeGoals = parsedEvents.stream()
+                long homeGoalCount = parsedEvents.stream()
                         .filter(e -> e.getTeamId().equals(homeTeamId) && (e.getEventType() == 1L || e.getEventType() == 2L || e.getEventType() == 3L))
-                        .toList();
-                if (homeGoals.size() > officialHomeScore) {
-                    List<Map<String, Object>> candidates = new ArrayList<>();
-                    for (MatchEvents g : homeGoals) {
-                        Map<String, Object> map = new HashMap<>();
-                        map.put("minute", g.getEventTime());
-                        String pName = homePlayers.stream()
-                                .filter(p -> p.getPlayerId().equals(g.getPlayerId()))
-                                .map(Players::getName)
-                                .findFirst()
-                                .orElse("Unknown");
-                        map.put("playerName", pName);
-                        candidates.add(map);
-                    }
-                    String mDate = match.getMatchDate() != null && match.getMatchDate().length() >= 10 ? match.getMatchDate().substring(0, 10) : "";
-                    String hName = homeTeam != null ? homeTeam.getTeamName() : "Home";
-                    String aName = awayTeam != null ? awayTeam.getTeamName() : "Away";
-                    List<Integer> disallowedMinutes = geminiApiService.identifyDisallowedGoalMinutes(
-                            mDate, hName, aName, hName, (int) officialHomeScore, candidates
-                    );
-                    if (disallowedMinutes != null && !disallowedMinutes.isEmpty()) {
-                        parsedEvents.removeIf(e -> e.getTeamId().equals(homeTeamId) &&
-                                (e.getEventType() == 1L || e.getEventType() == 2L || e.getEventType() == 3L) &&
-                                disallowedMinutes.contains(e.getEventTime().intValue())
-                        );
-                    }
-                }
-
-                // [2차 필터] 원정팀 골 이벤트 수가 공식 점수를 초과할 때 Gemini AI 크로스체킹
-                List<MatchEvents> awayGoals = parsedEvents.stream()
+                        .count();
+                long awayGoalCount = parsedEvents.stream()
                         .filter(e -> e.getTeamId().equals(awayTeamId) && (e.getEventType() == 1L || e.getEventType() == 2L || e.getEventType() == 3L))
-                        .toList();
-                if (awayGoals.size() > officialAwayScore) {
-                    List<Map<String, Object>> candidates = new ArrayList<>();
-                    for (MatchEvents g : awayGoals) {
-                        Map<String, Object> map = new HashMap<>();
-                        map.put("minute", g.getEventTime());
-                        String pName = awayPlayers.stream()
-                                .filter(p -> p.getPlayerId().equals(g.getPlayerId()))
-                                .map(Players::getName)
-                                .findFirst()
-                                .orElse("Unknown");
-                        map.put("playerName", pName);
-                        candidates.add(map);
-                    }
-                    String mDate = match.getMatchDate() != null && match.getMatchDate().length() >= 10 ? match.getMatchDate().substring(0, 10) : "";
-                    String hName = homeTeam != null ? homeTeam.getTeamName() : "Home";
-                    String aName = awayTeam != null ? awayTeam.getTeamName() : "Away";
-                    List<Integer> disallowedMinutes = geminiApiService.identifyDisallowedGoalMinutes(
-                            mDate, hName, aName, aName, (int) officialAwayScore, candidates
-                    );
-                    if (disallowedMinutes != null && !disallowedMinutes.isEmpty()) {
-                        parsedEvents.removeIf(e -> e.getTeamId().equals(awayTeamId) &&
-                                (e.getEventType() == 1L || e.getEventType() == 2L || e.getEventType() == 3L) &&
-                                disallowedMinutes.contains(e.getEventTime().intValue())
-                        );
-                    }
+                        .count();
+
+                if (homeGoalCount != officialHomeScore || awayGoalCount != officialAwayScore) {
+                    log.warn("[BigBallsData] MATCH_ID={} 스코어-골 이벤트 불일치 감지 (공식: {}:{}, 이벤트: {}:{}). 관리자 수동 검증 대상으로 유지합니다.",
+                            matchId, officialHomeScore, officialAwayScore, homeGoalCount, awayGoalCount);
                 }
             }
 
@@ -513,10 +455,22 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
 
     @Override
     public int syncMatchEventsByDate(String dateStr) {
-        if (dateStr == null || dateStr.isBlank()) return 0;
-        LocalDate targetDate = LocalDate.parse(dateStr);
-        LocalDateTime start = targetDate.atStartOfDay();
-        LocalDateTime end = targetDate.atTime(23, 59, 59);
+        return syncMatchEventsByDateRange(dateStr, dateStr);
+    }
+
+    @Override
+    public int syncMatchEventsByDateRange(String fromDateStr, String toDateStr) {
+        if (fromDateStr == null || fromDateStr.isBlank()) return 0;
+        LocalDate startDate = LocalDate.parse(fromDateStr);
+        LocalDate endDate = (toDateStr != null && !toDateStr.isBlank()) ? LocalDate.parse(toDateStr) : startDate;
+        if (startDate.isAfter(endDate)) {
+            LocalDate tmp = startDate;
+            startDate = endDate;
+            endDate = tmp;
+        }
+
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(23, 59, 59);
 
         List<Matches> matches = matchDAO.findMatchesByDateRange(start, end);
         int totalSaved = 0;
@@ -532,7 +486,7 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
                 log.warn("[BigBallsData] MATCH_ID={} 일괄 동기화 중 오류: {}", m.getMatchId(), e.getMessage());
             }
         }
-        log.info("[BigBallsData] {} 일자 총 {}경기 이벤트 일괄 동기화 완료 (총 {}건 저장)", dateStr, matchCount, totalSaved);
+        log.info("[BigBallsData] {} ~ {} 기간 총 {}경기 이벤트 일괄 동기화 완료 (총 {}건 저장)", startDate, endDate, matchCount, totalSaved);
         return totalSaved;
     }
 
