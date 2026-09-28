@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchTeams, fetchCategories } from '../store/teamSlice.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
@@ -11,6 +11,7 @@ const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024
 const MAX_ATTACHMENT_TOTAL_SIZE = 20 * 1024 * 1024
 const IMAGE_ATTACHMENT_PATTERN = /\.(jpe?g|png|gif|webp)$/i
 const FILE_ATTACHMENT_PATTERN = /\.(pdf|txt|docx|xlsx|zip)$/i
+const SHOWCASE_DRAFT_KEY = 'plugin:community:showcase-draft'
 const titleLength = (value) => Array.from(value).length
 const limitTitle = (value) => Array.from(value).slice(0, POST_TITLE_MAX_LENGTH).join('')
 const contentLength = (value) => Array.from(value).length
@@ -23,7 +24,9 @@ export default function PostWrite() {
   const user = useSelector((state) => state.auth.user)
   const { teams, categories, teamsLoaded, categoriesLoaded, teamsError, categoriesError } = useSelector((state) => state.team)
 
-  const initialBoard = new URLSearchParams(window.location.search).get('board') === 'team' ? 'team' : 'free'
+  const requestedBoard = new URLSearchParams(window.location.search).get('board')
+  const initialBoard = ['team', 'showcase'].includes(requestedBoard) ? requestedBoard : 'free'
+  const requestedCustomTeamId = new URLSearchParams(window.location.search).get('customTeamId')
   const [board, setBoard] = useState(initialBoard)
   const [categoryId, setCategoryId] = useState('')
   const [teamId, setTeamId] = useState('')
@@ -33,6 +36,9 @@ export default function PostWrite() {
   const [fileAttachments, setFileAttachments] = useState([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [customTeam, setCustomTeam] = useState(null)
+  const [showcaseDraft, setShowcaseDraft] = useState(null)
+  const submitRequestRef = useRef(false)
   const attachments = [...imageAttachments, ...fileAttachments]
 
   const loading = !teamsLoaded || !categoriesLoaded
@@ -56,14 +62,59 @@ export default function PostWrite() {
     }
   }, [teamsError, categoriesError])
 
+  // 자랑글 작성 시 로그인 사용자가 저장한 나만의 팀을 불러옵니다.
+  useEffect(() => {
+    if (board !== 'showcase' || !isLoggedIn) return
+    let active = true
+    const loadCustomTeam = async () => {
+      try {
+        const token = localStorage.getItem('buildup_token')
+        const headers = token ? { Authorization: `Bearer ${token}` } : {}
+        const response = await fetch('/api/customs', { credentials: 'include', headers })
+        const result = await response.json().catch(() => null)
+        if (!response.ok || !result?.customTeamId) throw new Error(result?.message || '저장된 나만의 팀이 없습니다.')
+        if (requestedCustomTeamId && Number(requestedCustomTeamId) !== Number(result.customTeamId)) {
+          throw new Error('공유할 나만의 팀을 확인할 수 없습니다.')
+        }
+        if (active) setCustomTeam(result)
+      } catch (exception) {
+        if (active) {
+          setCustomTeam(null)
+          setError(exception.message || '나만의 팀을 불러오지 못했습니다.')
+        }
+      }
+    }
+    loadCustomTeam()
+    return () => { active = false }
+  }, [board, isLoggedIn, requestedCustomTeamId])
+
+  // 나만의 팀 화면에서 전달한 제목과 선수 명단을 초깃값으로 채웁니다.
+  useEffect(() => {
+    if (initialBoard !== 'showcase') return
+    try {
+      const draft = JSON.parse(sessionStorage.getItem(SHOWCASE_DRAFT_KEY))
+      if (!draft || (requestedCustomTeamId && Number(draft.customTeamId) !== Number(requestedCustomTeamId))) return
+      setShowcaseDraft(draft)
+      const draftTeamName = draft.teamName || '나만의 팀'
+      setTitle(limitTitle(draftTeamName.trim().endsWith('스쿼드')
+        ? `${draftTeamName}를 소개합니다`
+        : `${draftTeamName} 스쿼드를 소개합니다`))
+      const lineup = Array.isArray(draft.players) ? draft.players.map((player) => `${player.position} · ${player.name}`).join('\n') : ''
+      setContent(limitContent(`포메이션: ${draft.formation || '미지정'}\n\n${lineup}\n\n선수 배치 이유와 전술을 소개해주세요.`))
+    } catch {
+      // 전달된 임시 글 정보가 없으면 빈 작성 화면을 표시합니다.
+    }
+  }, [initialBoard, requestedCustomTeamId])
+
   // 이미지와 일반 첨부파일을 각각 검사하여 선택 목록에 저장합니다.
   const selectAttachments = (event, type) => {
     const selected = Array.from(event.target.files || [])
     event.target.value = ''
     const otherFiles = type === 'image' ? fileAttachments : imageAttachments
     const pattern = type === 'image' ? IMAGE_ATTACHMENT_PATTERN : FILE_ATTACHMENT_PATTERN
-    if (selected.length + otherFiles.length > MAX_ATTACHMENT_COUNT) {
-      setError(`이미지와 첨부파일을 합쳐 최대 ${MAX_ATTACHMENT_COUNT}개까지 선택할 수 있습니다.`)
+    const automaticImageCount = board === 'showcase' && showcaseDraft?.imageDataUrl ? 1 : 0
+    if (selected.length + otherFiles.length + automaticImageCount > MAX_ATTACHMENT_COUNT) {
+      setError(`스쿼드 이미지를 포함해 첨부파일은 최대 ${MAX_ATTACHMENT_COUNT}개까지 선택할 수 있습니다.`)
       return
     }
     if (selected.some((file) => file.size <= 0 || file.size > MAX_ATTACHMENT_SIZE)) {
@@ -87,15 +138,19 @@ export default function PostWrite() {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+    if (submitRequestRef.current) return
     setError('')
 
     if (!categoryId) return setError('카테고리를 선택해주세요.')
     if (board === 'team' && !teamId) return setError('팀별 게시글의 구단을 선택해주세요.')
+    if (board === 'showcase' && !customTeam?.customTeamId) return setError('먼저 나만의 팀에서 스쿼드를 저장해주세요.')
+    if (board === 'showcase' && !showcaseDraft?.imageDataUrl) return setError('공유할 스쿼드 이미지를 확인하지 못했습니다. 나만의 팀에서 다시 공유해주세요.')
     if (!title.trim()) return setError('제목을 입력해주세요.')
     if (titleLength(title.trim()) > POST_TITLE_MAX_LENGTH) return setError(`제목은 ${POST_TITLE_MAX_LENGTH}자까지 입력할 수 있습니다.`)
     if (!content.trim()) return setError('내용을 입력해주세요.')
     if (contentLength(content.trim()) > POST_CONTENT_MAX_LENGTH) return setError(`내용은 ${POST_CONTENT_MAX_LENGTH}자까지 입력할 수 있습니다.`)
 
+    submitRequestRef.current = true
     setSubmitting(true)
     try {
       const token = localStorage.getItem('buildup_token')
@@ -106,6 +161,7 @@ export default function PostWrite() {
         method: 'POST',
         headers,
         body: JSON.stringify({
+          boardType: board,
           categoryId: Number(categoryId),
           teamId: board === 'team' ? Number(teamId) : null,
           title: title.trim(),
@@ -121,10 +177,47 @@ export default function PostWrite() {
       if (!createdPostId) throw new Error('등록된 게시글 번호를 확인하지 못했습니다.')
 
       let attachmentFailed = false
+      const uploadHeaders = token ? { Authorization: `Bearer ${token}` } : {}
+
+      // 자랑글 대표 이미지를 먼저 등록하고 실패하면 생성된 게시글도 숨김 처리합니다.
+      if (board === 'showcase' && showcaseDraft?.imageDataUrl) {
+        try {
+          const imageResponse = await fetch(showcaseDraft.imageDataUrl)
+          if (!imageResponse.ok) throw new Error('스쿼드 이미지를 읽지 못했습니다.')
+          const squadImageBlob = await imageResponse.blob()
+          const showcaseFormData = new FormData()
+          showcaseFormData.append('files', new File([squadImageBlob], `plugin-squad-${createdPostId}.png`, { type: 'image/png' }))
+          showcaseFormData.append('showcaseImage', 'true')
+          const showcaseResponse = await fetch(`/api/communities/${createdPostId}/attachments`, {
+            method: 'POST',
+            headers: uploadHeaders,
+            body: showcaseFormData,
+          })
+          const isJson = showcaseResponse.headers.get('content-type')?.includes('application/json')
+          const showcaseResult = isJson ? await showcaseResponse.json() : null
+          if (!showcaseResponse.ok) throw new Error(showcaseResult?.message || '스쿼드 이미지 등록에 실패했습니다.')
+          sessionStorage.removeItem(SHOWCASE_DRAFT_KEY)
+        } catch (showcaseException) {
+          let cleanupSucceeded = false
+          try {
+            const cleanupResponse = await fetch(`/api/communities/${createdPostId}`, {
+              method: 'DELETE',
+              headers: uploadHeaders,
+            })
+            cleanupSucceeded = cleanupResponse.ok
+          } catch {
+            cleanupSucceeded = false
+          }
+          if (!cleanupSucceeded) {
+            throw new Error(`${showcaseException.message} 생성된 게시글 정리에도 실패했습니다. 게시글 목록에서 삭제해주세요.`)
+          }
+          throw new Error(`${showcaseException.message} 게시글 등록을 취소했습니다.`)
+        }
+      }
+
       if (attachments.length > 0) {
         const formData = new FormData()
         attachments.forEach((file) => formData.append('files', file))
-        const uploadHeaders = token ? { Authorization: `Bearer ${token}` } : {}
         const uploadResponse = await fetch(`/api/communities/${createdPostId}/attachments`, {
           method: 'POST',
           headers: uploadHeaders,
@@ -144,6 +237,7 @@ export default function PostWrite() {
     } catch (exception) {
       setError(exception.message || '게시글 등록에 실패했습니다.')
     } finally {
+      submitRequestRef.current = false
       setSubmitting(false)
     }
   }
@@ -168,7 +262,17 @@ export default function PostWrite() {
         <legend>게시판 선택</legend>
         <label><input type="radio" name="board" value="free" checked={board === 'free'} onChange={() => { setBoard('free'); setTeamId('') }} /> 자유게시판</label>
         <label><input type="radio" name="board" value="team" checked={board === 'team'} onChange={() => setBoard('team')} /> 팀별 게시판</label>
+        <label><input type="radio" name="board" value="showcase" checked={board === 'showcase'} onChange={() => { setBoard('showcase'); setTeamId('') }} /> 나만의 팀 자랑</label>
       </fieldset>
+
+      {board === 'showcase' && <section className="community__shared-team" aria-label="공유할 나만의 팀">
+        <div>
+          <strong>{customTeam?.teamName || '나만의 팀을 불러오는 중입니다.'}</strong>
+          {customTeam && <span>포메이션 {customTeam.formation} · 선수 {customTeam.squads?.length || 0}명</span>}
+          {showcaseDraft?.imageDataUrl && <small>이 포메이션 이미지는 게시글 등록 시 자동으로 첨부됩니다.</small>}
+        </div>
+        {showcaseDraft?.imageDataUrl && <img src={showcaseDraft.imageDataUrl} alt={`${showcaseDraft.teamName || '나만의 팀'} 포메이션 미리보기`} />}
+      </section>}
 
       <label>카테고리
         <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)} disabled={loading || submitting || categories.length === 0}>

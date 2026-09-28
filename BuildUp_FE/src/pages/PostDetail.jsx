@@ -478,7 +478,13 @@ export default function PostDetail({ postId }) {
 
   // 로그인한 작성자의 게시글에서 첨부파일을 삭제합니다.
   const deleteAttachment = async (attachmentId) => {
-    if (!window.confirm('첨부파일을 삭제하시겠습니까?')) return
+    const selectedAttachment = attachments.find(
+      (attachment) => Number(attachment.attachmentId) === Number(attachmentId),
+    )
+    const confirmMessage = selectedAttachment?.showcaseImage
+      ? '대표 스쿼드 이미지를 삭제하면 자랑 게시판과 인기글에서 제외되고 자유 게시글로 변경됩니다. 삭제하시겠습니까?'
+      : '첨부파일을 삭제하시겠습니까?'
+    if (!window.confirm(confirmMessage)) return
     setAttachmentLoading(true)
     setAttachmentError('')
     try {
@@ -511,10 +517,12 @@ export default function PostDetail({ postId }) {
     <a className="community__main-link" href={backTo}>목록으로 돌아가기</a>
   </main>
 
-  const isTeamPost = post.teamId != null
-  const isOwner = isLoggedIn && Number(user?.userId) === Number(post.userId)
   const imageAttachments = attachments.filter((attachment) => attachment.image)
   const fileAttachments = attachments.filter((attachment) => !attachment.image)
+  const featuredSquadImage = imageAttachments.find((attachment) => attachment.showcaseImage)
+  const isTeamPost = post.teamId != null
+  const isShowcasePost = Boolean(featuredSquadImage)
+  const isOwner = isLoggedIn && Number(user?.userId) === Number(post.userId)
   const rootComments = comments.filter((comment) => getParentCommentId(comment) == null)
   const visibleCommentCount = comments.filter((comment) => comment.isBlind !== 'Y').length
 
@@ -583,15 +591,22 @@ export default function PostDetail({ postId }) {
   }
 
   // 상세 화면은 조회만, 수정 화면은 첨부파일 추가·삭제 기능까지 표시합니다.
-  const renderAttachments = (manageAttachments) => <section className="community__attachments" aria-labelledby="community-attachments-title">
-    <h2 id="community-attachments-title">첨부파일 <span>{attachments.length}</span></h2>
+  const renderAttachments = (manageAttachments) => {
+    const displayedImages = manageAttachments || !featuredSquadImage
+      ? imageAttachments
+      : imageAttachments.filter((attachment) => attachment.attachmentId !== featuredSquadImage.attachmentId)
+    const displayedCount = displayedImages.length + fileAttachments.length
+    if (!manageAttachments && displayedCount === 0 && !attachmentError) return null
+
+    return <section className="community__attachments" aria-labelledby="community-attachments-title">
+    <h2 id="community-attachments-title">첨부파일 <span>{displayedCount}</span></h2>
     {attachmentError && <p className="community__form-error" role="alert">{attachmentError}</p>}
     <div className="community__attachment-section">
       <h3>이미지 <span>{imageAttachments.length}</span></h3>
-      {imageAttachments.length === 0
+      {displayedImages.length === 0
         ? <p className="community__attachment-empty">등록된 이미지가 없습니다.</p>
         : <ul className="community__image-grid">
-          {imageAttachments.map((attachment) => <li key={attachment.attachmentId}>
+          {displayedImages.map((attachment) => <li key={attachment.attachmentId}>
             <img src={`/api/communities/attachments/${attachment.attachmentId}/content`} alt={attachment.originalName} />
             <div><strong>{attachment.originalName}</strong><small>{(Number(attachment.fileSize) / 1024).toFixed(1)}KB</small></div>
             <div className="community__attachment-actions">
@@ -627,9 +642,10 @@ export default function PostDetail({ postId }) {
       </div>}
     </div>
   </section>
+  }
 
   return <main className="community">
-    <CommunityNavigation section={isTeamPost ? 'teams' : 'free'} teamName={post.teamName || ''} />
+    <CommunityNavigation section={isShowcasePost ? 'showcase' : isTeamPost ? 'teams' : 'free'} teamName={post.teamName || ''} />
     {actionError && <p className="community__form-error" role="alert">{actionError}</p>}
 
     {editing ? <form className="community__write-form" onSubmit={updatePost}>
@@ -640,12 +656,16 @@ export default function PostDetail({ postId }) {
           </option>)}
         </select>
       </label>
-      <label>구단
+      {!isShowcasePost && <label>구단
         <select value={teamId} onChange={(event) => setTeamId(event.target.value)} disabled={actionLoading}>
           <option value="">자유게시판</option>
           {teams.map((team) => <option key={team.teamId} value={team.teamId}>{team.teamNameKor || team.teamName}</option>)}
         </select>
-      </label>
+      </label>}
+      {isShowcasePost && <section className="community__shared-team" aria-label="공유 중인 나만의 팀">
+        <strong>나만의 팀 자랑글</strong>
+        <span>첨부된 포메이션 이미지는 수정 화면에서 관리할 수 있습니다.</span>
+      </section>}
       <label>제목
         <input type="text" value={title} onChange={(event) => setTitle(limitTitle(event.target.value))} disabled={actionLoading} />
         <small className="community__character-count">{titleLength(title)} / {POST_TITLE_MAX_LENGTH}</small>
@@ -661,7 +681,7 @@ export default function PostDetail({ postId }) {
       </div>
     </form> : <article className="community__detail">
       <header>
-        <span className={`community__badge ${isTeamPost ? 'community__badge--team' : ''}`}>{post.teamName || post.categoryType || '자유게시판'}</span>
+        <span className={`community__badge ${isTeamPost || isShowcasePost ? 'community__badge--team' : ''}`}>{isShowcasePost ? '자랑' : post.teamName || post.categoryType || '자유게시판'}</span>
         {post.isBlind === 'Y' && (
           <span className="community__badge community__badge--blind" style={{ marginLeft: 6 }}>
             블라인드 제재
@@ -675,6 +695,10 @@ export default function PostDetail({ postId }) {
           <div><dt>추천수</dt><dd>{post.likeCount}</dd></div>
         </dl>
       </header>
+      {featuredSquadImage && <figure className="community__featured-squad">
+        <img src={`/api/communities/attachments/${featuredSquadImage.attachmentId}/content`} alt={`${post.title} 포메이션`} />
+        <figcaption>{post.title}</figcaption>
+      </figure>}
       {post.isBlind === 'Y' && !unblurredPost ? (
         <div className="community__blind-post-box">
           <div className="community__blind-post-overlay">

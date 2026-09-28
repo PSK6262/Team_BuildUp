@@ -4,7 +4,8 @@ package com.app.dto.community;
 public enum CommunityBoardType {
     ALL,
     FREE,
-    TEAM;
+    TEAM,
+    SHOWCASE;
 
     // 요청값을 게시판 종류로 변환합니다.
     public static CommunityBoardType fromValue(String value) {
@@ -23,6 +24,9 @@ public enum CommunityBoardType {
         if ("team".equalsIgnoreCase(board)) {
             return TEAM;
         }
+        if ("showcase".equalsIgnoreCase(board)) {
+            return SHOWCASE;
+        }
 
         throw new IllegalArgumentException("Invalid board type");
     }
@@ -35,5 +39,10 @@ public enum CommunityBoardType {
     // 팀별 게시판 조회 여부를 반환합니다.
     public boolean isTeam() {
         return this == TEAM;
+    }
+
+    // 나만의 팀 자랑 게시판 조회 여부를 반환합니다.
+    public boolean isShowcase() {
+        return this == SHOWCASE;
     }
 }

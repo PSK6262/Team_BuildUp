@@ -42,7 +42,8 @@ public interface CommunityService {
     // 게시글에 등록된 첨부파일 목록을 조회합니다.
     List<PostAttachments> findPostAttachments(Long postId);
     // 로그인한 작성자의 게시글에 첨부파일을 등록합니다.
-    List<PostAttachments> uploadPostAttachments(String loginId, Long postId, List<MultipartFile> files);
+    List<PostAttachments> uploadPostAttachments(
+        String loginId, Long postId, List<MultipartFile> files, boolean showcaseImage);
     // 첨부파일 정보를 조회합니다.
     PostAttachments findPostAttachment(Long attachmentId);
     // 첨부파일의 실제 저장 파일을 조회합니다.

@@ -220,6 +220,7 @@ public class CommunityController {
     public ResponseEntity<ApiResponse<List<PostAttachments>>> uploadCommunityAttachments(
             @PathVariable("postId") Long postId,
             @RequestParam("files") List<MultipartFile> files,
+            @RequestParam(value = "showcaseImage", defaultValue = "false") boolean showcaseImage,
             HttpServletRequest request) {
         String loginId = resolveLoginId(request);
         if (loginId == null) {
@@ -227,7 +228,7 @@ public class CommunityController {
                 .body(ApiResponse.error(ResultCode.COMMUNITY_LOGIN_REQUIRED));
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(
-            communityService.uploadPostAttachments(loginId, postId, files)));
+            communityService.uploadPostAttachments(loginId, postId, files, showcaseImage)));
     }
 
     // 이미지 미리보기에 사용할 첨부파일 내용을 반환합니다.
