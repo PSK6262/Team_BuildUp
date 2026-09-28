@@ -17,6 +17,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -33,8 +35,6 @@ import com.app.service.api.FootballApiService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * [외부 축구 데이터 동기화 서비스 구현체 - FootballApiServiceImpl]
  * 
@@ -44,9 +44,10 @@ import lombok.extern.slf4j.Slf4j;
  * 3. 따라서 JsonNode를 사용하여 우리 DB에 실제로 필요한 핵심 데이터(ID, 스코어, 일시, 엠블럼 등)만 집게(Picker)처럼
  *    선별 추출하며, path() 메서드를 통해 중간 필드가 누락되어도 NullPointerException 없이 안전하게 처리합니다.
  */
-@Slf4j
 @Service
 public class FootballApiServiceImpl implements FootballApiService {
+
+    private static final Logger log = LoggerFactory.getLogger(FootballApiServiceImpl.class);
 
     @Value("${football.api.key}")
     private String apiKey;
@@ -221,10 +222,29 @@ public class FootballApiServiceImpl implements FootballApiService {
     @Override
     @Transactional
     public int syncMatchesByDate(LocalDate date) {
-        LocalDate targetDate = (date != null) ? date : LocalDate.now(ZoneId.of("Asia/Seoul"));
-        // KST와 UTC 시차(9시간)를 고려하여 어제~오늘 2일간 범위를 조회 (월요일 새벽 경기 누락 방지)
-        String fromDateStr = targetDate.minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE);
-        String toDateStr = targetDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
+        return syncMatchesByDateRange(date, date);
+    }
+
+    /**
+     * 지정한 날짜 범위(fromDate ~ toDate)에 진행되는 경기들의 상태와 실시간 스코어를 외부 API에서 조회하여 DB에 갱신합니다.
+     * @param fromDate 시작 일자
+     * @param toDate 종료 일자
+     * @return 상태/스코어가 갱신된 경기 건수
+     */
+    @Override
+    @Transactional
+    public int syncMatchesByDateRange(LocalDate fromDate, LocalDate toDate) {
+        LocalDate start = (fromDate != null) ? fromDate : LocalDate.now(ZoneId.of("Asia/Seoul"));
+        LocalDate end = (toDate != null) ? toDate : start;
+        if (start.isAfter(end)) {
+            LocalDate tmp = start;
+            start = end;
+            end = tmp;
+        }
+
+        // KST와 UTC 시차(9시간)를 고려하여 start-1일부터 end일까지 범위를 조회
+        String fromDateStr = start.minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE);
+        String toDateStr = end.format(DateTimeFormatter.ISO_LOCAL_DATE);
         String url = "https://api.football-data.org/v4/competitions/PL/matches?dateFrom=" + fromDateStr + "&dateTo=" + toDateStr;
 
         String jsonResult = sendGetRequest(url);
@@ -247,7 +267,7 @@ public class FootballApiServiceImpl implements FootballApiService {
             return savedCount;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("일자별 경기 데이터 동기화 중 오류 발생: " + e.getMessage(), e);
+            throw new RuntimeException("기간별 경기 데이터 동기화 중 오류 발생: " + e.getMessage(), e);
         }
     }
 

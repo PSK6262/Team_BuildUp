@@ -15,6 +15,8 @@ public interface FootballApiService {
 	public int syncPremierLeagueSeasonMatches(Integer season);
 
 	public int syncMatchesByDate(java.time.LocalDate date);
+
+	public int syncMatchesByDateRange(java.time.LocalDate fromDate, java.time.LocalDate toDate);
 	
 	public int initPremierLeagueStaffs();
 

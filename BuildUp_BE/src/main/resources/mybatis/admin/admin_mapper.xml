@@ -426,4 +426,29 @@
 		FETCH FIRST 20 ROWS ONLY
 	</select>
 
+	<!-- 경기 이벤트 단건 삭제 -->
+	<delete id="deleteMatchEvent" parameterType="long">
+		DELETE FROM MATCH_EVENTS
+		WHERE EVENT_ID = #{eventId}
+	</delete>
+
+	<!-- 경기 이벤트 수동 등록 -->
+	<insert id="insertMatchEvent" parameterType="MatchEvents">
+		INSERT INTO MATCH_EVENTS (
+			MATCH_ID,
+			TEAM_ID,
+			EVENT_TIME,
+			EVENT_TYPE,
+			PLAYER_ID,
+			ASSIST_PLAYER_ID
+		) VALUES (
+			#{matchId},
+			#{teamId},
+			#{eventTime},
+			#{eventType},
+			#{playerId},
+			#{assistPlayerId, jdbcType=NUMERIC}
+		)
+	</insert>
+
 </mapper>

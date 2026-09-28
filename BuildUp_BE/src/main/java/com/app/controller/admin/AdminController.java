@@ -26,6 +26,7 @@ import com.app.common.ResultCode;
 import com.app.dao.user.UserDAO;
 import com.app.dto.community.Comments;
 import com.app.dto.community.Posts;
+import com.app.dto.match.MatchEvents;
 import com.app.dto.match.Matches;
 import com.app.dto.prediction.PointHistory;
 import com.app.dto.team.PlayerStats;
@@ -135,6 +136,80 @@ public class AdminController {
 
 		boolean success = adminService.updateMatchScore(matchId, homeScore, awayScore, status);
 		return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
+	}
+
+	// 4-1. 경기 타임라인 이벤트 목록 조회
+	@GetMapping("/matches/{matchId}/events")
+	public ApiResponse<List<MatchEvents>> getMatchEvents(
+			@PathVariable("matchId") Long matchId,
+			HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		return ApiResponse.success(adminService.getMatchEvents(matchId));
+	}
+
+	// 4-2. 단건 경기 이벤트 수동 삭제 (취소골/오적재 이벤트 제거)
+	@DeleteMapping("/matches/events/{eventId}")
+	public ApiResponse<Void> deleteMatchEvent(
+			@PathVariable("eventId") Long eventId,
+			HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		boolean success = adminService.deleteMatchEvent(eventId);
+		return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
+	}
+
+	// 4-3. 단건 경기 이벤트 수동 등록 (누락된 골/카드 직접 기입)
+	@PostMapping("/matches/{matchId}/events")
+	public ApiResponse<Void> addMatchEvent(
+			@PathVariable("matchId") Long matchId,
+			@RequestBody MatchEvents event,
+			HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		if (event == null || event.getTeamId() == null || event.getEventTime() == null || event.getEventType() == null || event.getPlayerId() == null) {
+			return ApiResponse.error(ResultCode.INVALID_INPUT);
+		}
+		event.setMatchId(matchId);
+		boolean success = adminService.addMatchEvent(event);
+		return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
+	}
+
+	// 4-4. 단건 경기 결과(Result) 및 이벤트 원본 외부 API에서 다시 불러오기 (AI 자동삭제 없음)
+	@PostMapping("/matches/{matchId}/resync")
+	public ApiResponse<Map<String, Object>> resyncSingleMatch(
+			@PathVariable("matchId") Long matchId,
+			HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		try {
+			Map<String, Object> data = adminService.resyncSingleMatch(matchId);
+			return ApiResponse.success(data);
+		} catch (Exception e) {
+			log.error("[AdminController] 경기 matchId={} 재동기화 실패: {}", matchId, e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "경기 재동기화 중 오류가 발생했습니다: " + e.getMessage());
+		}
+	}
+
+	// 4-5. 불일치 경기 AI 분석 조언 조회 (Read-only, DB 변경 없음)
+	@GetMapping("/matches/{matchId}/ai-advice")
+	public ApiResponse<Map<String, Object>> getAiMismatchAdvice(
+			@PathVariable("matchId") Long matchId,
+			HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		try {
+			Map<String, Object> data = adminService.getAiMismatchAdvice(matchId);
+			return ApiResponse.success(data);
+		} catch (Exception e) {
+			log.error("[AdminController] matchId={} AI 분석 의견 조회 실패: {}", matchId, e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "AI 분석 중 오류가 발생했습니다: " + e.getMessage());
+		}
 	}
 
 	// 5. 구단별 선수 및 부상/징계 현황 목록 조회
@@ -300,16 +375,20 @@ public class AdminController {
 		return ApiResponse.success(adminService.getRecentPointHistories());
 	}
 
-	// 17. 외부 축구 경기 일정/스코어 수동 동기화 트리거
+	// 17. 외부 축구 경기 일정/스코어 수동 동기화 트리거 (단일 일자 또는 기간 From ~ To 지원)
 	@PostMapping("/sync/matches")
 	public ApiResponse<Map<String, Object>> syncMatches(
 			@RequestParam(value = "date", required = false) String date,
+			@RequestParam(value = "startDate", required = false) String startDate,
+			@RequestParam(value = "endDate", required = false) String endDate,
 			HttpServletRequest request) {
 		if (!isAdmin(request)) {
 			return ApiResponse.error(ResultCode.FORBIDDEN);
 		}
 		try {
-			int count = adminService.syncMatchesByDate(date);
+			String from = (startDate != null && !startDate.trim().isEmpty()) ? startDate.trim() : date;
+			String to = (endDate != null && !endDate.trim().isEmpty()) ? endDate.trim() : from;
+			int count = adminService.syncMatchesByDateRange(from, to);
 			Map<String, Object> data = new HashMap<>();
 			data.put("syncedMatches", count);
 			return ApiResponse.success(data);
@@ -319,16 +398,20 @@ public class AdminController {
 		}
 	}
 
-	// 18. 경기 타임라인 상세 이벤트 수동 동기화 트리거
+	// 18. 경기 타임라인 상세 이벤트 수동 동기화 트리거 (단일 일자 또는 기간 From ~ To 지원)
 	@PostMapping("/sync/events")
 	public ApiResponse<Map<String, Object>> syncEvents(
 			@RequestParam(value = "date", required = false) String date,
+			@RequestParam(value = "startDate", required = false) String startDate,
+			@RequestParam(value = "endDate", required = false) String endDate,
 			HttpServletRequest request) {
 		if (!isAdmin(request)) {
 			return ApiResponse.error(ResultCode.FORBIDDEN);
 		}
 		try {
-			int count = adminService.syncMatchEventsByDate(date);
+			String from = (startDate != null && !startDate.trim().isEmpty()) ? startDate.trim() : date;
+			String to = (endDate != null && !endDate.trim().isEmpty()) ? endDate.trim() : from;
+			int count = adminService.syncMatchEventsByDateRange(from, to);
 			Map<String, Object> data = new HashMap<>();
 			data.put("syncedEvents", count);
 			return ApiResponse.success(data);
