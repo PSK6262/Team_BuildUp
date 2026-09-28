@@ -24,6 +24,12 @@ public class PostAttachments {
         return contentType != null && contentType.startsWith("image/");
     }
 
+    // 서버 표식과 기존 파일명을 함께 확인하여 나만의 팀 대표 이미지인지 반환합니다.
+    public boolean isShowcaseImage() {
+        return (storedName != null && storedName.startsWith("showcase-"))
+            || (originalName != null && originalName.startsWith("plugin-squad-"));
+    }
+
     public String getCreatedAt() {
         if (this.createdAt == null) return null;
         return this.createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
