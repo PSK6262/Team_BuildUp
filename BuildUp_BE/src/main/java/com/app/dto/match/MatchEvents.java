@@ -35,6 +35,17 @@ public class MatchEvents {
     private String teamName;           // 구단 영문명
     private String teamNameKor;        // 구단 한글명
     private String teamEmblemUrl;      // 구단 엠블럼 URL
+    // 선수별 경기 기록 조회 JOIN 필드
+    private String matchDate;
+    private String homeTeamName;
+    private String awayTeamName;
+
+    public String getMatchDate() { return matchDate; }
+    public void setMatchDate(String matchDate) { this.matchDate = matchDate; }
+    public String getHomeTeamName() { return homeTeamName; }
+    public void setHomeTeamName(String homeTeamName) { this.homeTeamName = homeTeamName; }
+    public String getAwayTeamName() { return awayTeamName; }
+    public void setAwayTeamName(String awayTeamName) { this.awayTeamName = awayTeamName; }
 
     // --- snake_case 호환 Getter (프론트엔드/API snake_case 참조 지원) ---
     @JsonProperty("event_time")

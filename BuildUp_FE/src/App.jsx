@@ -87,9 +87,8 @@ function App() {
       {pathname === '/plug/rankpage' && <StandingsPage />}
       {teamMatch && <Team teamId={teamMatch[ 1 ]} />}
 
-      {/* 경기 일정 및 경기 결과 */}
+      {/* 경기 일정 */}
       {pathname === '/plug/match' && <Match />}
-      {pathname === '/plug/matchresult' && <Match resultsOnly />}
 
       {/* 회원 인증 및 마이페이지 */}
       {pathname === '/plug/prediction' && <Prediction />}

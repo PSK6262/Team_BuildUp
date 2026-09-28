@@ -20,6 +20,12 @@ public class MatchDAOImpl implements MatchDAO {
 	private SqlSessionTemplate sqlSession;
 
 	@Override
+	public List<MatchEvents> findPlayerEvents(Long playerId, LocalDateTime startDate, LocalDateTime endDate) {
+		return sqlSession.selectList("MatchMapper.selectPlayerEvents",
+				Map.of("playerId", playerId, "startDate", startDate, "endDate", endDate));
+	}
+
+	@Override
 	public void mergeMatch(Matches match) {
 		sqlSession.insert("MatchMapper.mergeMatch", match);
 	}

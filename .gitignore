@@ -33,3 +33,5 @@ Desktop.ini
 .settings/
 .idea/
 *.iml
+# Local PowerShell launcher
+powershell.bat

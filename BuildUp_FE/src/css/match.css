@@ -15,6 +15,49 @@
   margin: 0 auto;
 }
 
+.match-season-tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.match-season-tab,
+.match-load-more {
+  padding: 12px 18px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.match-season-tab.is-active {
+  border-color: #38003c;
+  background: #38003c;
+  color: #ffffff;
+}
+
+.match-load-more {
+  align-self: center;
+  min-width: 220px;
+  margin-top: 12px;
+}
+
+.match-season-tab:hover,
+.match-load-more:hover {
+  border-color: #38003c;
+}
+
+.match-season-tab:focus-visible,
+.match-load-more:focus-visible {
+  outline: 3px solid #7c3aed;
+  outline-offset: 3px;
+}
+
 /* --------------------------------------------------------
    헤더 영역
    -------------------------------------------------------- */
