@@ -407,6 +407,7 @@ export default function Prediction() {
             {/* 우측 사이드바: 명예의 전당 Top 10 (다승 및 승률 순) */}
             <aside className="prediction-sidebar">
               <div className="prediction-ranking-card">
+                <a href="/plug/rankpage?tab=prediction">적중 랭킹 보드 보기</a>
                 <h2 className="prediction-ranking-card__title">
                   🏆 승부예측 랭킹
                 </h2>

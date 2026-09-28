@@ -43,13 +43,13 @@ public class CustomServiceImpl implements CustomService {
     private static final Set<Long> EXCLUDED_TEAMS = Set.of(338L, 340L, 328L, 76L, 563L);
 
     @Override
-    @Transactional(readOnly = true)
-    public AiMatches playAiMatch(AiMatches.Request request) {
+    @Transactional(rollbackFor = Exception.class)
+    public AiMatches playAiMatch(AiMatches.Request request, Long userId) {
         if (request == null || request.getSquads() == null || request.getSquads().size() != 11)
             throw new IllegalArgumentException("서로 다른 선수 11명을 배치해주세요.");
         String homeName = request.getTeamName() == null ? "" : request.getTeamName().trim();
         if (homeName.isEmpty()) homeName = "나만의 드림 스쿼드";
-        if (homeName.length() > 100) throw new IllegalArgumentException("팀 이름이 너무 깁니다.");
+        if (homeName.getBytes(StandardCharsets.UTF_8).length > 100) throw new IllegalArgumentException("팀 이름은 UTF-8 기준 100바이트 이내로 입력해주세요.");
         Set<Long> playerIds = new HashSet<>();
         Set<Long> slotNumbers = new HashSet<>();
         int df = 0, mf = 0, fw = 0, gk = 0;
@@ -101,7 +101,31 @@ public class CustomServiceImpl implements CustomService {
         Teams club = clubs.get(opponentId);
         result.setOpponentName(club == null ? "AI 팀" : club.getTeamNameKor() != null ? club.getTeamNameKor() : club.getTeamName());
         result.setCreatedAt(LocalDateTime.now());
+        if (userId != null) {
+            if (customDAO.lockUser(userId) == null) throw new IllegalArgumentException("회원을 찾을 수 없습니다.");
+            CustomTeams team = customDAO.findByUserId(userId);
+            if (team == null) {
+                team = new CustomTeams();
+                team.setUserId(userId);
+                team.setTeamName(homeName);
+                team.setFormation(homeFormation);
+                customDAO.insertTeam(team);
+                team = customDAO.findByUserId(userId);
+            }
+            result.setHomeTeamId(team.getCustomTeamId());
+            result.setHomeScore((long) result.getScore()[0]);
+            result.setAwayScore((long) result.getScore()[1]);
+            result.setAiReview(result.getOpponentName());
+            customDAO.insertAiMatch(result);
+            result.setRankingRecorded(true);
+        }
         return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CustomTeams> findRankings() {
+        return customDAO.findRankings();
     }
 
     private boolean isExcludedClub(Teams team) {

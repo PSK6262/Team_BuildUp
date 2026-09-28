@@ -14,6 +14,8 @@ public class CustomDAOImpl implements CustomDAO {
     @Autowired
     private SqlSessionTemplate sqlSession;
 
+    public void insertAiMatch(com.app.dto.custom.AiMatches match) { sqlSession.insert("CustomMapper.insertAiMatch", match); }
+    public List<CustomTeams> findRankings() { return sqlSession.selectList("CustomMapper.findRankings"); }
     public Long lockUser(Long userId) { return sqlSession.selectOne("CustomMapper.lockUser", userId); }
     public CustomTeams findByUserId(Long userId) { return sqlSession.selectOne("CustomMapper.findByUserId", userId); }
     public List<CustomSquads> findSquads(Long customTeamId) { return sqlSession.selectList("CustomMapper.findSquads", customTeamId); }

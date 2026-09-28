@@ -417,3 +417,12 @@
     background: #38003c;
   }
 }
+
+.member-rankings { margin: 24px 0; padding: 20px; border: 1px solid #64748b; border-radius: 12px; }
+.member-ranking-actions { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin: 16px 0; }
+.member-ranking-actions a { color: inherit; text-decoration: underline; }
+.member-ranking-actions button { padding: 8px 16px; cursor: pointer; }
+.member-ranking-scroll { overflow-x: auto; }
+.member-ranking-scroll table { min-width: 580px; width: 100%; }
+.member-ranking-mine { background: #d9fbe8; color: #123e30; }
+.ranking-tabs { flex-wrap: wrap; }

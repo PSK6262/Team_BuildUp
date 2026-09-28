@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { getAllPremierLeaguePlayers, getInitialTeams, getTeams } from '../api/teamApi.js';
 import '../css/MyTeam.css';
+import { MemberRankings } from './teams.jsx';
 
 // 지정 프리셋 포메이션 정의 (DF - MF - FW 합계는 모두 10)
 const FORMATION_PRESETS = [
@@ -1608,7 +1609,7 @@ export default function MyTeam() {
         method: 'POST',
         credentials: 'include',
         signal: controller.signal,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(localStorage.getItem('buildup_token') ? { Authorization: `Bearer ${localStorage.getItem('buildup_token')}` } : {}) },
         body: JSON.stringify({
           teamName: teamName.trim() || '나만의 드림 스쿼드',
           presetLabel: formation.presetLabel,
@@ -1911,8 +1912,10 @@ export default function MyTeam() {
             </div>
           </div>
           {filledCount !== 11 && <p>선수 11명을 배치하면 대전을 시작할 수 있습니다. ({filledCount}/11명)</p>}
+          <MemberRankings type="virtual" refreshKey={aiMatch?.replayId ?? 0} />
           {aiMatch && (
             <div className="myteam-ai-result">
+              <p>{aiMatch.rankingRecorded ? '랭킹에 반영된 경기입니다.' : '비회원 연습 경기 · 랭킹에 반영되지 않습니다.'} <a href="/plug/rankpage?tab=virtual">가상 대결 승리수 랭킹 보기</a></p>
               <div className="myteam-ai-score" role="status">
                 <span>{aiMatch.homeName}</span>
                 <strong>{aiMatch.score[0]} : {aiMatch.score[1]}</strong>

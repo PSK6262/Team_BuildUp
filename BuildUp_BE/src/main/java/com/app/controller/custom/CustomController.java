@@ -24,10 +24,18 @@ public class CustomController {
     @Autowired private CustomService customService;
     @Autowired private UserDAO userDAO;
 
+    @GetMapping("/api/customs/rankings")
+    public ResponseEntity<?> rankings() {
+        return ResponseEntity.ok(Map.of("rankings", customService.findRankings()));
+    }
+
     @PostMapping("/api/customs/ai-matches")
-    public ResponseEntity<?> playAiMatch(@RequestBody AiMatches.Request request) {
+    public ResponseEntity<?> playAiMatch(@RequestBody AiMatches.Request request, HttpServletRequest httpRequest) {
+        Users user = resolveUser(httpRequest);
+        if (user == null && httpRequest.getHeader("Authorization") != null)
+            return ResponseEntity.status(401).body(Map.of("message", "다시 로그인 후 대전해주세요."));
         try {
-            return ResponseEntity.ok(customService.playAiMatch(request));
+            return ResponseEntity.ok(customService.playAiMatch(request, user == null ? null : user.getUserId()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (Exception e) {

@@ -14,6 +14,11 @@ public class CustomTeams {
     private String formation;          // 적용 포메이션 (예: 4-3-3)
     private LocalDateTime createdAt;   // 커스텀 팀 생성 일시
     private List<CustomSquads> squads;
+    private String nickname;
+    private Long wins;
+    private Long draws;
+    private Long losses;
+    private Long totalMatches;
     
     public String getCreatedAt() {
         if (this.createdAt == null) return null;

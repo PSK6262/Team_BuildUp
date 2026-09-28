@@ -12,6 +12,7 @@ import lombok.Data;
 
 @Data
 public class AiMatches {
+    private boolean rankingRecorded;
     private Long aiMatchId;            // [PK] AI 경기 식별자
     private Long homeTeamId;           // [FK] 내 커스텀 팀 식별자
     private Long awayTeamId;           // [FK] 상대 커스텀 팀 식별자

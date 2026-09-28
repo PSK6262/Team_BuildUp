@@ -183,7 +183,7 @@ function isStandingRow(row) {
 }
 
 export function StandingsPage() {
-  const tabs = [ ['league', '리그 순위표'], ['goals', '득점 랭킹'], ['assists', '도움 랭킹'], ['contributions', '공격포인트'] ];
+  const tabs = [ ['league', '리그 순위표'], ['goals', '득점 랭킹'], ['assists', '도움 랭킹'], ['contributions', '공격포인트'], ['prediction', '승부예측 적중'], ['virtual', '가상 대결 승리수'] ];
   const [ tab, setTab ] = useState(() => {
     const value = new URLSearchParams(window.location.search).get('tab');
     return tabs.some(([ id ]) => id === value) ? value : 'league';
@@ -201,7 +201,7 @@ export function StandingsPage() {
       <div className="teams-page-wrapper">
         <header className="teams-page-header">
           <span className="teams-page-eyebrow">프리미어리그 (EPL) · 2026/27 시즌</span>
-          <h1 className="teams-page-title">리그 순위 &amp; 선수 랭킹</h1>
+          <h1 className="teams-page-title">리그 · 선수 · 회원 랭킹</h1>
           <p className="teams-page-desc">프리미어리그 20개 구단 실시간 순위부터 득점왕, 도움왕, 공격포인트까지 한눈에 확인하세요.</p>
         </header>
         <div className="ranking-tabs" role="tablist" aria-label="랭킹 종류">
@@ -221,6 +221,7 @@ export function StandingsPage() {
         </div>
         <section id="ranking-panel" role="tabpanel" aria-labelledby={`ranking-tab-${tab}`} tabIndex={0}>
         {tab === 'league' ? <StandingsTable season={2026} />
+          : ['prediction', 'virtual'].includes(tab) ? <MemberRankings key={tab} type={tab} />
           : <PlayerRankings key={tab} metric={tab} label={tabs.find(([ id ]) => id === tab)[1]} />}
         </section>
       </div>
@@ -391,4 +392,53 @@ function StandingsTable({ season }) {
       {updatedAt && <p className="standings-note">최근 순위 갱신 일시: {updatedAt}</p>}
     </>
   );
+}
+
+export function MemberRankings({ type, refreshKey = 0 }) {
+  const [result, setResult] = useState({ status: 'loading', rows: [] });
+  const [attempt, setAttempt] = useState(0);
+  const userId = useSelector((state) => state.auth.user?.userId);
+  const prediction = type === 'prediction';
+  useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+    const timer = setTimeout(() => controller.abort(), 15000);
+    setResult({ status: 'loading', rows: [] });
+    fetch(prediction ? '/api/predictions/rankings' : '/api/customs/rankings', { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('조회 실패');
+        const data = await response.json();
+        if (!Array.isArray(data.rankings) || !data.rankings.every((row) => row && row.userId != null
+          && Number.isInteger(row[prediction ? 'predictWin' : 'wins'])
+          && Number.isInteger(row[prediction ? 'predictTotal' : 'totalMatches']))) throw new Error('응답 오류');
+        if (active) setResult({ status: 'ready', rows: data.rankings });
+      })
+      .catch(() => { if (active) setResult({ status: 'error', rows: [] }); })
+      .finally(() => clearTimeout(timer));
+    return () => { active = false; clearTimeout(timer); controller.abort(); };
+  }, [prediction, attempt, refreshKey]);
+  return <section className="member-rankings" aria-label={prediction ? '승부예측 적중 랭킹' : '가상 대결 승리수 랭킹'}>
+    <h2>{prediction ? '승부예측 적중' : '나만의 팀 가상 대결 승리수'} TOP 10</h2>
+    <p>{prediction ? '정산된 예측의 적중 수 → 적중률 순입니다.' : '로그인 후 진행한 가상 대결의 승리수 → 승률 순입니다. 무승부는 승리에 포함되지 않습니다.'}</p>
+    <div className="member-ranking-actions">
+      <a href={prediction ? '/plug/prediction' : '/plug/myteam'}>{prediction ? '승부예측 참여하기' : '나만의 팀 대결하기'}</a>
+      <button type="button" disabled={result.status === 'loading'} onClick={() => setAttempt((value) => value + 1)}>새로고침</button>
+    </div>
+    {result.status === 'loading' ? <p role="status">랭킹을 불러오는 중입니다...</p>
+      : result.status === 'error' ? <p role="alert">랭킹을 불러오지 못했습니다. 새로고침으로 다시 시도해주세요.</p>
+      : result.rows.length === 0 ? <p>아직 집계된 기록이 없습니다.</p>
+      : <div className="member-ranking-scroll"><table className="standings-table">
+        <thead><tr><th scope="col">순위</th><th scope="col">회원</th>{!prediction && <th scope="col">팀</th>}<th scope="col">{prediction ? '적중' : '승리'}</th><th scope="col">{prediction ? '정산 예측' : '대결'}</th><th scope="col">{prediction ? '적중률' : '승률'}</th>{!prediction && <><th scope="col">무승부</th><th scope="col">패배</th></>}</tr></thead>
+        <tbody>{result.rows.map((row, index) => {
+          const wins = prediction ? row.predictWin : row.wins;
+          const total = prediction ? row.predictTotal : row.totalMatches;
+          const mine = userId != null && String(userId) === String(row.userId);
+          return <tr key={row.userId} className={mine ? 'member-ranking-mine' : undefined}>
+            <td>{index + 1}</td><th scope="row">{row.nickname || '회원'}{mine && ' (나)'}</th>
+            {!prediction && <td>{row.teamName}</td>}<td><strong>{wins}</strong></td><td>{total}</td><td>{(total ? wins / total * 100 : 0).toFixed(1)}%</td>
+            {!prediction && <><td>{row.draws}</td><td>{row.losses}</td></>}
+          </tr>;
+        })}</tbody>
+      </table></div>}
+  </section>;
 }
