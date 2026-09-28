@@ -189,7 +189,7 @@ public class CommunityController {
             communityService.updateComment(loginId, postId, commentId, comment)));
     }
 
-    // 로그인한 작성자의 댓글 또는 대댓글을 숨김 처리합니다.
+    // 로그인한 작성자의 댓글 또는 대댓글을 삭제 상태로 변경합니다.
     @DeleteMapping("/api/communities/{postId}/comments/{commentId}")
     public ResponseEntity<ApiResponse<Void>> deleteCommunityComment(
             @PathVariable("postId") Long postId, @PathVariable("commentId") Long commentId,

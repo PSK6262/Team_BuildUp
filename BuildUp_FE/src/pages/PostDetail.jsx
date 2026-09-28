@@ -373,7 +373,7 @@ export default function PostDetail({ postId }) {
     }
   }
 
-  // 로그인한 작성자의 댓글을 숨김 처리합니다.
+  // 로그인한 작성자의 댓글을 삭제 상태로 변경하고 화면 목록을 갱신합니다.
   const deleteComment = async (commentId) => {
     if (!window.confirm('댓글을 삭제하시겠습니까?')) return
     setCommentsError('')
@@ -392,12 +392,12 @@ export default function PostDetail({ postId }) {
       }
       setComments((current) => {
         const hasVisibleReplies = current.some((comment) =>
-          Number(getParentCommentId(comment)) === Number(commentId) && comment.isBlind !== 'Y')
+          Number(getParentCommentId(comment)) === Number(commentId) && comment.isDeleted !== 'Y')
         if (!hasVisibleReplies) {
           return current.filter((comment) => Number(comment.commentId) !== Number(commentId))
         }
         return current.map((comment) => Number(comment.commentId) === Number(commentId)
-          ? { ...comment, isBlind: 'Y', content: '' }
+          ? { ...comment, isDeleted: 'Y', content: '' }
           : comment)
       })
       if (Number(editingCommentId) === Number(commentId)) {
@@ -523,16 +523,27 @@ export default function PostDetail({ postId }) {
   const isTeamPost = post.teamId != null
   const isShowcasePost = Boolean(featuredSquadImage)
   const isOwner = isLoggedIn && Number(user?.userId) === Number(post.userId)
-  const rootComments = comments.filter((comment) => getParentCommentId(comment) == null)
-  const visibleCommentCount = comments.filter((comment) => comment.isBlind !== 'Y').length
+  const activeReplies = comments.filter((comment) =>
+    getParentCommentId(comment) != null && comment.isDeleted !== 'Y')
+  const rootComments = comments.filter((comment) => {
+    if (getParentCommentId(comment) != null) return false
+    if (comment.isDeleted !== 'Y') return true
+    return activeReplies.some((reply) =>
+      Number(getParentCommentId(reply)) === Number(comment.commentId))
+  })
+  const visibleCommentCount = comments.filter((comment) =>
+    comment.isDeleted !== 'Y' && comment.isBlind !== 'Y').length
 
   // 일반 댓글과 대댓글에 동일한 작성자 수정·삭제 기능을 표시합니다.
   const renderComment = (comment, canReply) => {
+    const isCommentDeleted = comment.isDeleted === 'Y'
     const isCommentBlind = comment.isBlind === 'Y'
     const isCommentUnblurred = Boolean(unblurredComments[comment.commentId])
     const isCommentOwner = isLoggedIn && Number(user?.userId) === Number(comment.userId)
     const isEditingComment = Number(editingCommentId) === Number(comment.commentId)
     const isCommentBusy = Number(commentActionId) === Number(comment.commentId)
+
+    if (isCommentDeleted) return <p className="community__comment-deleted">삭제된 댓글입니다.</p>
 
     return <>
       <header>
@@ -768,7 +779,7 @@ export default function PostDetail({ postId }) {
           <article className="community__comment">
             {renderComment(comment, true)}
           </article>
-          {comments.filter((reply) => Number(getParentCommentId(reply)) === Number(comment.commentId)).map((reply) =>
+          {activeReplies.filter((reply) => Number(getParentCommentId(reply)) === Number(comment.commentId)).map((reply) =>
             <div className="community__reply-row" key={reply.commentId}>
               <span className="community__reply-marker" aria-hidden="true">ㄴ</span>
               <article className="community__comment community__comment--reply">

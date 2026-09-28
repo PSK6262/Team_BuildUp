@@ -218,7 +218,8 @@ public class CommunityServiceImpl implements CommunityService {
         // 부모 댓글이 같은 게시글의 일반 댓글인지 확인하여 대댓글 깊이를 한 단계로 제한합니다.
         if (comment.getPCommentId() != null) {
             Comments parent = communityDAO.findCommentById(comment.getPCommentId());
-            if (parent == null || !postId.equals(parent.getPostId()) || parent.getPCommentId() != null) {
+            if (parent == null || !postId.equals(parent.getPostId()) || parent.getPCommentId() != null
+                    || "Y".equals(parent.getIsDeleted())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid parent comment");
             }
         }
@@ -521,7 +522,8 @@ public class CommunityServiceImpl implements CommunityService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid comment id");
         }
         Comments savedComment = communityDAO.findCommentById(commentId);
-        if (savedComment == null || !postId.equals(savedComment.getPostId())) {
+        if (savedComment == null || !postId.equals(savedComment.getPostId())
+                || "Y".equals(savedComment.getIsDeleted())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found");
         }
         return savedComment;

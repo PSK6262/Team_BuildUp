@@ -126,7 +126,7 @@
 			c.USER_ID,
 			u.NICKNAME,
 			c.P_COMMENT_ID,
-			c.CONTENT,
+			CASE WHEN c.IS_DELETED = 'Y' THEN NULL ELSE c.CONTENT END AS CONTENT,
 			c.IS_BLIND,
 			c.IS_DELETED,
 			c.CREATED_AT,
@@ -149,7 +149,7 @@
 			c.USER_ID,
 			u.NICKNAME,
 			c.P_COMMENT_ID,
-			c.CONTENT,
+			CASE WHEN c.IS_DELETED = 'Y' THEN NULL ELSE c.CONTENT END AS CONTENT,
 			c.IS_BLIND,
 			c.IS_DELETED,
 			c.CREATED_AT,
@@ -182,6 +182,7 @@
 		WHERE COMMENT_ID = #{commentId}
 		AND USER_ID = #{userId}
 		AND IS_BLIND = 'N'
+		AND IS_DELETED = 'N'
 	</update>
 
 	<!-- 작성자의 댓글 또는 대댓글 숨김 처리 -->
