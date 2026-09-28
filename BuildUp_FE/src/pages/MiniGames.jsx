@@ -3,7 +3,7 @@ import '../css/MiniGames.css'
 const games = [
   {
     title: '패널티킥',
-    description: '승부차기로 AI와 대결! 3골 선취 시 승리',
+    description: 'AI와 승부차기 대결! 익스트림은 15골 선취',
     icon: '⚽',
     href: '/plug/minigames/penaltykick',
     available: true,
