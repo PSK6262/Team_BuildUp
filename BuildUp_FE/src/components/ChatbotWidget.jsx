@@ -4,7 +4,22 @@ import '../css/ChatbotWidget.css'
 const BUTTON_SIZE = 56
 const EDGE = 16
 const STORAGE_KEY = 'plugin_chatbot_position'
+const MY_TEAM_CONTEXT_KEY = 'plugin:chatbot:myteam-context'
 const SCORE_PATTERN = /\d{1,2}\s*(?:대|:)\s*\d{1,2}/
+const MY_TEAM_SUGGESTIONS = [
+  '현재 스쿼드의 약점을 분석해줘',
+  '빈 슬롯에 어울리는 선수를 추천해줘',
+  '포지션이 안 맞는 선수를 알려줘',
+  '이 포메이션의 전술 활용법을 알려줘',
+]
+const RANKING_SUGGESTIONS = [
+  '현재 1위와 2위의 승점 차이를 분석해줘',
+  '챔피언스리그 진출권과 강등권 팀을 정리해줘',
+  '득점·도움·공격포인트 선두를 비교해줘',
+  '승점이 같을 때 순위를 정하는 기준이 뭐야?',
+  '승부예측 적중 랭킹 TOP 3를 정리해줘',
+  '가상 대결 1위의 승률과 전적을 알려줘',
+]
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
@@ -72,13 +87,20 @@ function renderMessageContent(text) {
 }
 
 export default function ChatbotWidget() {
+  const isMyTeamPage = window.location.pathname.replace(/\/$/, '') === '/plug/myteam'
+  const isRankingPage = window.location.pathname.replace(/\/$/, '') === '/plug/rankpage'
+  const pageSuggestions = isMyTeamPage ? MY_TEAM_SUGGESTIONS : isRankingPage ? RANKING_SUGGESTIONS : []
   const [position, setPosition] = useState(initialPosition)
   const [panelOffset, setPanelOffset] = useState({ x: 0, y: 0 })
   const [viewport, setViewport] = useState({ width: window.innerWidth, height: window.innerHeight })
   const [open, setOpen] = useState(false)
   const [question, setQuestion] = useState('')
   const [messages, setMessages] = useState([
-    { role: 'assistant', text: '안녕하세요! 프리미어리그에 대해 궁금한 점을 물어보세요.' },
+    { role: 'assistant', text: isMyTeamPage
+      ? '현재 포메이션과 선수 배치를 보면서 스쿼드 구성과 전술을 도와드릴게요.'
+      : isRankingPage
+        ? '리그·선수 랭킹을 DB 기록 기준으로 비교하고 설명해드릴게요.'
+      : '안녕하세요! 프리미어리그에 대해 궁금한 점을 물어보세요.' },
   ])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -182,14 +204,23 @@ export default function ChatbotWidget() {
         .map((message) => `${message.role === 'user' ? '사용자' : '챗봇'}: ${message.text}`)
         .join('\n')
         .slice(0, 5000)
+      let teamContext = ''
+      if (isMyTeamPage) {
+        try {
+          teamContext = sessionStorage.getItem(MY_TEAM_CONTEXT_KEY) || ''
+        } catch {
+          // 현재 스쿼드 정보를 읽지 못하면 일반 EPL 질문으로 전송합니다.
+        }
+      }
       const response = await fetch('/api/chatbot/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           question: text,
-          pagePath: window.location.pathname,
+          pagePath: `${window.location.pathname}${window.location.search}`,
           scoreContext,
           conversationContext,
+          teamContext,
         }),
       })
       const isJson = response.headers.get('content-type')?.includes('application/json')
@@ -283,7 +314,9 @@ export default function ChatbotWidget() {
         onPointerUp={onPanelPointerUp}
         onPointerCancel={() => { panelDrag.current = null }}
       >
-        <div><strong>EPL 챗봇</strong><small>프리미어리그 질문을 해보세요</small></div>
+        <div><strong>EPL 챗봇</strong><small>{isMyTeamPage
+          ? '스쿼드 구성과 전술을 물어보세요'
+          : isRankingPage ? '리그와 선수 기록을 비교해보세요' : '프리미어리그 질문을 해보세요'}</small></div>
         <button type="button" onClick={() => setOpen(false)} aria-label="챗봇 닫기">×</button>
       </header>
       <div className="chatbot-widget__messages" aria-live="polite">
@@ -291,6 +324,13 @@ export default function ChatbotWidget() {
           className={`chatbot-widget__message chatbot-widget__message--${message.role}${message.role === 'assistant' && message.text.includes('\n- ') ? ' chatbot-widget__message--list' : ''}`}
           key={index}
         >{renderMessageContent(message.text)}</div>)}
+        {pageSuggestions.length > 0 && messages.length === 1 && <div className="chatbot-widget__suggestions" aria-label="추천 질문">
+          {pageSuggestions.map((suggestion) => <button
+            type="button"
+            key={suggestion}
+            onClick={() => setQuestion(suggestion)}
+          >{suggestion}</button>)}
+        </div>}
         {loading && <p className="chatbot-widget__pending">답변을 작성하고 있습니다...</p>}
         <div ref={bottomRef} />
       </div>
@@ -301,7 +341,8 @@ export default function ChatbotWidget() {
           id="chatbot-question"
           value={question}
           onChange={(event) => setQuestion(event.target.value)}
-          placeholder="EPL에 대해 질문하세요"
+          placeholder={isMyTeamPage ? '예: 현재 스쿼드의 약점은?'
+            : isRankingPage ? '예: 1위와 2위의 승점 차이는?' : 'EPL에 대해 질문하세요'}
           maxLength={1000}
           disabled={loading}
         />

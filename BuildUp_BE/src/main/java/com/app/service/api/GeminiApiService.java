@@ -13,11 +13,17 @@ public interface GeminiApiService {
 
 	// 프리미어리그 질문에 대한 챗봇 답변을 생성합니다.
 	String answerEplQuestion(String question, String pagePath, String scoreContext,
-			String conversationContext);
+			String conversationContext, String teamContext);
+
+	// 나만의 팀 문맥이 필요 없는 기존 호출 코드도 유지합니다.
+	default String answerEplQuestion(String question, String pagePath, String scoreContext,
+			String conversationContext) {
+		return answerEplQuestion(question, pagePath, scoreContext, conversationContext, null);
+	}
 
 	// 기존 호출 코드에서는 대화 문맥 없이도 사용할 수 있습니다.
 	default String answerEplQuestion(String question, String pagePath, String scoreContext) {
-		return answerEplQuestion(question, pagePath, scoreContext, null);
+		return answerEplQuestion(question, pagePath, scoreContext, null, null);
 	}
 
 	/**

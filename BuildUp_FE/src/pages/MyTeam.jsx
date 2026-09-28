@@ -19,6 +19,7 @@ const FORMATION_PRESETS = [
 
 const LOCAL_STORAGE_KEY = 'buildup_custom_squad_v1';
 const SHOWCASE_DRAFT_KEY = 'plugin:community:showcase-draft';
+const MY_TEAM_CHAT_CONTEXT_KEY = 'plugin:chatbot:myteam-context';
 const CLUB_EMBLEM_FALLBACKS = new Map(getInitialTeams().map((team) => [String(team.teamId), team.emblemUrl]));
 
 function RosterClubEmblem({ club, className }) {
@@ -604,6 +605,31 @@ export default function MyTeam() {
       setToastMessage('');
     }, 3000);
   };
+
+  // 챗봇이 현재 편집 중인 포메이션과 선수 배치를 기준으로 조언하도록 화면 상태를 전달합니다.
+  useEffect(() => {
+    const chatContext = {
+      teamName: teamName.trim() || '나만의 드림 스쿼드',
+      formation: formation.presetLabel || `${formation.df}-${formation.mf}-${formation.fw}`,
+      filledCount: slots.filter((slot) => slot.player).length,
+      slots: slots.map((slot) => ({
+        slotNumber: slot.id + 1,
+        slotPosition: slot.pos,
+        playerName: slot.player?.nameKor || slot.player?.name || null,
+        mainPosition: slot.player?.mainPosition || null,
+        detailPosition: slot.player?.detailPosition || null,
+        clubName: slot.player?.teamNameKor || slot.player?.teamName || null,
+        positionMismatch: Boolean(slot.player?.mainPosition && slot.player.mainPosition !== slot.pos),
+        x: Number.isFinite(slot.x) ? Math.round(slot.x) : null,
+        y: Number.isFinite(slot.y) ? Math.round(slot.y) : null,
+      })),
+    };
+    try {
+      sessionStorage.setItem(MY_TEAM_CHAT_CONTEXT_KEY, JSON.stringify(chatContext));
+    } catch {
+      // 브라우저 저장소가 차단되어도 나만의 팀 편집 기능은 계속 사용합니다.
+    }
+  }, [teamName, formation, slots]);
 
   // 포메이션별 기본 좌표 계산 헬퍼 (DF, MF, FW, GK)
   // 4-2-3-1, 4-1-4-1 등 라인이 세분화된 포메이션은 동일 선상에 두지 않고 전술적 높낮이(단차) 부여
