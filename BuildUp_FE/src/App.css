@@ -319,26 +319,33 @@
 
 .mypage-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   margin-top: 20px;
+}
+
+.mypage-actions .auth-submit-btn {
+  flex: 9;
+  width: auto;
+  margin-top: 0;
 }
 
 .mypage-logout-btn, .mypage-cancel-btn {
   flex: 1;
-  height: 46px;
+  height: auto;
+  padding: 0;
   background-color: #f3f4f6;
-  color: #374151;
+  color: #6b7280;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  margin-top: 10px;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .mypage-logout-btn:hover, .mypage-cancel-btn:hover {
   background-color: #e5e7eb;
+  color: #374151;
 }
 
 /* 회원 탈퇴 경고 모달 */
