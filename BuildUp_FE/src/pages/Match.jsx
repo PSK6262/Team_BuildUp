@@ -118,6 +118,31 @@ export default function Match() {
   const [ loading, setLoading ] = useState(false)
   const [ reload, setReload ] = useState(0)
   const [ activeMatchForModal, setActiveMatchForModal ] = useState(null)
+
+  const handleSyncMatches = async () => {
+    if (syncing) return
+    if (!window.confirm('외부 축구 API에서 2026 시즌 전체 380경기 일정을 DB(MATCHES)로 동기화하시겠습니까?')) return
+    try {
+      setSyncing(true)
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/matches/sync-season?season=2026', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: 'include',
+      })
+      const data = await res.json()
+      alert(data.message || 'DB 동기화가 완료되었습니다!')
+      setReload((v) => v + 1)
+    } catch (err) {
+      alert('동기화 중 오류가 발생했습니다: ' + err.message)
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   // 1. 실시간 리그 순위 데이터 로드 (DB TEAM_STATS 연동)
   useEffect(() => {
     let active = true
