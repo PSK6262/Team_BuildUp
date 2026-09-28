@@ -327,6 +327,17 @@
   border-left-color: #00ff85;
 }
 
+.match-card--focused,
+.match-card:focus {
+  outline: none;
+  border-color: #00c46a;
+  border-left: 5px solid #00ff85;
+  background: linear-gradient(90deg, #f0fdf6 0%, #ffffff 45%);
+  box-shadow:
+    0 0 0 3px rgba(0, 255, 133, 0.45),
+    0 12px 32px rgba(56, 0, 60, 0.14);
+}
+
 /* 경기 시간/날짜 정보 */
 .match-card__datetime {
   display: flex;

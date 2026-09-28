@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateUser } from '../store/authSlice.js';
 import { fetchTeams } from '../store/teamSlice.js';
@@ -30,6 +30,7 @@ export default function MainPage() {
       })();
 
   const teams = useSelector((state) => state.team?.teams || []);
+  const [ matches, setMatches ] = useState([]);
   const [ hoveredTeam, setHoveredTeam ] = useState(null);
   const hoveredTheme = hoveredTeam ? getTeamTheme(hoveredTeam) : null;
   const [ introIndex, setIntroIndex ] = useState(0);
@@ -59,6 +60,116 @@ export default function MainPage() {
   useEffect(() => {
     dispatch(fetchTeams());
   }, [dispatch]);
+
+  // MATCHES 테이블 경기 일정 조회 (/api/matches, 읽기 전용)
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/api/matches')
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (isMounted && Array.isArray(data)) {
+          setMatches(data);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // 애정팀(favoriteTeamId)의 당일 포함 가장 가까운 경기 계산
+  const nextFavoriteMatch = useMemo(() => {
+    if (!favoriteTeamId || !Array.isArray(matches) || matches.length === 0) {
+      return null;
+    }
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+
+    const parseDate = (dateStr) => {
+      if (!dateStr) return null;
+      const normalized = String(dateStr).trim().replace(' ', 'T');
+      const d = new Date(normalized);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
+    const upcoming = matches
+      .filter((m) => {
+        const isMyTeam =
+          Number(m.homeTeamId) === favoriteTeamId ||
+          Number(m.awayTeamId) === favoriteTeamId;
+        if (!isMyTeam) return false;
+
+        const matchDateObj = parseDate(m.matchDate);
+        if (!matchDateObj) return false;
+
+        const matchDayStart = new Date(
+          matchDateObj.getFullYear(),
+          matchDateObj.getMonth(),
+          matchDateObj.getDate(),
+          0, 0, 0, 0
+        );
+
+        // 이미 지나간 날짜의 경기는 제외하고 당일 경기까지는 포함
+        return matchDayStart.getTime() >= todayStart.getTime();
+      })
+      .map((m) => {
+        const matchDateObj = parseDate(m.matchDate);
+        const matchDayStart = new Date(
+          matchDateObj.getFullYear(),
+          matchDateObj.getMonth(),
+          matchDateObj.getDate(),
+          0, 0, 0, 0
+        );
+        return {
+          ...m,
+          _matchTime: matchDateObj.getTime(),
+          _matchDayStart: matchDayStart.getTime()
+        };
+      })
+      .sort((a, b) => a._matchTime - b._matchTime);
+
+    if (upcoming.length === 0) return null;
+
+    const closest = upcoming[0];
+    const diffDays = Math.round(
+      (closest._matchDayStart - todayStart.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    const dDayTag = diffDays === 0 ? 'D-DAY' : `D-${diffDays}`;
+
+    const isHome = Number(closest.homeTeamId) === favoriteTeamId;
+    const opponentId = isHome ? Number(closest.awayTeamId) : Number(closest.homeTeamId);
+
+    const opponentTeamObj = teams.find((t) => Number(t.teamId) === opponentId);
+    const homeTeamObj = teams.find((t) => Number(t.teamId) === Number(closest.homeTeamId));
+    const favTeamObj = teams.find((t) => Number(t.teamId) === favoriteTeamId);
+    const favTheme = favTeamObj ? getTeamTheme(favTeamObj) : null;
+
+    const opponentName = isHome
+      ? (closest.awayTeamNameKor || opponentTeamObj?.teamNameKor || closest.awayTeamName || opponentTeamObj?.teamName || `팀 #${opponentId}`)
+      : (closest.homeTeamNameKor || opponentTeamObj?.teamNameKor || closest.homeTeamName || opponentTeamObj?.teamName || `팀 #${opponentId}`);
+
+    const stadiumName =
+      closest.homeGroundKor ||
+      homeTeamObj?.homeGroundKor ||
+      closest.homeGround ||
+      homeTeamObj?.homeGround ||
+      '홈 경기장';
+
+    return {
+      matchId: closest.matchId,
+      dDayTag,
+      diffDays,
+      opponentName,
+      stadiumName,
+      themeHex: favTheme?.hex || '#00ff87',
+      themeGlow: favTheme?.glow || 'rgba(0, 255, 135, 0.5)'
+    };
+  }, [favoriteTeamId, matches, teams]);
 
   useEffect(() => {
     if (isIntroFinished || introIndex >= INTRO_SENTENCES.length) return;
@@ -237,6 +348,35 @@ export default function MainPage() {
         {/* 배경 비네팅 오버레이 */}
         <div className="mainpage-bg__vignette" />
       </div>
+
+      {/* 오른쪽 상단 내비바 아래: 애정팀 다음 경기 D-Day 위젯 (오프닝 종료 후 표시, 클릭 시 해당 경기 일정으로 이동 및 포커스) */}
+      {isIntroFinished && nextFavoriteMatch && (
+        <a
+          href={`/plug/match?matchId=${nextFavoriteMatch.matchId}`}
+          className="mainpage-next-match"
+          aria-label={`내 애정팀 다음 경기 일정: ${nextFavoriteMatch.dDayTag}, VS ${nextFavoriteMatch.opponentName}, ${nextFavoriteMatch.stadiumName} (클릭 시 경기 일정으로 이동)`}
+          title="클릭하여 경기 일정 페이지에서 해당 경기 보기"
+          style={{
+            '--fav-team-hex': nextFavoriteMatch.themeHex,
+            '--fav-team-glow': nextFavoriteMatch.themeGlow
+          }}
+        >
+          <div className="mainpage-next-match__top">
+            <span className="mainpage-next-match__dday">
+              {nextFavoriteMatch.dDayTag}
+            </span>
+          </div>
+          <div className="mainpage-next-match__opponent">
+            <span className="mainpage-next-match__vs">VS</span>
+            <strong className="mainpage-next-match__opponent-name">
+              {nextFavoriteMatch.opponentName}
+            </strong>
+          </div>
+          <div className="mainpage-next-match__stadium">
+            {nextFavoriteMatch.stadiumName}
+          </div>
+        </a>
+      )}
 
       {/* 메인 콘텐츠 영역: 인트로 문구 순차 재생 -> 완료 후 오빗 무대 전환 */}
       <main className="mainpage-content">
