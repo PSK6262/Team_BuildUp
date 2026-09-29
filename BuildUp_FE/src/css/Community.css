@@ -199,7 +199,7 @@
 .community__comment-actions { display: flex; gap: 6px; }
 .community .community__comment-delete { color: #a33030; border-color: #d9a9a9; }
 .community__comment-edit { display: grid; gap: 8px; margin-top: 12px; }
-.community__comment-edit textarea { width: 100%; padding: 10px; border: 1px solid #b8d8c5; border-radius: 6px; color: inherit; font: inherit; line-height: 1.6; resize: vertical; }
+.community__comment-edit textarea { width: 100%; padding: 10px; border: 1px solid #b8d8c5; border-radius: 6px; color: inherit; font: inherit; line-height: 1.6; resize: none; overflow-y: auto; }
 .community__comment-edit div { display: flex; justify-content: flex-end; gap: 6px; }
 .community__deleted-comment { margin: 0; color: #7a8697; font-style: italic; }
 .community__reply-row { display: grid; grid-template-columns: 28px minmax(0, 1fr); align-items: start; margin-left: 48px; }
@@ -210,7 +210,7 @@
 .community__comment-deleted { margin: 0; color: #7b8491; font-style: italic; }
 .community__comment-form { display: grid; gap: 10px; margin-top: 20px; }
 .community__comment-form label { font-size: 14px; font-weight: 700; }
-.community__comment-form textarea { width: 100%; padding: 14px; border: 1px solid #d9e1dc; border-radius: 8px; color: inherit; font: inherit; line-height: 1.7; resize: vertical; }
+.community__comment-form textarea { width: 100%; padding: 14px; border: 1px solid #d9e1dc; border-radius: 8px; color: inherit; font: inherit; line-height: 1.7; resize: none; overflow-y: auto; }
 .community__character-count { justify-self: end; color: #7a8697; font-size: 12px; }
 .community__comment-form .community__submit { justify-self: end; }
 .community__reply-target { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 8px; background: #edf7f1; color: #526558; font-size: 13px; }
@@ -1091,4 +1091,260 @@ body:has(.community) .user-nav__dropdown {
   .community--board .community__custom-select--wide .community__custom-select-trigger { min-width: 0; }
   .community__custom-select-trigger > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .community--board .community__showcase { margin-top: 36px; }
+}
+/* 네비바에서 설정한 전역 테마에 맞춰 커뮤니티 색상을 전환합니다. */
+html[data-theme='dark'] body:has(.community) {
+  background: radial-gradient(ellipse at 15% 0%, #291131 0%, transparent 48%), #0c0a14;
+}
+html[data-theme='dark'] .community {
+  color-scheme: dark;
+  --community-text: #f4f1fa;
+  --community-muted: #b5adc4;
+  --community-line: #3b304a;
+  --community-panel: #191321;
+  --community-purple: #cba4f5;
+  --community-green: #00e58a;
+  --community-mint: #00e58a;
+  --community-pink: #f04bd8;
+  color: var(--community-text);
+}
+html[data-theme='dark'] .community :is(.community__controls, .community__navigation, .community__detail, .community__comments, .community__card, .community__table-wrap, .community__custom-select-options) {
+  background: #191321;
+  border-color: var(--community-line);
+  box-shadow: 0 8px 24px #0002;
+}
+html[data-theme='dark'] .community :is(.community__main-search, .community__filters, .community__showcase) {
+  background: #191321;
+  border-color: var(--community-line);
+}
+html[data-theme='dark'] .community--board :is(.community__navigation, .community__main-search, .community__filters, .community__showcase) {
+  background: transparent;
+  box-shadow: none;
+  border-color: var(--community-line);
+}
+html[data-theme='dark'] .community :is(input, select, textarea, option, .community__custom-select-trigger) {
+  background: #100c18;
+  color: #f4f1fa;
+  border-color: #52435f;
+}
+html[data-theme='dark'] .community :is(input, textarea)::placeholder { color: #9d91ac; }
+html[data-theme='dark'] .community :is(input, select, textarea):focus {
+  border-color: #00e58a;
+  outline-color: #00e58a40;
+  box-shadow: none;
+}
+html[data-theme='dark'] .community :is(button, .community__main-link) {
+  background: #24192e;
+  color: #e4d5f5;
+  border-color: #52435f;
+  box-shadow: none;
+}
+html[data-theme='dark'] .community :is(button:not(:disabled), .community__main-link):hover { background: #352140; border-color: #9475aa; }
+html[data-theme='dark'] .community .community__board-buttons { background: #100c18; }
+html[data-theme='dark'] .community :is(.community__board-buttons button[aria-pressed='true'], .community__main-search button, .community__pagination button[aria-current='page']) {
+  background: #762578;
+  border-color: #c258b2;
+  color: #fff;
+}
+html[data-theme='dark'] .community :is(.community__board-buttons button[aria-pressed='true'], .community__main-search button, .community__pagination button[aria-current='page']):hover { background: #8b2f8c; }
+html[data-theme='dark'] .community :is(.community__write-link, .community__submit, .community__like--active) {
+  background: #00e58a;
+  border-color: #00e58a;
+  color: #10231c;
+}
+html[data-theme='dark'] .community :is(.community__write-link, .community__submit, .community__like--active):hover { background: #00cf7c; border-color: #00cf7c; color: #10231c; }
+html[data-theme='dark'] .community :is(.community__breadcrumbs a, .community__back, .community__tag) { color: #d2badf; }
+html[data-theme='dark'] .community :is(.community__post-link:hover, .community__breadcrumbs [aria-current], .community__eyebrow) { color: #00e58a; }
+html[data-theme='dark'] .community .community__table th { background: #38003c; color: #fff; border-color: #67436e; }
+html[data-theme='dark'] .community .community__table td { color: #bdb4cb; border-color: #33293f; }
+html[data-theme='dark'] .community .community__table .community__title { color: #f4f1fa; }
+html[data-theme='dark'] .community .community__table tbody tr:nth-child(even) { background: #1e1628; }
+html[data-theme='dark'] .community .community__table tbody tr:hover { background: #2b1c36; }
+html[data-theme='dark'] .community .community__badge { background: #30203c; color: #e3ccee; border-color: #61436e; }
+html[data-theme='dark'] .community :is(.community__badge--team, .community__reply-badge) { background: #102e28; color: #6df2bc; border-color: #28614d; }
+html[data-theme='dark'] .community :is(.community__attachment-section, .community__image-grid li, .community__attachment-list li, .community__attachment-upload, .community__selected-files li, .community__squad-detail, .community__squad-detail li, .community__shared-team, .community__comment, .community__notice, .community__showcase-empty, .community__comment-empty, .community__ad-space) {
+  background: #16111f;
+  color: #d9d0e6;
+  border-color: var(--community-line);
+  box-shadow: none;
+}
+html[data-theme='dark'] .community .community__comment--reply { background: #23182d; border-left-color: #00e58a; }
+html[data-theme='dark'] .community :is(.community__post-meta, .community__post-body, .community__attachments) { border-color: var(--community-line); }
+html[data-theme='dark'] .community :is(.community__ad-label, .community__custom-select-label, .community__custom-select-arrow, .community__reset, .community__character-count) { color: var(--community-muted); }
+html[data-theme='dark'] .community .community__reset { background: transparent; }
+html[data-theme='dark'] .community .community__custom-select-trigger[aria-expanded='true'] { background: #100c18; border-color: #00e58a; box-shadow: 0 0 0 2px #00e58a20; }
+html[data-theme='dark'] .community .community__custom-select-options button { background: transparent; color: #e4d5f5; }
+html[data-theme='dark'] .community .community__custom-select-options button:hover { background: #352140; }
+html[data-theme='dark'] .community .community__custom-select-options button[aria-selected='true'] { background: #762578; color: #fff; }
+html[data-theme='dark'] .community .community__custom-select-trigger:disabled { background: #17131d; color: #9a90a8; border-color: #3b304a; box-shadow: none; }
+html[data-theme='dark'] .community .community__custom-select-options::-webkit-scrollbar-track { background: #17101f; }
+html[data-theme='dark'] .community .community__custom-select-options::-webkit-scrollbar-thumb { background: #725682; }
+html[data-theme='dark'] .community :is(.community__team-grid .community__card, .community__emblem) { background: #191321; border-color: #493954; }
+html[data-theme='dark'] .community :is(.community__card:hover, .community__team-grid .community__card:hover) { background: #24182e; border-color: #00e58a; }
+html[data-theme='dark'] .community .community__pitch { background: #102e28; border-color: #28614d; }
+html[data-theme='dark'] .community :is(.community__form-error, .community__blind-comment-notice, .community__badge--blind, .community__danger) { background: #361622; border-color: #874354; color: #ffc0d0; }
+html[data-theme='dark'] .community .community__blind-post-overlay { background: #191321e8; }
+html[data-theme='dark'] .community .community__blind-post-notice strong { color: #ffc0d0; }
+html[data-theme='dark'] .community .community__blind-post-notice p { color: #b5adc4; }
+html[data-theme='dark'] .community .community__showcase-more { border-color: #725682 !important; color: #dfbaf5 !important; }
+/* 모든 커뮤니티 화면에서 상위 경로 이동을 같은 한 줄 링크로 표시합니다. */
+.community .community__navigation {
+  padding: 0 0 18px;
+  margin-bottom: 26px;
+  border: 0;
+  border-bottom: 1px solid var(--community-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.community .community__navigation-actions { width: auto; gap: 18px; }
+.community .community__navigation-actions .community__main-link {
+  padding: 6px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--community-purple);
+  font-size: 13px;
+}
+.community .community__navigation-actions .community__main-link:hover {
+  background: transparent;
+  box-shadow: none;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+html[data-theme='dark'] .community .community__navigation {
+  background: transparent;
+  box-shadow: none;
+}
+html[data-theme='dark'] .community .community__navigation-actions .community__main-link {
+  background: transparent;
+  color: #dfbaf5;
+}
+/* 글쓰기 옆에 300×600 광고 원본 비율을 유지합니다. */
+.community__write-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 32px; align-items: start; }
+.community__write-column { min-width: 0; }
+.community__write-column .community__write-form { max-width: none; }
+.community__write-ad { width: 300px; }
+.community__vertical-ad { width: 100%; aspect-ratio: 1 / 2; display: grid; place-items: center; border: 1px solid var(--community-line); border-radius: 8px; background: #eef1f6; color: #64748b; font-size: 12px; overflow: hidden; }
+.community__vertical-ad img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.community__more-posts { margin-top: 40px; padding: 24px; border: 1px solid var(--community-line); border-radius: 12px; background: #fff; }
+.community__more-posts .community__showcase-heading h2::before { display: none; }
+.community__more-posts h2 { font-size: 22px; }
+.community__more-list { margin: 20px 0 0; padding: 0; list-style: none; }
+.community__more-list li { border-bottom: 1px solid var(--community-line); }
+.community__more-list a { display: grid; grid-template-columns: 120px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 18px 8px; color: var(--community-text); text-decoration: none; }
+.community__more-list .community__badge { justify-self: start; width: fit-content; max-width: 120px; white-space: normal; line-height: 1.5; border: 0; padding: 4px 9px; }
+.community__more-list a:hover { background: #f8fafc; }
+.community__more-search { display: flex; justify-content: center; gap: 8px; margin: 24px auto 0; max-width: 560px; }
+.community__more-search input { flex: 1; min-width: 0; width: 100%; }
+.community .community__more-search button[type='submit'] { background: #38003c; color: white; border-color: #38003c; padding-inline: 20px; }
+.community__more-hint { text-align: center; color: var(--community-muted); font-size: 12px; }
+html[data-theme='dark'] .community__more-posts { background: #191321; }
+html[data-theme='dark'] .community__more-list a:hover { background: #2b1c36; }
+html[data-theme='dark'] .community .community__more-search button[type='submit'] { background: #762578; border-color: #c258b2; }
+.community__more-list a:hover .community__more-title { text-decoration: underline; text-underline-offset: 4px; }
+.community__more-title { overflow-wrap: anywhere; }
+/* 댓글 수를 제목과 구분하고 긴 제목에서도 숫자 영역을 유지합니다. */
+.community__title-with-comments { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; vertical-align: middle; }
+.community__title-text { min-width: 0; overflow-wrap: anywhere; }
+.community__comment-count { display: inline-flex; flex-shrink: 0; align-items: center; gap: 4px; padding: 3px 6px; border-radius: 5px; background: #eee6f2; color: #682978; font-size: 12px; font-weight: 700; line-height: 1.3; white-space: nowrap; }
+.community__comment-count svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+html[data-theme='dark'] .community__comment-count { background: #352140; color: #e5baff; }
+.community__more-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; color: var(--community-muted); font-size: 12px; }
+.community__more-author { max-width: 160px; overflow-wrap: anywhere; }
+.community__integrated-table .community__title { width: 42%; }
+.community__author { width: 120px; }
+.community__author span { display: block; max-width: 120px; overflow-wrap: anywhere; line-height: 1.5; }
+@media (max-width: 600px) {
+  .community__author { width: 70px; }
+  .community__author span { max-width: 70px; }
+}
+html[data-theme='dark'] .community__vertical-ad { background: #16111f; color: #b5adc4; }
+@media (max-width: 1000px) {
+  .community__write-layout { grid-template-columns: minmax(0, 1fr); }
+  .community__write-ad { width: min(300px, 100%); margin: 16px auto 0; }
+}
+@media (max-width: 680px) {
+  .community__more-list a { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .community__more-list .community__badge { justify-self: start; }
+  .community__more-posts h2 { font-size: 18px; }
+  .community__more-posts { padding: 16px; }
+  .community__more-search { flex-wrap: wrap; }
+}
+/* 상세 광고는 데스크톱에서 오른쪽, 좁은 화면에서는 댓글과 다른 글 사이에 배치합니다. */
+.community__reading-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 0 28px; align-items: start; }
+.community__reading-content { min-width: 0; }
+.community__reading-ad { grid-column: 2; grid-row: 1; width: 300px; align-self: stretch; min-height: 0; position: relative; }
+/* 광고가 본문·댓글 높이 안에서만 따라오며 상단 네비게이션과 겹치지 않게 합니다. */
+@media (min-width: 1001px) and (min-height: 780px) {
+  .community__reading-ad-sticky { position: sticky; top: 112px; }
+}
+.community__reading-layout > .community__more-posts { grid-column: 1 / -1; min-width: 0; }
+.community__reading-content .community__write-form { max-width: 100%; }
+.community__reading-content .community__detail-actions { flex-wrap: wrap; }
+@media (max-width: 1000px) {
+  .community__reading-layout { display: flex; flex-direction: column; }
+  .community__reading-content, .community__reading-layout > .community__more-posts { width: 100%; }
+  .community__reading-ad { width: min(300px, 100%); margin: 32px auto 0; }
+}
+
+/* 320px 화면에서 목록을 두 줄 카드로 바꾸고 입력 영역의 최소 너비를 해제합니다. */
+@media (max-width: 480px) {
+  .community { width: 100%; padding: 20px 12px 48px; box-sizing: border-box; }
+  .community :is(.community__write-column, .community__write-form, fieldset, .community__comment-form, .community__comment-edit) { min-width: 0; }
+  .community :is(input, select, textarea) { max-width: 100%; min-width: 0; font-size: 16px; }
+  .community .community__navigation { align-items: flex-start; gap: 10px; margin-bottom: 20px; }
+  .community .community__breadcrumbs { flex-wrap: wrap; overflow-wrap: anywhere; }
+  .community .community__navigation-actions { flex-wrap: wrap; gap: 8px 14px; margin-left: 0; }
+  .community .community__navigation-actions .community__main-link { min-height: 40px; display: inline-flex; align-items: center; }
+  .community .community__controls { padding: 12px 10px 0; }
+  .community .community__main-search { gap: 6px; }
+  .community .community__main-search input { padding-inline: 10px; }
+  .community .community__custom-select-options { width: 100%; min-width: 0; max-width: 100%; max-height: 260px; }
+  .community .community__custom-select-options button { white-space: normal; min-height: 44px; }
+  .community .community__custom-select-trigger { min-height: 44px; }
+  .community .community__table-wrap { overflow: visible; }
+  .community .community__integrated-table { display: block; min-width: 0; width: 100%; }
+  .community__integrated-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .community__integrated-table tbody { display: block; }
+  .community .community__integrated-table tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; padding: 14px 12px; border-bottom: 1px solid var(--community-line); }
+  .community .community__integrated-table td { border: 0; padding: 0; width: auto; text-align: left; min-width: 0; }
+  .community .community__integrated-table .community__number { display: none; }
+  .community__integrated-table td:nth-child(2) { grid-column: 1 / -1; }
+  .community .community__integrated-table .community__title { grid-column: 1 / -1; font-size: 14px; }
+  .community__integrated-table .community__author { grid-column: 1; }
+  .community__integrated-table .community__author span { max-width: none; }
+  .community__integrated-table td:nth-child(5)::before { content: '조회 '; }
+  .community__integrated-table td:nth-child(6)::before { content: '추천 '; }
+  .community .community__integrated-table .community__empty { grid-column: 1 / -1; padding: 30px 0; text-align: center; }
+  .community .community__detail, .community .community__comments { padding: 18px 12px; }
+  .community .community__comment { padding: 12px 10px; min-width: 0; }
+  .community__comment header, .community__comment-actions, .community__detail-actions, .community__reply-target { flex-wrap: wrap; }
+  .community__comment header strong, .community__post-meta dd { overflow-wrap: anywhere; min-width: 0; }
+  .community .community__reply-row { margin-left: 6px; grid-template-columns: 16px minmax(0, 1fr); }
+  .community .community__attachment-section { padding: 12px 8px; }
+  .community .community__attachment-upload { padding: 10px; }
+  .community .community__attachment-upload input { min-width: 0; width: 100%; flex-basis: 100%; }
+  .community .community__attachment-list li { display: flex; flex-wrap: wrap; gap: 10px; }
+  .community__attachment-list li > div { flex-basis: 100%; }
+  .community__attachment-actions { flex-wrap: wrap; }
+  .community .community__write-form fieldset { padding: 12px 8px; gap: 12px; }
+  .community__write-ad { max-width: 100%; }
+  .community .community__showcase-heading { flex-wrap: wrap; gap: 10px; }
+  .community .community__showcase-heading h2 { font-size: 18px; }
+  .community .community__more-posts { padding: 16px 12px; }
+  .community .community__more-posts .community__showcase-heading { padding-bottom: 16px; border-bottom: 1px solid var(--community-line); }
+  .community .community__more-list { display: grid; gap: 12px; margin-top: 18px; }
+  .community .community__more-list li { border: 1px solid #dce2ec; border-radius: 10px; background: #f8fafc; overflow: hidden; }
+  .community .community__more-list a { padding: 14px 12px; gap: 10px; }
+  .community .community__more-title { font-size: 14px; font-weight: 600; line-height: 1.6; }
+  .community .community__more-meta { border-top: 1px solid #e2e8f0; padding-top: 10px; justify-content: space-between; gap: 6px 12px; }
+  .community .community__more-author { max-width: 100%; }
+  html[data-theme='dark'] .community .community__more-list li { background: #241b30; border-color: #51405f; }
+  html[data-theme='dark'] .community .community__more-meta { border-color: #493854; }
+  .community .community__more-search input { flex-basis: 100%; }
+  .community .community__more-search button { min-height: 44px; }
+  .community .community__pagination { gap: 6px; }
 }

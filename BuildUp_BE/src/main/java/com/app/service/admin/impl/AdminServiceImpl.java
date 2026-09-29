@@ -60,12 +60,19 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
-	public List<Matches> getAdminMatches(String date, String status, String sortOrder) {
+	public List<Matches> getAdminMatches(String date, String startDate, String endDate, String status, String sortOrder) {
 		Map<String, Object> params = new HashMap<>();
 		params.put("date", date);
+		params.put("startDate", startDate);
+		params.put("endDate", endDate);
 		params.put("status", status);
 		params.put("sortOrder", sortOrder);
 		return adminDAO.selectAdminMatches(params);
+	}
+
+	@Override
+	public List<Matches> getAdminMatches(String date, String status, String sortOrder) {
+		return getAdminMatches(date, null, null, status, sortOrder);
 	}
 
 	@Override
@@ -284,6 +291,11 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	@Transactional
 	public boolean adjustUserPoints(Long userId, Long amount, String description) {
+		if (amount != null && Math.abs(amount) > 10000) {
+			log.warn("[포인트 조정 차단] 1회 조정 한도 초과 (요청: {}P, 최대: ±10,000P)", amount);
+			throw new IllegalArgumentException("한 번에 변경할 수 있는 포인트는 최대 ±10,000P 입니다.");
+		}
+
 		Users user = adminDAO.selectAdminUserById(userId);
 		if (user == null) {
 			return false;

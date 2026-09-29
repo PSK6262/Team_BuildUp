@@ -46,6 +46,8 @@ export async function getRecentPoints() {
 export async function getAdminMatches(params = {}) {
   const qs = new URLSearchParams();
   if (params.date) qs.append('date', params.date);
+  if (params.startDate) qs.append('startDate', params.startDate);
+  if (params.endDate) qs.append('endDate', params.endDate);
   if (params.status) qs.append('status', params.status);
   if (params.sort) qs.append('sort', params.sort);
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAdminCommunity } from '../../../hooks/useAdminCommunity.js';
 
 /**
@@ -32,6 +32,9 @@ export default function AdminCommunityTab({ showAlert }) {
     handleRunAiModeration,
   } = useAdminCommunity({ showAlert });
 
+  const [visiblePosts, setVisiblePosts] = useState(10);
+  const [visibleComments, setVisibleComments] = useState(10);
+
   return (
     <div>
       {/* AI 모더레이션 연동 안내 배너 */}
@@ -39,7 +42,7 @@ export default function AdminCommunityTab({ showAlert }) {
         <div className="ai-moderation-banner__text">
           <h4>🤖 AI 유해 게시글 / 욕설 문맥 자동 감지 시스템</h4>
           <p>
-            Gemini AI가 최근 등록 및 수정된 게시글과 댓글의 문맥을 일괄 분석하여 비속어, 패드립, 혐오 표현을 자동 블라인드 제재합니다.<br />
+            Gemini AI가 최근 등록 및 수정된 게시글과 댓글의 문맥을 일괄 분석하여 비속어, 혐오 표현을 자동 블라인드 제재합니다.<br />
             <span style={{ fontSize: 12, opacity: 0.85 }}>※ 서버 스케줄러를 통해 5분마다 자동 실행되며, 아래 버튼으로 지금 즉시 수동 실행할 수 있습니다.</span>
           </p>
         </div>
@@ -67,14 +70,20 @@ export default function AdminCommunityTab({ showAlert }) {
             <button
               type="button"
               className={`btn-action ${communitySubTab === 'posts' ? 'btn-action--primary' : 'btn-action--outline'}`}
-              onClick={() => setCommunitySubTab('posts')}
+              onClick={() => {
+                setCommunitySubTab('posts');
+                setVisiblePosts(10);
+              }}
             >
               게시글 관리
             </button>
             <button
               type="button"
               className={`btn-action ${communitySubTab === 'comments' ? 'btn-action--primary' : 'btn-action--outline'}`}
-              onClick={() => setCommunitySubTab('comments')}
+              onClick={() => {
+                setCommunitySubTab('comments');
+                setVisibleComments(10);
+              }}
             >
               댓글 관리
             </button>
@@ -88,13 +97,14 @@ export default function AdminCommunityTab({ showAlert }) {
                 onChange={(e) => {
                   const next = e.target.value;
                   setPostStatusFilter(next);
+                  setVisiblePosts(10);
                   fetchPosts(next, postKeyword);
                 }}
               >
-                <option value="">모든 글 (전체 목록)</option>
-                <option value="NORMAL">정상 공개 글</option>
-                <option value="BLIND">🚨 관리자 제재(블라인드)된 글</option>
-                <option value="DELETED">🗑️ 작성자 삭제 글 (증거보존)</option>
+                <option value="">전체</option>
+                <option value="NORMAL">정상</option>
+                <option value="BLIND">블라인드</option>
+                <option value="DELETED">삭제</option>
               </select>
               <input
                 type="text"
@@ -103,7 +113,14 @@ export default function AdminCommunityTab({ showAlert }) {
                 value={postKeyword}
                 onChange={(e) => setPostKeyword(e.target.value)}
               />
-              <button type="button" className="btn-action btn-action--primary" onClick={() => fetchPosts()}>
+              <button
+                type="button"
+                className="btn-action btn-action--primary"
+                onClick={() => {
+                  setVisiblePosts(10);
+                  fetchPosts();
+                }}
+              >
                 검색
               </button>
             </div>
@@ -115,13 +132,14 @@ export default function AdminCommunityTab({ showAlert }) {
                 onChange={(e) => {
                   const next = e.target.value;
                   setCommentStatusFilter(next);
+                  setVisibleComments(10);
                   fetchComments(next, commentKeyword);
                 }}
               >
-                <option value="">모든 댓글 (전체 목록)</option>
-                <option value="NORMAL">정상 댓글</option>
-                <option value="BLIND">🚨 관리자 제재(블라인드)된 댓글</option>
-                <option value="DELETED">🗑️ 작성자 삭제 댓글 (증거보존)</option>
+                <option value="">전체</option>
+                <option value="NORMAL">정상</option>
+                <option value="BLIND">블라인드</option>
+                <option value="DELETED">삭제</option>
               </select>
               <input
                 type="text"
@@ -130,7 +148,14 @@ export default function AdminCommunityTab({ showAlert }) {
                 value={commentKeyword}
                 onChange={(e) => setCommentKeyword(e.target.value)}
               />
-              <button type="button" className="btn-action btn-action--primary" onClick={() => fetchComments()}>
+              <button
+                type="button"
+                className="btn-action btn-action--primary"
+                onClick={() => {
+                  setVisibleComments(10);
+                  fetchComments();
+                }}
+              >
                 검색
               </button>
             </div>
@@ -159,7 +184,7 @@ export default function AdminCommunityTab({ showAlert }) {
                 ) : posts.length === 0 ? (
                   <tr><td colSpan="8" style={{ textAlign: 'center', padding: 24, color: '#94a3b8' }}>게시글이 없습니다.</td></tr>
                 ) : (
-                  posts.map((p) => (
+                  posts.slice(0, visiblePosts).map((p) => (
                     <tr key={p.postId}>
                       <td>{p.postId}</td>
                       <td>
@@ -167,12 +192,13 @@ export default function AdminCommunityTab({ showAlert }) {
                           {p.teamName || p.categoryType || '자유'}
                         </span>
                       </td>
-                      <td style={{ fontWeight: 600 }}>
+                      <td style={{ fontWeight: 600, maxWidth: 300 }}>
                         <a
                           href={`/plug/community/posts/${p.postId}`}
                           target="_blank"
                           rel="noreferrer"
-                          style={{ color: 'inherit', textDecoration: 'none' }}
+                          className="admin-post-title-link"
+                          title={p.title}
                         >
                           {p.title}
                         </a>
@@ -188,7 +214,7 @@ export default function AdminCommunityTab({ showAlert }) {
                           <span className="badge badge--green">정상 (N)</span>
                         )}
                       </td>
-                      <td style={{ color: '#64748b', fontSize: 13 }}>{p.createdAt}</td>
+                      <td style={{ color: '#64748b', fontSize: 13, whiteSpace: 'nowrap' }}>{p.createdAt}</td>
                       <td>
                         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                           {p.isDeleted === 'Y' ? (
@@ -236,6 +262,17 @@ export default function AdminCommunityTab({ showAlert }) {
             </table>
           </div>
         )}
+        {communitySubTab === 'posts' && posts.length > visiblePosts && (
+          <div className="admin-load-more-wrap">
+            <button
+              type="button"
+              className="admin-load-more-btn"
+              onClick={() => setVisiblePosts((prev) => prev + 10)}
+            >
+              10개 더보기 ▾ ({Math.min(visiblePosts, posts.length)} / {posts.length})
+            </button>
+          </div>
+        )}
 
         {/* 2. 댓글 목록 서브 탭 */}
         {communitySubTab === 'comments' && (
@@ -258,7 +295,7 @@ export default function AdminCommunityTab({ showAlert }) {
                 ) : comments.length === 0 ? (
                   <tr><td colSpan="7" style={{ textAlign: 'center', padding: 24, color: '#94a3b8' }}>댓글이 없습니다.</td></tr>
                 ) : (
-                  comments.map((c) => (
+                  comments.slice(0, visibleComments).map((c) => (
                     <tr key={c.commentId}>
                       <td>{c.commentId}</td>
                       <td>
@@ -279,7 +316,7 @@ export default function AdminCommunityTab({ showAlert }) {
                           <span className="badge badge--green">정상 (N)</span>
                         )}
                       </td>
-                      <td style={{ color: '#64748b', fontSize: 13 }}>{c.createdAt}</td>
+                      <td style={{ color: '#64748b', fontSize: 13, whiteSpace: 'nowrap' }}>{c.createdAt}</td>
                       <td>
                         {c.isDeleted === 'Y' ? (
                           <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500, padding: '4px 6px' }}>
@@ -300,6 +337,17 @@ export default function AdminCommunityTab({ showAlert }) {
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+        {communitySubTab === 'comments' && comments.length > visibleComments && (
+          <div className="admin-load-more-wrap">
+            <button
+              type="button"
+              className="admin-load-more-btn"
+              onClick={() => setVisibleComments((prev) => prev + 10)}
+            >
+              10개 더보기 ▾ ({Math.min(visibleComments, comments.length)} / {comments.length})
+            </button>
           </div>
         )}
       </section>

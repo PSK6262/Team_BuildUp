@@ -4,7 +4,7 @@
 
 .user-nav {
   position: relative;
-  z-index: 40;
+  z-index: 100;
   max-width: 1440px;
   background: rgba(18, 3, 24, 0.88);
   -webkit-backdrop-filter: blur(18px);
@@ -29,7 +29,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 28px;
+  gap: 20px;
   max-width: 1440px;
   min-height: 68px;
   margin: 0 auto;
@@ -52,6 +52,8 @@
   display: inline-flex;
   align-items: center;
   text-decoration: none;
+  flex-shrink: 0;
+  user-select: none;
 }
 
 .user-nav__logo-pl {
@@ -75,57 +77,26 @@
 }
 
 /* --------------------------------------------------------
-   링크 및 계정 영역
+   데스크톱 메뉴 링크들
    -------------------------------------------------------- */
-.user-nav__links,
-.user-nav__account {
+.user-nav__links {
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 22px;
 }
 
-.user-nav__links {
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.user-nav__links a,
-.user-nav summary,
-.user-nav__account {
+.user-nav__links a {
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
-}
-
-.user-nav__links > a,
-.user-nav summary {
   padding: 12px 0;
-}
-
-.user-nav__account {
-  gap: 16px;
-  flex-shrink: 0;
-}
-
-.user-nav__account button {
-  border: 0;
-  padding: 10px 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-}
-
-.user-nav__links a,
-.user-nav__account a,
-.user-nav__account button {
   color: rgba(255, 255, 255, 0.92);
   transition: color 0.2s ease, text-shadow 0.2s ease;
 }
 
 .user-nav__links a:hover,
-.user-nav__account a:hover,
-.user-nav__account button:hover,
 .user-nav [aria-current='page'],
 .user-nav [aria-current='location'],
 .user-nav .is-active {
@@ -139,9 +110,47 @@
   border-radius: 4px;
 }
 
-/* 주요 버튼(회원가입, 마이페이지 등) */
+/* --------------------------------------------------------
+   계정 및 제어 영역 (우측)
+   -------------------------------------------------------- */
+.user-nav__account {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.user-nav__account a,
+.user-nav__account button {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.92);
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.user-nav__account button.user-nav__auth-btn {
+  border: 0;
+  padding: 10px 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.user-nav__account a.user-nav__auth-btn {
+  padding: 10px 0;
+}
+
+.user-nav__account a.user-nav__auth-btn:hover,
+.user-nav__account button.user-nav__auth-btn:hover {
+  color: #00ff87;
+  text-shadow: 0 0 16px rgba(0, 255, 135, 0.8);
+}
+
+/* 주요 버튼(회원가입, 마이페이지) */
 .user-nav .user-nav__primary {
-  padding: 9px 22px;
+  padding: 8px 20px;
   border-radius: 999px;
   background: rgba(0, 255, 135, 0.12);
   border: 1.5px solid #00ff87;
@@ -161,6 +170,201 @@
     inset 0 0 12px rgba(0, 255, 135, 0.3);
 }
 
+/* 로그아웃 버튼: PL:UG 로고 콜론 색상(#ff166b) 테두리 & 글로우 */
+.user-nav .user-nav__logout-btn {
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: rgba(255, 22, 107, 0.1);
+  border: 1.5px solid #ff166b;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow:
+    0 0 14px rgba(255, 22, 107, 0.35),
+    inset 0 0 6px rgba(255, 22, 107, 0.15);
+  transition: all 0.22s ease;
+  white-space: nowrap;
+}
+
+.user-nav .user-nav__logout-btn:hover {
+  background: rgba(255, 22, 107, 0.22);
+  color: #ff6b9d;
+  border-color: #ff4785;
+  box-shadow:
+    0 0 20px rgba(255, 22, 107, 0.6),
+    inset 0 0 10px rgba(255, 22, 107, 0.25);
+}
+
+/* 로그인 버튼: PL 로고 색상(#ffffff) 테두리 & 화이트 글로우 */
+.user-nav .user-nav__login-btn {
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow:
+    0 0 12px rgba(255, 255, 255, 0.25),
+    inset 0 0 6px rgba(255, 255, 255, 0.1);
+  transition: all 0.22s ease;
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-nav .user-nav__login-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: #ffffff;
+  color: #ffffff;
+  box-shadow:
+    0 0 18px rgba(255, 255, 255, 0.5),
+    inset 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+/* --------------------------------------------------------
+   화면 테마(다크/라이트) 전환 아이콘 버튼
+   -------------------------------------------------------- */
+.user-nav__theme-btn {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+  flex-shrink: 0;
+}
+
+.user-nav__theme-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(0, 255, 135, 0.5);
+  box-shadow: 0 0 12px rgba(0, 255, 135, 0.25);
+}
+
+/* 테마 아이콘 슬라이딩 스왑 트랜지션 */
+.user-nav__theme-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.28s ease,
+              filter 0.3s ease;
+  pointer-events: none;
+}
+
+/* 다크모드: 해(☀️) 노출 */
+.user-nav__theme-btn.is-dark .user-nav__theme-icon--sun {
+  transform: translateX(0) scale(1) rotate(0deg);
+  opacity: 1;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.6));
+}
+
+.user-nav__theme-btn.is-dark .user-nav__theme-icon--moon {
+  transform: translateX(-140%) scale(0.65) rotate(-45deg);
+  opacity: 0;
+}
+
+/* 라이트모드: 달(🌙) 노출 */
+.user-nav__theme-btn.is-light .user-nav__theme-icon--moon {
+  transform: translateX(0) scale(1) rotate(0deg);
+  opacity: 1;
+  filter: drop-shadow(0 0 6px rgba(216, 134, 237, 0.6));
+}
+
+.user-nav__theme-btn.is-light .user-nav__theme-icon--sun {
+  transform: translateX(140%) scale(0.65) rotate(45deg);
+  opacity: 0;
+}
+
+/* --------------------------------------------------------
+   모바일 햄버거 버튼 (데스크톱에서는 숨김)
+   -------------------------------------------------------- */
+.user-nav__hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+  flex-shrink: 0;
+}
+
+.user-nav__hamburger:hover,
+.user-nav__hamburger.is-active {
+  background: rgba(0, 255, 135, 0.15);
+  border-color: rgba(0, 255, 135, 0.5);
+  box-shadow: 0 0 14px rgba(0, 255, 135, 0.3);
+}
+
+.user-nav__hamburger-box {
+  position: relative;
+  width: 18px;
+  height: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-nav__hamburger-line {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background-color: #ffffff;
+  border-radius: 2px;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.2s ease,
+              background-color 0.2s ease;
+}
+
+.user-nav__hamburger.is-active .user-nav__hamburger-line {
+  background-color: #00ff87;
+}
+
+/* 햄버거 -> X 변환 애니메이션 */
+.user-nav__hamburger.is-active .user-nav__hamburger-line:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.user-nav__hamburger.is-active .user-nav__hamburger-line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.user-nav__hamburger.is-active .user-nav__hamburger-line:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* --------------------------------------------------------
+   모바일 슬라이드다운 메뉴 패널
+   - 기본적으로 숨겨져 있으며, 데스크톱에서는 렌더링되지 않음
+   -------------------------------------------------------- */
+.user-nav__mobile-panel {
+  display: none;
+}
+
 /* --------------------------------------------------------
    페이지별 배치 모드
    -------------------------------------------------------- */
@@ -174,7 +378,7 @@
   background: rgba(18, 3, 24, 0.88);
 }
 
-/* 2) 서브페이지: 스크롤 시 상단 고정 플로팅 (콘텐츠 침범 없음) */
+/* 2) 서브페이지: 스크롤 시 상단 고정 플로팅 */
 .user-nav.user-nav--subpage {
   position: sticky;
   top: 14px;
@@ -211,77 +415,268 @@ body.mainpage-intro-active .chatbot-widget__panel {
 }
 
 /* --------------------------------------------------------
-   반응형 모바일 미디어 쿼리
+   반응형 미디어 쿼리 (태블릿 / 모바일 <= 1024px)
    -------------------------------------------------------- */
-@media (max-width: 1100px) {
-  .user-nav__inner {
-    flex-wrap: wrap;
-    gap: 12px;
-    padding: 12px 20px;
-  }
+@media (max-width: 1024px) {
+  /* 데스크톱 메뉴 링크 숨김 */
   .user-nav__links {
-    order: 3;
-    width: 100%;
-    gap: 8px 20px;
+    display: none;
+  }
+
+  /* 햄버거 버튼 노출 */
+  .user-nav__hamburger {
+    display: inline-flex;
+  }
+
+  /* 상단 바 높이 컴팩트하게 1줄 유지 (위로 올라가지 않고 상단 위치 고정) */
+  .user-nav__inner {
+    padding: 8px 20px;
+    min-height: 58px;
+    gap: 16px;
+  }
+
+  .user-nav__account {
+    gap: 14px;
+  }
+
+  /* 모바일 패널: 상단 바의 높이를 늘리지 않고,
+     상단 바 '아래쪽(top: calc(100% + 8px))'으로만 확장되는 오버레이 드롭다운으로 배치!
+     => 이로 인해 상단 바가 위로 올라가거나 배경 레이아웃이 깨지는 문제가 100% 방지됨 */
+  .user-nav__mobile-panel {
+    display: block;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: rgba(20, 4, 28, 0.96);
+    -webkit-backdrop-filter: blur(22px);
+    backdrop-filter: blur(22px);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 16px;
+    box-shadow:
+      0 20px 48px rgba(0, 0, 0, 0.72),
+      0 0 24px rgba(0, 255, 135, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transform: translateY(-8px);
+    transition:
+      max-height 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.26s ease,
+      transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 150;
+  }
+
+  .user-nav__mobile-panel.is-open {
+    max-height: 520px;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .user-nav__mobile-panel-inner {
+    padding: 14px 18px 18px;
+  }
+
+  .user-nav__mobile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 10px;
+  }
+
+  .user-nav__mobile-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .user-nav__mobile-item:hover,
+  .user-nav__mobile-item:active {
+    background: rgba(0, 255, 135, 0.1);
+    border-color: rgba(0, 255, 135, 0.4);
+    color: #00ff87;
+    transform: translateY(-1px);
+  }
+
+  .user-nav__mobile-item.is-active {
+    background: rgba(0, 255, 135, 0.14);
+    border-color: #00ff87;
+    color: #00ff87;
+    font-weight: 700;
+    box-shadow: inset 0 0 10px rgba(0, 255, 135, 0.2);
+  }
+
+  .user-nav__mobile-item-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #00ff87;
+    box-shadow: 0 0 8px #00ff87;
+    flex-shrink: 0;
+  }
+
+  .user-nav__mobile-item--admin {
+    background: rgba(216, 134, 237, 0.06);
+    border-color: rgba(216, 134, 237, 0.2);
+  }
+
+  .user-nav__mobile-item--admin:hover,
+  .user-nav__mobile-item--admin:active {
+    background: rgba(216, 134, 237, 0.16);
+    border-color: rgba(216, 134, 237, 0.6);
+    color: #e9a9ff;
+  }
+
+  .user-nav__mobile-item--admin.is-active {
+    background: rgba(216, 134, 237, 0.2);
+    border-color: #d886ed;
+    color: #e9a9ff;
+    box-shadow: inset 0 0 10px rgba(216, 134, 237, 0.3);
+  }
+
+  .user-nav__mobile-item--admin .user-nav__mobile-item-dot {
+    background: #d886ed;
+    box-shadow: 0 0 8px #d886ed;
   }
 }
 
-@media (max-width: 480px) {
-  .user-nav {
-    border-radius: 12px;
-  }
+/* --------------------------------------------------------
+   스마트폰 브레이크포인트 (<= 640px)
+   -------------------------------------------------------- */
+@media (max-width: 640px) {
   .user-nav.user-nav--subpage {
     top: 8px;
     margin: 8px auto 12px;
     width: calc(100% - 16px);
   }
+
   .user-nav.user-nav--mainpage {
     top: 8px;
     left: 8px;
     right: 8px;
   }
+
   .user-nav__inner {
-    padding: 10px 14px;
-    min-height: 56px;
+    padding: 6px 14px;
+    min-height: 52px;
+    gap: 10px;
   }
-  .user-nav__links {
-    justify-content: flex-start;
-    gap: 4px 16px;
-    font-size: 13px;
+
+  .user-nav__logo {
+    font-size: 22px;
   }
+
   .user-nav__account {
     gap: 10px;
   }
-  .user-nav__logo {
-    font-size: 22px;
+
+  .user-nav__account a,
+  .user-nav__account button {
+    font-size: 13px;
+  }
+
+  .user-nav .user-nav__primary {
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+
+  .user-nav__theme-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .user-nav__hamburger {
+    width: 32px;
+    height: 32px;
+  }
+
+  .user-nav__mobile-panel {
+    top: calc(100% + 6px);
+    border-radius: 14px;
+  }
+
+  .user-nav__mobile-panel-inner {
+    padding: 10px 14px 14px;
+  }
+
+  .user-nav__mobile-item {
+    padding: 9px 12px;
+    font-size: 12.5px;
   }
 }
 
 /* --------------------------------------------------------
-   화면 테마(다크/라이트) 전환 아이콘 버튼
-   - 네비바는 테마와 관계없이 항상 기존의 다크 글래스모피즘 스타일을 유지합니다.
+   스마트폰 브레이크포인트 (<= 425px)
+   - 마이페이지 버튼은 상단 바에서 숨기고 햄버거 메뉴 안으로 이동
+   - 상단 바에는 로고 + 테마 + [로그아웃] + [햄버거] 가 여유롭게 유지됨
    -------------------------------------------------------- */
-.user-nav__theme-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: rgba(255, 255, 255, 0.9);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(8px);
-  flex-shrink: 0;
+@media (max-width: 425px) {
+  .user-nav__mypage-top {
+    display: none !important;
+  }
+
+  .user-nav .user-nav__logout-btn,
+  .user-nav .user-nav__login-btn {
+    padding: 6px 12px;
+    font-size: 12.5px;
+  }
 }
 
-.user-nav__theme-btn:hover {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(0, 255, 135, 0.5);
-  color: #00ff87;
-  transform: translateY(-1px);
-  box-shadow: 0 0 12px rgba(0, 255, 135, 0.25);
+/* --------------------------------------------------------
+   초소형 스마트폰 브레이크포인트 (<= 380px)
+   -------------------------------------------------------- */
+@media (max-width: 380px) {
+  .user-nav__inner {
+    padding: 6px 8px;
+  }
+
+  .user-nav__logo {
+    font-size: 20px;
+  }
+
+  .user-nav__account {
+    gap: 6px;
+  }
+
+  .user-nav__account a,
+  .user-nav__account button {
+    font-size: 12px;
+  }
+
+  .user-nav .user-nav__primary {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  .user-nav .user-nav__logout-btn,
+  .user-nav .user-nav__login-btn {
+    padding: 5px 10px;
+    font-size: 11.5px;
+  }
+
+  .user-nav__theme-btn {
+    width: 30px;
+    height: 30px;
+  }
+
+  .user-nav__hamburger {
+    width: 30px;
+    height: 30px;
+  }
+
+  .user-nav__mobile-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
 }

@@ -82,8 +82,11 @@
 		LEFT JOIN TEAMS h ON h.TEAM_ID = m.HOME_TEAM_ID
 		LEFT JOIN TEAMS a ON a.TEAM_ID = m.AWAY_TEAM_ID
 		<where>
-			<if test="status != null and status != '' and status != 'MISMATCH'">
+			<if test="status != null and status != '' and status != 'MISMATCH' and status != 'CANCELLED' and status != 'POSTPONED' and status != 'CANCELLED_OR_POSTPONED'">
 				AND m.STATUS = #{status}
+			</if>
+			<if test="status == 'CANCELLED' or status == 'POSTPONED' or status == 'CANCELLED_OR_POSTPONED'">
+				AND m.STATUS IN ('CANCELLED', 'POSTPONED', 'SUSPENDED')
 			</if>
 			<if test="status == 'MISMATCH'">
 				AND m.STATUS = 'FINISHED'
@@ -105,7 +108,13 @@
 					)
 				)
 			</if>
-			<if test="date != null and date != ''">
+			<if test="startDate != null and startDate != ''">
+				AND TRUNC(CAST(m.MATCH_DATE AS DATE)) &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+			</if>
+			<if test="endDate != null and endDate != ''">
+				AND TRUNC(CAST(m.MATCH_DATE AS DATE)) &lt;= TO_DATE(#{endDate}, 'YYYY-MM-DD')
+			</if>
+			<if test="(startDate == null or startDate == '') and (endDate == null or endDate == '') and date != null and date != ''">
 				AND TRUNC(CAST(m.MATCH_DATE AS DATE)) = TO_DATE(#{date}, 'YYYY-MM-DD')
 			</if>
 		</where>
@@ -416,14 +425,17 @@
 		SELECT
 			ph.POINT_HISTORY_ID,
 			ph.USER_ID,
+			u.NICKNAME,
+			u.LOGIN_ID,
 			ph.PREDICTION_ID,
 			ph.AMOUNT,
 			ph.BALANCE_AFTER,
 			ph.DESCRIPTION,
 			ph.CREATED_AT
 		FROM POINT_HISTORY ph
+		LEFT JOIN USERS u ON ph.USER_ID = u.USER_ID
 		ORDER BY ph.POINT_HISTORY_ID DESC
-		FETCH FIRST 20 ROWS ONLY
+		FETCH FIRST 100 ROWS ONLY
 	</select>
 
 	<!-- 경기 이벤트 단건 삭제 -->

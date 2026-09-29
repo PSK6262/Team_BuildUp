@@ -61,7 +61,10 @@ export default function Login() {
             <span>PL:UG FOOTBALL</span>
           </div>
           <h2>로그인</h2>
-          <p>프리미어리그 팬 커뮤니티 PL:UG에 오신 것을 환영합니다</p>
+          <p>
+            프리미어리그 팬 커뮤니티<br />
+            PL:UG에 오신 것을 환영합니다
+          </p>
         </div>
 
         {errorMsg && <div className="auth-error-banner">{errorMsg}</div>}

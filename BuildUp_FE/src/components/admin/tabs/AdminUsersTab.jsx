@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAdminUsers } from '../../../hooks/useAdminUsers.js';
 
 /**
@@ -23,6 +23,8 @@ export default function AdminUsersTab({ showAlert }) {
     handleSavePoints,
   } = useAdminUsers({ showAlert });
 
+  const [visibleUsers, setVisibleUsers] = useState(10);
+
   return (
     <div>
       <section className="admin-section">
@@ -38,10 +40,10 @@ export default function AdminUsersTab({ showAlert }) {
                 fetchUsers(userKeyword, next);
               }}
             >
-              <option value="">활성 회원 전체 (기본)</option>
-              <option value="1">일반회원 (ROLE_USER - 1)</option>
-              <option value="9">시스템 관리자 (ROLE_ADMIN - 9)</option>
-              <option value="7">탈퇴회원 (ROLE_WITHDRAWN - 7)</option>
+              <option value="">전체 회원</option>
+              <option value="1">일반회원</option>
+              <option value="9">관리자</option>
+              <option value="7">탈퇴회원</option>
             </select>
             <input
               type="text"
@@ -76,7 +78,7 @@ export default function AdminUsersTab({ showAlert }) {
               ) : users.length === 0 ? (
                 <tr><td colSpan="8" style={{ textAlign: 'center', padding: 24, color: '#94a3b8' }}>일치하는 회원이 없습니다.</td></tr>
               ) : (
-                users.map((u) => {
+                users.slice(0, visibleUsers).map((u) => {
                   const isWithdrawn = Number(u.roleCode) === 7;
                   const isAdminRole = Number(u.roleCode) === 9;
                   return (
@@ -87,11 +89,11 @@ export default function AdminUsersTab({ showAlert }) {
                       <td style={{ color: '#64748b' }}>{u.email}</td>
                       <td>
                         {isAdminRole ? (
-                          <span className="badge badge--purple">관리자 (9)</span>
+                          <span className="badge badge--purple">관리자</span>
                         ) : isWithdrawn ? (
-                          <span className="badge badge--gray">탈퇴회원 (7)</span>
+                          <span className="badge badge--gray">탈퇴회원</span>
                         ) : (
-                          <span className="badge badge--green">일반회원 (1)</span>
+                          <span className="badge badge--green">일반회원</span>
                         )}
                       </td>
                       <td style={{ fontWeight: 700, color: isWithdrawn ? '#94a3b8' : '#16744b' }}>
@@ -142,6 +144,17 @@ export default function AdminUsersTab({ showAlert }) {
             </tbody>
           </table>
         </div>
+        {users.length > visibleUsers && (
+          <div className="admin-load-more-wrap">
+            <button
+              type="button"
+              className="admin-load-more-btn"
+              onClick={() => setVisibleUsers((prev) => prev + 10)}
+            >
+              10명 더보기 ▾ ({Math.min(visibleUsers, users.length)} / {users.length})
+            </button>
+          </div>
+        )}
       </section>
 
       {/* 1. 회원 권한 변경 모달 */}
@@ -164,8 +177,8 @@ export default function AdminUsersTab({ showAlert }) {
                   value={roleModal.roleCode}
                   onChange={(e) => setRoleModal({ ...roleModal, roleCode: e.target.value })}
                 >
-                  <option value="1">일반 회원 (ROLE_USER - 1)</option>
-                  <option value="9">시스템 관리자 (ROLE_ADMIN - 9)</option>
+                  <option value="1">일반회원</option>
+                  <option value="9">관리자</option>
                 </select>
               </div>
             </div>
@@ -194,15 +207,20 @@ export default function AdminUsersTab({ showAlert }) {
                 대상 회원: <strong>{pointModal.nickname}</strong>
               </p>
               <div className="admin-form-group">
-                <label>조정 포인트 (지급은 +500, 차감은 -200 등)</label>
+                <label>조정 포인트 (지급은 +500, 차감은 -200 등, 최대 ±10,000P)</label>
                 <input
                   type="number"
                   className="admin-input"
                   style={{ width: '100%' }}
-                  placeholder="예: 500 또는 -300"
+                  min="-10000"
+                  max="10000"
+                  placeholder="예: 500 또는 -300 (최대 ±10,000P)"
                   value={pointModal.amount}
                   onChange={(e) => setPointModal({ ...pointModal, amount: e.target.value })}
                 />
+                <small style={{ color: '#64748b', fontSize: 12, marginTop: 4, display: 'block' }}>
+                  * 한 번에 변경할 수 있는 포인트는 최대 ±10,000P로 제한됩니다.
+                </small>
               </div>
               <div className="admin-form-group">
                 <label>조정 사유 (이력 로그 기록용)</label>

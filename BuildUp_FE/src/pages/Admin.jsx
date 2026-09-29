@@ -16,6 +16,7 @@ import '../css/Admin.css';
 export default function Admin() {
   const user = useSelector((state) => state.auth.user);
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  const currentTheme = useSelector((state) => state.theme?.mode || 'dark');
 
   // 관리자 권한 여부 판별 (ROLE_ADMIN = 9)
   const isAdmin = user && (Number(user.roleCode) === 9);
@@ -40,30 +41,37 @@ export default function Admin() {
   // 비관리자 또는 미로그인 시 차단 화면
   if (!isLoggedIn || !isAdmin) {
     return (
-      <main className="admin-unauthorized">
-        <h2>관리자 전용 페이지</h2>
-        <p>
-          접근 권한이 없습니다.<br />
-          이 페이지는 <strong>PL:UG 관리자(ROLE_ADMIN)</strong> 계정만 이용할 수 있습니다.
-        </p>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-          <a href="/plug/mainpage" style={{ background: '#64748b' }}>메인으로 이동</a>
-          <a href="/plug/login">로그인 하기</a>
-        </div>
-      </main>
+      <div className={`admin-container ${currentTheme === 'light' ? 'admin-light-mode' : 'admin-dark-mode'}`}>
+        <main className="admin-unauthorized">
+          <h2>관리자 전용 페이지</h2>
+          <p>
+            접근 권한이 없습니다.<br />
+            이 페이지는 <strong>PL:UG 관리자(ROLE_ADMIN)</strong> 계정만 이용할 수 있습니다.
+          </p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <a href="/plug/mainpage" style={{ background: '#64748b' }}>메인으로 이동</a>
+            <a href="/plug/login">로그인 하기</a>
+          </div>
+        </main>
+      </div>
     );
   }
 
   return (
-    <div className="admin-container">
-      {/* 1. 관리자 상단 헤더 */}
+    <div className={`admin-container ${currentTheme === 'light' ? 'admin-light-mode' : 'admin-dark-mode'}`}>
+      {/* 1. 관리자 상단 헤더 (중앙 정렬 레이아웃) */}
       <header className="admin-header">
-        <div className="admin-header__title">
-          <h1>PL:UG 관리자 센터</h1>
+        <div className="admin-header__badge-wrap">
           <span className="admin-badge">ADMIN CONSOLE</span>
         </div>
+        <h1 className="admin-header__title">PL:UG 관리자 센터</h1>
+        <p className="admin-header__desc">
+          프리미어리그 경기·선수 데이터, 커뮤니티 모니터링, 회원 및 포인트 통합 관리 콘솔
+        </p>
         <div className="admin-header__user">
-          <span>접속 관리자: <strong>{user?.nickname}</strong> ({user?.loginId})</span>
+          <span className="admin-header__user-text">
+            접속 관리자: <strong>{user?.nickname}</strong> <span className="admin-user-id">({user?.loginId})</span>
+          </span>
           <button
             type="button"
             className="admin-btn-refresh"
@@ -72,7 +80,7 @@ export default function Admin() {
               window.location.reload();
             }}
           >
-            새로고침
+            새로고침 ↻
           </button>
         </div>
       </header>

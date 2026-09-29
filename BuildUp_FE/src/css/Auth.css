@@ -112,7 +112,8 @@
 .auth-header p {
   font-size: 14px;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.6;
+  word-break: keep-all;
 }
 
 .auth-container.auth-dark-mode .auth-header p,
@@ -549,3 +550,85 @@
   border-color: #38003c;
   color: #38003c;
 }
+
+/* --------------------------------------------------------
+   모바일 & 소형 기기 반응형 최적화 (<= 480px, <= 360px)
+   -------------------------------------------------------- */
+@media (max-width: 480px) {
+  .auth-container {
+    padding: 96px 14px 40px;
+  }
+
+  .auth-card {
+    padding: 32px 20px;
+    border-radius: 16px;
+  }
+
+  .auth-field input,
+  .auth-field select {
+    height: 46px;
+    padding: 0 14px;
+    font-size: 13.5px;
+  }
+
+  .auth-check-btn {
+    height: 46px;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 360px) {
+  .auth-container {
+    padding: 76px 8px 28px !important;
+  }
+
+  .auth-card {
+    padding: 24px 11px !important;
+    border-radius: 14px;
+  }
+
+  .auth-header h2 {
+    font-size: 22px;
+  }
+
+  .auth-header p {
+    font-size: 13px;
+  }
+
+  .auth-field label {
+    font-size: 12.5px;
+  }
+
+  .auth-field input,
+  .auth-field select {
+    height: 42px;
+    padding: 0 8px;
+    font-size: 12px;
+    letter-spacing: -0.3px;
+  }
+
+  .auth-field input::placeholder {
+    font-size: 11.5px;
+    letter-spacing: -0.4px;
+  }
+
+  .auth-input-group {
+    gap: 5px;
+  }
+
+  .auth-check-btn {
+    height: 42px;
+    padding: 0 8px;
+    font-size: 11.5px;
+    letter-spacing: -0.4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .auth-submit-btn {
+    height: 44px;
+    font-size: 14px;
+  }
+}
+

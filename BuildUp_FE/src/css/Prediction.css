@@ -1,7 +1,10 @@
 /* ==========================================================================
-   PLUGIN 승부예측 페이지 CSS (프리미어리그 딥 퍼플 & 네온 라임 테마)
+   PLUGIN 승부예측 페이지 CSS
+   - 다크모드 (기본): 프리미어리그 딥 퍼플 & 네온 라임 테마
+   - 라이트모드 (일반): 클린 슬레이트 화이트 & EPL 딥 플럼(#38003c) 테마
    ========================================================================== */
 
+/* ── 메인 컨테이너 (다크모드 기본) ── */
 .prediction-page-container {
   min-height: calc(100vh - 64px);
   background: linear-gradient(135deg, #1b0222 0%, #26022c 50%, #35063d 100%);
@@ -9,14 +12,52 @@
   padding: 40px 20px 80px;
   box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+  position: relative;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* navbar 위 흰 빈 공간을 다크모드 배경색으로 채우는 가상 요소 */
+.prediction-page-container::before {
+  content: '';
+  position: absolute;
+  top: -200px;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: #1b0222;
+  z-index: -1;
+}
+
+/* ── 배경 장식 EPL 사자 엠블럼 (다크모드 기본: 우측 황금 사자) ── */
+.prediction-lion-bg {
+  position: fixed;
+  top: 130px;
+  right: max(-40px, calc(50% - 760px));
+  left: auto;
+  width: 440px;
+  max-width: 32vw;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.16;
+  filter: drop-shadow(0 0 35px rgba(245, 158, 11, 0.4));
+  transition: opacity 0.3s ease, right 0.3s ease, left 0.3s ease, transform 0.3s ease, width 0.3s ease;
+}
+
+.prediction-lion-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  fill: url(#eplChampionGold);
 }
 
 .prediction-page-wrapper {
   max-width: 1200px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
-/* 상단 헤더 영역 */
+/* ── 상단 헤더 영역 ── */
 .prediction-header {
   text-align: center;
   margin-bottom: 36px;
@@ -53,7 +94,137 @@
   line-height: 1.6;
 }
 
-/* 탭 네비게이션 */
+.prediction-header__desc-main {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.prediction-desc-br {
+  display: inline;
+}
+
+.prediction-header__chips {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.prediction-chip {
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #00ff87;
+  letter-spacing: -0.2px;
+}
+
+.prediction-chip--draw {
+  color: #60efff;
+}
+
+.prediction-chip--underdog {
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.prediction-chip-sep {
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 0.8rem;
+}
+
+/* ── 모바일 전용 슬라이더 기본 스타일 (기본 숨김) ── */
+.prediction-mobile-slider {
+  display: none;
+}
+
+.prediction-desktop-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.prediction-slider-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.prediction-slider-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.prediction-slider-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.prediction-slider-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.prediction-slider-counter {
+  font-size: 13px;
+  font-weight: 700;
+  color: #00ff87;
+  letter-spacing: 0.5px;
+}
+
+.prediction-slider-dots {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.prediction-slider-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.prediction-slider-dot.is-active {
+  background: #00ff87;
+  transform: scale(1.3);
+  box-shadow: 0 0 6px #00ff87;
+}
+
+.prediction-slider-hint {
+  text-align: center;
+  font-size: 11.5px;
+  color: #a48eb0;
+  margin-top: 10px;
+  letter-spacing: -0.2px;
+}
+
+/* ── 탭 네비게이션 ── */
 .prediction-tabs {
   display: flex;
   justify-content: center;
@@ -71,6 +242,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
+  font-family: inherit;
 }
 
 .prediction-tab-btn:hover {
@@ -85,7 +257,7 @@
   box-shadow: 0 0 16px rgba(0, 255, 135, 0.4);
 }
 
-/* 메인 레이아웃 그리드 (경기 목록 2fr : 랭킹 1fr) */
+/* ── 메인 레이아웃 그리드 (경기 목록 1fr : 랭킹 340px) ── */
 .prediction-layout {
   display: grid;
   grid-template-columns: 1fr 340px;
@@ -99,22 +271,23 @@
   }
 }
 
-/* 경기 목록 컨테이너 */
+/* ── 경기 목록 컨테이너 ── */
 .prediction-matches-list {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-/* 개별 매치 카드 */
+/* ── 개별 매치 카드 ── */
 .prediction-card {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 22px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .prediction-card:hover {
@@ -146,7 +319,22 @@
   color: #9ca3af;
 }
 
-/* 팀 대진 영역 */
+.prediction-card__badge.is-win {
+  background: rgba(0, 255, 135, 0.2);
+  color: #00ff87;
+}
+
+.prediction-card__badge.is-lose {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.prediction-card__badge.is-wait {
+  background: rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+}
+
+/* ── 팀 대진 영역 ── */
 .prediction-teams {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -211,7 +399,7 @@
   color: #ffffff;
 }
 
-/* 3개 투표 버튼 영역 */
+/* ── 3개 투표 버튼 영역 ── */
 .prediction-buttons {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -232,6 +420,7 @@
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   gap: 4px;
+  font-family: inherit;
 }
 
 .prediction-vote-btn:hover:not(:disabled) {
@@ -267,7 +456,7 @@
   color: #f59e0b;
 }
 
-/* 실시간 투표율 게이지 바 */
+/* ── 실시간 투표율 게이지 바 ── */
 .prediction-vote-bar {
   margin-top: 16px;
   padding-top: 12px;
@@ -305,15 +494,159 @@
   transition: width 0.4s ease;
 }
 
-/* 사이드바 랭킹 카드 */
+/* ── 5개씩 더보기 버튼 영역 ── */
+.prediction-more-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.prediction-more-btn {
+  padding: 13px 32px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.prediction-more-btn:hover {
+  background: rgba(0, 255, 135, 0.12);
+  border-color: #00ff87;
+  color: #00ff87;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 255, 135, 0.25);
+}
+
+/* ── 사이드바 ── */
+.prediction-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 90px;
+}
+
+/* ── 사이드바 랭킹 카드 ── */
 .prediction-ranking-card {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 22px;
-  position: sticky;
-  top: 90px;
+}
+
+/* ── 사이드바 광고 카드 (다크모드 기본) ── */
+.prediction-ad-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 24px 20px 26px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.prediction-ad-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #a795b5;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 4px 12px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.prediction-ad-box {
+  width: 100%;
+  position: relative;
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.prediction-ad-ins {
+  width: 100%;
+  min-height: 320px;
+  position: relative;
+  z-index: 2;
+}
+
+.prediction-ad-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  transition: all 0.2s ease;
+  z-index: 1;
+}
+
+.prediction-ad-placeholder:hover {
+  background: rgba(0, 255, 135, 0.05);
+  border-color: rgba(0, 255, 135, 0.3);
+}
+
+.prediction-ad-icon {
+  font-size: 2.6rem;
+  margin-bottom: 6px;
+}
+
+.prediction-ad-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.prediction-ad-desc {
+  font-size: 0.85rem;
+  color: #baa8c2;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.prediction-ad-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  background: rgba(0, 255, 135, 0.14);
+  border: 1px solid rgba(0, 255, 135, 0.35);
+  color: #00ff87;
+  transition: all 0.2s ease;
+}
+
+.prediction-ad-placeholder:hover .prediction-ad-cta {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 255, 135, 0.25);
 }
 
 .prediction-ranking-card__title {
@@ -408,7 +741,7 @@
   color: #94a3b8;
 }
 
-/* 내 예측 내역 뷰 */
+/* ── 내 예측 내역 뷰 ── */
 .prediction-my-list {
   display: flex;
   flex-direction: column;
@@ -421,3 +754,730 @@
   color: #baa8c2;
   font-size: 0.95rem;
 }
+
+.prediction-my-choice {
+  color: #baa8c2;
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+.prediction-match-title {
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   일반모드 (라이트 모드) — [data-theme='light'] & .is-light
+   마이페이지 / 미니게임 / 로그인과 통일된 클린 화이트 & 딥 플럼 배색
+   ========================================================================== */
+
+.prediction-page-container.is-light,
+[data-theme='light'] .prediction-page-container {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+/* 라이트모드 navbar 위 배경 연장 */
+.prediction-page-container.is-light::before,
+[data-theme='light'] .prediction-page-container::before {
+  background: #f8fafc;
+}
+
+/* 라이트모드 배경 장식 EPL 사자 엠블럼 (일반모드: 좌측 보라색 사자) */
+.prediction-page-container.is-light .prediction-lion-bg,
+[data-theme='light'] .prediction-lion-bg {
+  right: auto;
+  left: max(-40px, calc(50% - 760px));
+  opacity: 0.12;
+  filter: drop-shadow(0 0 25px rgba(56, 0, 60, 0.22));
+}
+
+.prediction-page-container.is-light .prediction-lion-svg,
+[data-theme='light'] .prediction-lion-svg {
+  fill: #38003c;
+}
+
+/* 헤더 영역 */
+.prediction-page-container.is-light .prediction-header__eyebrow,
+[data-theme='light'] .prediction-header__eyebrow {
+  background: #f3e8f8;
+  border-color: #e2d2e4;
+  color: #38003c;
+}
+
+.prediction-page-container.is-light .prediction-header__title,
+[data-theme='light'] .prediction-header__title {
+  background: none;
+  -webkit-text-fill-color: #0f172a;
+  color: #0f172a;
+}
+
+.prediction-page-container.is-light .prediction-header__desc,
+[data-theme='light'] .prediction-header__desc {
+  color: #334155;
+  font-weight: 500;
+}
+
+.prediction-page-container.is-light .prediction-header__desc strong,
+[data-theme='light'] .prediction-header__desc strong {
+  color: #38003c;
+}
+
+/* 라이트모드 헤더 칩 (포인트 뱃지) */
+.prediction-page-container.is-light .prediction-chip,
+[data-theme='light'] .prediction-chip {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+}
+
+.prediction-page-container.is-light .prediction-chip--draw,
+[data-theme='light'] .prediction-chip--draw {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #0369a1;
+}
+
+.prediction-page-container.is-light .prediction-chip--underdog,
+[data-theme='light'] .prediction-chip--underdog {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #b45309;
+}
+
+.prediction-page-container.is-light .prediction-chip-sep,
+[data-theme='light'] .prediction-chip-sep {
+  color: #cbd5e1;
+}
+
+/* 라이트모드 모바일 슬라이더 바 & 컨트롤러 */
+.prediction-page-container.is-light .prediction-slider-bar,
+[data-theme='light'] .prediction-slider-bar {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.prediction-page-container.is-light .prediction-slider-btn,
+[data-theme='light'] .prediction-slider-btn {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+}
+
+.prediction-page-container.is-light .prediction-slider-btn:hover:not(:disabled),
+[data-theme='light'] .prediction-slider-btn:hover:not(:disabled) {
+  background: #38003c;
+  border-color: #38003c;
+  color: #ffffff;
+}
+
+.prediction-page-container.is-light .prediction-slider-btn:disabled,
+[data-theme='light'] .prediction-slider-btn:disabled {
+  opacity: 0.35;
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+.prediction-page-container.is-light .prediction-slider-counter,
+[data-theme='light'] .prediction-slider-counter {
+  color: #38003c;
+  font-weight: 800;
+}
+
+.prediction-page-container.is-light .prediction-slider-dot,
+[data-theme='light'] .prediction-slider-dot {
+  background: #cbd5e1;
+}
+
+.prediction-page-container.is-light .prediction-slider-dot.is-active,
+[data-theme='light'] .prediction-slider-dot.is-active {
+  background: #38003c;
+  box-shadow: 0 0 6px rgba(56, 0, 60, 0.4);
+}
+
+.prediction-page-container.is-light .prediction-slider-hint,
+[data-theme='light'] .prediction-slider-hint {
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* 탭 네비게이션 */
+.prediction-page-container.is-light .prediction-tab-btn,
+[data-theme='light'] .prediction-tab-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+}
+
+.prediction-page-container.is-light .prediction-tab-btn:hover,
+[data-theme='light'] .prediction-tab-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.prediction-page-container.is-light .prediction-tab-btn.is-active,
+[data-theme='light'] .prediction-tab-btn.is-active {
+  background: #38003c;
+  border-color: #38003c;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(56, 0, 60, 0.25);
+}
+
+/* 매치 카드 */
+.prediction-page-container.is-light .prediction-card,
+[data-theme='light'] .prediction-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+}
+
+.prediction-page-container.is-light .prediction-card:hover,
+[data-theme='light'] .prediction-card:hover {
+  border-color: #38003c;
+}
+
+.prediction-page-container.is-light .prediction-card__header,
+[data-theme='light'] .prediction-card__header {
+  border-bottom: 1px solid #f1f5f9;
+  color: #64748b;
+}
+
+.prediction-page-container.is-light .prediction-card__badge,
+[data-theme='light'] .prediction-card__badge {
+  background: #f3e8f8;
+  color: #38003c;
+}
+
+.prediction-page-container.is-light .prediction-card__badge.is-finished,
+[data-theme='light'] .prediction-card__badge.is-finished {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.prediction-page-container.is-light .prediction-card__badge.is-win,
+[data-theme='light'] .prediction-card__badge.is-win {
+  background: #ecfdf5;
+  color: #008a55;
+  border: 1px solid #a7f3d0;
+}
+
+.prediction-page-container.is-light .prediction-card__badge.is-lose,
+[data-theme='light'] .prediction-card__badge.is-lose {
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+}
+
+.prediction-page-container.is-light .prediction-card__badge.is-wait,
+[data-theme='light'] .prediction-card__badge.is-wait {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+/* 팀 대진 */
+.prediction-page-container.is-light .prediction-team__name,
+[data-theme='light'] .prediction-team__name {
+  color: #0f172a;
+}
+
+.prediction-page-container.is-light .prediction-team__rank,
+[data-theme='light'] .prediction-team__rank {
+  color: #64748b;
+}
+
+.prediction-page-container.is-light .prediction-vs,
+[data-theme='light'] .prediction-vs {
+  color: #e11d48;
+  text-shadow: none;
+}
+
+.prediction-page-container.is-light .prediction-score,
+[data-theme='light'] .prediction-score {
+  color: #0f172a;
+}
+
+/* 투표 버튼 */
+.prediction-page-container.is-light .prediction-vote-btn,
+[data-theme='light'] .prediction-vote-btn {
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  color: #1e293b;
+}
+
+.prediction-page-container.is-light .prediction-vote-btn:hover:not(:disabled),
+[data-theme='light'] .prediction-vote-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #38003c;
+  color: #38003c;
+}
+
+.prediction-page-container.is-light .prediction-vote-btn.is-selected,
+[data-theme='light'] .prediction-vote-btn.is-selected {
+  background: #f3e8f8;
+  border-color: #38003c;
+  color: #38003c;
+  box-shadow: 0 0 12px rgba(56, 0, 60, 0.18);
+}
+
+.prediction-page-container.is-light .prediction-vote-btn__point,
+[data-theme='light'] .prediction-vote-btn__point {
+  color: #008a55;
+}
+
+.prediction-page-container.is-light .prediction-vote-btn.is-selected .prediction-vote-btn__point,
+[data-theme='light'] .prediction-vote-btn.is-selected .prediction-vote-btn__point {
+  color: #38003c;
+}
+
+.prediction-page-container.is-light .prediction-vote-btn__point.is-underdog,
+[data-theme='light'] .prediction-vote-btn__point.is-underdog {
+  color: #d97706;
+}
+
+/* 실시간 투표율 바 */
+.prediction-page-container.is-light .prediction-vote-bar,
+[data-theme='light'] .prediction-vote-bar {
+  border-top: 1px dashed #e2e8f0;
+}
+
+.prediction-page-container.is-light .prediction-vote-bar__meta,
+[data-theme='light'] .prediction-vote-bar__meta {
+  color: #64748b;
+}
+
+.prediction-page-container.is-light .prediction-vote-bar__track,
+[data-theme='light'] .prediction-vote-bar__track {
+  background: #e2e8f0;
+}
+
+.prediction-page-container.is-light .prediction-vote-bar__seg-home,
+[data-theme='light'] .prediction-vote-bar__seg-home {
+  background: #38003c;
+}
+
+.prediction-page-container.is-light .prediction-vote-bar__seg-draw,
+[data-theme='light'] .prediction-vote-bar__seg-draw {
+  background: #9333ea;
+}
+
+.prediction-page-container.is-light .prediction-vote-bar__seg-away,
+[data-theme='light'] .prediction-vote-bar__seg-away {
+  background: #e11d48;
+}
+
+/* 더보기 버튼 (라이트모드) */
+.prediction-page-container.is-light .prediction-more-btn,
+[data-theme='light'] .prediction-more-btn {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #38003c;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.prediction-page-container.is-light .prediction-more-btn:hover,
+[data-theme='light'] .prediction-more-btn:hover {
+  background: #f3e8f8;
+  border-color: #38003c;
+  color: #38003c;
+  box-shadow: 0 4px 14px rgba(56, 0, 60, 0.2);
+}
+
+/* 사이드바 랭킹 카드 (라이트모드) */
+.prediction-page-container.is-light .prediction-ranking-card,
+[data-theme='light'] .prediction-ranking-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+}
+
+.prediction-page-container.is-light .prediction-ranking-card__title,
+[data-theme='light'] .prediction-ranking-card__title {
+  color: #0f172a;
+}
+
+.prediction-page-container.is-light .prediction-ranking-card__sub,
+[data-theme='light'] .prediction-ranking-card__sub {
+  color: #64748b;
+}
+
+.prediction-page-container.is-light .prediction-ranking-item,
+[data-theme='light'] .prediction-ranking-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.prediction-page-container.is-light .prediction-ranking-item:hover,
+[data-theme='light'] .prediction-ranking-item:hover {
+  background: #f1f5f9;
+}
+
+.prediction-page-container.is-light .prediction-ranking-item__name,
+[data-theme='light'] .prediction-ranking-item__name {
+  color: #0f172a;
+}
+
+.prediction-page-container.is-light .prediction-ranking-item__meta,
+[data-theme='light'] .prediction-ranking-item__meta {
+  color: #64748b;
+}
+
+.prediction-page-container.is-light .prediction-ranking-item__point,
+[data-theme='light'] .prediction-ranking-item__point {
+  color: #38003c;
+}
+
+.prediction-page-container.is-light .prediction-ranking-item__rank,
+[data-theme='light'] .prediction-ranking-item__rank {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.prediction-page-container.is-light .prediction-ranking-item:nth-child(1) .prediction-ranking-item__rank,
+[data-theme='light'] .prediction-ranking-item:nth-child(1) .prediction-ranking-item__rank {
+  background: #f59e0b;
+  color: #ffffff;
+}
+
+.prediction-page-container.is-light .prediction-ranking-item:nth-child(2) .prediction-ranking-item__rank,
+[data-theme='light'] .prediction-ranking-item:nth-child(2) .prediction-ranking-item__rank {
+  background: #94a3b8;
+  color: #ffffff;
+}
+
+.prediction-page-container.is-light .prediction-ranking-item:nth-child(3) .prediction-ranking-item__rank,
+[data-theme='light'] .prediction-ranking-item:nth-child(3) .prediction-ranking-item__rank {
+  background: #b45309;
+  color: #ffffff;
+}
+
+/* 내 예측 내역 (라이트모드) */
+.prediction-page-container.is-light .prediction-match-title,
+[data-theme='light'] .prediction-match-title {
+  color: #0f172a;
+}
+
+.prediction-page-container.is-light .prediction-my-choice,
+[data-theme='light'] .prediction-my-choice {
+  color: #64748b;
+}
+
+.prediction-page-container.is-light .prediction-my-choice strong,
+[data-theme='light'] .prediction-my-choice strong {
+  color: #38003c;
+}
+
+.prediction-page-container.is-light .prediction-my-empty,
+[data-theme='light'] .prediction-my-empty {
+  color: #64748b;
+}
+
+/* 사이드바 광고 카드 (라이트모드) */
+.prediction-page-container.is-light .prediction-ad-card,
+[data-theme='light'] .prediction-ad-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+}
+
+.prediction-page-container.is-light .prediction-ad-badge,
+[data-theme='light'] .prediction-ad-badge {
+  color: #94a3b8;
+  background: #f1f5f9;
+}
+
+.prediction-page-container.is-light .prediction-ad-placeholder,
+[data-theme='light'] .prediction-ad-placeholder {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+}
+
+.prediction-page-container.is-light .prediction-ad-placeholder:hover,
+[data-theme='light'] .prediction-ad-placeholder:hover {
+  background: #f3e8f8;
+  border-color: #38003c;
+}
+
+.prediction-page-container.is-light .prediction-ad-title,
+[data-theme='light'] .prediction-ad-title {
+  color: #0f172a;
+}
+
+.prediction-page-container.is-light .prediction-ad-desc,
+[data-theme='light'] .prediction-ad-desc {
+  color: #64748b;
+}
+
+.prediction-page-container.is-light .prediction-ad-cta,
+[data-theme='light'] .prediction-ad-cta {
+  background: #f3e8f8;
+  border: 1px solid #e2d2e4;
+  color: #38003c;
+}
+
+.prediction-page-container.is-light .prediction-ad-placeholder:hover .prediction-ad-cta,
+[data-theme='light'] .prediction-ad-placeholder:hover .prediction-ad-cta {
+  background: #38003c;
+  color: #ffffff;
+  border-color: #38003c;
+  box-shadow: 0 4px 12px rgba(56, 0, 60, 0.25);
+}
+
+/* ── EPL 사자 엠블럼 반응형 (화면이 작아져도 다크=우측 / 일반=좌측 사자 선명하게 유지) ── */
+@media (max-width: 1400px) {
+  .prediction-lion-bg {
+    opacity: 0.14;
+    width: 360px;
+  }
+  .prediction-page-container.is-light .prediction-lion-bg,
+  [data-theme='light'] .prediction-lion-bg {
+    opacity: 0.11;
+  }
+}
+
+@media (max-width: 1100px) {
+  .prediction-lion-bg {
+    width: 280px;
+    top: 130px;
+    right: -30px;
+    left: auto;
+    opacity: 0.14;
+  }
+  .prediction-page-container.is-light .prediction-lion-bg,
+  [data-theme='light'] .prediction-lion-bg {
+    left: -30px;
+    right: auto;
+    opacity: 0.11;
+  }
+}
+
+@media (max-width: 768px) {
+  .prediction-lion-bg {
+    width: 210px;
+    top: 115px;
+    right: -25px;
+    left: auto;
+    opacity: 0.14;
+  }
+  .prediction-page-container.is-light .prediction-lion-bg,
+  [data-theme='light'] .prediction-lion-bg {
+    left: -25px;
+    right: auto;
+    opacity: 0.11;
+  }
+}
+
+/* --------------------------------------------------------
+   모바일 전용 반응형 (<= 425px)
+   - 1경기 슬라이더 모드 활성화 & 데스크톱 리스트 숨김
+   - 헤더 안내 문구 2줄 분리 & 칩 3개 컴팩트 레이아웃
+   - 팀명 한 줄 유지 (말줄임 방지 및 폰트/패딩 다이어트)
+   - 랭킹 및 광고가 첫 화면 바로 아래에 보이도록 최적화
+   -------------------------------------------------------- */
+@media (max-width: 425px) {
+  .prediction-page-container {
+    padding: 24px 10px 60px;
+  }
+
+  /* 모바일(<= 425px)에서도 사자 엠블럼 가시성 확보 (다크모드: 우측 / 일반모드: 좌측) */
+  .prediction-lion-bg {
+    width: 145px;
+    top: 95px;
+    right: -20px;
+    left: auto;
+    opacity: 0.15;
+    filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.4));
+  }
+
+  .prediction-page-container.is-light .prediction-lion-bg,
+  [data-theme='light'] .prediction-lion-bg {
+    left: -20px;
+    right: auto;
+    opacity: 0.12;
+    filter: drop-shadow(0 0 16px rgba(56, 0, 60, 0.22));
+  }
+
+  .prediction-header {
+    margin-bottom: 24px;
+  }
+
+  .prediction-header__title {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+  }
+
+  .prediction-desc-br {
+    display: block;
+    height: 4px;
+  }
+
+  .prediction-header__chips {
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .prediction-chip {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+
+  .prediction-chip-sep {
+    display: none;
+  }
+
+  .prediction-tabs {
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .prediction-tab-btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+
+  /* 데스크톱 목록 숨김 -> 모바일 1경기 슬라이더 노출 */
+  .prediction-desktop-list {
+    display: none !important;
+  }
+
+  .prediction-mobile-slider {
+    display: block;
+  }
+
+  /* 매치 카드 컴팩트 다이어트 (팀명 2줄 쪼개짐 원천 방지) */
+  .prediction-card {
+    padding: 14px 10px;
+    border-radius: 14px;
+  }
+
+  .prediction-card__header {
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    font-size: 0.78rem;
+  }
+
+  .prediction-teams {
+    grid-template-columns: 1fr auto 1fr;
+    gap: 4px;
+    margin-bottom: 14px;
+  }
+
+  .prediction-team {
+    gap: 4px;
+  }
+
+  .prediction-team__emblem {
+    width: 32px;
+    height: 32px;
+  }
+
+  .prediction-team__name {
+    font-size: clamp(10.5px, 2.9vw, 12.5px);
+    font-weight: 800;
+    white-space: nowrap;
+    letter-spacing: -0.35px;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: none;
+    display: inline-block;
+  }
+
+  .prediction-team__rank {
+    font-size: 10px;
+  }
+
+  .prediction-vs {
+    font-size: 0.9rem;
+    margin: 0 1px;
+  }
+
+  .prediction-score {
+    font-size: 1.25rem;
+  }
+
+  .prediction-buttons {
+    gap: 5px;
+    margin-top: 12px;
+  }
+
+  .prediction-vote-btn {
+    padding: 8px 4px;
+    border-radius: 10px;
+  }
+
+  .prediction-vote-btn__label {
+    font-size: 12px;
+  }
+
+  .prediction-vote-btn__point {
+    font-size: 10.5px;
+  }
+
+  .prediction-vote-bar {
+    margin-top: 12px;
+    padding-top: 10px;
+  }
+
+  .prediction-vote-bar__meta {
+    font-size: 11px;
+  }
+
+  /* 사이드바 (랭킹 & 광고) 간격 최적화 */
+  .prediction-layout {
+    gap: 20px;
+  }
+
+  .prediction-ranking-card {
+    padding: 18px 14px;
+    border-radius: 14px;
+  }
+
+  .prediction-ranking-card__title {
+    font-size: 1.15rem;
+  }
+
+  .prediction-ad-card {
+    border-radius: 14px;
+  }
+}
+
+@media (max-width: 380px) {
+  .prediction-team {
+    gap: 3px;
+  }
+
+  .prediction-team__name {
+    font-size: 11px;
+    letter-spacing: -0.45px;
+  }
+
+  .prediction-team__emblem {
+    width: 28px;
+    height: 28px;
+  }
+
+  .prediction-team__rank {
+    font-size: 9.5px;
+  }
+}
+
+@media (max-width: 330px) {
+  .prediction-team__name {
+    font-size: 10px;
+    letter-spacing: -0.5px;
+  }
+
+  .prediction-team__emblem {
+    width: 25px;
+    height: 25px;
+  }
+
+  .prediction-vote-btn__label {
+    font-size: 11px;
+  }
+
+  .prediction-vote-btn__point {
+    font-size: 10px;
+  }
+}
+
+
