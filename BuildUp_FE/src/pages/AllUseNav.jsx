@@ -89,16 +89,17 @@ export default function AllUseNav() {
           {/* 다크모드 / 일반모드 전환 아이콘 토글 */}
           <button
             type="button"
-            className="user-nav__theme-btn"
+            className={`user-nav__theme-btn ${currentTheme === 'dark' ? 'is-dark' : 'is-light'}`}
             onClick={() => dispatch(toggleTheme())}
             title={currentTheme === 'dark' ? '일반모드(라이트)로 전환' : '다크모드로 전환'}
             aria-label={currentTheme === 'dark' ? '일반모드(라이트)로 전환' : '다크모드로 전환'}
           >
-            {currentTheme === 'dark' ? (
+            <span className="user-nav__theme-icon user-nav__theme-icon--sun">
               <IconSun size={17} color="#ffd700" />
-            ) : (
+            </span>
+            <span className="user-nav__theme-icon user-nav__theme-icon--moon">
               <IconMoon size={17} color="#d886ed" />
-            )}
+            </span>
           </button>
           {isLoggedIn ? <>
             <button type="button" onClick={handleLogout}>로그아웃</button>
