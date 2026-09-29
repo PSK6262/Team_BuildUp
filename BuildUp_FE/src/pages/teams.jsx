@@ -266,7 +266,7 @@ export function StandingsPage() {
   }
 
   return (
-    <main className="teams-page-container">
+    <main className="teams-page-container teams-page-container--rankings">
       <div className="teams-page-wrapper">
         <header className="teams-page-header">
           <span className="teams-page-eyebrow">PREMIER LEAGUE{tab === 'league' ? ' · 2026/27' : ''}</span>
@@ -526,7 +526,7 @@ function StandingsTable({ season }) {
                   {row.emblemUrl && <img src={row.emblemUrl} alt="" width="28" height="28" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} />}
                   <span style={{ fontWeight: 700 }}>{teamKor}</span>
                   {row.teamName && teamKor !== row.teamName && (
-                    <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '5px' }}>({row.teamName})</span>
+                    <span style={{ fontSize: '11px', color: 'var(--ranking-muted, #64748b)', marginLeft: '5px' }}>({row.teamName})</span>
                   )}
                 </a></th>
                 {standingsColumns.map(([ field ]) => (

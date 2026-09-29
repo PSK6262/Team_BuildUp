@@ -1,3 +1,132 @@
+/* Keep ranking themes scoped separately from the team directory. */
+body:has(.teams-page-container--rankings) {
+  background: #f8fafc;
+}
+
+.teams-page-container--rankings {
+  color-scheme: light;
+  --ranking-muted: #64748b;
+}
+
+html[data-theme='dark'] body:has(.teams-page-container--rankings) {
+  background: radial-gradient(ellipse at 15% 0%, #291131 0%, transparent 48%), #0c0a14;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings {
+  color-scheme: dark;
+  --ranking-muted: #b5adc4;
+  background: transparent;
+  color: #f4f1fa;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings .teams-page-title {
+  color: #f4f1fa;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings .teams-page-eyebrow {
+  color: #00e58a;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings :is(.teams-page-desc, .standings-note, .standings-summary, .standings-message, .ranking-player-events time) {
+  color: var(--ranking-muted);
+}
+
+html[data-theme='dark'] .teams-page-container--rankings .ranking-tabs {
+  background: #100c18;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings .ranking-tabs button {
+  color: #b5adc4;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings .ranking-tabs button:hover {
+  background: #352140;
+  color: #f4f1fa;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings .ranking-tabs button[aria-selected='true'] {
+  background: #762578;
+  color: #fff;
+  box-shadow: 0 3px 8px #0003;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings :is(.standings-scroll, .ranking-player-dialog) {
+  background: #191321;
+  border-color: #3b304a;
+  color: #f4f1fa;
+  box-shadow: 0 8px 24px #0002;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings :is(.standings-table th, .standings-table td, .ranking-player-events li) {
+  border-color: #33293f;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings .standings-table thead {
+  background: #38003c;
+  color: #fff;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings .standings-table tbody tr:nth-child(even) {
+  background: #1e1628;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings .standings-table tbody tr:hover {
+  background: #2b1c36;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings :is(.standings-rank, .standings-points) {
+  background: #30203c;
+  color: #e3ccee;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings .standings-points {
+  color: #6df2bc;
+  background: #102e28;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings :is(.standings-message button, .ranking-player-close, .standings-toolbar select) {
+  background: #271b33;
+  border: 1px solid #725682;
+  color: #eadff4;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings :is(.standings-message button, .ranking-player-close):hover {
+  background: #352140;
+  border-color: #9475aa;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings .ranking-player-photo {
+  background: #241b30;
+  color: #b5adc4;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings .ranking-player-events strong {
+  color: #cba4f5;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings .ranking-player-dialog::backdrop {
+  background: #0c0a14b3;
+}
+
+html[data-theme='dark'] .teams-page-container--rankings :is(button, a, select, [tabindex]):focus-visible {
+  outline: 3px solid #00e58a;
+}
+
+@media (max-width: 600px) {
+  html[data-theme='dark'] .teams-page-container--rankings .standings-table tbody tr > :nth-child(2) {
+    background: #191321;
+    box-shadow: 3px 0 5px #0003;
+  }
+
+  html[data-theme='dark'] .teams-page-container--rankings .standings-table tbody tr:nth-child(even) > :nth-child(2) {
+    background: #1e1628;
+  }
+
+  html[data-theme='dark'] .teams-page-container--rankings .standings-table tbody tr:hover > :nth-child(2) {
+    background: #2b1c36;
+  }
+}
+
 .ranking-tabs {
   display: flex;
   gap: 8px;

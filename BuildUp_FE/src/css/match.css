@@ -860,6 +860,14 @@
 }
 
 /* Follow the navigation theme using the community palette. */
+body:has(.match-page-container) {
+  background: #f8fafc;
+}
+
+html[data-theme='dark'] body:has(.match-page-container) {
+  background: radial-gradient(ellipse at 15% 0%, #291131 0%, transparent 48%), #0c0a14;
+}
+
 html[data-theme='dark'] .match-page-container {
   color-scheme: dark;
   --match-warning-bg: #302515;
@@ -867,7 +875,7 @@ html[data-theme='dark'] .match-page-container {
   --match-warning-text: #ffe0a3;
   --match-warning-muted: #e5c58f;
   --match-accent-text: #cba4f5;
-  background: radial-gradient(ellipse at 15% 0%, #291131 0%, transparent 48%), #0c0a14;
+  background: transparent;
   color: #f4f1fa;
 }
 
