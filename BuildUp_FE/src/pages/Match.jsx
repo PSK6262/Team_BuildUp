@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import teamDbFallback from '../data/teamDbFallback.json'
 import { getTeams } from '../api/teamApi.js'
 import FcManagerModeModal from '../components/match/FcManagerModeModal.jsx'
@@ -375,11 +375,47 @@ export default function Match() {
     return result
   }, [ matches, selectedSeason, selectedTeamId, filterMode, selectedMonth, selectedRound ])
 
+  const hasFocusedScrolledRef = useRef(false)
+
   useEffect(() => {
     setVisibleCount(MATCH_PAGE_SIZE)
   }, [selectedSeason, selectedTeamId, filterMode, selectedMonth, selectedRound, reload])
 
-  const visibleMatches = filteredMatches.slice(0, visibleCount)
+  // 애정팀 예정경기 클릭(?matchId=...)으로 진입 시 해당 경기가 있는 위치까지 더보기 목록을 자동 확장
+  const focusedMatchIndex = useMemo(() => {
+    if (!focusedMatchId) return -1
+    return filteredMatches.findIndex((m) => Number(m.matchId) === focusedMatchId)
+  }, [focusedMatchId, filteredMatches])
+
+  const requiredVisibleForFocus =
+    !hasFocusedScrolledRef.current && focusedMatchIndex >= 0
+      ? Math.ceil((focusedMatchIndex + 1) / MATCH_PAGE_SIZE) * MATCH_PAGE_SIZE
+      : MATCH_PAGE_SIZE
+
+  const effectiveVisibleCount = Math.max(visibleCount, requiredVisibleForFocus)
+  const visibleMatches = filteredMatches.slice(0, effectiveVisibleCount)
+
+  useEffect(() => {
+    if (!focusedMatchId || loading || focusedMatchIndex < 0 || hasFocusedScrolledRef.current) {
+      return
+    }
+
+    const neededCount = Math.ceil((focusedMatchIndex + 1) / MATCH_PAGE_SIZE) * MATCH_PAGE_SIZE
+    if (visibleCount < neededCount) {
+      setVisibleCount(neededCount)
+    }
+
+    const timer = setTimeout(() => {
+      const targetEl = document.getElementById(`match-card-${focusedMatchId}`)
+      if (targetEl) {
+        hasFocusedScrolledRef.current = true
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        targetEl.focus({ preventScroll: true })
+      }
+    }, 120)
+
+    return () => clearTimeout(timer)
+  }, [focusedMatchId, focusedMatchIndex, loading, visibleCount])
 
   // 승/패 판정 도우미
   const getMatchOutcome = (m) => {
@@ -749,7 +785,9 @@ export default function Match() {
               return (
                 <article
                   key={match.matchId}
-                  className="match-card"
+                  id={`match-card-${match.matchId}`}
+                  tabIndex={isFocusedMatch ? -1 : undefined}
+                  className={`match-card ${isFocusedMatch ? 'match-card--focused' : ''}`}
                 >
                   {/* 일시 및 라운드 태그 */}
                   <div className="match-card__datetime">
@@ -851,7 +889,7 @@ export default function Match() {
               <button
                 type="button"
                 className="match-load-more"
-                onClick={() => setVisibleCount((count) => count + MATCH_PAGE_SIZE)}
+                onClick={() => setVisibleCount(effectiveVisibleCount + MATCH_PAGE_SIZE)}
               >
                 더보기 ({visibleMatches.length} / {filteredMatches.length})
               </button>
