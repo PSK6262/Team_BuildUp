@@ -1,5 +1,5 @@
 import React from 'react';
-
+import { getTeamTheme } from '../../constants/teamTheme.js';
 
 function getHighResEmblemUrl(url) {
   if (!url || typeof url !== 'string') return '';
@@ -8,11 +8,19 @@ function getHighResEmblemUrl(url) {
 
 export default function TeamCard({ team }) {
   const highResEmblem = getHighResEmblemUrl(team.emblemUrl);
+  const theme = getTeamTheme(team);
+  const isWhiteHex = (theme.hex || '').toUpperCase() === '#FFFFFF';
 
   return (
     <a
       href={`/plug/team/${team.teamId}`}
       className="team-grid-card"
+      style={{
+        '--team-hex': theme.hex,
+        '--team-glow': theme.glow,
+        '--team-hex-light': isWhiteHex ? '#260E36' : theme.hex,
+        '--team-glow-light': isWhiteHex ? 'rgba(38, 14, 54, 0.32)' : theme.glow
+      }}
       title={`${team.teamNameKor || team.teamName} 상세 소개 보기`}
     >
       <div className="team-grid-card__emblem-wrap">
@@ -34,4 +42,5 @@ export default function TeamCard({ team }) {
 }
 
 export { TeamCard };
+
 

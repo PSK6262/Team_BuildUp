@@ -21,9 +21,9 @@ function getInitialSubTitleFontSize(name) {
   return 14; // Brighton & Hove Albion FC (25)
 }
 
-// 고해상도 엠블럼 URL 생성 (SVG 벡터 우선, fallback PNG)
+// 고해상도 엠블럼 URL 생성 (리버풀 t14는 DB 원본 레드 엠블럼 통일을 위해 PNG 사용)
 function getEmblemSvgUrl(url) {
-  if (!url) return '';
+  if (!url || url.includes('/t14.')) return '';
   return url.replace('/50/', '/').replace('.png', '.svg');
 }
 

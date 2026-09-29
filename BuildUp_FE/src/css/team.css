@@ -1211,3 +1211,327 @@ body:has(.team-container) {
     transform: scale(1) translateY(0);
   }
 }
+
+/* ========================================================
+   각 팀 소개 페이지 라이트 모드 (Light Mode - Lavender Tint) 전용 스타일
+   - 다크 모드([data-theme='dark'])에서는 기존의 다크 퍼플 & 다크 글래스모피즘 유지
+   - 라이트 모드([data-theme='light']) 전환 시 라벤더-바이올렛 컬러 토큰 적용
+   ======================================================== */
+html[data-theme='light'] body:has(.team-container) {
+  background-color: #F4F6FA;
+}
+
+.team-container.team-container--light,
+[data-theme='light'] .team-container {
+  background: #F4F6FA;
+  color: #260E36;
+}
+
+.team-container--loading.team-container--light,
+[data-theme='light'] .team-container--loading {
+  background: #F4F6FA;
+  color: #705584;
+}
+
+.team-container--light .team-ambient-bleed,
+[data-theme='light'] .team-ambient-bleed {
+  opacity: 0;
+}
+
+.team-container--light .team-left,
+[data-theme='light'] .team-left {
+  background: #241432;
+}
+
+.team-container--light .team-emblem-bg-overlay,
+[data-theme='light'] .team-emblem-bg-overlay {
+  background: linear-gradient(
+    180deg,
+    rgba(38, 14, 54, 0.72) 0%,
+    rgba(38, 14, 54, 0.14) 40%,
+    rgba(38, 14, 54, 0.88) 100%
+  );
+}
+
+.team-container--light .team-right,
+[data-theme='light'] .team-right {
+  background: #F4F6FA;
+  scrollbar-color: #CEBFE0 transparent;
+}
+
+.team-container--light .team-right::-webkit-scrollbar-thumb,
+[data-theme='light'] .team-right::-webkit-scrollbar-thumb {
+  background-color: #CEBFE0;
+}
+
+.team-container--light .team-right::-webkit-scrollbar-thumb:hover,
+[data-theme='light'] .team-right::-webkit-scrollbar-thumb:hover {
+  background-color: #705584;
+}
+
+.team-container--light .team-right-nav,
+[data-theme='light'] .team-right-nav {
+  border-bottom: 1px solid #CEBFE0;
+}
+
+.team-container--light .team-back-link,
+.team-container--light .team-nav-arrow,
+[data-theme='light'] .team-back-link,
+[data-theme='light'] .team-nav-arrow {
+  color: #705584;
+  background: #F3EEF9;
+  border: 1px solid #CEBFE0;
+  box-shadow: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.team-container--light .team-back-link:hover,
+.team-container--light .team-nav-arrow:hover,
+[data-theme='light'] .team-back-link:hover,
+[data-theme='light'] .team-nav-arrow:hover {
+  color: #260E36;
+  background: #F3EEF9;
+  border: 1px solid #E90052;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 94, 122, 0.15);
+}
+
+.team-container--light .team-nav-divider,
+[data-theme='light'] .team-nav-divider {
+  color: #CEBFE0;
+}
+
+.team-container--light .team-stadium-name,
+.team-container--light .team-history-title,
+.team-container--light .team-squad-title,
+.team-container--light .team-group-title,
+[data-theme='light'] .team-stadium-name,
+[data-theme='light'] .team-history-title,
+[data-theme='light'] .team-squad-title,
+[data-theme='light'] .team-group-title {
+  color: #260E36;
+}
+
+.team-container--light .team-stadium-desc,
+[data-theme='light'] .team-stadium-desc {
+  color: #705584;
+}
+
+.team-container--light .team-section-divider,
+[data-theme='light'] .team-section-divider {
+  background: #CEBFE0;
+}
+
+.team-container--light .team-history-text,
+[data-theme='light'] .team-history-text {
+  color: #260E36;
+}
+
+.team-container--light .team-squad-subtitle,
+.team-container--light .team-group-code,
+[data-theme='light'] .team-squad-subtitle,
+[data-theme='light'] .team-group-code {
+  color: #705584;
+  text-shadow: none;
+}
+
+.team-container--light .team-manager-card,
+[data-theme='light'] .team-manager-card {
+  background: #F3EEF9;
+  border: 1px solid #CEBFE0;
+  box-shadow: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.team-container--light .team-manager-card:hover,
+[data-theme='light'] .team-manager-card:hover {
+  background: #F3EEF9;
+  border: 1px solid #E90052;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 94, 122, 0.15);
+}
+
+.team-container--light .team-manager-name,
+[data-theme='light'] .team-manager-name {
+  color: #260E36;
+}
+
+.team-container--light .team-manager-name-en,
+[data-theme='light'] .team-manager-name-en {
+  color: #705584;
+}
+
+.team-container--light .team-manager-nat-badge,
+[data-theme='light'] .team-manager-nat-badge {
+  color: #705584;
+  background: #F4F6FA;
+  border: 1px solid #CEBFE0;
+}
+
+.team-container--light .team-position-tabs,
+[data-theme='light'] .team-position-tabs {
+  background: #F3EEF9;
+  border: 1px solid #CEBFE0;
+}
+
+.team-container--light .team-pos-tab,
+[data-theme='light'] .team-pos-tab {
+  color: #705584;
+}
+
+.team-container--light .team-pos-tab:hover,
+[data-theme='light'] .team-pos-tab:hover {
+  color: #260E36;
+}
+
+.team-container--light .team-pos-tab.is-active,
+[data-theme='light'] .team-pos-tab.is-active {
+  background: #F4F6FA;
+  color: #260E36;
+  border: 1px solid #CEBFE0;
+  box-shadow: none;
+}
+
+.team-container--light .team-group-header,
+[data-theme='light'] .team-group-header {
+  border-bottom: 1px solid #CEBFE0;
+}
+
+.team-container--light .team-group-count,
+[data-theme='light'] .team-group-count {
+  color: #705584;
+  background: #F3EEF9;
+  border: 1px solid #CEBFE0;
+}
+
+.team-container--light .team-player-card,
+[data-theme='light'] .team-player-card {
+  background: #F3EEF9;
+  border: 1px solid #CEBFE0;
+  box-shadow: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.team-container--light .team-player-card:hover,
+.team-container--light .team-player-card:focus-visible,
+[data-theme='light'] .team-player-card:hover,
+[data-theme='light'] .team-player-card:focus-visible {
+  background: #F3EEF9;
+  border: 1px solid #E90052;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 94, 122, 0.15);
+}
+
+.team-container--light .team-player-name,
+[data-theme='light'] .team-player-name {
+  color: #260E36;
+}
+
+.team-container--light .team-player-name-en,
+[data-theme='light'] .team-player-name-en {
+  color: #705584;
+}
+
+.team-container--light .team-player-nat-pill,
+[data-theme='light'] .team-player-nat-pill {
+  color: #705584;
+  background: #F4F6FA;
+  border: 1px solid #CEBFE0;
+}
+
+.team-container--light .badge-fw,
+[data-theme='light'] .badge-fw {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.team-container--light .badge-mf,
+[data-theme='light'] .badge-mf {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.team-container--light .badge-df,
+[data-theme='light'] .badge-df {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+
+.team-container--light .badge-gk,
+[data-theme='light'] .badge-gk {
+  background: #faf5ff;
+  color: #9333ea;
+  border: 1px solid #e9d5ff;
+}
+
+/* 선수 스탯 모달 라이트 모드 */
+[data-theme='light'] .player-stats-modal-backdrop {
+  background: rgba(38, 14, 54, 0.45);
+}
+
+[data-theme='light'] .player-stats-modal-card {
+  background: #F3EEF9;
+  border: 1px solid #CEBFE0;
+  color: #260E36;
+  box-shadow: 0 12px 32px rgba(107, 94, 122, 0.2);
+}
+
+[data-theme='light'] .player-stats-modal-close {
+  background: #F4F6FA;
+  border: 1px solid #CEBFE0;
+  color: #705584;
+}
+
+[data-theme='light'] .player-stats-modal-close:hover {
+  background: #F3EEF9;
+  color: #E90052;
+  border-color: #E90052;
+}
+
+[data-theme='light'] .player-stats-modal-eyebrow {
+  color: #705584;
+}
+
+[data-theme='light'] .player-stats-name-kor {
+  color: #260E36;
+}
+
+[data-theme='light'] .player-stats-name-en {
+  color: #705584;
+}
+
+[data-theme='light'] .position-desc-line,
+[data-theme='light'] .player-stats-nat-name {
+  color: #260E36;
+}
+
+[data-theme='light'] .player-stats-modal-divider {
+  background: #CEBFE0;
+}
+
+[data-theme='light'] .player-stat-item {
+  background: #F4F6FA;
+  border: 1px solid #CEBFE0;
+}
+
+[data-theme='light'] .player-stat-item:hover {
+  border-color: #E90052;
+  background: #F3EEF9;
+}
+
+[data-theme='light'] .player-stat-item .stat-label {
+  color: #705584;
+}
+
+[data-theme='light'] .stat-item-goal .stat-value {
+  color: #059669;
+}
+
+[data-theme='light'] .stat-item-assist .stat-value {
+  color: #9333ea;
+}
+
+
