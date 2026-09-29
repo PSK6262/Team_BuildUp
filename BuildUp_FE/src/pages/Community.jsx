@@ -7,15 +7,12 @@ import '../css/Community.css'
 
 const PAGE_SIZE = 10
 
-// 목록에서는 제목을 30자까지 표시하고 댓글이 있으면 제목 뒤에 개수를 붙입니다.
+// 목록에서는 제목을 30자까지 표시합니다.
 function formatPostTitle(title, commentCount) {
   const characters = Array.from(title || '')
   const isTruncated = characters.length > 30
   const visibleTitle = isTruncated ? `${characters.slice(0, 30).join('')}...` : characters.join('')
-  const count = Number(commentCount) || 0
-
-  if (count === 0) return visibleTitle
-  return `${visibleTitle}${isTruncated ? '' : ' '}(${count})`
+  return <span className="community__title-with-comments"><span className="community__title-text">{visibleTitle}</span>{Number(commentCount) > 0 && <span className="community__comment-count" aria-label={`댓글 ${commentCount}개`}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6 4V6a2 2 0 0 1 2-2Z" /></svg>{commentCount}</span>}</span>
 }
 
 // 운영체제 기본 선택창 대신 커뮤니티 디자인과 동일한 드롭다운을 표시합니다.
@@ -236,14 +233,14 @@ export default function Community({ selectedTeam = null }) {
       <div className="community__toolbar">
         <p role="status">{postsLoading ? '불러오는 중' : keyword ? `“${keyword}” 검색 결과` : selectedTeam ? `${selectedTeamName} 게시글` : board === 'showcase' ? '나만의 팀 자랑글' : '통합 게시글'} <strong>{totalCount}</strong>개</p>
         <div className="community__toolbar-actions">
-          <a className="community__main-link community__write-link" href={`/plug/community/write?board=${selectedTeam ? 'team' : board === 'showcase' ? 'showcase' : 'free'}`}>글쓰기 <span aria-hidden="true">＋</span></a>
+          <a className="community__main-link community__write-link" href={`/plug/community/write?board=${selectedTeam ? 'team' : board === 'showcase' ? 'showcase' : 'free'}`}>글쓰기</a>
         </div>
       </div>
       {(error || teamMatchMissing) && <p className="community__form-error" role="alert">{error || '선택한 구단을 DB에서 찾을 수 없습니다.'}</p>}
       <div className="community__table-wrap">
         <table className="community__table community__integrated-table">
           <caption className="community__sr-only">자유, 팀별 및 나만의 팀 자랑 게시글 목록</caption>
-          <thead><tr><th scope="col" className="community__number">번호</th><th scope="col">분류·팀</th><th scope="col">제목</th><th scope="col">조회수</th><th scope="col">추천수</th></tr></thead>
+          <thead><tr><th scope="col" className="community__number">번호</th><th scope="col">분류·팀</th><th scope="col">제목</th><th scope="col">작성자</th><th scope="col">조회수</th><th scope="col">추천수</th></tr></thead>
           <tbody>
             {posts.map((post) => <tr key={post.postId}>
               <td className="community__number">{post.postId}</td>
@@ -258,10 +255,11 @@ export default function Community({ selectedTeam = null }) {
                   {formatPostTitle(post.title, post.commentCount)}
                 </a>
               </td>
+              <td className="community__author"><span title={post.nickname || '알 수 없음'}>{post.nickname || '알 수 없음'}</span></td>
               <td>{post.viewCount}</td>
               <td>{post.likeCount}</td>
             </tr>)}
-            {!postsLoading && !posts.length && <tr><td colSpan={5} className="community__empty">등록된 게시글이 없습니다.</td></tr>}
+            {!postsLoading && !posts.length && <tr><td colSpan={6} className="community__empty">등록된 게시글이 없습니다.</td></tr>}
           </tbody>
         </table>
       </div>
