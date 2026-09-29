@@ -7,16 +7,25 @@
 .auth-container {
   display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: calc(100vh - 120px);
-  margin-top: -98px;
-  padding: 120px 20px 48px;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 130px 20px 60px;
   box-sizing: border-box;
   font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
   transition: background 0.25s ease, color 0.25s ease;
   position: relative;
-  overflow: hidden;
   z-index: 10;
+}
+
+/* navbar 위의 흰 빈 공간을 배경색으로 채우는 가상 요소 */
+.auth-container::before {
+  content: '';
+  position: absolute;
+  top: -200px;
+  left: 0;
+  right: 0;
+  height: 200px;
+  z-index: -1;
 }
 
 /* --------------------------------------------------------
@@ -32,6 +41,12 @@
     linear-gradient(160deg, #27062c 0%, #1c0320 42%, #120115 100%);
   color: #ffffff;
 }
+
+.auth-container.auth-dark-mode::before,
+[data-theme='dark'] .auth-container::before {
+  background: #27062c;
+}
+
 
 .auth-card {
   width: 100%;
@@ -311,6 +326,11 @@
 [data-theme='light'] .auth-container {
   background: #f8fafc;
   color: #0f172a;
+}
+
+.auth-container.auth-light-mode::before,
+[data-theme='light'] .auth-container::before {
+  background: #f8fafc;
 }
 
 .auth-container.auth-light-mode .auth-card,

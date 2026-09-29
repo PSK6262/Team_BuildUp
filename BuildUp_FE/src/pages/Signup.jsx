@@ -1,26 +1,19 @@
 import { useState, useEffect, useRef } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { fetchTeams } from '../store/teamSlice.js'
+import { useSelector } from 'react-redux'
+import '../css/Auth.css'
 
 const EMAIL_REGEX = /^[a-zA-Z0-9](?!.*\.\.)[a-zA-Z0-9._-]{2,28}[a-zA-Z0-9]@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 const LOGIN_ID_REGEX = /^[a-z0-9]{4,20}$/
 const NICKNAME_REGEX = /^[가-힣a-zA-Z0-9]{2,20}$/
 
 export default function Signup() {
-  const dispatch = useDispatch()
-  const teamList = useSelector((state) => state.team.teams)
+  const currentTheme = useSelector((state) => state.theme?.mode || 'dark')
 
   const [loginId, setLoginId] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [nickname, setNickname] = useState('')
   const [email, setEmail] = useState('')
-  const [favoriteTeamId, setFavoriteTeamId] = useState('')
-
-  // 실제 DB 구단 목록 조회 (Redux Thunk)
-  useEffect(() => {
-    dispatch(fetchTeams())
-  }, [dispatch])
 
   // 중복확인 상태 관리
   const [idChecked, setIdChecked] = useState(false)
@@ -187,8 +180,7 @@ export default function Signup() {
           loginId: loginId.trim(),
           password,
           nickname: nickname.trim(),
-          email: email.trim(),
-          favoriteTeamId: favoriteTeamId ? Number(favoriteTeamId) : null
+          email: email.trim()
         })
       })
 
@@ -212,13 +204,13 @@ export default function Signup() {
   if (isConfirmMode) {
     if (confirmStatus === 'loading') {
       return (
-        <div className="auth-container">
+        <div className={`auth-container ${currentTheme === 'light' ? 'auth-light-mode' : 'auth-dark-mode'}`}>
           <div className="auth-card" style={{ textAlign: 'center', padding: '44px 32px' }}>
             <div style={{ fontSize: '52px', marginBottom: '16px' }}>⏳</div>
-            <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#1f2a37', margin: '0 0 10px 0' }}>
+            <h2 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 10px 0' }}>
               이메일 인증 확인 중
             </h2>
-            <p style={{ color: '#6b7280', fontSize: '15px', lineHeight: '1.6', margin: '0' }}>
+            <p style={{ fontSize: '15px', lineHeight: '1.6', margin: '0' }}>
               회원가입 인증키를 검증하고 있습니다.<br />
               잠시만 기다려주세요...
             </p>
@@ -229,13 +221,13 @@ export default function Signup() {
 
     if (confirmStatus === 'success') {
       return (
-        <div className="auth-container">
+        <div className={`auth-container ${currentTheme === 'light' ? 'auth-light-mode' : 'auth-dark-mode'}`}>
           <div className="auth-card" style={{ textAlign: 'center', padding: '44px 32px' }}>
             <div style={{ fontSize: '52px', marginBottom: '16px' }}>🎉</div>
-            <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#1f2a37', margin: '0 0 12px 0' }}>
+            <h2 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 12px 0' }}>
               회원가입 완료!
             </h2>
-            <p style={{ color: '#4b5563', fontSize: '15px', lineHeight: '1.6', wordBreak: 'keep-all', margin: '0 0 28px 0' }}>
+            <p style={{ fontSize: '15px', lineHeight: '1.6', wordBreak: 'keep-all', margin: '0 0 28px 0' }}>
               이메일 인증이 성공적으로 완료되었습니다.<br />
               지금 로그인하여 <strong>PL:UG</strong>의 모든 서비스를 즐겨보세요!
             </p>
@@ -261,12 +253,12 @@ export default function Signup() {
       )
     }
 
-    // error (실제 실패 시 깔끔하고 안정적인 화면)
+    // error
     return (
-      <div className="auth-container">
+      <div className={`auth-container ${currentTheme === 'light' ? 'auth-light-mode' : 'auth-dark-mode'}`}>
         <div className="auth-card" style={{ textAlign: 'center', padding: '44px 32px' }}>
           <div style={{ fontSize: '52px', marginBottom: '16px' }}>⚠️</div>
-          <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#1f2a37', margin: '0 0 12px 0' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 12px 0' }}>
             인증 실패
           </h2>
           <p style={{ color: '#dc2626', fontSize: '15px', lineHeight: '1.6', wordBreak: 'keep-all', margin: '0 0 28px 0' }}>
@@ -290,21 +282,7 @@ export default function Signup() {
             </a>
             <a
               href="/plug/login"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textDecoration: 'none',
-                height: '44px',
-                backgroundColor: '#f3f4f6',
-                color: '#374151',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: '600',
-                border: '1px solid #d1d5db',
-                transition: 'background-color 0.2s',
-                whiteSpace: 'nowrap'
-              }}
+              className="auth-secondary-btn"
             >
               로그인 화면으로 이동
             </a>
@@ -317,18 +295,18 @@ export default function Signup() {
   // 2. 가입 요청 완료 후 인증 메일 발송 안내 화면
   if (signupMailSent) {
     return (
-      <div className="auth-container">
+      <div className={`auth-container ${currentTheme === 'light' ? 'auth-light-mode' : 'auth-dark-mode'}`}>
         <div className="auth-card" style={{ textAlign: 'center', padding: '44px 32px' }}>
           <div style={{ fontSize: '52px', marginBottom: '16px' }}>📧</div>
-          <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#1f2a37', margin: '0 0 12px 0' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 12px 0' }}>
             인증 메일이 발송되었습니다!
           </h2>
-          <p style={{ marginTop: '16px', lineHeight: '1.7', color: '#4b5563', fontSize: '15px', wordBreak: 'keep-all' }}>
-            <strong style={{ color: '#16744b' }}>{sentEmail}</strong> (으)로 가입 인증 메일을 보냈습니다.<br />
+          <p style={{ marginTop: '16px', lineHeight: '1.7', fontSize: '15px', wordBreak: 'keep-all' }}>
+            <strong style={{ color: currentTheme === 'light' ? '#38003c' : '#00ff87' }}>{sentEmail}</strong> (으)로 가입 인증 메일을 보냈습니다.<br />
             수신된 이메일의 <strong>[회원가입 완료하기]</strong> 링크를 클릭하시면<br />
             회원가입이 최종 완료됩니다. (30분간 유효)
           </p>
-          <p style={{ marginTop: '14px', fontSize: '13px', color: '#9ca3af' }}>
+          <p style={{ marginTop: '14px', fontSize: '13px', opacity: 0.6 }}>
             ※ 메일이 오지 않은 경우 스팸 메일함을 확인해주세요.
           </p>
           <div style={{ marginTop: '28px' }}>
@@ -354,7 +332,7 @@ export default function Signup() {
   }
 
   return (
-    <div className="auth-container">
+    <div className={`auth-container ${currentTheme === 'light' ? 'auth-light-mode' : 'auth-dark-mode'}`}>
       <div className="auth-card auth-card--signup">
         <div className="auth-header">
           <h2>회원가입</h2>
@@ -375,7 +353,6 @@ export default function Signup() {
                 maxLength={20}
                 value={loginId}
                 onChange={(e) => {
-                  // 공백만 제거 (형식 위반은 중복확인 시 안내)
                   const cleaned = e.target.value.replace(/\s/g, '')
                   setLoginId(cleaned)
                   setIdChecked(false)
@@ -472,23 +449,6 @@ export default function Signup() {
                 {EMAIL_REGEX.test(email.trim()) ? '✓ 올바른 이메일 형식입니다.' : '✕ 올바른 이메일 형식이 아닙니다. (영문/숫자 시작·끝, 특수문자 . _ - 허용, 4~30자)'}
               </span>
             )}
-          </div>
-
-          {/* 선호 구단 선택 */}
-          <div className="auth-field">
-            <label htmlFor="signupTeam">응원 구단 (선택)</label>
-            <select
-              id="signupTeam"
-              value={favoriteTeamId}
-              onChange={(e) => setFavoriteTeamId(e.target.value)}
-            >
-              <option value="">선택 안 함</option>
-              {teamList.map((team) => (
-                <option key={team.teamId} value={team.teamId}>
-                  {team.teamNameKor ? `${team.teamNameKor} (${team.teamName})` : team.teamName}
-                </option>
-              ))}
-            </select>
           </div>
 
           <button type="submit" className="auth-submit-btn" disabled={loading}>
