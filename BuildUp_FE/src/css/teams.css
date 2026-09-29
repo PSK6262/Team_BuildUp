@@ -311,10 +311,12 @@
 
 .team-grid-card:hover,
 .team-grid-card:focus-visible {
-  transform: translateY(-2px);
+  transform: translateY(-3px) scale(1.015);
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid #E90052;
-  box-shadow: 0 0 16px rgba(233, 0, 82, 0.35);
+  border: 1px solid var(--team-hex, #E90052);
+  box-shadow:
+    0 0 14px var(--team-glow, rgba(233, 0, 82, 0.35)),
+    inset 0 0 8px rgba(255, 255, 255, 0.04);
   outline: none;
 }
 
@@ -340,6 +342,11 @@
   height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 0.6vh 1vw rgba(0, 0, 0, 0.45));
+  transition: filter 0.24s ease;
+}
+
+.team-grid-card:hover .team-grid-card__emblem {
+  filter: drop-shadow(0 0.4vh 0.8vw var(--team-glow, rgba(0, 0, 0, 0.45)));
 }
 
 /* 구단명 */
@@ -374,7 +381,7 @@
 
 .team-grid-card:hover .team-grid-card__name {
   color: #ffffff;
-  text-shadow: 0 0 0.8vw rgba(232, 24, 228, 0.85);
+  text-shadow: 0 0 0.55vw var(--team-glow, rgba(255, 255, 255, 0.4));
 }
 
 .team-grid-card:hover .team-grid-card__name-en {
@@ -539,3 +546,104 @@
 .ranking-player-events time { color: #64748b; }
 .ranking-player-events strong { margin-left: auto; color: #38003c; }
 .ranking-player-link:focus-visible, .ranking-player-close:focus-visible { outline: 3px solid #7c3aed; outline-offset: 4px; }
+
+/* ========================================================
+   팀 소개 페이지 라이트 모드 (Light Mode - Lavender Tint) 전용 스타일
+   - 다크 모드([data-theme='dark'])에서는 기존의 다크 퍼플 & 다크 글래스모피즘 유지
+   - 라이트 모드([data-theme='light']) 전환 시 라벤더-바이올렛 컬러 토큰 적용
+   ======================================================== */
+html[data-theme='light'] body:has(.teams-page-container--teams) {
+  background-color: #F4F6FA;
+}
+
+.teams-page-container--teams.teams-page--light,
+[data-theme='light'] .teams-page-container--teams {
+  background-color: #F4F6FA;
+  color: #260E36;
+}
+
+.teams-page--light .teams-page-bg,
+[data-theme='light'] .teams-page-container--teams .teams-page-bg {
+  display: none;
+}
+
+.teams-page--light .teams-page-eyebrow,
+[data-theme='light'] .teams-page-container--teams .teams-page-eyebrow {
+  color: #705584;
+  text-shadow: none;
+}
+
+.teams-page--light .teams-page-title,
+[data-theme='light'] .teams-page-container--teams .teams-page-title {
+  color: #260E36;
+  text-shadow: none;
+}
+
+.teams-page--light .teams-page-desc,
+[data-theme='light'] .teams-page-container--teams .teams-page-desc {
+  color: #705584;
+}
+
+.teams-page--light .teams-loading-wrap,
+[data-theme='light'] .teams-page-container--teams .teams-loading-wrap {
+  color: #705584;
+}
+
+.teams-page--light .teams-error-wrap,
+[data-theme='light'] .teams-page-container--teams .teams-error-wrap {
+  color: #E90052;
+}
+
+.teams-page--light .team-grid-card,
+[data-theme='light'] .teams-page-container--teams .team-grid-card {
+  background: #F3EEF9;
+  border: 1px solid #CEBFE0;
+  color: #260E36;
+  box-shadow: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.teams-page--light .team-grid-card:hover,
+.teams-page--light .team-grid-card:focus-visible,
+[data-theme='light'] .teams-page-container--teams .team-grid-card:hover,
+[data-theme='light'] .teams-page-container--teams .team-grid-card:focus-visible {
+  background: #F3EEF9;
+  border: 1px solid var(--team-hex-light, #E90052);
+  transform: translateY(-3px) scale(1.015);
+  box-shadow:
+    0 0 12px var(--team-glow-light, rgba(233, 0, 82, 0.28)),
+    0 4px 12px rgba(107, 94, 122, 0.12);
+}
+
+.teams-page--light .team-grid-card__emblem,
+[data-theme='light'] .teams-page-container--teams .team-grid-card__emblem {
+  filter: drop-shadow(0 0.4vh 0.6vw rgba(107, 94, 122, 0.12));
+}
+
+.teams-page--light .team-grid-card:hover .team-grid-card__emblem,
+[data-theme='light'] .teams-page-container--teams .team-grid-card:hover .team-grid-card__emblem {
+  filter: drop-shadow(0 0.4vh 0.7vw var(--team-glow-light, rgba(107, 94, 122, 0.22)));
+}
+
+.teams-page--light .team-grid-card__name,
+[data-theme='light'] .teams-page-container--teams .team-grid-card__name {
+  color: #260E36;
+}
+
+.teams-page--light .team-grid-card__name-en,
+[data-theme='light'] .teams-page-container--teams .team-grid-card__name-en {
+  color: #705584;
+}
+
+.teams-page--light .team-grid-card:hover .team-grid-card__name,
+[data-theme='light'] .teams-page-container--teams .team-grid-card:hover .team-grid-card__name {
+  color: #260E36;
+  text-shadow: none;
+}
+
+.teams-page--light .team-grid-card:hover .team-grid-card__name-en,
+[data-theme='light'] .teams-page-container--teams .team-grid-card:hover .team-grid-card__name-en {
+  color: #705584;
+}
+
+

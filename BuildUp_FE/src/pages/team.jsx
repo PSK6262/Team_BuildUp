@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { getTeamById, getTeams } from '../api/teamApi.js';
 import TeamVisualPanel from '../components/team/TeamVisualPanel.jsx';
 import TeamInfoPanel from '../components/team/TeamInfoPanel.jsx';
@@ -11,6 +12,7 @@ const LEGACY_ID_MAP = {
 };
 
 export default function Team({ teamId }) {
+  const currentTheme = useSelector((state) => state.theme?.mode || 'dark');
   const numericId = parseInt(teamId, 10);
   const effectiveId = LEGACY_ID_MAP[numericId] || numericId;
 
@@ -68,7 +70,7 @@ export default function Team({ teamId }) {
 
   if (loading) {
     return (
-      <div className="team-container team-container--loading">
+      <div className={`team-container team-container--loading team-container--${currentTheme}`}>
         <p>구단 정보를 불러오는 중입니다...</p>
       </div>
     );
@@ -81,7 +83,7 @@ export default function Team({ teamId }) {
   const highResEmblem = (team.emblemUrl || '').replace('/50/', '/100/');
 
   return (
-    <div className="team-container">
+    <div className={`team-container team-container--${currentTheme}`}>
       {/* 좌측 구단 고유 컬러(엠블럼 색감)가 우측 다크 퍼플 배경으로 자연스럽게 스며드는 그라데이션 블러 글로우 */}
       <div
         className="team-ambient-bleed"

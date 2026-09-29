@@ -7,6 +7,7 @@ import '../css/teams.css';
 
 export default function TeamsPage() {
   const dispatch = useDispatch();
+  const currentTheme = useSelector((state) => state.theme?.mode || 'dark');
   const { teams, teamsLoading: loading, teamsError: error } = useSelector((state) => state.team);
 
   useEffect(() => {
@@ -14,7 +15,7 @@ export default function TeamsPage() {
   }, [dispatch]);
 
   return (
-    <div className="teams-page-container teams-page-container--teams">
+    <div className={`teams-page-container teams-page-container--teams teams-page--${currentTheme}`}>
       {/* 메인페이지와 동일한 프리미어리그 시그니처 딥 플럼 & 곡면 라이트닝 쉐브론 리본 배경 그래픽 (SVG) */}
       <div className="teams-page-bg" aria-hidden="true">
         <svg
