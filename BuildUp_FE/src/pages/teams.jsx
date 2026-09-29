@@ -13,7 +13,136 @@ export default function TeamsPage() {
   }, [dispatch]);
 
   return (
-    <div className="teams-page-container">
+    <div className="teams-page-container teams-page-container--teams">
+      {/* 메인페이지와 동일한 프리미어리그 시그니처 딥 플럼 & 곡면 라이트닝 쉐브론 리본 배경 그래픽 (SVG) */}
+      <div className="teams-page-bg" aria-hidden="true">
+        <svg
+          className="teams-page-bg__svg"
+          viewBox="0 0 1600 1000"
+          preserveAspectRatio="xMidYMid slice"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <linearGradient id="teamsPlumBg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#2d0631" />
+              <stop offset="40%" stopColor="#370c39" />
+              <stop offset="70%" stopColor="#2c0630" />
+              <stop offset="100%" stopColor="#1e0321" />
+            </linearGradient>
+
+            <linearGradient id="teamsRibbonGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#4d1952" stopOpacity={0.9} />
+              <stop offset="30%" stopColor="#64276d" stopOpacity={0.94} />
+              <stop offset="60%" stopColor="#833d8c" stopOpacity={0.97} />
+              <stop offset="85%" stopColor="#9f56aa" stopOpacity={0.99} />
+              <stop offset="100%" stopColor="#b66ac5" stopOpacity={1} />
+            </linearGradient>
+          </defs>
+
+          <rect width="1600" height="1000" fill="url(#teamsPlumBg)" />
+
+          <g className="teams-page-bg__bolts">
+            <path
+              fill="url(#teamsRibbonGrad)"
+              d="
+                M 400,0
+                C 480,0 550,0 610,0
+                C 540,80 460,180 370,260
+                C 260,360 140,460 0,540
+                L 0,470
+                C 40,440 90,390 120,355
+                L 150,370
+                L 175,335
+                L 220,265
+                L 260,195
+                L 282,218
+                L 295,225
+                L 322,170
+                L 336,142
+                L 366,92
+                L 380,60
+                L 400,0
+                Z
+              "
+            />
+            <path
+              fill="url(#teamsRibbonGrad)"
+              d="
+                M 1032,0
+                L 1255,0
+                C 1160,130 1040,270 890,410
+                C 730,560 520,690 280,775
+                C 180,810 90,830 0,840
+                L 0,760
+                C 70,750 140,730 200,695
+                L 205,735
+                C 290,690 380,630 455,555
+                L 462,605
+                C 560,510 660,400 760,285
+                L 768,340
+                C 850,230 945,115 1032,0
+                Z
+              "
+            />
+            <path
+              fill="url(#teamsRibbonGrad)"
+              d="
+                M 1600,320
+                L 1600,430
+                C 1420,570 1210,700 970,800
+                C 730,900 440,960 0,980
+                L 0,910
+                C 160,895 320,870 470,820
+                L 436,786
+                L 488,775
+                L 514,768
+                L 665,707
+                L 658,771
+                L 735,746
+                L 806,718
+                L 876,686
+                L 942,657
+                L 1001,625
+                L 1098,564
+                L 1109,643
+                L 1175,604
+                L 1230,575
+                L 1293,532
+                L 1371,486
+                L 1478,411
+                L 1574,339
+                L 1600,320
+                Z
+              "
+            />
+            <path
+              fill="url(#teamsRibbonGrad)"
+              d="
+                M 1600,590
+                C 1460,670 1310,750 1150,820
+                C 990,890 820,950 630,1000
+                L 760,1000
+                C 940,950 1120,880 1280,800
+                C 1420,730 1530,660 1600,600
+                Z
+              "
+            />
+            <path
+              fill="url(#teamsRibbonGrad)"
+              opacity={0.8}
+              d="
+                M 1600,820
+                C 1500,880 1380,940 1250,990
+                L 1370,1000
+                C 1470,950 1550,900 1600,850
+                Z
+              "
+            />
+          </g>
+        </svg>
+        <div className="teams-page-bg__vignette" />
+      </div>
+
       <div className="teams-page-wrapper">
         {/* 상단 헤더 영역 */}
         <header className="teams-page-header">
@@ -26,14 +155,14 @@ export default function TeamsPage() {
 
         {/* 로딩 인디케이터 (초기 데이터 없을 때만 표시) */}
         {loading && teams.length === 0 && (
-          <div className="teams-loading-wrap" style={{ textAlign: 'center', padding: '60px 0', color: '#6b7280' }}>
+          <div className="teams-loading-wrap">
             <p>구단 데이터를 데이터베이스에서 불러오는 중입니다...</p>
           </div>
         )}
 
         {/* 에러 메시지 */}
         {!loading && error && teams.length === 0 && (
-          <div className="teams-error-wrap" style={{ textAlign: 'center', padding: '40px 0', color: '#ef4444' }}>
+          <div className="teams-error-wrap">
             <p>{error}</p>
           </div>
         )}

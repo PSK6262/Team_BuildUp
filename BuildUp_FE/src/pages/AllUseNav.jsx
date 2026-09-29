@@ -9,7 +9,7 @@ export default function AllUseNav() {
   const user = useSelector((state) => state.auth.user)
   const dispatch = useDispatch()
   const pathname = window.location.pathname.replace(/\/$/, '')
-  const isMainPage = !pathname || pathname === '' || pathname === '/plug' || pathname === '/plug/mainpage'
+  const isMainPage = !pathname || pathname === '' || pathname === '/plug' || pathname === '/plug/mainpage' || pathname === '/plug/teams'
   const isAdmin = user && Number(user.roleCode) === 9
 
   const renderLink = ([label, path]) => (

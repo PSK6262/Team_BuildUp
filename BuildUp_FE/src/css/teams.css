@@ -142,19 +142,71 @@
 }
 
 /* ========================================================
-   TEAMS DIRECTORY PAGE - 4x5 GRID LAYOUT (White Theme)
+   TEAMS DIRECTORY PAGE - 4x5 GRID LAYOUT (MainPage Plum & Neon Theme)
    ======================================================== */
 
 .teams-page-container {
-  min-height: calc(100vh - 72px);
+  min-height: 92vh;
   background-color: #f8fafc;
-  padding: 48px 36px 80px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  padding: 5vh 4% 8vh;
+  font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
   color: #0f172a;
+  box-sizing: border-box;
+}
+
+.teams-page-container--teams {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #240428;
+  padding: 13vh 4% 9vh;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------
+   MainPage Signature Background Graphic (Scoped to Container)
+   -------------------------------------------------------- */
+.teams-page-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.teams-page-bg__svg {
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  display: block;
+}
+
+.teams-page-bg__bolts {
+  transform-origin: center center;
+}
+
+.teams-page-bg__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 60% 45%,
+    transparent 48%,
+    rgba(34, 4, 39, 0.35) 78%,
+    rgba(17, 2, 20, 0.7) 100%
+  );
+  pointer-events: none;
 }
 
 .teams-page-wrapper {
-  max-width: 1400px;
+  position: relative;
+  z-index: 1;
+  width: 92%;
+  max-width: 88vw;
   margin: 0 auto;
 }
 
@@ -163,33 +215,64 @@
    -------------------------------------------------------- */
 .teams-page-header {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 5vh;
 }
 
 .teams-page-eyebrow {
   display: inline-block;
-  font-size: 13px;
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-size: clamp(0.75rem, 0.9vw, 1rem);
   font-weight: 800;
-  letter-spacing: 2.5px;
+  letter-spacing: 0.22vw;
   color: #38003c;
   text-transform: uppercase;
-  margin-bottom: 10px;
+  margin-bottom: 1.2vh;
+}
+
+.teams-page-container--teams .teams-page-eyebrow {
+  color: #00ff87;
+  text-shadow: 0 0 0.8vw rgba(0, 255, 135, 0.55);
 }
 
 .teams-page-title {
-  font-size: 42px;
+  font-size: clamp(1.9rem, 2.8vw, 3.2rem);
   font-weight: 900;
   color: #0f172a;
-  margin: 0 0 14px;
-  letter-spacing: -1px;
+  margin: 0 0 1.4vh;
+  letter-spacing: -0.05vw;
+}
+
+.teams-page-container--teams .teams-page-title {
+  color: #ffffff;
+  text-shadow: 0 0.4vh 1.6vw rgba(0, 0, 0, 0.45);
 }
 
 .teams-page-desc {
-  font-size: 17px;
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: clamp(0.95rem, 1.1vw, 1.2rem);
   color: #64748b;
   margin: 0 auto;
-  max-width: 600px;
+  width: 90%;
+  max-width: 55vw;
   line-height: 1.6;
+}
+
+.teams-page-container--teams .teams-page-desc {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.teams-loading-wrap {
+  text-align: center;
+  padding: 6vh 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: clamp(0.95rem, 1.05vw, 1.15rem);
+}
+
+.teams-error-wrap {
+  text-align: center;
+  padding: 4.5vh 0;
+  color: #ff6b8b;
+  font-size: clamp(0.95rem, 1.05vw, 1.15rem);
 }
 
 /* --------------------------------------------------------
@@ -198,61 +281,65 @@
 .teams-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
+  gap: 2.6vh 1.8vw;
+  width: 100%;
 }
 
 /* --------------------------------------------------------
-   Single Team Card
+   Single Team Card (#350B38 Bg + #E818E4 Neon Glow Border)
    -------------------------------------------------------- */
 .team-grid-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  padding: 40px 24px 32px;
+  width: 100%;
+  background-color: #350B38;
+  border: clamp(0.09rem, 0.12vw, 0.15rem) solid #E818E4;
+  border-radius: 1.25vw;
+  padding: 4vh 8% 3.4vh;
   text-decoration: none;
-  color: inherit;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  color: #ffffff;
+  box-shadow:
+    0 0 0.65vw rgba(232, 24, 228, 0.68),
+    0 0 1.5vw rgba(232, 24, 228, 0.38),
+    0 0.9vh 2vw rgba(0, 0, 0, 0.48),
+    inset 0 0 0.85vw rgba(232, 24, 228, 0.28);
+  transition:
+    transform 0.26s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.26s ease,
+    border-color 0.26s ease,
+    background-color 0.26s ease;
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
-.team-grid-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 18px 36px -8px rgba(0, 0, 0, 0.09), 0 4px 12px rgba(0, 0, 0, 0.03);
-  border-color: #cbd5e1;
-}
-
-/* 카드 상단 은은한 호버 포인트 라인 */
-.team-grid-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #38003c 0%, #00ff87 100%);
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.team-grid-card:hover::before {
-  opacity: 1;
+.team-grid-card:hover,
+.team-grid-card:focus-visible {
+  transform: translateY(-0.8vh);
+  background-color: #3f0e43;
+  border-color: #ff52fc;
+  box-shadow:
+    0 0 0.95vw rgba(232, 24, 228, 0.95),
+    0 0 2.2vw rgba(232, 24, 228, 0.65),
+    0 0 3.6vw rgba(232, 24, 228, 0.35),
+    0 1.3vh 2.5vw rgba(0, 0, 0, 0.58),
+    inset 0 0 1.25vw rgba(232, 24, 228, 0.42);
+  outline: none;
 }
 
 /* 엠블럼 래퍼 및 이미지 */
 .team-grid-card__emblem-wrap {
-  width: 100px;
-  height: 100px;
+  width: 38%;
+  max-width: 6.8vw;
+  min-width: 4.6rem;
+  aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 22px;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-bottom: 2.2vh;
+  transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .team-grid-card:hover .team-grid-card__emblem-wrap {
@@ -263,7 +350,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.08));
+  filter: drop-shadow(0 0.6vh 1vw rgba(0, 0, 0, 0.45));
 }
 
 /* 구단명 */
@@ -271,78 +358,107 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  width: 100%;
+  gap: 0.5vh;
   text-align: center;
 }
 
 .team-grid-card__name {
-  font-size: 19px;
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: clamp(1.02rem, 1.22vw, 1.35rem);
   font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -0.4px;
-  line-height: 1.25;
-  transition: color 0.2s ease;
+  color: #ffffff;
+  letter-spacing: -0.02vw;
+  line-height: 1.3;
+  transition: color 0.22s ease, text-shadow 0.22s ease;
 }
 
 .team-grid-card__name-en {
-  font-size: 14px;
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-size: clamp(0.78rem, 0.9vw, 1rem);
   font-weight: 600;
-  color: #0f172a;
-  letter-spacing: -0.2px;
-  line-height: 1.25;
-  transition: color 0.2s ease;
+  color: rgba(255, 255, 255, 0.76);
+  letter-spacing: -0.01vw;
+  line-height: 1.3;
+  transition: color 0.22s ease;
 }
 
-.team-grid-card:hover .team-grid-card__name,
+.team-grid-card:hover .team-grid-card__name {
+  color: #ffffff;
+  text-shadow: 0 0 0.8vw rgba(232, 24, 228, 0.85);
+}
+
 .team-grid-card:hover .team-grid-card__name-en {
-  color: #38003c;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* --------------------------------------------------------
-   반응형 브레이크포인트
+   반응형 브레이크포인트 (% / 뷰포트 단위)
    -------------------------------------------------------- */
-@media (max-width: 1200px) {
+@media (max-width: 75rem) {
+  .teams-page-wrapper {
+    width: 94%;
+    max-width: 92vw;
+  }
+
   .teams-grid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 2.4vh 2.2vw;
+  }
+
+  .team-grid-card {
+    border-radius: 1.6vw;
+  }
+
+  .team-grid-card__emblem-wrap {
+    max-width: 9vw;
   }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 53.75rem) {
   .teams-page-container {
-    padding: 36px 20px 60px;
+    padding: 3.5vh 4% 6vh;
   }
 
-  .teams-page-title {
-    font-size: 32px;
+  .teams-page-wrapper {
+    width: 95%;
+    max-width: 95vw;
+  }
+
+  .teams-page-desc {
+    max-width: 86vw;
   }
 
   .teams-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    gap: 2vh 3vw;
   }
 
   .team-grid-card {
-    padding: 32px 18px 24px;
+    padding: 3.2vh 6% 2.6vh;
+    border-radius: 2.4vw;
   }
 
   .team-grid-card__emblem-wrap {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 16px;
-  }
-
-  .team-grid-card__name {
-    font-size: 17px;
-  }
-
-  .team-grid-card__name-en {
-    font-size: 13px;
+    width: 42%;
+    max-width: 14vw;
+    margin-bottom: 1.6vh;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 30rem) {
   .teams-grid {
     grid-template-columns: 1fr;
+    gap: 2vh;
+  }
+
+  .team-grid-card {
+    border-radius: 3.8vw;
+  }
+
+  .team-grid-card__emblem-wrap {
+    width: 34%;
+    max-width: 24vw;
   }
 }
 
