@@ -30,16 +30,15 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
   const [eventModal, setEventModal] = useState(null);   // { matchId, match, events, loading, aiAdvice, aiLoading, newEvent }
   const [eventModalPlayers, setEventModalPlayers] = useState([]);
 
-<<<<<<< HEAD
   // initialFilter가 전달되었을 때 상태 반영
   useEffect(() => {
     if (initialFilter) {
+      setMatchStatusFilter(initialFilter);
+      setMatchSortOrder(initialFilter === 'MISMATCH' ? 'DESC' : 'AUTO');
       onClearInitialFilter?.();
     }
   }, [initialFilter, onClearInitialFilter]);
 
-=======
->>>>>>> 42aae1310fd27492c3a103ade9468298e3d0e514
   // 불일치 경기 카운트 갱신 (배너용)
   const refreshMismatchCount = useCallback(async () => {
     try {
@@ -53,15 +52,9 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
     }
   }, []);
 
-<<<<<<< HEAD
-  // 1. 경기 목록 조회
-  const fetchMatches = useCallback(async (overrideSort = null) => {
-    trackRequest(true);
-=======
   // 1. 경기 목록 조회 (overrides를 지원하여 상태 비동기 반영 지연 없이 즉시 조회 가능)
   const fetchMatches = useCallback(async (overrides = {}) => {
-    setLoading(true);
->>>>>>> 42aae1310fd27492c3a103ade9468298e3d0e514
+    trackRequest(true);
     try {
       const statusToUse = overrides.status !== undefined ? overrides.status : matchStatusFilter;
       const sortToUse = overrides.sort !== undefined ? overrides.sort : matchSortOrder;
@@ -107,24 +100,7 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
     } finally {
       trackRequest(false);
     }
-<<<<<<< HEAD
-  }, [matchDateFilter, matchStatusFilter, matchSortOrder, dispatch, showAlert, trackRequest]);
-=======
-  }, [matchStartDate, matchEndDate, matchStatusFilter, matchSortOrder, dispatch, showAlert]);
-
-  // initialFilter가 전달되었을 때 상태 반영 및 즉시 조회 (다시 조회 누를 필요 없이 자동 실행)
-  useEffect(() => {
-    if (initialFilter) {
-      setMatchStatusFilter(initialFilter);
-      const sortVal = initialFilter === 'MISMATCH' ? 'DESC' : 'AUTO';
-      setMatchSortOrder(sortVal);
-      onClearInitialFilter?.();
-      fetchMatches({ status: initialFilter, sort: sortVal });
-    } else {
-      fetchMatches();
-    }
-  }, [initialFilter, onClearInitialFilter]);
->>>>>>> 42aae1310fd27492c3a103ade9468298e3d0e514
+  }, [matchStartDate, matchEndDate, matchStatusFilter, matchSortOrder, dispatch, showAlert, trackRequest]);
 
   // 2. 구단별 선수단 조회
   const fetchTeamPlayers = useCallback(async (teamId) => {
@@ -139,20 +115,12 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
     }
   }, []);
 
-<<<<<<< HEAD
   // 마운트 시 데이터 로드
   useDeferredLoad(useCallback(() => {
     fetchMatches();
     fetchTeamPlayers(selectedTeamId);
     refreshMismatchCount();
   }, [fetchMatches, fetchTeamPlayers, selectedTeamId, refreshMismatchCount]));
-=======
-  // 마운트 시 선수단 및 불일치 카운트 로드
-  useEffect(() => {
-    fetchTeamPlayers(selectedTeamId);
-    refreshMismatchCount();
-  }, [fetchTeamPlayers, selectedTeamId, refreshMismatchCount]);
->>>>>>> 42aae1310fd27492c3a103ade9468298e3d0e514
 
   // 경기 공지사항 저장
   const handleSaveNotice = async () => {

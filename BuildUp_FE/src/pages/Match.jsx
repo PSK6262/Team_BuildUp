@@ -117,6 +117,7 @@ export default function Match() {
   const teamRanks = rankResult.season === selectedSeason ? rankResult.ranks : new Map()
   const [ dbError, setDbError ] = useState('')
   const [ loading, setLoading ] = useState(false)
+  const [ syncing, setSyncing ] = useState(false)
   const [ reload, setReload ] = useState(0)
   const [ activeMatchForModal, setActiveMatchForModal ] = useState(null)
 

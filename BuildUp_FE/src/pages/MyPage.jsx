@@ -677,17 +677,12 @@ export default function MyPage() {
     }
   }
 
-<<<<<<< HEAD
   if (isLoggedIn && loading) {
-    return <div className="mypage-loading">회원 정보를 불러오는 중입니다...</div>
-=======
-  if (loading) {
     return (
       <div className={`mypage-dashboard-bg ${currentTheme === 'light' ? 'mypage-light-mode' : ''}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <p style={{ color: currentTheme === 'light' ? '#38003c' : '#00ff87', fontSize: '16px', fontWeight: 700 }}>회원 대시보드를 불러오는 중입니다...</p>
       </div>
     )
->>>>>>> 77b02eaac4ad236b864969fb1e831fa39dd79b01
   }
 
   if (!isLoggedIn || !profile) {
