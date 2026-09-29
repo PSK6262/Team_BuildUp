@@ -127,12 +127,7 @@ export default function TeamVisualPanel({ team, onWheel }) {
               ref={subTitleRef}
               className="team-subname-en"
               style={{
-                fontSize: `${getInitialSubTitleFontSize(subNameEn)}px`,
-                color: '#ffffff',
-                fontWeight: 600,
-                marginTop: '4px',
-                letterSpacing: '-0.2px',
-                textShadow: '0 2px 10px rgba(0, 0, 0, 0.6)'
+                fontSize: `${getInitialSubTitleFontSize(subNameEn)}px`
               }}
             >
               ({subNameEn})

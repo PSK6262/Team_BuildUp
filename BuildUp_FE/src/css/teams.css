@@ -286,7 +286,7 @@
 }
 
 /* --------------------------------------------------------
-   Single Team Card (#350B38 Bg + #E818E4 Neon Glow Border)
+   Single Team Card (Dark Glassmorphism Default + Hover Accent)
    -------------------------------------------------------- */
 .team-grid-card {
   display: flex;
@@ -294,22 +294,16 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  background-color: #350B38;
-  border: clamp(0.09rem, 0.12vw, 0.15rem) solid #E818E4;
+  background: rgba(255, 255, 255, 0.04);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1.25vw;
   padding: 4vh 8% 3.4vh;
   text-decoration: none;
   color: #ffffff;
-  box-shadow:
-    0 0 0.65vw rgba(232, 24, 228, 0.68),
-    0 0 1.5vw rgba(232, 24, 228, 0.38),
-    0 0.9vh 2vw rgba(0, 0, 0, 0.48),
-    inset 0 0 0.85vw rgba(232, 24, 228, 0.28);
-  transition:
-    transform 0.26s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.26s ease,
-    border-color 0.26s ease,
-    background-color 0.26s ease;
+  box-shadow: none;
+  transition: all 0.2s ease-in-out;
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
@@ -317,15 +311,10 @@
 
 .team-grid-card:hover,
 .team-grid-card:focus-visible {
-  transform: translateY(-0.8vh);
-  background-color: #3f0e43;
-  border-color: #ff52fc;
-  box-shadow:
-    0 0 0.95vw rgba(232, 24, 228, 0.95),
-    0 0 2.2vw rgba(232, 24, 228, 0.65),
-    0 0 3.6vw rgba(232, 24, 228, 0.35),
-    0 1.3vh 2.5vw rgba(0, 0, 0, 0.58),
-    inset 0 0 1.25vw rgba(232, 24, 228, 0.42);
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid #E90052;
+  box-shadow: 0 0 16px rgba(233, 0, 82, 0.35);
   outline: none;
 }
 

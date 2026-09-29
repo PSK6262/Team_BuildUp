@@ -120,7 +120,7 @@ export default function TeamSquadSection({ teamId }) {
 
   if (loading) {
     return (
-      <div className="team-squad-container" style={{ padding: '30px 0', textAlign: 'center', color: '#64748b' }}>
+      <div className="team-squad-container team-squad-loading">
         <p>선수단 데이터를 불러오는 중입니다...</p>
       </div>
     );
@@ -141,7 +141,7 @@ export default function TeamSquadSection({ teamId }) {
               <div>
                 <h3 className="team-manager-name">{manager.nameKor || manager.name}</h3>
                 {manager.nameKor && manager.name && (
-                  <span style={{ fontSize: '13px', color: '#0f172a', fontWeight: 600, display: 'block', marginTop: '1px' }}>
+                  <span className="team-manager-name-en">
                     ({manager.name})
                   </span>
                 )}
@@ -245,12 +245,12 @@ export default function TeamSquadSection({ teamId }) {
                       </div>
 
                       <div className="team-player-card-bottom">
-                        <div style={{ overflow: 'hidden', minWidth: 0, flex: 1 }}>
+                        <div className="team-player-name-wrap">
                           <div className="team-player-name" title={player.name}>
                             {player.nameKor || player.name}
                           </div>
                           {player.nameKor && player.name && (
-                            <div style={{ fontSize: '11px', color: '#0f172a', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '1px' }}>
+                            <div className="team-player-name-en">
                               ({player.name})
                             </div>
                           )}
