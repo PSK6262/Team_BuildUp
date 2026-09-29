@@ -1,9 +1,10 @@
+import { useSelector } from 'react-redux'
 import '../css/MiniGames.css'
 
 const games = [
   {
     title: '패널티킥',
-    description: 'AI와 승부차기 대결! 익스트림은 15골 선취',
+    description: '승부차기로 AI와 대결! 3골 선취 시 승리',
     icon: '⚽',
     href: '/plug/minigames/penaltykick',
     available: true,
@@ -25,33 +26,38 @@ const games = [
 ]
 
 export default function MiniGames() {
+  const currentTheme = useSelector((state) => state.theme?.mode || 'dark')
+  const isLight = currentTheme === 'light'
+
   return (
-    <main className="minigames">
-      <div className="minigames__hero">
-        <h1 className="minigames__title">⚽ 미니게임</h1>
-        <p className="minigames__subtitle">EPL 팬이라면 도전해보세요</p>
+    <main className={`minigames-page${isLight ? ' minigames-page--light' : ''}`}>
+      <div className="minigames-inner">
+        <div className="minigames__hero">
+          <h1 className="minigames__title">⚽ 미니게임</h1>
+          <p className="minigames__subtitle">EPL 팬이라면 도전해보세요</p>
+        </div>
+        <ul className="minigames__grid">
+          {games.map((game) => (
+            <li key={game.title}>
+              {game.available ? (
+                <a className="minigames__card minigames__card--active" href={game.href}>
+                  <span className="minigames__card-icon">{game.icon}</span>
+                  <strong className="minigames__card-title">{game.title}</strong>
+                  <p className="minigames__card-desc">{game.description}</p>
+                  <span className="minigames__card-badge">플레이</span>
+                </a>
+              ) : (
+                <div className="minigames__card minigames__card--locked">
+                  <span className="minigames__card-icon">{game.icon}</span>
+                  <strong className="minigames__card-title">{game.title}</strong>
+                  <p className="minigames__card-desc">{game.description}</p>
+                  <span className="minigames__card-badge minigames__card-badge--soon">준비중</span>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
       </div>
-      <ul className="minigames__grid">
-        {games.map((game) => (
-          <li key={game.title}>
-            {game.available ? (
-              <a className="minigames__card minigames__card--active" href={game.href}>
-                <span className="minigames__card-icon">{game.icon}</span>
-                <strong className="minigames__card-title">{game.title}</strong>
-                <p className="minigames__card-desc">{game.description}</p>
-                <span className="minigames__card-badge">플레이</span>
-              </a>
-            ) : (
-              <div className="minigames__card minigames__card--locked">
-                <span className="minigames__card-icon">{game.icon}</span>
-                <strong className="minigames__card-title">{game.title}</strong>
-                <p className="minigames__card-desc">{game.description}</p>
-                <span className="minigames__card-badge minigames__card-badge--soon">준비중</span>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
     </main>
   )
 }
