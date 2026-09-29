@@ -256,6 +256,8 @@ export default function PostWrite() {
     <h1>게시글 작성</h1>
     <p className="community__intro">작성자: {user?.nickname || user?.loginId}</p>
 
+    <div className="community__write-layout">
+    <div className="community__write-column">
     {error && <p className="community__form-error" role="alert">{error}</p>}
     <form className="community__write-form" onSubmit={handleSubmit}>
       <fieldset disabled={loading || submitting}>
@@ -341,5 +343,13 @@ export default function PostWrite() {
         </button>
       </div>
     </form>
+    </div>
+    <aside className="community__write-ad" aria-label="광고 영역">
+      <span className="community__ad-label">광고 · ADVERTISEMENT</span>
+      <div className="community__vertical-ad">
+        <img src="/je.png" width="300" height="600" alt="제때약 — 내 약을 제때, 더 안전하게. 복약 일정부터 AI 상담까지." />
+      </div>
+    </aside>
+    </div>
   </main>
 }

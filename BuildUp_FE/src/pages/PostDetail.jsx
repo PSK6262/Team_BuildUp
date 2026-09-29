@@ -51,6 +51,40 @@ export default function PostDetail({ postId }) {
   const user = useSelector((state) => state.auth.user)
   const { teams, categories } = useSelector((state) => state.team)
   const [post, setPost] = useState(null)
+  const [morePosts, setMorePosts] = useState([])
+  const [morePostsError, setMorePostsError] = useState('')
+  const [morePostsLoading, setMorePostsLoading] = useState(true)
+  const [moreInput, setMoreInput] = useState('')
+  const [moreKeyword, setMoreKeyword] = useState('')
+
+  // 현재 글을 제외한 최신 게시글 다섯 개를 하단에 표시합니다.
+  useEffect(() => {
+    const controller = new AbortController()
+    const loadMorePosts = async () => {
+      setMorePostsLoading(true)
+      setMorePostsError('')
+      try {
+        const loadedCategories = await dispatch(fetchCategories()).unwrap()
+        if (controller.signal.aborted) return
+        if (!loadedCategories.length) {
+          setMorePosts([])
+          return
+        }
+        const params = new URLSearchParams({ board: 'all', sort: 'latest', page: '1', size: '6', keyword: moreKeyword })
+        loadedCategories.forEach((category) => params.append('categoryIds', category.categoryId))
+        const response = await fetch(`/api/communities?${params}`, { signal: controller.signal })
+        const result = await response.json()
+        if (!response.ok || !Array.isArray(result.data?.items)) throw new Error('다른 게시글을 불러오지 못했습니다.')
+        setMorePosts(result.data.items.filter((item) => String(item.postId) !== String(postId)).slice(0, 5))
+      } catch {
+        if (!controller.signal.aborted) setMorePostsError('다른 게시글을 불러오지 못했습니다. 전체 목록에서 확인해주세요.')
+      } finally {
+        if (!controller.signal.aborted) setMorePostsLoading(false)
+      }
+    }
+    loadMorePosts()
+    return () => controller.abort()
+  }, [dispatch, postId, moreKeyword])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [editing, setEditing] = useState(false)
@@ -657,6 +691,8 @@ export default function PostDetail({ postId }) {
 
   return <main className="community">
     <CommunityNavigation section={isShowcasePost ? 'showcase' : isTeamPost ? 'teams' : 'free'} teamName={post.teamName || ''} />
+    <div className="community__reading-layout">
+    <div className="community__reading-content">
     {actionError && <p className="community__form-error" role="alert">{actionError}</p>}
 
     {editing ? <form className="community__write-form" onSubmit={updatePost}>
@@ -811,5 +847,40 @@ export default function PostDetail({ postId }) {
         </button>
       </form>
     </section>
+    </div>
+    <aside className="community__reading-ad" aria-label="광고 영역">
+      <div className="community__reading-ad-sticky">
+      <span className="community__ad-label">광고 · ADVERTISEMENT</span>
+      <div className="community__vertical-ad">
+        <img src="/je.png" width="300" height="600" loading="lazy" alt="제때약 — 내 약을 제때, 더 안전하게. 복약 일정부터 AI 상담까지." />
+      </div>
+      </div>
+    </aside>
+    <section className="community__more-posts" aria-labelledby="community-more-title">
+      <div className="community__showcase-heading">
+        <h2 id="community-more-title">{moreKeyword ? '게시글 검색 결과' : '다른 게시글도 둘러보세요'}</h2>
+        <a className="community__main-link" href="/plug/community">전체 목록</a>
+      </div>
+      {morePostsLoading ? <p role="status">게시글을 불러오는 중입니다.</p>
+        : morePostsError ? <p role="status">{morePostsError}</p>
+          : morePosts.length === 0 ? <p role="status">{moreKeyword ? '검색어에 맞는 다른 게시글이 없습니다.' : '아직 다른 게시글이 없습니다.'}</p>
+            : <ul className="community__more-list">
+              {morePosts.map((item) => <li key={item.postId}>
+                <a href={`/plug/community/posts/${item.postId}?from=%2Fplug%2Fcommunity`}>
+                  <span className="community__badge">{item.showcaseImageId ? '자랑' : item.teamName || item.categoryType || '자유'}</span>
+                  <span className="community__more-title community__title-with-comments"><span className="community__title-text">{Array.from(item.title || '').slice(0, 30).join('')}{Array.from(item.title || '').length > 30 ? '...' : ''}</span>{Number(item.commentCount) > 0 && <span className="community__comment-count" aria-label={`댓글 ${item.commentCount}개`}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6 4V6a2 2 0 0 1 2-2Z" /></svg>{item.commentCount}</span>}</span>
+                  <span className="community__more-meta"><span className="community__more-author">작성자 {item.nickname || '알 수 없음'}</span><span>조회 {item.viewCount || 0} · 추천 {item.likeCount || 0}</span></span>
+                </a>
+              </li>)}
+            </ul>}
+      <form className="community__more-search" role="search" aria-label="다른 게시글 검색" onSubmit={(event) => { event.preventDefault(); setMoreKeyword(moreInput.trim()) }}>
+        <label className="community__sr-only" htmlFor="more-post-search">게시글 제목 검색</label>
+        <input id="more-post-search" type="search" placeholder="다른 게시글 제목 검색" value={moreInput} onChange={(event) => setMoreInput(event.target.value)} />
+        <button type="submit">검색</button>
+        {moreKeyword && <button type="button" onClick={() => { setMoreInput(''); setMoreKeyword('') }}>초기화</button>}
+      </form>
+      {moreKeyword && <p className="community__more-hint">“{moreKeyword}” 검색 결과 중 최신 글을 최대 5개 표시합니다.</p>}
+    </section>
+    </div>
   </main>
 }

@@ -13,7 +13,7 @@ export default function CommunityNavigation({ section = 'main', teamName = '' })
     </nav>
     <nav className="community__navigation-actions" aria-label="커뮤니티 화면 이동">
       {(section !== 'teams' || teamName) && <a className="community__main-link" href="/plug/community/teams">{teamName ? '다른 팀 선택' : '팀별 커뮤니티'}</a>}
-      {section !== 'main' && <a className="community__main-link" href="/plug/community">커뮤니티 메인 페이지로 이동</a>}
+      {section !== 'main' && <a className="community__main-link" href="/plug/community">커뮤니티 메인</a>}
     </nav>
   </div>
 }
