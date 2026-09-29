@@ -82,7 +82,7 @@ export default function Prediction() {
                     setOddsData((prev) => ({ ...prev, [m.matchId]: odds }));
                   }
                 }
-              } catch (e) {
+              } catch {
                 // 개별 배당률 조회 실패 시 기본값 유지
               }
             });
@@ -155,7 +155,7 @@ export default function Prediction() {
       } else {
         alert(json.message || '투표 처리에 실패했습니다.');
       }
-    } catch (e) {
+    } catch {
       alert('투표 중 네트워크 오류가 발생했습니다.');
     } finally {
       setVotingMatchId(null);

@@ -9,7 +9,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,7 +35,6 @@ import com.app.dto.match.Matches;
 import com.app.dto.team.Players;
 import com.app.dto.team.Teams;
 import com.app.service.api.BigBallsApiService;
-import com.app.service.api.GeminiApiService;
 import com.app.util.ApiBridgeUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -58,8 +56,6 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
     @Autowired
     private AdminDAO adminDAO;
 
-    @Autowired
-    private GeminiApiService geminiApiService;
 
     @Autowired
     private ApplicationContext applicationContext;

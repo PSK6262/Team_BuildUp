@@ -1,3 +1,4 @@
+import { shuffledCopy } from '../utils/shuffle.js';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { getAllPremierLeaguePlayers, getInitialTeams, getTeams } from '../api/teamApi.js';
@@ -904,13 +905,12 @@ export default function MyTeam() {
   // 로그인 사용자는 DB 저장 스쿼드 복원, 비회원은 기존 로컬 초안 복원
   useEffect(() => {
     let isMounted = true;
-    accountVersionRef.current++;
+    const accountVersion = ++accountVersionRef.current;
     matchRequestRef.current?.abort();
     matchRequestRef.current = null;
-    setMatching(false);
-
     async function loadData() {
       try {
+        setMatching(false);
         setLoading(true);
         setSquadLoadError('');
         setTeamName('나만의 드림 스쿼드');
@@ -1041,7 +1041,7 @@ export default function MyTeam() {
 
     return () => {
       isMounted = false;
-      accountVersionRef.current++;
+      accountVersionRef.current = accountVersion + 1;
       matchRequestRef.current?.abort();
       matchRequestRef.current = null;
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -1344,7 +1344,7 @@ export default function MyTeam() {
 
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
-    } catch (err) {}
+    } catch {}
   };
 
   const handleSlotPointerMove = (slotId, e) => {
@@ -1429,7 +1429,7 @@ export default function MyTeam() {
     setActiveDragSlotId(null);
     try {
       e.currentTarget.releasePointerCapture(e.pointerId);
-    } catch (err) {}
+    } catch {}
   };
 
   // 피치 잔디 공간에 선수 드롭 시: 마우스 놓은 위치에서 가장 가까운 슬롯에 배치
@@ -1529,11 +1529,7 @@ export default function MyTeam() {
     }
 
     // 매번 다양하고 재미있는 라인업을 위해 무작위 셔플
-    const shuffled = [...availablePlayers];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
+    const shuffled = shuffledCopy(availablePlayers);
 
     const currentIds = new Set(slots.filter((slot) => slot.player).map((slot) => String(slot.player.playerId)));
     const candidates = [
@@ -1723,12 +1719,6 @@ export default function MyTeam() {
     setMatching(false);
     setAiMatch(null);
   };
-
-  // 슬롯들을 포메이션 행(FW, MF, DF, GK)으로 분류
-  const fwSlots = slots.filter((s) => s.pos === 'FW');
-  const mfSlots = slots.filter((s) => s.pos === 'MF');
-  const dfSlots = slots.filter((s) => s.pos === 'DF');
-  const gkSlots = slots.filter((s) => s.pos === 'GK');
 
   return (
     <div className="myteam-page">

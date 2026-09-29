@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { usePendingRequests } from './usePendingRequests.js';
+import { useState, useCallback } from 'react';
+import { useDeferredLoad } from './useDeferredLoad.js';
 import { useDispatch } from 'react-redux';
 import { logout } from '../store/authSlice.js';
 import * as adminApi from '../api/adminApi.js';
@@ -26,7 +28,7 @@ export function useAdminOverview({ showAlert }) {
 
   const [recentPoints, setRecentPoints] = useState([]);
   const [injuredSummary, setInjuredSummary] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, trackRequest] = usePendingRequests();
   const [injuryModal, setInjuryModal] = useState(null); // { playerId, name, isInjured, injuryNote, isSuspended }
 
   // 1. 요약 통계 지표 조회
@@ -80,10 +82,10 @@ export function useAdminOverview({ showAlert }) {
 
   // 전체 데이터 일괄 로드
   const fetchOverviewData = useCallback(async () => {
-    setLoading(true);
+    trackRequest(true);
     await Promise.all([fetchSummary(), fetchRecentPoints(), fetchInjuredSummary()]);
-    setLoading(false);
-  }, [fetchSummary, fetchRecentPoints, fetchInjuredSummary]);
+    trackRequest(false);
+  }, [fetchSummary, fetchRecentPoints, fetchInjuredSummary, trackRequest]);
 
   // 부상 정보 저장 핸들러
   const handleSaveInjury = async () => {
@@ -103,14 +105,12 @@ export function useAdminOverview({ showAlert }) {
       } else {
         showAlert?.(json.message || '부상 정보 저장에 실패했습니다.', 'error');
       }
-    } catch (e) {
+    } catch {
       showAlert?.('부상 정보 저장 중 네트워크 오류가 발생했습니다.', 'error');
     }
   };
 
-  useEffect(() => {
-    fetchOverviewData();
-  }, [fetchOverviewData]);
+  useDeferredLoad(fetchOverviewData);
 
   return {
     summary,

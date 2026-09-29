@@ -1,6 +1,7 @@
 package com.app.controller.community;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.core.io.Resource;
@@ -267,17 +268,19 @@ public class CommunityController {
         }
         Resource resource = communityService.loadPostAttachmentFile(attachment);
         MediaType mediaType;
+        String contentType = attachment.getContentType();
         try {
-            mediaType = MediaType.parseMediaType(attachment.getContentType());
+            mediaType = MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream");
         } catch (IllegalArgumentException exception) {
             mediaType = MediaType.APPLICATION_OCTET_STREAM;
         }
+        String originalName = attachment.getOriginalName();
         ContentDisposition disposition = (download
             ? ContentDisposition.attachment() : ContentDisposition.inline())
-            .filename(attachment.getOriginalName(), StandardCharsets.UTF_8)
+            .filename(originalName != null ? originalName : "attachment", Objects.requireNonNull(StandardCharsets.UTF_8))
             .build();
         return ResponseEntity.ok()
-            .contentType(mediaType)
+            .contentType(Objects.requireNonNull(mediaType))
             .contentLength(attachment.getFileSize())
             .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
             .header("X-Content-Type-Options", "nosniff")

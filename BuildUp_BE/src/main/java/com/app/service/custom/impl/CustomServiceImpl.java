@@ -89,7 +89,7 @@ public class CustomServiceImpl implements CustomService {
         }
         List<LineupSlot> home = new ArrayList<>();
         List<CustomSquads> slots = new ArrayList<>(request.getSquads());
-        slots.sort(Comparator.comparing(CustomSquads::getPositionNo));
+        slots.sort(Comparator.comparing(slot -> slot.getPositionNo()));
         for (CustomSquads slot : slots) {
             MatchPlayer player = players.get(slot.getPlayerId());
             if (player == null) throw new IllegalArgumentException("DB에서 사용할 수 없는 선수가 포함되어 있습니다. 선수 명단을 새로고침해주세요.");

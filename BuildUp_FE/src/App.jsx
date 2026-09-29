@@ -1,28 +1,30 @@
-import { useEffect, useRef } from 'react'
+import { lazy, Suspense, useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { silentRefresh, logout, isTokenExpired } from './store/authSlice.js'
 import AllUseNav from './pages/AllUseNav.jsx'
-import MainPage from './pages/mainpage.jsx'
-import TeamsPage, { StandingsPage } from './pages/teams.jsx'
-import Team from './pages/team.jsx'
-import Community from './pages/Community.jsx'
-import FreeBoard from './pages/FreeBoard.jsx'
-import TeamBoards from './pages/TeamBoards.jsx'
-import PostDetail from './pages/PostDetail.jsx'
-import PostWrite from './pages/PostWrite.jsx'
-import Prediction from './pages/Prediction.jsx'
-import MyTeam from './pages/MyTeam.jsx'
-import Login from './pages/Login.jsx'
-import Signup from './pages/Signup.jsx'
-import MyPage from './pages/MyPage.jsx'
-import ChatbotWidget from './components/ChatbotWidget.jsx'
 import { communityTeams } from './data/communityTeams.js'
-import Match from './pages/Match.jsx'
-import Admin from './pages/Admin.jsx'
-import MiniGames from './pages/MiniGames.jsx'
-import PenaltyKick from './pages/PenaltyKick.jsx'
 import GlobalFooter from './components/GlobalFooter.jsx'
 import './App.css'
+
+const TeamsPage = lazy(() => import('./pages/teams.jsx'))
+const StandingsPage = lazy(() => import('./pages/teams.jsx').then((module) => ({ default: module.StandingsPage })))
+const ChatbotWidget = lazy(() => import('./components/ChatbotWidget.jsx'))
+const MainPage = lazy(() => import('./pages/mainpage.jsx'))
+const Team = lazy(() => import('./pages/team.jsx'))
+const Community = lazy(() => import('./pages/Community.jsx'))
+const FreeBoard = lazy(() => import('./pages/FreeBoard.jsx'))
+const TeamBoards = lazy(() => import('./pages/TeamBoards.jsx'))
+const PostDetail = lazy(() => import('./pages/PostDetail.jsx'))
+const PostWrite = lazy(() => import('./pages/PostWrite.jsx'))
+const Prediction = lazy(() => import('./pages/Prediction.jsx'))
+const MyTeam = lazy(() => import('./pages/MyTeam.jsx'))
+const Login = lazy(() => import('./pages/Login.jsx'))
+const Signup = lazy(() => import('./pages/Signup.jsx'))
+const MyPage = lazy(() => import('./pages/MyPage.jsx'))
+const Match = lazy(() => import('./pages/Match.jsx'))
+const Admin = lazy(() => import('./pages/Admin.jsx'))
+const MiniGames = lazy(() => import('./pages/MiniGames.jsx'))
+const PenaltyKick = lazy(() => import('./pages/PenaltyKick.jsx'))
 
 function App() {
   const dispatch = useDispatch()
@@ -81,6 +83,7 @@ function App() {
   return (
     <>
       <AllUseNav />
+      <Suspense fallback={<p role="status">페이지를 불러오는 중입니다...</p>}>
       {/* 메인 및 구단 소개 */}
       {isMainPage && <MainPage />}
       {isTeamsPage && <TeamsPage />}
@@ -115,8 +118,9 @@ function App() {
           <a href="/plug/community/teams">팀 선택으로 돌아가기</a>
         </main>
       )}
+      </Suspense>
       <GlobalFooter />
-      {showChatbot && <ChatbotWidget />}
+      {showChatbot && <Suspense fallback={null}><ChatbotWidget /></Suspense>}
     </>
   )
 }

@@ -383,7 +383,7 @@ public class CommunityServiceImpl implements CommunityService {
     // 첨부파일 개수, 크기, 확장자와 MIME 타입을 검사합니다.
     private void validateAttachmentRequest(
             Long postId, List<MultipartFile> files, boolean showcaseImage) {
-        if (files == null || files.isEmpty() || files.stream().anyMatch(MultipartFile::isEmpty)) {
+        if (files == null || files.isEmpty() || files.stream().anyMatch(file -> file == null || file.isEmpty())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");
         }
         int savedCount = communityDAO.countPostAttachments(postId);
@@ -393,7 +393,7 @@ public class CommunityServiceImpl implements CommunityService {
         long totalSize = 0;
         if (showcaseImage && (files.size() != 1
                 || communityDAO.findPostAttachments(postId).stream()
-                    .anyMatch(PostAttachments::isShowcaseImage))) {
+                    .anyMatch(attachment -> attachment != null && attachment.isShowcaseImage()))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");
         }
         for (MultipartFile file : files) {

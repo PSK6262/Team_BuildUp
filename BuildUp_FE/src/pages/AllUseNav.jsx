@@ -32,7 +32,7 @@ export default function AllUseNav() {
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
-    } catch (e) {
+    } catch {
       // 서버 통신 실패 시에도 클라이언트 상태는 로그아웃 처리
     }
     dispatch(logout())

@@ -48,7 +48,6 @@ export default function MyPage() {
   // 사용자 상세 정보 로드
   useEffect(() => {
     if (!isLoggedIn) {
-      setLoading(false)
       return
     }
 
@@ -78,7 +77,7 @@ export default function MyPage() {
             setFavoriteTeamId(reduxUser.favoriteTeamId ? String(reduxUser.favoriteTeamId) : '')
           }
         }
-      } catch (err) {
+      } catch {
         if (reduxUser) {
           setProfile(reduxUser)
           setNickname(reduxUser.nickname || '')
@@ -334,7 +333,7 @@ export default function MyPage() {
     }
   }
 
-  if (loading) {
+  if (isLoggedIn && loading) {
     return <div className="mypage-loading">회원 정보를 불러오는 중입니다...</div>
   }
 

@@ -177,7 +177,7 @@ export async function getTeamPlayerStats(teamId) {
         return data;
       }
     }
-  } catch (err) {
+  } catch {
     // 백엔드 개별 지원 및 폴백 번들 연동
   }
 

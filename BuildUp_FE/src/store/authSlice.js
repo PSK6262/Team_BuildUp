@@ -18,7 +18,7 @@ export function isTokenExpired(token) {
     if (!payload.exp) return false
     // Date.now()는 ms, payload.exp는 초 단위
     return Date.now() >= payload.exp * 1000
-  } catch (e) {
+  } catch {
     return true
   }
 }
@@ -35,7 +35,7 @@ const savedUser = (() => {
     }
     const item = localStorage.getItem('buildup_user')
     return item ? JSON.parse(item) : null
-  } catch (e) {
+  } catch {
     return null
   }
 })()
@@ -73,7 +73,7 @@ export const silentRefresh = createAsyncThunk(
         dispatch(logout())
         return rejectWithValue('세션 만료')
       }
-    } catch (e) {
+    } catch {
       // 오프라인이거나 일시적 네트워크 에러 시에는 토큰 유효기간 내에서 상태 보존
       return null
     }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import '../../css/fc-manager-mode.css'
+const EMPTY_EVENTS = []
 
 // 2D 피치 홈팀 기본 포메이션 (4-3-3 좌측)
 const HOME_FORMATION_433 = [
@@ -33,8 +34,9 @@ const AWAY_FORMATION_4231 = [
 
 export default function FcManagerModeModal({ isOpen, onClose, match, homeTeam = {}, awayTeam = {} }) {
   const [ filterType, setFilterType ] = useState('ALL')
-  const [ dbEvents, setDbEvents ] = useState([])
-  const [ loading, setLoading ] = useState(false)
+  const [ eventResult, setEventResult ] = useState(null)
+  const dbEvents = eventResult && eventResult.matchId === match?.matchId ? eventResult.events : EMPTY_EVENTS
+  const loading = isOpen && !!match?.matchId && eventResult?.matchId !== match.matchId
 
   // ESC 키로 닫기
   useEffect(() => {
@@ -50,7 +52,6 @@ export default function FcManagerModeModal({ isOpen, onClose, match, homeTeam = 
   useEffect(() => {
     if (!isOpen || !match?.matchId) return
 
-    setLoading(true)
     let active = true
 
     fetch(`/api/matches/${match.matchId}/events`)
@@ -58,16 +59,13 @@ export default function FcManagerModeModal({ isOpen, onClose, match, homeTeam = 
       .then((data) => {
         if (!active) return
         if (Array.isArray(data) && data.length > 0) {
-          setDbEvents(data)
+          setEventResult({ matchId: match.matchId, events: data })
         } else {
-          setDbEvents([])
+          setEventResult({ matchId: match.matchId, events: [] })
         }
       })
       .catch(() => {
-        if (active) setDbEvents([])
-      })
-      .finally(() => {
-        if (active) setLoading(false)
+        if (active) setEventResult({ matchId: match.matchId, events: [] })
       })
 
     return () => {
@@ -97,7 +95,7 @@ export default function FcManagerModeModal({ isOpen, onClose, match, homeTeam = 
 
     // 2. DB에 실제 적재된 이벤트가 있는 경우 변환
     if (dbEvents.length > 0) {
-      dbEvents.forEach((evt) => {
+      dbEvents.forEach((evt, index) => {
         const timeVal = Number(evt.eventTime ?? evt.event_time ?? 0)
         const typeCode = Number(evt.eventType ?? evt.event_type ?? 1)
         const isHome = Number(evt.teamId ?? evt.team_id) === Number(match.homeTeamId)
@@ -165,7 +163,7 @@ export default function FcManagerModeModal({ isOpen, onClose, match, homeTeam = 
         }
 
         list.push({
-          id: `evt-${evt.eventId || Math.random()}`,
+          id: `evt-${evt.eventId ?? index}`,
           time: timeVal,
           timeDisplay: `${timeVal}'`,
           type: typeCode,

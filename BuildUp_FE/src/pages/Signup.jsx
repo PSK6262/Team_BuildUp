@@ -40,24 +40,19 @@ export default function Signup() {
   const confirmKey = searchParams.get('key')
   const isConfirmMode = Boolean(confirmKey || window.location.pathname === '/plug/signup/confirm')
 
-  const [confirmStatus, setConfirmStatus] = useState(isConfirmMode ? 'loading' : 'idle')
-  const [confirmMsg, setConfirmMsg] = useState('')
+  const [confirmStatus, setConfirmStatus] = useState(isConfirmMode ? (confirmKey ? 'loading' : 'error') : 'idle')
+  const [confirmMsg, setConfirmMsg] = useState(isConfirmMode && !confirmKey ? '인증키가 존재하지 않거나 누락되었습니다.' : '')
   const hasRequestedRef = useRef(false)
 
   // 인증 링크로 진입했을 때 자동 검증 처리 (중복 실행 방지)
   useEffect(() => {
     if (!confirmKey) {
-      if (isConfirmMode) {
-        setConfirmStatus('error')
-        setConfirmMsg('인증키가 존재하지 않거나 누락되었습니다.')
-      }
       return
     }
 
     if (hasRequestedRef.current) return
     hasRequestedRef.current = true
 
-    setConfirmStatus('loading')
     fetch(`/api/auth/confirm-signup?key=${encodeURIComponent(confirmKey.trim())}`)
       .then((res) => res.json())
       .then((data) => {
@@ -201,7 +196,7 @@ export default function Signup() {
       } else {
         setErrorMsg(data.message || '회원가입 처리 중 오류가 발생했습니다.')
       }
-    } catch (err) {
+    } catch {
       setErrorMsg('서버와 통신할 수 없습니다. 잠시 후 다시 시도해주세요.')
     } finally {
       setLoading(false)

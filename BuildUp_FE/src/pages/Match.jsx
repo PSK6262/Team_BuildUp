@@ -7,6 +7,7 @@ import '../css/match.css'
 const teamsData = teamDbFallback.teams
 const SEASONS = [2024, 2025, 2026]
 const MATCH_PAGE_SIZE = 10
+const EMPTY_MATCHES = []
 const seasonLabel = (season) => `${String(season).slice(-2)}-${String(season + 1).slice(-2)}`
 
 // 프리미어리그 시즌 월 목록 (8월 ~ 5월 + 전체)
@@ -75,27 +76,12 @@ const TEAM_NAMES_KOR = {
 }
 
 // 기본 경기장 한글명 매핑
-function getStadiumNameKor(stadium, teamId) {
+function getStadiumNameKor(stadium) {
   if (!stadium) return '홈 구장'
   return stadium
 }
 
-// 경기 결과 판별
-function getMatchOutcome(match) {
-  if (match.homeScore == null || match.awayScore == null) return null
-  const h = Number(match.homeScore)
-  const a = Number(match.awayScore)
-  if (h > a) return 'HOME_WIN'
-  if (h < a) return 'AWAY_WIN'
-  return 'DRAW'
-}
-
 export default function Match() {
-  const urlParams = useMemo(() => new URLSearchParams(window.location.search), [])
-  const focusedMatchId = useMemo(() => {
-    const id = urlParams.get('matchId')
-    return id ? Number(id) : null
-  }, [ urlParams ])
 
   // 필터 모드: 'MONTH' (월별) 또는 'ROUND' (라운드별)
   const [ filterMode, setFilterMode ] = useState('MONTH')
@@ -109,14 +95,19 @@ export default function Match() {
   // 구단 선택 필터 (기본값: 전체 구단)
   const [ selectedTeamId, setSelectedTeamId ] = useState('ALL')
   const [ selectedSeason, setSelectedSeason ] = useState(2026)
-  const [ visibleCount, setVisibleCount ] = useState(MATCH_PAGE_SIZE)
+  const [ pagination, setPagination ] = useState({ key: null, count: MATCH_PAGE_SIZE })
 
-  const [ rawMatches, setRawMatches ] = useState([])
+  const [ matchResult, setMatchResult ] = useState(null)
   const [ rankResult, setRankResult ] = useState({ season: null, ranks: new Map() })
   const teamRanks = rankResult.season === selectedSeason ? rankResult.ranks : new Map()
-  const [ dbError, setDbError ] = useState('')
-  const [ loading, setLoading ] = useState(false)
   const [ reload, setReload ] = useState(0)
+  const [ syncing, setSyncing ] = useState(false)
+  const requestKey = String(selectedSeason) + ':' + reload
+  const loading = matchResult?.key !== requestKey
+  const rawMatches = loading ? EMPTY_MATCHES : matchResult.matches
+  const dbError = loading ? '' : matchResult.error
+  const pageKey = JSON.stringify([selectedSeason, selectedTeamId, filterMode, selectedMonth, selectedRound, reload])
+  const visibleCount = pagination.key === pageKey ? pagination.count : MATCH_PAGE_SIZE
   const [ activeMatchForModal, setActiveMatchForModal ] = useState(null)
 
   const handleSyncMatches = async () => {
@@ -182,10 +173,6 @@ export default function Match() {
   // 2. DB MATCHES 테이블 데이터 로드 (경기종료, LIVE, 경기예정 전체 통합 로드)
   useEffect(() => {
     let active = true
-    setLoading(true)
-    setDbError('')
-
-    setRawMatches([])
     const apiUrl = `/api/matches?season=${selectedSeason}`
 
     const controller = new AbortController()
@@ -203,8 +190,7 @@ export default function Match() {
       .then((data) => {
         if (!active) return
         if (Array.isArray(data)) {
-          setRawMatches(data)
-          setDbError('')
+          setMatchResult({ key: requestKey, matches: data, error: '' })
         } else {
           throw new Error('경기 목록 응답 형식 오류')
         }
@@ -213,19 +199,16 @@ export default function Match() {
         clearTimeout(timeoutId)
         if (!active) return
         console.warn('[Match] 백엔드(/api/matches) 연결 지연 또는 실패:', err.message)
-        setRawMatches([])
-        setDbError('오라클 DB 연결 실패 (' + (err.name === 'AbortError' ? '연결 타임아웃' : err.message) + ')')
+        setMatchResult({ key: requestKey, matches: [], error: '오라클 DB 연결 실패 (' + (err.name === 'AbortError' ? '연결 타임아웃' : err.message) + ')' })
       })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
+
 
     return () => {
       active = false
       clearTimeout(timeoutId)
       controller.abort()
     }
-  }, [ reload, selectedSeason ])
+  }, [ reload, selectedSeason, requestKey ])
 
   // 2-1. DB TEAMS 테이블 실시간 로드 (구단 선택에는 DB API에서 가져오는 구단만 노출)
   const [ dbTeamsList, setDbTeamsList ] = useState([])
@@ -375,9 +358,6 @@ export default function Match() {
     return result
   }, [ matches, selectedSeason, selectedTeamId, filterMode, selectedMonth, selectedRound ])
 
-  useEffect(() => {
-    setVisibleCount(MATCH_PAGE_SIZE)
-  }, [selectedSeason, selectedTeamId, filterMode, selectedMonth, selectedRound, reload])
 
   const visibleMatches = filteredMatches.slice(0, visibleCount)
 
@@ -500,7 +480,7 @@ export default function Match() {
           }}>
             <button
               type="button"
-              onClick={() => setDbError('')}
+              onClick={() => setMatchResult((previous) => ({ ...previous, error: '' }))}
               style={{
                 position: 'absolute',
                 top: '12px',
@@ -665,7 +645,6 @@ export default function Match() {
             className="team-filter-reset-btn match-reload-btn"
             disabled={loading}
             onClick={() => {
-              setLoading(true)
               setReload((value) => value + 1)
             }}
           >
@@ -744,7 +723,7 @@ export default function Match() {
               const outcome = getMatchOutcome(match)
               const isHomeWinner = isFinished && outcome === 'HOME_WIN'
               const isAwayWinner = isFinished && outcome === 'AWAY_WIN'
-              const isFocusedMatch = Boolean(focusedMatchId && Number(match.matchId) === focusedMatchId)
+
 
               return (
                 <article
@@ -851,7 +830,7 @@ export default function Match() {
               <button
                 type="button"
                 className="match-load-more"
-                onClick={() => setVisibleCount((count) => count + MATCH_PAGE_SIZE)}
+                onClick={() => setPagination({ key: pageKey, count: visibleCount + MATCH_PAGE_SIZE })}
               >
                 더보기 ({visibleMatches.length} / {filteredMatches.length})
               </button>

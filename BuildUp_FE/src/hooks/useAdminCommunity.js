@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { usePendingRequests } from './usePendingRequests.js';
+import { useState, useCallback } from 'react';
+import { useDeferredLoad } from './useDeferredLoad.js';
 import { useDispatch } from 'react-redux';
 import { logout } from '../store/authSlice.js';
 import * as adminApi from '../api/adminApi.js';
@@ -20,12 +22,12 @@ export function useAdminCommunity({ showAlert }) {
   const [commentStatusFilter, setCommentStatusFilter] = useState(''); // '' | 'NORMAL' | 'BLIND' | 'DELETED'
   const [commentKeyword, setCommentKeyword] = useState('');
 
-  const [loading, setLoading] = useState(false);
+  const [loading, trackRequest] = usePendingRequests();
   const [viewPostModal, setViewPostModal] = useState(null); // { title, content, nickname, isBlind, isDeleted, unblurred }
 
   // 1. 게시글 목록 조회
   const fetchPosts = useCallback(async (overrideStatus, overrideKeyword) => {
-    setLoading(true);
+    trackRequest(true);
     try {
       const statusToUse = overrideStatus !== undefined ? overrideStatus : postStatusFilter;
       const keywordToUse = overrideKeyword !== undefined ? overrideKeyword : postKeyword;
@@ -54,13 +56,13 @@ export function useAdminCommunity({ showAlert }) {
     } catch (e) {
       console.warn('게시글 목록 조회 실패', e);
     } finally {
-      setLoading(false);
+      trackRequest(false);
     }
-  }, [postStatusFilter, postKeyword, dispatch, showAlert]);
+  }, [postStatusFilter, postKeyword, dispatch, showAlert, trackRequest]);
 
   // 2. 댓글 목록 조회
   const fetchComments = useCallback(async (overrideStatus, overrideKeyword) => {
-    setLoading(true);
+    trackRequest(true);
     try {
       const statusToUse = overrideStatus !== undefined ? overrideStatus : commentStatusFilter;
       const keywordToUse = overrideKeyword !== undefined ? overrideKeyword : commentKeyword;
@@ -99,18 +101,18 @@ export function useAdminCommunity({ showAlert }) {
     } catch (e) {
       console.warn('댓글 목록 조회 실패', e);
     } finally {
-      setLoading(false);
+      trackRequest(false);
     }
-  }, [commentStatusFilter, commentKeyword, dispatch, showAlert]);
+  }, [commentStatusFilter, commentKeyword, dispatch, showAlert, trackRequest]);
 
   // 마운트 시 데이터 조회
-  useEffect(() => {
+  useDeferredLoad(useCallback(() => {
     if (communitySubTab === 'posts') {
       fetchPosts();
     } else {
       fetchComments();
     }
-  }, [communitySubTab, fetchPosts, fetchComments]);
+  }, [communitySubTab, fetchPosts, fetchComments]));
 
   // 게시글 블라인드 토글
   const handleTogglePostBlind = async (postId, currentBlind) => {
@@ -124,7 +126,7 @@ export function useAdminCommunity({ showAlert }) {
       } else {
         showAlert?.('블라인드 상태 변경 실패', 'error');
       }
-    } catch (e) {
+    } catch {
       showAlert?.('요청 중 통신 오류가 발생했습니다.', 'error');
     }
   };
@@ -141,7 +143,7 @@ export function useAdminCommunity({ showAlert }) {
       } else {
         showAlert?.(json.message || '게시글 삭제에 실패했습니다.', 'error');
       }
-    } catch (e) {
+    } catch {
       showAlert?.('게시글 삭제 중 통신 오류가 발생했습니다.', 'error');
     }
   };
@@ -158,7 +160,7 @@ export function useAdminCommunity({ showAlert }) {
       } else {
         showAlert?.('블라인드 상태 변경 실패', 'error');
       }
-    } catch (e) {
+    } catch {
       showAlert?.('요청 중 통신 오류가 발생했습니다.', 'error');
     }
   };
@@ -178,7 +180,7 @@ export function useAdminCommunity({ showAlert }) {
       } else {
         showAlert?.(json.message || 'AI 모더레이션 실행 실패', 'error');
       }
-    } catch (e) {
+    } catch {
       showAlert?.('AI 모더레이션 요청 중 오류가 발생했습니다.', 'error');
     } finally {
       setModerationLoading(false);
