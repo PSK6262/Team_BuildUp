@@ -49,6 +49,44 @@ public class MatchDAOImpl implements MatchDAO {
 	}
 
 	@Override
+	public List<Matches> findUpcomingMatches(Long teamId, LocalDateTime fromDate, int limit) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("teamId", teamId);
+		params.put("fromDate", fromDate);
+		params.put("limit", limit);
+		return sqlSession.selectList("MatchMapper.selectUpcomingMatches", params);
+	}
+
+	@Override
+	public List<Matches> findRecentMatches(Long teamId, int limit) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("teamId", teamId);
+		params.put("limit", limit);
+		return sqlSession.selectList("MatchMapper.selectRecentMatches", params);
+	}
+
+	@Override
+	public List<Matches> findHeadToHeadMatches(Long firstTeamId, Long secondTeamId, int limit) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("firstTeamId", firstTeamId);
+		params.put("secondTeamId", secondTeamId);
+		params.put("limit", limit);
+		return sqlSession.selectList("MatchMapper.selectHeadToHeadMatches", params);
+	}
+
+	@Override
+	public List<Matches> findFinishedMatchesByScore(long homeScore, long awayScore,
+			Long teamId, Long opponentTeamId, int limit) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("homeScore", homeScore);
+		params.put("awayScore", awayScore);
+		params.put("teamId", teamId);
+		params.put("opponentTeamId", opponentTeamId);
+		params.put("limit", limit);
+		return sqlSession.selectList("MatchMapper.selectFinishedMatchesByScore", params);
+	}
+
+	@Override
 	public void insertMatchEvent(MatchEvents event) {
 		sqlSession.insert("MatchMapper.insertMatchEvent", event);
 	}

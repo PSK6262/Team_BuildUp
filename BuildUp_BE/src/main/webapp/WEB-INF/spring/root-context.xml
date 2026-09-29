@@ -12,7 +12,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.sprin
                       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
 	<!-- 1. 프로퍼티 설정 통합 (콤마를 사용하여 여러 설정을 단 하나의 태그로 안전하게 로드합니다) -->
-	<context:property-placeholder location="classpath:config/db.properties, classpath:config/application.properties" />
+	<context:property-placeholder location="classpath:config/db.properties, classpath:config/application.properties, classpath:config/smtp.properties" />
 
 	<!-- 데이터베이스 연결 설정 -->
 	<bean class="org.apache.commons.dbcp2.BasicDataSource" id="data_source" destroy-method="close">
@@ -20,6 +20,22 @@ xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.sprin
 		<property name="url" value="${jdbc.url}"/>
 		<property name="username" value="${jdbc.username}"/>
 		<property name="password" value="${jdbc.password}"/>
+	</bean>
+
+	<!-- JavaMailSenderImpl 등록 -->
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="${mail.host}" />
+		<property name="port" value="${mail.port}" />
+		<property name="username" value="${mail.username}" />
+		<property name="password" value="${mail.password}" />
+		<property name="javaMailProperties">
+			<props>
+				<prop key="mail.smtp.auth">${mail.smtp.auth}</prop>
+				<prop key="mail.smtp.starttls.enable">${mail.smtp.starttls.enable}</prop>
+				<prop key="mail.smtp.starttls.required">${mail.smtp.starttls.required}</prop>
+				<prop key="mail.debug">${mail.debug}</prop>
+			</props>
+		</property>
 	</bean>
 	
 	<!-- 2. MyBatis 설정 -->
@@ -35,6 +51,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.sprin
 	</bean>
 
 	<!-- 4. 어노테이션 자동 스캔 설정 -->
+	<context:component-scan base-package="com.app.util"/>
 	<context:component-scan base-package="com.app.service"/>
 	<context:component-scan base-package="com.app.dao"/>
 	

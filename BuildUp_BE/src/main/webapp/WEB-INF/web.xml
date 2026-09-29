@@ -12,8 +12,8 @@
 	<multipart-config>
             <!-- 업로드 파일 최대 크기 (예: 10MB) -->
             <max-file-size>10485760</max-file-size>
-            <!-- 전체 요청 최대 크기 (예: 20MB) -->
-            <max-request-size>20971520</max-request-size>
+            <!-- 파일 전체 20MB와 multipart 부가 데이터를 포함한 요청 최대 크기 -->
+            <max-request-size>26214400</max-request-size>
             <!-- 임시 파일 저장 임계값 (0으로 두면 메모리 대신 바로 디스크/지정 경로에 임시 저장) -->
             <file-size-threshold>0</file-size-threshold>
         </multipart-config>

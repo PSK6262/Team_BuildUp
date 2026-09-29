@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import teamDbFallback from '../data/teamDbFallback.json'
+import { getTeams } from '../api/teamApi.js'
+import FcManagerModeModal from '../components/match/FcManagerModeModal.jsx'
 import '../css/match.css'
 
 const teamsData = teamDbFallback.teams
-const SEASONS = [2026, 2024, 2025]
+const SEASONS = [2024, 2025, 2026]
 const MATCH_PAGE_SIZE = 10
 const seasonLabel = (season) => `${String(season).slice(-2)}-${String(season + 1).slice(-2)}`
 
@@ -72,7 +74,29 @@ const TEAM_NAMES_KOR = {
   1044: '본머스',
 }
 
+// 기본 경기장 한글명 매핑
+function getStadiumNameKor(stadium, teamId) {
+  if (!stadium) return '홈 구장'
+  return stadium
+}
+
+// 경기 결과 판별
+function getMatchOutcome(match) {
+  if (match.homeScore == null || match.awayScore == null) return null
+  const h = Number(match.homeScore)
+  const a = Number(match.awayScore)
+  if (h > a) return 'HOME_WIN'
+  if (h < a) return 'AWAY_WIN'
+  return 'DRAW'
+}
+
 export default function Match() {
+  const urlParams = useMemo(() => new URLSearchParams(window.location.search), [])
+  const focusedMatchId = useMemo(() => {
+    const id = urlParams.get('matchId')
+    return id ? Number(id) : null
+  }, [ urlParams ])
+
   // 필터 모드: 'MONTH' (월별) 또는 'ROUND' (라운드별)
   const [ filterMode, setFilterMode ] = useState('MONTH')
 
@@ -93,13 +117,39 @@ export default function Match() {
   const [ dbError, setDbError ] = useState('')
   const [ loading, setLoading ] = useState(false)
   const [ reload, setReload ] = useState(0)
+  const [ activeMatchForModal, setActiveMatchForModal ] = useState(null)
+
+  const handleSyncMatches = async () => {
+    if (syncing) return
+    if (!window.confirm('외부 축구 API에서 2026 시즌 전체 380경기 일정을 DB(MATCHES)로 동기화하시겠습니까?')) return
+    try {
+      setSyncing(true)
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/matches/sync-season?season=2026', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: 'include',
+      })
+      const data = await res.json()
+      alert(data.message || 'DB 동기화가 완료되었습니다!')
+      setReload((v) => v + 1)
+    } catch (err) {
+      alert('동기화 중 오류가 발생했습니다: ' + err.message)
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   // 1. 실시간 리그 순위 데이터 로드 (DB TEAM_STATS 연동)
   useEffect(() => {
     let active = true
     const rankMap = new Map()
 
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 3000)
+    const timeoutId = setTimeout(() => controller.abort(), 6000)
 
     fetch(`/api/teams/standings?season=${selectedSeason}`, { signal: controller.signal })
       .then((res) => {
@@ -129,7 +179,7 @@ export default function Match() {
     }
   }, [ reload, selectedSeason ])
 
-  // 2. DB MATCHES 테이블 데이터 로드 (백엔드 API 연동)
+  // 2. DB MATCHES 테이블 데이터 로드 (경기종료, LIVE, 경기예정 전체 통합 로드)
   useEffect(() => {
     let active = true
     setLoading(true)
@@ -177,51 +227,38 @@ export default function Match() {
     }
   }, [ reload, selectedSeason ])
 
-  // 3. 구단 목록 실시간 추출 (구단 필터용)
+  // 2-1. DB TEAMS 테이블 실시간 로드 (구단 선택에는 DB API에서 가져오는 구단만 노출)
+  const [ dbTeamsList, setDbTeamsList ] = useState([])
+  useEffect(() => {
+    let active = true
+    getTeams().then((data) => {
+      if (active && Array.isArray(data) && data.length > 0) {
+        setDbTeamsList(data)
+      }
+    })
+    return () => {
+      active = false
+    }
+  }, [ reload ])
+
+  // 3. 구단 목록 실시간 추출 (구단 선택 드롭다운용: DB API 결과만 반영 및 한국어 가나다순 정렬)
   const dbTeams = useMemo(() => {
-    const teamMap = new Map()
+    const sourceList = dbTeamsList.length > 0 ? dbTeamsList : teamsData
 
-    // 1순위: 로컬 구단 마스터 데이터 등록
-    teamsData.forEach((t) => {
-      const id = Number(t.teamId)
-      teamMap.set(id, {
-        teamId: id,
-        teamName: t.teamName,
-        teamNameKor: t.teamNameKor || TEAM_NAMES_KOR[ id ] || t.teamName,
-        emblemUrl: t.emblemUrl || '',
-        homeGround: t.homeGround || '홈 경기장',
+    return sourceList
+      .map((t) => {
+        const id = Number(t.teamId)
+        return {
+          teamId: id,
+          teamName: t.teamName,
+          teamNameKor: t.teamNameKor || TEAM_NAMES_KOR[ id ] || t.teamName,
+          emblemUrl: t.emblemUrl || '',
+          homeGround: t.homeGround || '홈 경기장',
+          homeGroundKor: t.homeGroundKor || getStadiumNameKor(t.homeGround, id),
+        }
       })
-    })
-
-    // 2순위: DB 경기 데이터에서 구단 정보 보강
-    rawMatches.forEach((m) => {
-      if (m.homeTeamId && !teamMap.has(Number(m.homeTeamId))) {
-        const id = Number(m.homeTeamId)
-        teamMap.set(id, {
-          teamId: id,
-          teamName: m.homeTeamName || `Team #${id}`,
-          teamNameKor: m.homeTeamNameKor || TEAM_NAMES_KOR[ id ] || m.homeTeamName || `팀 #${id}`,
-          emblemUrl: m.homeEmblemUrl || '',
-          homeGround: m.homeGroundKor || m.homeGround || '홈 경기장',
-        })
-      }
-      if (m.awayTeamId && !teamMap.has(Number(m.awayTeamId))) {
-        const id = Number(m.awayTeamId)
-        teamMap.set(id, {
-          teamId: id,
-          teamName: m.awayTeamName || `Team #${id}`,
-          teamNameKor: m.awayTeamNameKor || TEAM_NAMES_KOR[ id ] || m.awayTeamName || `팀 #${id}`,
-          emblemUrl: m.awayEmblemUrl || '',
-          homeGround: '원정 구단',
-        })
-      }
-    })
-
-    // 한글 가나다순 정렬
-    return Array.from(teamMap.values()).sort((a, b) =>
-      a.teamNameKor.localeCompare(b.teamNameKor, 'ko')
-    )
-  }, [ rawMatches ])
+      .sort((a, b) => a.teamNameKor.localeCompare(b.teamNameKor, 'ko'))
+  }, [ dbTeamsList ])
 
   // 4. 구단 ID로 정보(이름, 엠블럼, 경기장) 조회
   const getTeamInfo = useCallback(
@@ -237,7 +274,8 @@ export default function Match() {
           teamName: foundFromStatic.teamName,
           teamNameKor: foundFromStatic.teamNameKor || TEAM_NAMES_KOR[ numId ] || foundFromStatic.teamName,
           emblemUrl: foundFromStatic.emblemUrl || '',
-          homeGround: foundFromStatic.homeGround || '홈 경기장',
+          homeGround: foundFromStatic.homeGround,
+          homeGroundKor: foundFromStatic.homeGroundKor || getStadiumNameKor(foundFromStatic.homeGround, numId),
         }
       }
 
@@ -246,7 +284,8 @@ export default function Match() {
         teamName: `팀 #${teamId}`,
         teamNameKor: TEAM_NAMES_KOR[ numId ] || `팀 #${teamId}`,
         emblemUrl: '',
-        homeGround: '경기장',
+        homeGround: '홈 경기장',
+        homeGroundKor: getStadiumNameKor('', numId),
       }
     },
     [ dbTeams ]
@@ -271,19 +310,24 @@ export default function Match() {
         displayAwayTeamName: m.awayTeamNameKor || awayInfo.teamNameKor,
         displayHomeEmblem: m.homeEmblemUrl || homeInfo.emblemUrl,
         displayAwayEmblem: m.awayEmblemUrl || awayInfo.emblemUrl,
-        displayHomeGround: m.homeGroundKor || m.homeGround || homeInfo.homeGround,
+        displayHomeGround: m.homeGroundKor || homeInfo.homeGroundKor || getStadiumNameKor(m.homeGround || homeInfo.homeGround, m.homeTeamId),
       }
     })
 
     // 경기 일정은 날짜 오름차순으로 표시
-    return list.sort((a, b) => {
+    const sorted = list.sort((a, b) => {
       const dateA = a.matchDate || ''
       const dateB = b.matchDate || ''
       return dateA.localeCompare(dateB)
     })
+
+    return sorted.map((m, idx) => ({
+      ...m,
+      computedRound: m.round ?? m.matchday ?? (Math.floor(idx / 10) + 1),
+    }))
   }, [ rawMatches, getTeamInfo ])
 
-  // 7. 필터링 로직 (월별 / 라운드별 + 구단 선택)
+  // 7. 필터링 로직 (월별 / 라운드별 + 구단 선택) - 경기종료, LIVE, 경기예정 모두 통합!
   const filteredMatches = useMemo(() => {
     let result = matches.filter((match) => {
       if (match.season != null) return Number(match.season) === selectedSeason
@@ -367,7 +411,7 @@ export default function Match() {
     )
   }
 
-  // 경기 상태 및 스코어 배지 렌더링
+  // 경기 상태 및 스코어 배지 렌더링 (경기종료 / LIVE / 경기예정)
   const renderStatusBadge = (match) => {
     const { status, homeScore, awayScore } = match
     const isFinished =
@@ -385,7 +429,7 @@ export default function Match() {
             <span className="match-score__num">{awayScore ?? 0}</span>
           </div>
           <span className="match-badge match-badge--finished">
-            {status === 'AWARDED' ? '몰수 경기' : '경기 종료'}
+            {status === 'AWARDED' ? '몰수 경기' : '경기종료'}
           </span>
         </div>
       )
@@ -405,7 +449,7 @@ export default function Match() {
     return (
       <div className="match-score-box">
         <span className="match-score--vs">VS</span>
-        <span className="match-badge match-badge--scheduled">예정</span>
+        <span className="match-badge match-badge--scheduled">경기예정</span>
       </div>
     )
   }
@@ -451,12 +495,50 @@ export default function Match() {
             marginBottom: '20px',
             fontSize: '14px',
             lineHeight: '1.6',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+            boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+            position: 'relative'
           }}>
+            <button
+              type="button"
+              onClick={() => setDbError('')}
+              style={{
+                position: 'absolute',
+                top: '12px',
+                right: '14px',
+                background: 'none',
+                border: 'none',
+                fontSize: '16px',
+                color: '#854d0e',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+              title="알림 닫기"
+            >
+              ✕
+            </button>
             <strong>⚠️ {dbError}</strong><br />
             <span style={{ fontSize: '13px', color: '#a16207' }}>
               {seasonLabel(selectedSeason)} 시즌 경기 데이터를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.
             </span>
+            <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="team-filter-reset-btn"
+                style={{ backgroundColor: '#854d0e', color: '#fff', fontSize: '12px', padding: '5px 12px', borderRadius: '6px' }}
+                onClick={() => setReload((v) => v + 1)}
+              >
+                🔄 DB 다시 연결
+              </button>
+              <button
+                type="button"
+                className="team-filter-reset-btn"
+                style={{ backgroundColor: '#38003c', color: '#00ff87', fontSize: '12px', padding: '5px 12px', borderRadius: '6px' }}
+                disabled={syncing}
+                onClick={handleSyncMatches}
+              >
+                {syncing ? '동기화 중...' : '⚡ 외부 API 경기 데이터 DB 동기화'}
+              </button>
+            </div>
           </div>
         )}
 
@@ -602,8 +684,7 @@ export default function Match() {
             {selectedTeam && (
               <span style={{ color: '#38003c', fontWeight: 800 }}>
                 {' '}
-                · {teamRanks.get(Number(selectedTeam.teamId)) ? `[${teamRanks.get(Number(selectedTeam.teamId))}위] ` : ''}
-                {selectedTeam.teamNameKor} ({selectedTeam.teamName})
+                · {selectedTeam.teamNameKor} ({selectedTeam.teamName})
               </span>
             )}
           </span>
@@ -632,6 +713,19 @@ export default function Match() {
                     ? '선택하신 조건에 해당하는 경기 일정이 없습니다.'
                     : '선택하신 라운드에 해당하는 경기 일정이 없습니다.'}
             </p>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '16px' }}>
+              <button
+                type="button"
+                className="team-filter-reset-btn"
+                onClick={() => {
+                  setSelectedMonth('ALL')
+                  setSelectedRound('ALL')
+                  setSelectedTeamId('ALL')
+                }}
+              >
+                전체 경기 보기
+              </button>
+            </div>
           </div>
         ) : (
           <div className="match-grid">
@@ -640,9 +734,17 @@ export default function Match() {
               const awayTeam = getTeamInfo(match.awayTeamId)
               const [ dateStr, timeStr ] = (match.matchDate || '').split(' ')
 
+              const { status, homeScore, awayScore } = match
+              const isFinished =
+                status === 'FINISHED' ||
+                status === 'AWARDED' ||
+                (homeScore !== null && awayScore !== null)
+              const isLive = status === 'LIVE' || status === 'IN_PLAY'
+
               const outcome = getMatchOutcome(match)
-              const isHomeWinner = outcome === 'HOME_WIN'
-              const isAwayWinner = outcome === 'AWAY_WIN'
+              const isHomeWinner = isFinished && outcome === 'HOME_WIN'
+              const isAwayWinner = isFinished && outcome === 'AWAY_WIN'
+              const isFocusedMatch = Boolean(focusedMatchId && Number(match.matchId) === focusedMatchId)
 
               return (
                 <article
@@ -660,7 +762,7 @@ export default function Match() {
                     </span>
                   </div>
 
-                  {/* 대결 팀 (홈 vs 원정): 팀명 옆 현재 순위 배지 & 승패 */}
+                  {/* 대결 팀 (홈 vs 원정): 한국어명(영문명) 및 엠블럼 */}
                   <div className="match-card__versus">
                     {/* 홈팀 */}
                     <div
@@ -672,20 +774,23 @@ export default function Match() {
                             : ''
                       }`}
                     >
-                      <span className="match-team__name">
-                        {renderTeamRankBadge(match.homeTeamId)}
-                        <strong>{homeTeam.teamNameKor}</strong>
-                        <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '4px' }}>
-                          ({homeTeam.teamName})
+                      <div className="match-team__info">
+                        <span className="match-team__name-kor">
+                          {renderTeamRankBadge(match.homeTeamId)}
+                          {homeTeam.teamNameKor}
+                          {isHomeWinner && <span className="match-win-badge">승</span>}
                         </span>
-                        {isHomeWinner && <span className="match-win-badge">승</span>}
-                      </span>
+                        <span className="match-team__name-eng">({homeTeam.teamName})</span>
+                      </div>
                       {homeTeam.emblemUrl && (
-                        <img
-                          src={homeTeam.emblemUrl}
-                          alt={homeTeam.teamNameKor || homeTeam.teamName}
-                          className="match-team__emblem"
-                        />
+                        <div className="match-team__emblem-wrap">
+                          <img
+                            src={homeTeam.emblemUrl}
+                            alt={homeTeam.teamNameKor || homeTeam.teamName}
+                            className="match-team__emblem"
+                            onError={(e) => { e.currentTarget.style.visibility = 'hidden' }}
+                          />
+                        </div>
                       )}
                     </div>
 
@@ -703,26 +808,41 @@ export default function Match() {
                       }`}
                     >
                       {awayTeam.emblemUrl && (
-                        <img
-                          src={awayTeam.emblemUrl}
-                          alt={awayTeam.teamNameKor || awayTeam.teamName}
-                          className="match-team__emblem"
-                        />
+                        <div className="match-team__emblem-wrap">
+                          <img
+                            src={awayTeam.emblemUrl}
+                            alt={awayTeam.teamNameKor || awayTeam.teamName}
+                            className="match-team__emblem"
+                            onError={(e) => { e.currentTarget.style.visibility = 'hidden' }}
+                          />
+                        </div>
                       )}
-                      <span className="match-team__name">
-                        {renderTeamRankBadge(match.awayTeamId)}
-                        <strong>{awayTeam.teamNameKor}</strong>
-                        <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '4px' }}>
-                          ({awayTeam.teamName})
+                      <div className="match-team__info">
+                        <span className="match-team__name-kor">
+                          {renderTeamRankBadge(match.awayTeamId)}
+                          {awayTeam.teamNameKor}
+                          {isAwayWinner && <span className="match-win-badge">승</span>}
                         </span>
-                        {isAwayWinner && <span className="match-win-badge">승</span>}
-                      </span>
+                        <span className="match-team__name-eng">({awayTeam.teamName})</span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* 홈 경기장 안내 */}
+                  {/* 홈 경기장 안내 및 감독모드 텍스트 중계 버튼 (종료된 경기 및 진행 중 LIVE 경기에만 노출) */}
                   <div className="match-card__ground">
-                    📍 {homeTeam.homeGround || '홈 구장'}
+                    <span className="match-ground-pill">
+                      📍 {match.displayHomeGround || match.homeGroundKor || homeTeam.homeGroundKor || getStadiumNameKor(match.homeGround || homeTeam.homeGround, match.homeTeamId)}
+                    </span>
+                    {(isFinished || isLive) && (
+                      <button
+                        type="button"
+                        className="match-manager-mode-btn"
+                        onClick={() => setActiveMatchForModal(match)}
+                        title="FC 온라인 감독모드 스타일 2D 피치 & 문자 중계 열기"
+                      >
+                        🎮 감독모드 중계
+                      </button>
+                    )}
                   </div>
                 </article>
               )
@@ -737,6 +857,17 @@ export default function Match() {
               </button>
             )}
           </div>
+        )}
+
+        {/* FC 온라인 감독모드 스타일 2D 피치 & 타임라인 텍스트 중계 모달 */}
+        {activeMatchForModal && (
+          <FcManagerModeModal
+            isOpen={Boolean(activeMatchForModal)}
+            onClose={() => setActiveMatchForModal(null)}
+            match={activeMatchForModal}
+            homeTeam={getTeamInfo(activeMatchForModal.homeTeamId)}
+            awayTeam={getTeamInfo(activeMatchForModal.awayTeamId)}
+          />
         )}
       </div>
     </div>

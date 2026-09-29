@@ -10,10 +10,14 @@
 	</settings>
 
 	<typeAliases>
+		<typeAlias alias="AiMatches" type="com.app.dto.custom.AiMatches" />
+        <typeAlias type="com.app.dto.custom.CustomTeams" alias="CustomTeams"/>
+        <typeAlias type="com.app.dto.custom.CustomSquads" alias="CustomSquads"/>
 		<typeAlias type="com.app.dto.community.Posts" alias="Posts"/>
 		<typeAlias type="com.app.dto.community.PostLikes" alias="PostLikes"/>
 		<typeAlias type="com.app.dto.community.CommunityCategory" alias="CommunityCategory"/>
 		<typeAlias type="com.app.dto.community.Comments" alias="Comments"/>
+		<typeAlias type="com.app.dto.community.PostAttachments" alias="PostAttachments"/>
 		<typeAlias type="com.app.dto.team.Teams" alias="Teams"/>
 		<typeAlias type="com.app.dto.team.Players" alias="Players"/>
 		<typeAlias type="com.app.dto.team.PlayerStats" alias="PlayerStats"/>
@@ -23,6 +27,8 @@
 		<typeAlias type="com.app.dto.match.MatchEvents" alias="MatchEvents"/>
 		<typeAlias type="com.app.dto.user.Users" alias="Users"/>
 		<typeAlias type="com.app.dto.user.UserPredicts" alias="UserPredicts"/>
+		<typeAlias type="com.app.dto.prediction.Predictions" alias="Predictions"/>
+		<typeAlias type="com.app.dto.prediction.PointHistory" alias="PointHistory"/>
 	</typeAliases>
 	
 </configuration>

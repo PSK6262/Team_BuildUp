@@ -1,1 +1,81 @@
-body { margin: 0; }
+/* 숫자(0-9) 전용 Barlow Semi Condensed 유니코드 레인지 매핑 */
+@font-face {
+  font-family: 'Barlow Semi Condensed Numeric';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Barlow Semi Condensed Regular'), local('BarlowSemiCondensed-Regular'),
+    url(https://fonts.gstatic.com/s/barlowsemicondensed/v16/wlpvgxjLBV1hqnzfr-F8sEYMB0Yybp0mudRXeIqq.woff2) format('woff2');
+  unicode-range: U+0030-0039;
+}
+
+@font-face {
+  font-family: 'Barlow Semi Condensed Numeric';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: local('Barlow Semi Condensed Medium'), local('BarlowSemiCondensed-Medium'),
+    url(https://fonts.gstatic.com/s/barlowsemicondensed/v16/wlpigxjLBV1hqnzfr-F8sEYMB0Yybp0mudRfi6m_B2sl.woff2) format('woff2');
+  unicode-range: U+0030-0039;
+}
+
+@font-face {
+  font-family: 'Barlow Semi Condensed Numeric';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Barlow Semi Condensed SemiBold'), local('BarlowSemiCondensed-SemiBold'),
+    url(https://fonts.gstatic.com/s/barlowsemicondensed/v16/wlpigxjLBV1hqnzfr-F8sEYMB0Yybp0mudRfp66_B2sl.woff2) format('woff2');
+  unicode-range: U+0030-0039;
+}
+
+@font-face {
+  font-family: 'Barlow Semi Condensed Numeric';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Barlow Semi Condensed Bold'), local('BarlowSemiCondensed-Bold'),
+    url(https://fonts.gstatic.com/s/barlowsemicondensed/v16/wlpigxjLBV1hqnzfr-F8sEYMB0Yybp0mudRfw6-_B2sl.woff2) format('woff2');
+  unicode-range: U+0030-0039;
+}
+
+@font-face {
+  font-family: 'Barlow Semi Condensed Numeric';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: local('Barlow Semi Condensed ExtraBold'), local('BarlowSemiCondensed-ExtraBold'),
+    url(https://fonts.gstatic.com/s/barlowsemicondensed/v16/wlpigxjLBV1hqnzfr-F8sEYMB0Yybp0mudRf36y_B2sl.woff2) format('woff2');
+  unicode-range: U+0030-0039;
+}
+
+@font-face {
+  font-family: 'Barlow Semi Condensed Numeric';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: local('Barlow Semi Condensed Black'), local('BarlowSemiCondensed-Black'),
+    url(https://fonts.gstatic.com/s/barlowsemicondensed/v16/wlpigxjLBV1hqnzfr-F8sEYMB0Yybp0mudRf-62_B2sl.woff2) format('woff2');
+  unicode-range: U+0030-0039;
+}
+
+:root {
+  --font-plug: 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-kr: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-en: 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif;
+  --font-num: 'Barlow Semi Condensed', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif;
+}
+
+html,
+body {
+  margin: 0;
+  font-family: var(--font-plug);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+

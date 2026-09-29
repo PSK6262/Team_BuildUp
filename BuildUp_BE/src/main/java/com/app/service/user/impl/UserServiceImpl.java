@@ -1,14 +1,18 @@
 package com.app.service.user.impl;
 
+import java.util.regex.Pattern;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.app.dao.team.TeamDAO;
 import com.app.dao.user.UserDAO;
+import com.app.dao.user.UserMailDAO;
 import com.app.dto.team.Teams;
 import com.app.dto.user.Users;
 import com.app.service.user.UserService;
+import com.app.service.user.UserMailService;
 import com.app.util.SHA256Encryptor;
 
 import lombok.extern.slf4j.Slf4j;
@@ -17,11 +21,21 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class UserServiceImpl implements UserService {
 
+	private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9](?!.*\\.\\.)[a-zA-Z0-9._-]{2,28}[a-zA-Z0-9]@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+	private static final Pattern LOGIN_ID_PATTERN = Pattern.compile("^[a-z0-9]{4,20}$");
+	private static final Pattern NICKNAME_PATTERN = Pattern.compile("^[\\uAC00-\\uD7A3a-zA-Z0-9]{2,20}$");
+
 	@Autowired
 	private UserDAO userDAO;
 
 	@Autowired
 	private TeamDAO teamDAO;
+
+	@Autowired
+	private UserMailDAO userMailDAO;
+
+	@Autowired
+	private UserMailService userMailService;
 
 	@Override
 	@Transactional
@@ -32,11 +46,23 @@ public class UserServiceImpl implements UserService {
 		if (user.getLoginId() == null || user.getLoginId().trim().isEmpty()) {
 			throw new IllegalArgumentException("아이디를 입력해주세요.");
 		}
+		if (!LOGIN_ID_PATTERN.matcher(user.getLoginId().trim()).matches()) {
+			throw new IllegalArgumentException("아이디는 4~20자의 영문 소문자와 숫자만 사용할 수 있습니다.");
+		}
 		if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
 			throw new IllegalArgumentException("비밀번호를 입력해주세요.");
 		}
 		if (user.getNickname() == null || user.getNickname().trim().isEmpty()) {
 			throw new IllegalArgumentException("닉네임을 입력해주세요.");
+		}
+		if (!NICKNAME_PATTERN.matcher(user.getNickname().trim()).matches()) {
+			throw new IllegalArgumentException("닉네임은 2~20자의 한글, 영문, 숫자만 사용할 수 있습니다.");
+		}
+		if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+			throw new IllegalArgumentException("이메일을 입력해주세요.");
+		}
+		if (!EMAIL_PATTERN.matcher(user.getEmail().trim()).matches()) {
+			throw new IllegalArgumentException("올바른 이메일 형식이 아닙니다.");
 		}
 
 		// 아이디 중복 체크
@@ -49,8 +75,13 @@ public class UserServiceImpl implements UserService {
 			throw new IllegalStateException("이미 사용 중인 닉네임입니다.");
 		}
 
-		// 비밀번호 SHA-256 암호화
-		String encryptedPassword = SHA256Encryptor.encrypt(user.getPassword());
+		// 이메일 중복 체크
+		if (!isEmailAvailable(user.getEmail())) {
+			throw new IllegalStateException("이미 등록된 이메일입니다.");
+		}
+
+		// 비밀번호 암호화 (사용자별 고유 Salt인 loginId를 결합하고 1,000회 키 스트레칭 적용)
+		String encryptedPassword = SHA256Encryptor.encrypt(user.getPassword(), user.getLoginId());
 		user.setPassword(encryptedPassword);
 
 		// 기본 권한(1: 일반회원) 및 가입 포인트(100) 설정
@@ -86,8 +117,22 @@ public class UserServiceImpl implements UserService {
 			throw new IllegalArgumentException("존재하지 않는 아이디입니다.");
 		}
 
-		String encryptedInputPassword = SHA256Encryptor.encrypt(password);
-		if (!encryptedInputPassword.equals(user.getPassword())) {
+		// 1단계: 사용자별 고유 Salt(loginId) + 1,000회 키 스트레칭 방식으로 검증
+		String encryptedInputPassword = SHA256Encryptor.encrypt(password, user.getLoginId());
+		boolean passwordMatches = encryptedInputPassword.equals(user.getPassword());
+
+		// 2단계: 만약 불일치 시, 기존 단일 Salt 방식으로 가입했던 사용자인지 하위 호환성 확인
+		if (!passwordMatches) {
+			String legacyEncrypted = SHA256Encryptor.encrypt(password);
+			if (legacyEncrypted.equals(user.getPassword())) {
+				passwordMatches = true;
+				// 기존 방식 사용자가 로그인에 성공하면 새 보안 방식(고유 Salt + 키 스트레칭)으로 비밀번호 자동 업그레이드
+				userDAO.updatePassword(user.getUserId(), encryptedInputPassword);
+				log.info("[보안 자동 업그레이드] 사용자 {}의 비밀번호 해시가 고유 Salt 방식으로 마이그레이션되었습니다.", user.getLoginId());
+			}
+		}
+
+		if (!passwordMatches) {
 			throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
 		}
 
@@ -114,6 +159,14 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	public boolean isEmailAvailable(String email) {
+		if (email == null || email.trim().isEmpty()) {
+			return false;
+		}
+		return userDAO.countByEmail(email.trim()) == 0;
+	}
+
+	@Override
 	public Users getUserProfile(Long userId) {
 		if (userId == null) {
 			return null;
@@ -131,6 +184,11 @@ public class UserServiceImpl implements UserService {
 		if (user == null || user.getUserId() == null) {
 			throw new IllegalArgumentException("수정할 회원 식별자가 없습니다.");
 		}
+		if (user.getEmail() != null && !user.getEmail().trim().isEmpty()) {
+			if (!EMAIL_PATTERN.matcher(user.getEmail().trim()).matches()) {
+				throw new IllegalArgumentException("올바른 이메일 형식이 아닙니다.");
+			}
+		}
 		user.setFavoriteTeamId(resolveRealTeamId(user.getFavoriteTeamId()));
 		userDAO.updateUser(user);
 		return getUserProfile(user.getUserId());
@@ -147,13 +205,24 @@ public class UserServiceImpl implements UserService {
 			return false;
 		}
 
-		String encryptedCurrent = SHA256Encryptor.encrypt(currentPassword);
-		if (!encryptedCurrent.equals(user.getPassword())) {
+		// 1단계: 현재 비밀번호 검증 (신규 고유 Salt 방식 우선, 기존 방식 하위 호환)
+		String encryptedCurrent = SHA256Encryptor.encrypt(currentPassword, user.getLoginId());
+		boolean currentMatches = encryptedCurrent.equals(user.getPassword());
+		if (!currentMatches) {
+			String legacyCurrent = SHA256Encryptor.encrypt(currentPassword);
+			if (legacyCurrent.equals(user.getPassword())) {
+				currentMatches = true;
+			}
+		}
+
+		if (!currentMatches) {
 			throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
 		}
 
-		String encryptedNew = SHA256Encryptor.encrypt(newPassword);
+		// 2단계: 새 비밀번호는 무조건 신규 보안 방식(loginId 고유 Salt + 1,000회 키 스트레칭)으로 암호화하여 저장
+		String encryptedNew = SHA256Encryptor.encrypt(newPassword, user.getLoginId());
 		userDAO.updatePassword(userId, encryptedNew);
+		log.info("[비밀번호 변경 완료] userId={}, loginId={}", user.getUserId(), user.getLoginId());
 		return true;
 	}
 
@@ -171,5 +240,58 @@ public class UserServiceImpl implements UserService {
 
 		log.warn("[구단 ID 검증 실패] DB에 존재하지 않는 구단 식별자: {} -> null 처리", inputTeamId);
 		return null;
+	}
+
+	@Override
+	@Transactional
+	public boolean withdraw(Long userId, String email) {
+		if (userId == null) {
+			return false;
+		}
+
+		// 탈퇴 메일 발송용 정보 사전 확보
+		Users user = userDAO.selectUserByUserId(userId);
+		String targetEmail = (email != null && !email.trim().isEmpty()) ? email : (user != null ? user.getEmail() : null);
+		String nickname = (user != null) ? user.getNickname() : "회원";
+
+		// 1. 회원 연관 데이터 정리 (외래키 제약조건 방지)
+		userDAO.deleteUserRelatedData(userId);
+
+		// 2. 회원 기본 레코드 삭제
+		int deletedUsers = userDAO.deleteUser(userId);
+
+		// 3. 인증 대기 및 만료 이메일 인증키 삭제 (재가입 테스트 완벽 지원)
+		if (targetEmail != null && !targetEmail.trim().isEmpty()) {
+			try {
+				userMailDAO.deleteVerificationsByEmail(targetEmail.trim());
+			} catch (Exception e) {
+				log.warn("[UserServiceImpl] 회원탈퇴 중 이메일 인증 내역 삭제 예외 (무시 가능): {}", e.getMessage());
+			}
+		}
+
+		// 4. 회원 탈퇴 완료 안내 메일 발송
+		if (targetEmail != null && !targetEmail.trim().isEmpty() && deletedUsers > 0) {
+			try {
+				userMailService.sendWithdrawalMail(targetEmail.trim(), nickname);
+				log.info("[UserServiceImpl] 회원 탈퇴 안내 메일 발송 완료 -> email: {}", targetEmail);
+			} catch (Exception e) {
+				log.warn("[UserServiceImpl] 회원 탈퇴 메일 발송 실패 (탈퇴 처리에는 영향 없음): {}", e.getMessage());
+			}
+		}
+
+		log.info("[UserServiceImpl] 회원 탈퇴 처리 완료 -> userId={}, email={}", userId, targetEmail);
+		return deletedUsers > 0;
+	}
+
+	@Override
+	public Users getUserByLoginId(String loginId) {
+		if (loginId == null || loginId.trim().isEmpty()) {
+			return null;
+		}
+		Users user = userDAO.selectUserByLoginId(loginId.trim());
+		if (user != null) {
+			user.setPassword(null);
+		}
+		return user;
 	}
 }

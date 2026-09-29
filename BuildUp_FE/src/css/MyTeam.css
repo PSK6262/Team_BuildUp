@@ -1,0 +1,1979 @@
+/* =========================================================
+    MyTeam.css - 나만의 팀 & 포메이션 빌더 스타일시트
+   ========================================================= */
+
+.myteam-page {
+  min-height: calc(100vh - 84px);
+  background: linear-gradient(135deg, #18001d 0%, #250228 35%, #0e1e19 100%);
+  color: #ffffff;
+  padding: 32px 24px 64px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+  box-sizing: border-box;
+}
+
+.myteam-container {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+/* 1. 상단 헤더 & 툴바 */
+.myteam-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  margin-bottom: 28px;
+}
+
+.myteam-title-box h1 {
+  margin: 0 0 6px 0;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.myteam-title-badge {
+  background: linear-gradient(135deg, #00ff87 0%, #60efff 100%);
+  color: #121212;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.myteam-title-box p {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.myteam-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.myteam-name-input {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 10px 16px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  outline: none;
+  min-width: 180px;
+  transition: all 0.2s ease;
+}
+
+.myteam-name-input:focus {
+  border-color: #00ff87;
+  background: rgba(0, 255, 135, 0.08);
+  box-shadow: 0 0 12px rgba(0, 255, 135, 0.25);
+}
+
+.myteam-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.myteam-btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.myteam-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.myteam-btn-primary {
+  background: linear-gradient(135deg, #02a663 0%, #00ff87 100%);
+  color: #121212;
+  box-shadow: 0 4px 14px rgba(0, 255, 135, 0.3);
+}
+
+.myteam-btn-primary:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.myteam-squad-counter {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.counter-num {
+  font-weight: 800;
+  color: #00ff87;
+}
+
+.myteam-btn-mini {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+  margin-left: 10px;
+}
+
+.myteam-btn-mini:hover {
+  background: rgba(0, 255, 135, 0.2);
+  border-color: #00ff87;
+  color: #00ff87;
+}
+
+/* 2. 포메이션 설정 바 */
+.formation-panel {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 28px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.formation-panel-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formation-presets-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.formation-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #00ff87;
+  white-space: nowrap;
+}
+
+.preset-chip-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.preset-chip {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preset-chip:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.preset-chip.active {
+  background: #00ff87;
+  color: #121212;
+  border-color: #00ff87;
+  box-shadow: 0 0 12px rgba(0, 255, 135, 0.4);
+}
+
+/* 커스텀 포메이션 조작 행 (DF/MF/FW 1~5, 총합 10) */
+.formation-custom-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.custom-steppers {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.stepper-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stepper-tag {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+.stepper-tag.df {
+  background: #1976d2;
+  color: #fff;
+}
+
+.stepper-tag.mf {
+  background: #388e3c;
+  color: #fff;
+}
+
+.stepper-tag.fw {
+  background: #d32f2f;
+  color: #fff;
+}
+
+.stepper-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.stepper-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.stepper-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.stepper-input {
+  width: 40px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  text-align: center;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.stepper-input::-webkit-outer-spin-button,
+.stepper-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.stepper-input:focus {
+  border-color: #00ff87;
+  box-shadow: 0 0 8px rgba(0, 255, 135, 0.3);
+}
+
+.stepper-gk-info {
+  font-size: 12px;
+  color: #fbc02d;
+  font-weight: 700;
+  background: rgba(251, 192, 45, 0.1);
+  border: 1px solid rgba(251, 192, 45, 0.2);
+  padding: 6px 12px;
+  border-radius: 10px;
+}
+
+.formation-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.sum-badge {
+  font-size: 13px;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sum-badge.valid {
+  background: rgba(0, 255, 135, 0.15);
+  color: #00ff87;
+  border: 1px solid rgba(0, 255, 135, 0.3);
+}
+
+.sum-badge.invalid {
+  background: rgba(255, 82, 82, 0.15);
+  color: #ff5252;
+  border: 1px solid rgba(255, 82, 82, 0.3);
+}
+
+/* 3. 메인 빌더 레이아웃 (축구장 피치 vs 선수 검색 패널) */
+.myteam-main-layout {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 28px;
+  align-items: start;
+}
+
+/* 3-A. 축구 경기장 (Pitch) */
+.myteam-pitch-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+}
+
+.pitch-header-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.pitch-formation-display {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pitch-hint {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.myteam-pitch {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 0.72;
+  min-height: 580px;
+  max-height: 780px;
+  margin: 0 auto;
+  background:
+    repeating-linear-gradient(180deg,
+      #134e26 0px,
+      #134e26 40px,
+      #175d2e 40px,
+      #175d2e 80px);
+  border: 3px solid rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.6), 0 10px 30px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px 20px;
+  box-sizing: border-box;
+}
+
+/* 피치 라인 그래픽 */
+.pitch-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* 하프라인 */
+.pitch-lines::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.45);
+  transform: translateY(-50%);
+}
+
+/* 센터 서클 */
+.pitch-center-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 130px;
+  height: 130px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.pitch-center-spot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* 상단 패널티 에어리어 (원정) */
+.pitch-box-top {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 240px;
+  height: 90px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top: none;
+  transform: translateX(-50%);
+}
+
+/* 하단 패널티 에어리어 (홈) */
+.pitch-box-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 240px;
+  height: 90px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-bottom: none;
+  transform: translateX(-50%);
+}
+
+/* 골박스 하단 */
+.pitch-box-bottom-small {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 120px;
+  height: 40px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-bottom: none;
+  transform: translateX(-50%);
+}
+
+/* 피치 전술 라인 (FW, MF, DF, GK) */
+.pitch-row {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 60px;
+  transition: all 0.2s ease;
+}
+
+.pitch-row.pitch-row-empty {
+  min-height: 0px;
+  padding: 0;
+  margin: 0;
+}
+
+.pitch-row.crowded {
+  justify-content: center;
+  gap: 6px 4px;
+}
+
+.pitch-row.crowded .slot-empty-circle {
+  width: 44px;
+  height: 44px;
+}
+
+.pitch-row.crowded .slot-filled-card {
+  min-width: 50px;
+  max-width: 64px;
+  padding: 2px;
+}
+
+.pitch-row.crowded .slot-player-avatar-box {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 2px;
+}
+
+.pitch-row.crowded .slot-player-jersey {
+  font-size: 18px;
+}
+
+.pitch-row.crowded .slot-player-name {
+  font-size: 9px;
+  max-width: 58px;
+}
+
+.pitch-row.crowded .slot-player-team {
+  font-size: 8px;
+  max-width: 58px;
+}
+
+.pitch-row-fw {
+  padding-top: 8px;
+}
+
+.pitch-row-mf {
+  padding-top: 4px;
+}
+
+.pitch-row-df {
+  padding-top: 4px;
+}
+
+.pitch-row-gk {
+  padding-bottom: 8px;
+}
+
+/* 4. 슬롯 (Pitch Slot) - 자유 좌표 이동 */
+.pitch-slot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  z-index: 10;
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.pitch-slot:hover {
+  transform: translate(-50%, -50%) scale(1.06);
+  z-index: 25;
+}
+
+.pitch-slot.is-dragging {
+  cursor: grabbing !important;
+  z-index: 60 !important;
+  transform: translate(-50%, -50%) scale(1.15) !important;
+  transition: none !important;
+}
+
+.pitch-slot.is-dragging .slot-empty-circle,
+.pitch-slot.is-dragging .slot-filled-card {
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.7), 0 0 25px rgba(0, 255, 135, 0.7) !important;
+  border-color: #00ff87 !important;
+}
+
+/* 빈 슬롯 */
+.slot-empty-circle {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  border: 2px dashed rgba(255, 255, 255, 0.45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.slot-pos-badge {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+.slot-pos-badge.fw {
+  color: #ff5252;
+}
+
+.slot-pos-badge.mf {
+  color: #69f0ae;
+}
+
+.slot-pos-badge.df {
+  color: #40c4ff;
+}
+
+.slot-pos-badge.gk {
+  color: #ffd740;
+}
+
+.slot-plus-icon {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1;
+}
+
+/* 활성(선택된) 슬롯 */
+.pitch-slot.slot-selected .slot-empty-circle,
+.pitch-slot.slot-selected .slot-filled-card {
+  border-color: #00ff87 !important;
+  box-shadow: 0 0 16px rgba(0, 255, 135, 0.8), 0 0 30px rgba(0, 255, 135, 0.4) !important;
+  animation: pulseSlot 1.5s infinite;
+}
+
+@keyframes pulseSlot {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 드래그 오버 상태 */
+.pitch-slot.drop-target-active .slot-empty-circle,
+.pitch-slot.drop-target-active .slot-filled-card {
+  border-color: #ffd740 !important;
+  background: rgba(255, 215, 64, 0.25) !important;
+  box-shadow: 0 0 20px #ffd740 !important;
+  transform: scale(1.12);
+}
+
+/* 선수가 배치된 슬롯 */
+.slot-filled-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(14, 25, 20, 0.85);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+  min-width: 66px;
+  max-width: 84px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.slot-player-avatar-box {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #1b2838;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 4px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+}
+
+.slot-player-jersey {
+  font-size: 24px;
+}
+
+.slot-player-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.slot-team-crest {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  padding: 1px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.slot-player-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+}
+
+.slot-player-name {
+  font-size: 11px;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 78px;
+  line-height: 1.2;
+}
+
+.slot-player-team {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 78px;
+}
+
+.slot-remove-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e90052;
+  color: #ffffff;
+  border: 1.5px solid #ffffff;
+  font-size: 11px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: all 0.15s ease;
+  z-index: 5;
+}
+
+.slot-remove-btn:hover {
+  opacity: 1;
+  transform: scale(1.15);
+  background: #ff1744;
+}
+
+/* 5. 우측: 선수 검색 & 로스터 패널 */
+.myteam-roster-panel {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  height: calc(100% - 44px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 5-0. 로스터 상단 뷰 모드 탭 (팀별 보기 vs 전체 검색) */
+.roster-view-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.roster-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.65);
+  padding: 10px 14px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.roster-nav-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.roster-nav-btn.active {
+  background: #00ff87;
+  color: #121212;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(0, 255, 135, 0.3);
+}
+
+.nav-icon {
+  font-size: 15px;
+}
+
+/* 5-1. [모드 1-A] 20개 구단 선택 뷰 */
+.club-picker-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.club-picker-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  gap: 8px;
+}
+
+.club-picker-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.3px;
+}
+
+.club-picker-subtitle {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+}
+
+.club-total-badge {
+  font-size: 11px;
+  font-weight: 800;
+  color: #00ff87;
+  background: rgba(0, 255, 135, 0.12);
+  border: 1px solid rgba(0, 255, 135, 0.25);
+  padding: 3px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.club-search-box {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+/* 20개 구단 카드 그리드 스크롤 */
+.club-grid-scroll {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 520px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: max-content;
+  align-content: start;
+  gap: 10px;
+  padding-right: 4px;
+}
+
+.club-grid-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.club-grid-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+}
+
+.club-grid-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+/* 개별 구단 선택 카드 */
+.club-select-card {
+  min-width: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px 12px 10px;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.club-select-card:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(0, 255, 135, 0.45);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.club-select-card:focus-visible {
+  outline: 2px solid #00ff87;
+  outline-offset: -2px;
+}
+
+.club-card-emblem-wrap {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  padding: 4px;
+}
+
+.club-card-emblem {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.club-card-fallback {
+  font-size: 20px;
+}
+
+.club-card-names {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  min-height: 38px;
+}
+
+.club-card-name-kor {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+.club-card-name-en {
+  font-size: 11px;
+  color: #cbd5e1;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+.club-card-footer {
+  flex-wrap: wrap;
+  gap: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 8px;
+  margin-top: auto;
+}
+
+.club-player-count-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #00ff87;
+  background: rgba(0, 255, 135, 0.1);
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+.club-enter-arrow {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.club-select-card:hover .club-enter-arrow {
+  color: #00ff87;
+  transform: translateX(2px);
+}
+
+/* 5-2. [모드 1-B] 선택된 구단 상세 보기 */
+.club-roster-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.selected-club-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: linear-gradient(135deg, rgba(56, 0, 60, 0.6) 0%, rgba(24, 0, 29, 0.7) 100%);
+  border: 1px solid rgba(0, 255, 135, 0.25);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  position: relative;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.btn-back-to-clubs {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-back-to-clubs:hover {
+  background: rgba(0, 255, 135, 0.2);
+  border-color: #00ff87;
+  color: #00ff87;
+}
+
+.club-banner-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.club-banner-emblem {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  background: #ffffff;
+  border-radius: 50%;
+  padding: 3px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.club-banner-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.club-banner-name-kor {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.club-banner-name-en {
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* 선수 카드 내 엠블럼 스타일 */
+.player-card-team-emblem {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: #ffffff;
+  padding: 1px;
+  flex-shrink: 0;
+}
+
+/* 5-3. 전체 검색 뷰 래퍼 */
+.all-players-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.roster-header {
+  margin-bottom: 16px;
+}
+
+.roster-header h2 {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0 0 6px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.roster-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: #00ff87;
+  background: rgba(0, 255, 135, 0.1);
+  padding: 3px 8px;
+  border-radius: 12px;
+}
+
+.roster-search-box {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.roster-search-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 10px 14px 10px 38px;
+  color: #ffffff;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.roster-search-input:focus {
+  border-color: #00ff87;
+  background: rgba(0, 255, 135, 0.05);
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.search-clear-btn:hover {
+  color: #ffffff;
+}
+
+/* 필터 탭 (포지션 + 팀) */
+.roster-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.position-filter-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.pos-tab {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.pos-tab:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.pos-tab.active {
+  background: #00ff87;
+  color: #121212;
+  border-color: #00ff87;
+  font-weight: 800;
+}
+
+.team-filter-select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #ffffff;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+
+.team-filter-select option {
+  background: #18001d;
+  color: #ffffff;
+}
+
+/* 선수 카드 리스트 */
+.roster-list-scroll {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+.roster-list-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.roster-list-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+}
+
+.roster-list-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.roster-player-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: grab;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.roster-player-card:active {
+  cursor: grabbing;
+}
+
+.roster-player-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateX(4px);
+}
+
+.roster-player-card.is-assigned {
+  opacity: 0.55;
+  background: rgba(0, 0, 0, 0.3);
+  border-style: dashed;
+}
+
+.player-card-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.player-pos-tag {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 4px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.player-pos-tag.fw {
+  background: rgba(211, 47, 47, 0.85);
+  color: #fff;
+}
+
+.player-pos-tag.mf {
+  background: rgba(56, 142, 60, 0.85);
+  color: #fff;
+}
+
+.player-pos-tag.df {
+  background: rgba(25, 118, 210, 0.85);
+  color: #fff;
+}
+
+.player-pos-tag.gk {
+  background: rgba(251, 192, 45, 0.9);
+  color: #121212;
+}
+
+.player-names {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.player-name-kor {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-sub-info {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-card-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.in-squad-badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: #00ff87;
+  background: rgba(0, 255, 135, 0.15);
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+.card-action-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #ffffff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s ease;
+}
+
+.card-action-btn:hover {
+  background: #00ff87;
+  color: #121212;
+}
+
+/* 빈 검색 결과 */
+.roster-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+}
+
+/* 6. 토스트 알림 (Toast) */
+.myteam-toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: #121212;
+  border: 1px solid #00ff87;
+  color: #ffffff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 10px 25px rgba(0, 255, 135, 0.3);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: slideUpToast 0.3s ease;
+}
+
+@keyframes slideUpToast {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.myteam-ai-panel {
+  margin-bottom: 24px;
+  padding: 24px;
+  border: 1px solid rgba(0, 255, 135, 0.25);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.myteam-ai-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.myteam-ai-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.myteam-opponent-section {
+  width: 100%;
+  min-width: 0;
+}
+
+.myteam-opponent-modes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.myteam-opponent-mode {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  border: 2px solid #526077;
+  border-radius: 14px;
+  background: #172334;
+  color: #f8fafc;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.myteam-opponent-mode>span:first-child {
+  font-size: 28px;
+}
+
+.myteam-opponent-mode strong {
+  display: block;
+  font-size: 17px;
+}
+
+.myteam-opponent-mode small {
+  display: block;
+  margin-top: 6px;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+.myteam-opponent-mode[aria-pressed="true"] {
+  border-color: #00ff87;
+  background: #12372e;
+  box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.12);
+}
+
+.myteam-opponent-picker {
+  margin-top: 18px;
+  padding: 20px;
+  border: 1px solid #53677a;
+  border-radius: 16px;
+  background: #101d2c;
+}
+
+.myteam-opponent-picker-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.myteam-opponent-picker-heading h3 {
+  margin: 0;
+}
+
+.myteam-opponent-picker-heading h3 span {
+  color: #b7c4d5;
+  font-size: 13px;
+  margin-left: 8px;
+}
+
+.myteam-opponent-selection {
+  color: #a7f3d0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.myteam-opponent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.myteam-opponent-club {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 76px;
+  padding: 12px;
+  border: 2px solid #40526a;
+  border-radius: 12px;
+  background: #1b2b3e;
+  color: #f1f5f9;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.myteam-opponent-emblem {
+  display: grid;
+  place-items: center;
+  flex: 0 0 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #f1f5f9;
+}
+
+.myteam-opponent-emblem img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.myteam-opponent-check {
+  margin-left: auto;
+  color: #b7c4d5;
+  font-size: 19px;
+}
+
+.myteam-opponent-club:hover {
+  border-color: #a7f3d0;
+  background: #253d49;
+}
+
+.myteam-opponent-club[aria-pressed="true"] {
+  border-color: #00ff87;
+  background: #124537;
+}
+
+.myteam-opponent-club[aria-pressed="true"] .myteam-opponent-check {
+  color: #00ff87;
+}
+
+.myteam-opponent-mode:focus-visible,
+.myteam-opponent-club:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .myteam-opponent-modes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .myteam-opponent-picker {
+    padding: 12px;
+  }
+
+  .myteam-opponent-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.myteam-ai-panel h2,
+.myteam-ai-panel h3 {
+  margin: 0 0 12px;
+}
+
+.myteam-ai-panel p {
+  color: #b7c4d5;
+  line-height: 1.6;
+}
+
+.myteam-ai-panel button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.myteam-ai-score {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 24px 0;
+  overflow-wrap: anywhere;
+}
+
+.myteam-ai-score strong {
+  font-size: 32px;
+  color: #00ff87;
+}
+
+.myteam-ai-score b {
+  width: 100%;
+  text-align: center;
+}
+
+.myteam-ai-lineups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 24px;
+  margin-bottom: 24px;
+}
+
+.myteam-ai-lineup-column {
+  display: grid;
+  grid-row: span 13;
+  grid-template-rows: subgrid;
+  min-width: 0;
+}
+
+.myteam-ai-lineup-effects { min-width: 0; }
+
+.myteam-ai-lineups ul {
+  display: grid;
+  grid-row: span 11;
+  grid-template-rows: subgrid;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 640px) {
+  .myteam-ai-lineups { grid-template-columns: minmax(0, 1fr); row-gap: 8px; }
+  .myteam-ai-lineup-column + .myteam-ai-lineup-column { margin-top: 20px; }
+}
+
+.myteam-ai-lineups li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  overflow-wrap: anywhere;
+}
+
+.myteam-ai-position {
+  color: #00ff87;
+  min-width: 28px;
+}
+
+.myteam-ai-lineups small {
+  display: block;
+  color: #b7c4d5;
+  margin-top: 4px;
+}
+
+.myteam-ai-events {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.myteam-ai-event {
+  --event-color: #cbd5e1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 3px solid var(--event-color);
+  overflow-wrap: anywhere;
+}
+
+.myteam-ai-replay {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.85fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.myteam-ai-event-select {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 8px;
+  background: transparent;
+  color: inherit;
+  border: 0;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.myteam-ai-event-select[aria-pressed="true"] {
+  background: rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 0 0 1px var(--event-color);
+}
+
+.myteam-ai-event-select:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -2px;
+}
+
+.myteam-ai-event-description {
+  display: block;
+  margin-top: 6px;
+  color: #b7c4d5;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.myteam-ai-movement {
+  position: sticky;
+  top: 20px;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  min-width: 0;
+}
+
+.myteam-ai-mini-pitch {
+  display: block;
+  width: 100%;
+  max-height: 480px;
+  margin-top: 16px;
+}
+
+.myteam-ai-marker {
+  transition: transform 1.6s cubic-bezier(0.45, 0, 0.25, 1);
+  will-change: transform;
+}
+
+.myteam-ai-marker-inner {
+  animation: playerAliveSway 3.6s ease-in-out infinite alternate;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+@keyframes playerAliveSway {
+  0% {
+    transform: translate(-1.2px, 1px);
+  }
+  100% {
+    transform: translate(1.2px, -1px);
+  }
+}
+
+.myteam-ai-ball-marker {
+  transition: transform 1.45s cubic-bezier(0.45, 0, 0.25, 1);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.65));
+  cursor: default;
+  will-change: transform;
+}
+
+.myteam-ai-marker.is-corner-kicker {
+  filter: drop-shadow(0 0 8px rgba(0, 255, 135, 0.85));
+  z-index: 12;
+}
+
+.corner-trajectory-group {
+  filter: drop-shadow(0 0 6px rgba(0, 255, 135, 0.6));
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .myteam-ai-marker-inner { animation: none; }
+
+  .myteam-ai-marker,
+  .myteam-ai-ball-marker {
+    transition: none;
+  }
+}
+
+@media (max-width: 800px) {
+  .myteam-ai-replay {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .myteam-ai-movement {
+    position: static;
+    grid-row: 1;
+  }
+}
+
+.myteam-ai-event p {
+  margin: 6px 0 0;
+  font-size: 13px;
+}
+
+.myteam-ai-event-minute,
+.myteam-ai-event-team {
+  color: #b7c4d5;
+  font-size: 13px;
+}
+
+.myteam-ai-event-score {
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.myteam-ai-event strong {
+  color: var(--event-color);
+}
+
+.myteam-ai-event--goal-home {
+  --event-color: #60a5fa;
+  background: rgba(96, 165, 250, 0.10);
+}
+
+.myteam-ai-event--goal-away {
+  --event-color: #f87171;
+  background: rgba(248, 113, 113, 0.10);
+}
+
+.myteam-ai-event--goal .myteam-ai-event-score,
+.myteam-ai-event--goal .myteam-ai-event-team {
+  color: var(--event-color);
+}
+
+.myteam-ai-event--penalty {
+  --event-color: #c084fc;
+}
+
+.myteam-ai-event--miss {
+  --event-color: #d6b98c;
+}
+
+.myteam-ai-event--offside {
+  --event-color: #fb923c;
+}
+
+.myteam-ai-event--free-kick {
+  --event-color: #2dd4bf;
+}
+
+.myteam-ai-event--save {
+  --event-color: #a3e635;
+}
+
+.myteam-ai-event--corner {
+  --event-color: #e879f9;
+}
+
+.myteam-ai-event--yellow {
+  --event-color: #facc15;
+}
+
+.myteam-ai-event--red {
+  --event-color: #f9a8d4;
+  border-left-style: double;
+  border-left-width: 6px;
+  background: rgba(249, 168, 212, 0.08);
+}
+
+.myteam-ai-event--period {
+  --event-color: #cbd5e1;
+  background: rgba(203, 213, 225, 0.06);
+}
+
+/* 7. 반응형 미디어 쿼리 */
+@media (max-width: 1080px) {
+  .myteam-main-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .myteam-pitch {
+    max-height: 620px;
+  }
+
+  .roster-list-scroll {
+    max-height: 420px;
+  }
+}
+
+@media (max-width: 640px) {
+  .myteam-page {
+    padding: 16px 12px 48px;
+  }
+
+  .myteam-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .myteam-toolbar {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .myteam-pitch {
+    min-height: 460px;
+    padding: 14px 8px;
+  }
+
+  .slot-empty-circle {
+    width: 44px;
+    height: 44px;
+  }
+
+  .slot-filled-card {
+    min-width: 54px;
+    max-width: 64px;
+    padding: 2px;
+  }
+
+  .slot-player-avatar-box {
+    width: 34px;
+    height: 34px;
+  }
+
+  .slot-player-jersey {
+    font-size: 18px;
+  }
+
+  .slot-player-name {
+    font-size: 10px;
+    max-width: 58px;
+  }
+
+  .formation-custom-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

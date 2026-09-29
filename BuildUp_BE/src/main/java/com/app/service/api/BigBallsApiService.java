@@ -47,4 +47,18 @@ public interface BigBallsApiService {
      * @return 일괄 저장된 총 이벤트 건수
      */
     int syncMatchEventsByDate(String dateStr);
+
+    /**
+     * 특정 날짜 범위(fromDate ~ toDate)에 치러진 경기들의 타임라인 이벤트 일괄 동기화
+     * @param fromDateStr "YYYY-MM-DD" 시작 일자
+     * @param toDateStr "YYYY-MM-DD" 종료 일자
+     * @return 일괄 저장된 총 이벤트 건수
+     */
+    int syncMatchEventsByDateRange(String fromDateStr, String toDateStr);
+
+    /**
+     * 최종 스코어와 골 이벤트 수가 불일치하는 모든 종료 경기를 재동기화 및 2단계 필터(1차 룰 + 2차 Gemini) 보정
+     * @return 재동기화된 경기 수
+     */
+    int resyncAllMismatchedFinishedMatches();
 }

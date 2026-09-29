@@ -1,24 +1,203 @@
-import React, { useState, useEffect } from 'react';
-import { getTeams } from '../api/teamApi.js';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { updateUser } from '../store/authSlice.js';
+import { fetchTeams } from '../store/teamSlice.js';
+import TeamQuizModal from '../components/quiz/TeamQuizModal.jsx';
+import { getTeamTheme } from '../constants/teamTheme.js';
 import '../css/mainpage.css';
 
 const INTRO_SENTENCES = [
-  "일상에 무료함을 느끼는자들이여",
-  "도파민을 즐기고 싶은가......",
-  "그렇다면 도파민과 희열이 넘치는",
-  "프리미어 리그로 오도록 하거라!!!"
+  "고요를 삼킨 찰나의 순간",
+  "발끝에서 피어오르는 전율",
+  "단 한 번의 함성에 요동치는 심장",
+  "전 세계를 열광케 한 단 하나의 무대",
+  "프리미어리그로!!!"
 ];
 
 export default function MainPage() {
-  const [teams, setTeams] = useState([]);
-  const [hoveredTeam, setHoveredTeam] = useState(null);
-  const [introIndex, setIntroIndex] = useState(0);
-  const [isTextVisible, setIsTextVisible] = useState(true);
-  const [isIntroFinished, setIsIntroFinished] = useState(false);
+  const dispatch = useDispatch();
+  const isLoggedIn = useSelector((state) => state.auth?.isLoggedIn);
+  const currentUser = useSelector((state) => state.auth?.user);
+  const favoriteTeamId = currentUser?.favoriteTeamId
+    ? Number(currentUser.favoriteTeamId)
+    : (() => {
+        try {
+          const u = JSON.parse(localStorage.getItem('buildup_user') || '{}');
+          return u?.favoriteTeamId ? Number(u.favoriteTeamId) : null;
+        } catch {
+          return null;
+        }
+      })();
+
+  const teams = useSelector((state) => state.team?.teams || []);
+  const [ matches, setMatches ] = useState([]);
+  const [ hoveredTeam, setHoveredTeam ] = useState(null);
+  const hoveredTheme = hoveredTeam ? getTeamTheme(hoveredTeam) : null;
+  const [ introIndex, setIntroIndex ] = useState(0);
+  const [ isTextVisible, setIsTextVisible ] = useState(true);
+  const [ isIntroFinished, setIsIntroFinished ] = useState(false);
+  const [ isQuizOpen, setIsQuizOpen ] = useState(false);
+
+  // 로그인 상태일 때 최신 회원 정보(애정 구단 ID 포함) 동기화
+  useEffect(() => {
+    if (isLoggedIn) {
+      const token = localStorage.getItem('buildup_token');
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      fetch('/api/users/me', { headers })
+        .then((res) => res.json())
+        .then((data) => {
+          const userObj = data.data || data.user;
+          if (userObj) {
+            dispatch(updateUser(userObj));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isLoggedIn, dispatch]);
 
   useEffect(() => {
-    getTeams().then((data) => setTeams(data));
+    dispatch(fetchTeams());
+  }, [dispatch]);
+
+  // MATCHES 테이블 경기 일정 조회 (/api/matches, 읽기 전용)
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/api/matches')
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (isMounted && Array.isArray(data)) {
+          setMatches(data);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
+
+  // 애정팀(favoriteTeamId)의 당일 포함 가장 가까운 경기 계산
+  const nextFavoriteMatch = useMemo(() => {
+    if (!favoriteTeamId || !Array.isArray(matches) || matches.length === 0) {
+      return null;
+    }
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+
+    const parseDate = (dateStr) => {
+      if (!dateStr) return null;
+      const normalized = String(dateStr).trim().replace(' ', 'T');
+      const d = new Date(normalized);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
+    const upcoming = matches
+      .filter((m) => {
+        const isMyTeam =
+          Number(m.homeTeamId) === favoriteTeamId ||
+          Number(m.awayTeamId) === favoriteTeamId;
+        if (!isMyTeam) return false;
+
+        const matchDateObj = parseDate(m.matchDate);
+        if (!matchDateObj) return false;
+
+        const matchDayStart = new Date(
+          matchDateObj.getFullYear(),
+          matchDateObj.getMonth(),
+          matchDateObj.getDate(),
+          0, 0, 0, 0
+        );
+
+        // 이미 지나간 날짜의 경기는 제외하고 당일 경기까지는 포함
+        return matchDayStart.getTime() >= todayStart.getTime();
+      })
+      .map((m) => {
+        const matchDateObj = parseDate(m.matchDate);
+        const matchDayStart = new Date(
+          matchDateObj.getFullYear(),
+          matchDateObj.getMonth(),
+          matchDateObj.getDate(),
+          0, 0, 0, 0
+        );
+        return {
+          ...m,
+          _matchTime: matchDateObj.getTime(),
+          _matchDayStart: matchDayStart.getTime()
+        };
+      })
+      .sort((a, b) => a._matchTime - b._matchTime);
+
+    if (upcoming.length === 0) return null;
+
+    const closest = upcoming[0];
+    const diffDays = Math.round(
+      (closest._matchDayStart - todayStart.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    const dDayTag = diffDays === 0 ? 'D-DAY' : `D-${diffDays}`;
+
+    const isHome = Number(closest.homeTeamId) === favoriteTeamId;
+    const opponentId = isHome ? Number(closest.awayTeamId) : Number(closest.homeTeamId);
+
+    const opponentTeamObj = teams.find((t) => Number(t.teamId) === opponentId);
+    const homeTeamObj = teams.find((t) => Number(t.teamId) === Number(closest.homeTeamId));
+    const favTeamObj = teams.find((t) => Number(t.teamId) === favoriteTeamId);
+    const favTheme = favTeamObj ? getTeamTheme(favTeamObj) : null;
+
+    const opponentName = isHome
+      ? (closest.awayTeamNameKor || opponentTeamObj?.teamNameKor || closest.awayTeamName || opponentTeamObj?.teamName || `팀 #${opponentId}`)
+      : (closest.homeTeamNameKor || opponentTeamObj?.teamNameKor || closest.homeTeamName || opponentTeamObj?.teamName || `팀 #${opponentId}`);
+
+    const stadiumName =
+      closest.homeGroundKor ||
+      homeTeamObj?.homeGroundKor ||
+      closest.homeGround ||
+      homeTeamObj?.homeGround ||
+      '홈 경기장';
+
+    const opponentEmblemRaw = isHome
+      ? (closest.awayEmblemUrl || opponentTeamObj?.emblemUrl || '')
+      : (closest.homeEmblemUrl || opponentTeamObj?.emblemUrl || '');
+    const favEmblemRaw = favTeamObj?.emblemUrl || (isHome ? closest.homeEmblemUrl : closest.awayEmblemUrl) || '';
+
+    const normalizeEmblem = (url) =>
+      url && url.includes('/badges/50/') ? url.replace('/badges/50/', '/badges/') : url;
+
+    return {
+      matchId: closest.matchId,
+      dDayTag,
+      diffDays,
+      opponentName,
+      stadiumName,
+      favoriteTeamEmblem: normalizeEmblem(favEmblemRaw),
+      opponentEmblem: normalizeEmblem(opponentEmblemRaw),
+      themeHex: favTheme?.hex || '#00ff87',
+      themeGlow: favTheme?.glow || 'rgba(0, 255, 135, 0.5)'
+    };
+  }, [favoriteTeamId, matches, teams]);
+
+  // 인트로 재생 중에는 스크롤을 완전히 잠그고 내비바 등을 숨겨 인트로만 단독으로 보이도록 제어
+  useEffect(() => {
+    if (!isIntroFinished) {
+      document.body.classList.add('mainpage-intro-active');
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.classList.remove('mainpage-intro-active');
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.classList.remove('mainpage-intro-active');
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
+  }, [isIntroFinished]);
 
   useEffect(() => {
     if (isIntroFinished || introIndex >= INTRO_SENTENCES.length) return;
@@ -41,7 +220,7 @@ export default function MainPage() {
       clearTimeout(fadeOutTimer);
       clearTimeout(nextSentenceTimer);
     };
-  }, [introIndex, isIntroFinished]);
+  }, [ introIndex, isIntroFinished ]);
 
   const handleSkipIntro = () => {
     setIsIntroFinished(true);
@@ -49,7 +228,7 @@ export default function MainPage() {
 
   return (
     <div className="mainpage-container">
-      {/* 프리미어리그 시그니처 지그재그 번개 방사형 배경 (SVG) */}
+      {/* 프리미어리그 공식 시그니처 딥 플럼 & 곡면 라이트닝 쉐브론 리본 배경 그래픽 (SVG) */}
       <div className="mainpage-bg" aria-hidden="true">
         <svg
           className="mainpage-bg__svg"
@@ -58,165 +237,136 @@ export default function MainPage() {
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
-            {/* 배경 방사형 그라데이션: 프리미어리그 공식 딥 로열 퍼플 */}
-            <radialGradient id="eplBg" cx="800" cy="850" r="950" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#35063d" />
-              <stop offset="50%" stopColor="#26022c" />
-              <stop offset="100%" stopColor="#16011a" />
-            </radialGradient>
-
-            {/* 1. 좌측 하단 번개 그라데이션 */}
-            <linearGradient id="rayBottomLeft" x1="0" y1="650" x2="660" y2="880" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#a45bb3" />
-              <stop offset="30%" stopColor="#9346a2" />
-              <stop offset="65%" stopColor="#6f247c" />
-              <stop offset="90%" stopColor="#3d0746" />
-              <stop offset="100%" stopColor="#26022c" stopOpacity="0" />
+            {/* 베이스 배경 그라데이션: 프리미어리그 브랜드 딥 플럼 / 어버진 퍼플 */}
+            <linearGradient id="eplPlumBg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#2d0631" />
+              <stop offset="40%" stopColor="#370c39" />
+              <stop offset="70%" stopColor="#2c0630" />
+              <stop offset="100%" stopColor="#1e0321" />
             </linearGradient>
 
-            {/* 2. 좌측 상단 번개 그라데이션 */}
-            <linearGradient id="rayMidLeft" x1="200" y1="-20" x2="680" y2="680" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#aa62b9" />
-              <stop offset="35%" stopColor="#9346a2" />
-              <stop offset="70%" stopColor="#672074" />
-              <stop offset="92%" stopColor="#3d0746" />
-              <stop offset="100%" stopColor="#26022c" stopOpacity="0" />
-            </linearGradient>
-
-            {/* 3. 중앙 수직 번개 그라데이션 */}
-            <linearGradient id="rayCenter" x1="800" y1="-20" x2="800" y2="700" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#aa62b9" />
-              <stop offset="35%" stopColor="#9346a2" />
-              <stop offset="70%" stopColor="#672074" />
-              <stop offset="92%" stopColor="#3d0746" />
-              <stop offset="100%" stopColor="#26022c" stopOpacity="0" />
-            </linearGradient>
-
-            {/* 4. 우측 상단 번개 그라데이션 */}
-            <linearGradient id="rayUpperRight" x1="1600" y1="120" x2="870" y2="690" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#aa62b9" />
-              <stop offset="35%" stopColor="#9346a2" />
-              <stop offset="70%" stopColor="#672074" />
-              <stop offset="92%" stopColor="#3d0746" />
-              <stop offset="100%" stopColor="#26022c" stopOpacity="0" />
-            </linearGradient>
-
-            {/* 5. 우측 하단 번개 그라데이션 */}
-            <linearGradient id="rayLowerRight" x1="1600" y1="700" x2="980" y2="890" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#a45bb3" />
-              <stop offset="30%" stopColor="#9346a2" />
-              <stop offset="65%" stopColor="#6f247c" />
-              <stop offset="90%" stopColor="#3d0746" />
-              <stop offset="100%" stopColor="#26022c" stopOpacity="0" />
-            </linearGradient>
-
-            {/* 6. 우측 최하단 보조 번개 그라데이션 */}
-            <linearGradient id="rayFarBottomRight" x1="1600" y1="880" x2="1200" y2="980" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#9d54ab" />
-              <stop offset="50%" stopColor="#732782" />
-              <stop offset="100%" stopColor="#26022c" stopOpacity="0" />
+            {/* 볼트 쉐브론 리본 그라데이션: 딥 바이올렛 -> 눈부신 라일락 퍼플 */}
+            <linearGradient id="eplRibbonGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#4d1952" stopOpacity={0.9} />
+              <stop offset="30%" stopColor="#64276d" stopOpacity={0.94} />
+              <stop offset="60%" stopColor="#833d8c" stopOpacity={0.97} />
+              <stop offset="85%" stopColor="#9f56aa" stopOpacity={0.99} />
+              <stop offset="100%" stopColor="#b66ac5" stopOpacity={1} />
             </linearGradient>
           </defs>
 
-          {/* 딥 퍼플 베이스 배경 사각형 */}
-          <rect width="1600" height="1000" fill="url(#eplBg)" />
+          {/* 딥 플럼 베이스 배경 사각형 */}
+          <rect width="1600" height="1000" fill="url(#eplPlumBg)" />
 
-          {/* 방사형 지그재그 번개 그룹 */}
+          {/* 동심원 곡면 라이트닝 쉐브론 리본 그룹 */}
           <g className="mainpage-bg__bolts">
-            {/* 1. 좌측 하단 번개 */}
+            {/* 1. 좌상단 쉐브론 리본 */}
             <path
-              className="bolt bolt--bottom-left"
-              fill="url(#rayBottomLeft)"
+              className="bolt bolt--ribbon-1"
+              fill="url(#eplRibbonGrad)"
               d="
-                M -20,540
-                L 110,630 L 70,650
-                L 230,725 L 190,750
-                L 370,810 L 330,835
-                L 510,875 L 480,895
-                L 630,920
-                Q 320,910 -20,770
+                M 400,0
+                C 480,0 550,0 610,0
+                C 540,80 460,180 370,260
+                C 260,360 140,460 0,540
+                L 0,470
+                C 40,440 90,390 120,355
+                L 150,370
+                L 175,335
+                L 220,265
+                L 260,195
+                L 282,218
+                L 295,225
+                L 322,170
+                L 336,142
+                L 366,92
+                L 380,60
+                L 400,0
                 Z
               "
             />
 
-            {/* 2. 좌측 상단 곡선 번개 */}
+            {/* 2. 중상단 쉐브론 리본 (위에서 두 번째 번개) */}
             <path
-              className="bolt bolt--mid-left"
-              fill="url(#rayMidLeft)"
+              className="bolt bolt--ribbon-2"
+              fill="url(#eplRibbonGrad)"
               d="
-                M 210,-40
-                L 245,120  L 305,100
-                L 345,260  L 410,240
-                L 450,400  L 515,380
-                L 555,540  L 615,520
-                L 665,670
-                Q 360,460 110,-40
+                M 1032,0
+                L 1255,0
+                C 1160,130 1040,270 890,410
+                C 730,560 520,690 280,775
+                C 180,810 90,830 0,840
+                L 0,760
+                C 70,750 140,730 200,695
+                L 205,735
+                C 290,690 380,630 455,555
+                L 462,605
+                C 560,510 660,400 760,285
+                L 768,340
+                C 850,230 945,115 1032,0
                 Z
               "
             />
 
-            {/* 3. 중앙 수직 번개 */}
+            {/* 3. 중앙 지배형 곡면 쉐브론 리본 */}
             <path
-              className="bolt bolt--center"
-              fill="url(#rayCenter)"
+              className="bolt bolt--ribbon-3"
+              fill="url(#eplRibbonGrad)"
               d="
-                M 750,-40
-                L 720,130 L 765,115
-                L 720,290 L 770,275
-                L 730,450 L 780,435
-                L 745,590 L 785,580
-                L 765,685
-                L 835,685
-                L 815,580 L 855,590
-                L 820,435 L 870,450
-                L 830,275 L 880,290
-                L 835,115 L 880,130
-                L 850,-40
+                M 1600,320
+                L 1600,430
+                C 1420,570 1210,700 970,800
+                C 730,900 440,960 0,980
+                L 0,910
+                C 160,895 320,870 470,820
+                L 436,786
+                L 488,775
+                L 514,768
+                L 665,707
+                L 658,771
+                L 735,746
+                L 806,718
+                L 876,686
+                L 942,657
+                L 1001,625
+                L 1098,564
+                L 1109,643
+                L 1175,604
+                L 1230,575
+                L 1293,532
+                L 1371,486
+                L 1478,411
+                L 1574,339
+                L 1600,320
                 Z
               "
             />
 
-            {/* 4. 우측 상단 곡선 번개 */}
+            {/* 4. 우하단 쉐브론 리본 */}
             <path
-              className="bolt bolt--upper-right"
-              fill="url(#rayUpperRight)"
+              className="bolt bolt--ribbon-4"
+              fill="url(#eplRibbonGrad)"
               d="
-                M 1650,140
-                L 1420,225 L 1465,245
-                L 1250,345 L 1295,368
-                L 1080,480 L 1120,505
-                L 930,625  L 965,645
-                L 870,700
-                Q 1220,550 1650,300
+                M 1600,590
+                C 1460,670 1310,750 1150,820
+                C 990,890 820,950 630,1000
+                L 760,1000
+                C 940,950 1120,880 1280,800
+                C 1420,730 1530,660 1600,600
                 Z
               "
             />
 
-            {/* 5. 우측 하단 번개 */}
+            {/* 5. 최하단 보조 쉐브론 리본 */}
             <path
-              className="bolt bolt--lower-right"
-              fill="url(#rayLowerRight)"
+              className="bolt bolt--ribbon-5"
+              fill="url(#eplRibbonGrad)"
+              opacity={0.8}
               d="
-                M 1650,600
-                L 1420,685 L 1465,705
-                L 1250,775 L 1290,798
-                L 1100,850 L 1135,870
-                L 980,915
-                Q 1330,880 1650,750
-                Z
-              "
-            />
-
-            {/* 6. 우측 최하단 보조 번개 */}
-            <path
-              className="bolt bolt--far-bottom-right"
-              fill="url(#rayFarBottomRight)"
-              d="
-                M 1650,810
-                L 1490,875 L 1525,895
-                L 1340,945 L 1370,965
-                L 1220,995
-                Q 1460,980 1650,920
+                M 1600,820
+                C 1500,880 1380,940 1250,990
+                L 1370,1000
+                C 1470,950 1550,900 1600,850
                 Z
               "
             />
@@ -227,16 +377,64 @@ export default function MainPage() {
         <div className="mainpage-bg__vignette" />
       </div>
 
+      {/* 오른쪽 상단 내비바 아래: 애정팀 다음 경기 D-Day 위젯 (오프닝 종료 후 표시, 클릭 시 해당 경기 일정으로 이동 및 포커스) */}
+      {isIntroFinished && nextFavoriteMatch && (
+        <a
+          href={`/plug/match?matchId=${nextFavoriteMatch.matchId}`}
+          className="mainpage-next-match"
+          aria-label={`내 애정팀 다음 경기 일정: ${nextFavoriteMatch.dDayTag}, VS ${nextFavoriteMatch.opponentName}, ${nextFavoriteMatch.stadiumName} (클릭 시 경기 일정으로 이동)`}
+          title="클릭하여 경기 일정 페이지에서 해당 경기 보기"
+          style={{
+            '--fav-team-hex': nextFavoriteMatch.themeHex,
+            '--fav-team-glow': nextFavoriteMatch.themeGlow
+          }}
+        >
+          <div className="mainpage-next-match__top">
+            <span className="mainpage-next-match__dday">
+              {nextFavoriteMatch.dDayTag}
+            </span>
+          </div>
+          <div className="mainpage-next-match__matchup">
+            <div className="mainpage-next-match__badge-frame">
+              {nextFavoriteMatch.favoriteTeamEmblem && (
+                <img
+                  src={nextFavoriteMatch.favoriteTeamEmblem}
+                  alt="내 애정팀 엠블럼"
+                  className="mainpage-next-match__emblem"
+                />
+              )}
+            </div>
+            <span className="mainpage-next-match__vs">VS</span>
+            <div className="mainpage-next-match__badge-frame">
+              {nextFavoriteMatch.opponentEmblem && (
+                <img
+                  src={nextFavoriteMatch.opponentEmblem}
+                  alt={`${nextFavoriteMatch.opponentName} 엠블럼`}
+                  className="mainpage-next-match__emblem"
+                />
+              )}
+            </div>
+          </div>
+          <div className="mainpage-next-match__info">
+            <strong className="mainpage-next-match__opponent-name">
+              VS {nextFavoriteMatch.opponentName}
+            </strong>
+            <span className="mainpage-next-match__stadium">
+              {nextFavoriteMatch.stadiumName}
+            </span>
+          </div>
+        </a>
+      )}
+
       {/* 메인 콘텐츠 영역: 인트로 문구 순차 재생 -> 완료 후 오빗 무대 전환 */}
       <main className="mainpage-content">
         {!isIntroFinished ? (
           <div className="mainpage-intro-stage" aria-live="polite">
             <h2
-              className={`mainpage-intro-text ${isTextVisible ? 'is-visible' : ''} ${
-                introIndex === 3 ? 'is-highlight' : ''
-              }`}
+              className={`mainpage-intro-text ${isTextVisible ? 'is-visible' : ''} ${introIndex === 4 ? 'is-highlight' : ''
+                }`}
             >
-              {INTRO_SENTENCES[introIndex]}
+              {INTRO_SENTENCES[ introIndex ]}
             </h2>
             <button
               type="button"
@@ -252,18 +450,41 @@ export default function MainPage() {
             {/* 중앙 고정 문구 영역 */}
             <div className="mainpage-orbit-center">
               <h1 className="mainpage-orbit-title">
-                프리미어리그에 빠질 준비가 되었는가......
+                이 벅찬 환호 속에서<br />함께 날뛸 단 하나의 엠블럼
               </h1>
               <p className="mainpage-orbit-subtitle" aria-live="polite">
                 {hoveredTeam ? (
                   <>
-                    <strong className="team-highlight">{hoveredTeam.teamNameKor || hoveredTeam.teamName}</strong>
+                    <strong
+                      className={`team-highlight ${hoveredTheme?.isDarkNeon ? 'is-dark-neon' : ''}`}
+                      style={{
+                        '--team-color': hoveredTheme?.hex,
+                        '--team-glow': hoveredTheme?.glow,
+                        '--text-stroke': hoveredTheme?.textStroke || '#ffffff',
+                        '--text-glow': hoveredTheme?.textGlow || 'rgba(255, 255, 255, 0.85)'
+                      }}
+                    >
+                      {hoveredTeam.teamNameKor || hoveredTeam.teamName}
+                    </strong>
                     <span className="team-details"> ({hoveredTeam.homeGroundKor || hoveredTeam.homeGround})</span>
                   </>
                 ) : (
-                  <span className="team-placeholder">구단 엠블럼에 마우스를 올려보세요</span>
+                  <span className="team-placeholder">마우스를 올려 정보를 확인하고, 질문을 통해 운명의 팀을 마주해봐</span>
                 )}
               </p>
+
+              {/* 가운데 문구 아래 항상 고정으로 배치된 퀵 밸런스 게임 모달 트리거 버튼 */}
+              <div className="mainpage-quiz-trigger-wrap">
+                <button
+                  type="button"
+                  className="mainpage-quiz-trigger-btn"
+                  onClick={() => setIsQuizOpen(true)}
+                  aria-haspopup="dialog"
+                  aria-expanded={isQuizOpen}
+                >
+                  <span className="quiz-btn-title">함께할 내 운명의 팀 찾기</span>
+                </button>
+              </div>
             </div>
 
             {/* 20개 엠블럼 원형 회전 링 */}
@@ -271,6 +492,8 @@ export default function MainPage() {
               {teams.map((team, index) => {
                 const angle = (index / (teams.length || 20)) * 360;
                 const isHovered = hoveredTeam?.teamId === team.teamId;
+                const isFavorite = Boolean(favoriteTeamId && Number(team.teamId) === favoriteTeamId);
+                const theme = getTeamTheme(team);
 
                 return (
                   <div
@@ -281,19 +504,24 @@ export default function MainPage() {
                     <div className="emblem-rotator">
                       <a
                         href={`/plug/team/${team.teamId}`}
-                        className={`emblem-card ${isHovered ? 'is-hovered' : ''}`}
+                        className={`emblem-card ${isHovered ? 'is-hovered' : ''} ${isFavorite ? 'is-favorite' : ''}`}
+                        style={{
+                          '--team-hex': theme.hex,
+                          '--team-glow': theme.glow
+                        }}
                         onMouseEnter={() => setHoveredTeam(team)}
                         onMouseLeave={() => setHoveredTeam(null)}
                         onFocus={() => setHoveredTeam(team)}
                         onBlur={() => setHoveredTeam(null)}
-                        aria-label={`${team.teamNameKor || team.teamName} 상세 소개 페이지로 이동`}
-                        title={`${team.teamNameKor || team.teamName} 상세 보기`}
+                        aria-label={`${team.teamNameKor || team.teamName}${isFavorite ? ' (내 애정팀)' : ''} 상세 소개 페이지로 이동`}
+                        title={`${team.teamNameKor || team.teamName}${isFavorite ? ' (내 애정팀)' : ''} 상세 보기`}
                       >
                         <img
-                          src={team.emblemUrl}
+                          src={team.emblemUrl ? (team.emblemUrl.includes('/badges/50/') ? team.emblemUrl.replace('/badges/50/', '/badges/') : team.emblemUrl) : ''}
                           alt={`${team.teamNameKor || team.teamName} 로고`}
                           className="emblem-img"
                           loading="eager"
+                          decoding="sync"
                         />
                       </a>
                     </div>
@@ -304,6 +532,13 @@ export default function MainPage() {
           </section>
         )}
       </main>
+
+      {/* 퀴즈 모달 (DB TEAMS 테이블 연동 구단 데이터 전달) */}
+      <TeamQuizModal
+        isOpen={isQuizOpen}
+        onClose={() => setIsQuizOpen(false)}
+        teams={teams}
+      />
     </div>
   );
 }

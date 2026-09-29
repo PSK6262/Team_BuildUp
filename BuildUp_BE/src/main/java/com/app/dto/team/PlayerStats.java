@@ -17,10 +17,23 @@ public class PlayerStats {
     // 화면 표시 조인용 필드 (득점 랭킹 조회용)
     private String playerName;     // 선수명
     private String mainPosition;   // 주 포지션
+    private String detailPosition; // 상세 포지션 (CB, LB, ST 등)
     private String nationality;    // 국적
     private Long teamId;           // 소속 구단 ID
     private String teamName;       // 소속 구단명
-    private String emblemUrl;      // 구단 엠블럼 URL
-    private String playerNameKor;  // 선수 한글명
+    private String teamNameKor;    // 소속 구단 한글명 (TEAMS.TEAM_NAME_KOR)
+    private String emblemUrl;      // 구단 엠블럼 URL (TEAMS.EMBLEM_URL)
+    private String playerNameKor;  // 선수 한글명 (PLAYERS.NAME_KOR 또는 PLAYERS_KOR)
+    private String playersKor;     // 선수 한글명 (PLAYERS.PLAYERS_KOR)
     private String nationalityKor; // 선수 한글 국적
+
+    public String getPlayersKor() {
+        if (playersKor != null && !playersKor.isBlank()) return playersKor;
+        return playerNameKor;
+    }
+
+    public String getPlayerNameKor() {
+        if (playerNameKor != null && !playerNameKor.isBlank()) return playerNameKor;
+        return playersKor;
+    }
 }

@@ -11,6 +11,21 @@ import java.util.Map;
  */
 public interface GeminiApiService {
 
+	// 프리미어리그 질문에 대한 챗봇 답변을 생성합니다.
+	String answerEplQuestion(String question, String pagePath, String scoreContext,
+			String conversationContext, String teamContext);
+
+	// 나만의 팀 문맥이 필요 없는 기존 호출 코드도 유지합니다.
+	default String answerEplQuestion(String question, String pagePath, String scoreContext,
+			String conversationContext) {
+		return answerEplQuestion(question, pagePath, scoreContext, conversationContext, null);
+	}
+
+	// 기존 호출 코드에서는 대화 문맥 없이도 사용할 수 있습니다.
+	default String answerEplQuestion(String question, String pagePath, String scoreContext) {
+		return answerEplQuestion(question, pagePath, scoreContext, null, null);
+	}
+
 	/**
 	 * 20개 구단 한글 명칭, 홈 경기장 한글 명칭 및 구단 역사 일괄 생성 및 DB 적재
 	 * @return 갱신된 구단 수
@@ -66,4 +81,35 @@ public interface GeminiApiService {
 	 * @return 갱신된 총 선수 수
 	 */
 	int syncAllPlayersDetailPositions();
+
+	/**
+	 * 골 이벤트 수가 공식 점수를 초과할 때, Google 검색 기반 공식 매치리포트 크로스체킹을 통해
+	 * VAR 취소 또는 무효화된 골의 시간대(분)를 정밀 판별합니다.
+	 * 
+	 * @param matchDate 경기 일시 (YYYY-MM-DD)
+	 * @param homeTeam 홈팀 명칭
+	 * @param awayTeam 원정팀 명칭
+	 * @param targetTeam 골이 초과된 대상 팀 명칭
+	 * @param officialGoals 공식 인정된 팀 득점 수
+	 * @param candidateGoals API에서 수신된 골 후보 목록 (minute, playerName)
+	 * @return VAR 등으로 취소/무효화된 골들의 발생 시간(분) 목록
+	 */
+	java.util.List<Integer> identifyDisallowedGoalMinutes(
+			String matchDate,
+			String homeTeam,
+			String awayTeam,
+			String targetTeam,
+			int officialGoals,
+			java.util.List<java.util.Map<String, Object>> candidateGoals);
+
+	/**
+	 * [AI 유해 게시글 / 욕설 문맥 자동 감지 및 블라인드 처리 (배치)]
+	 * 
+	 * 최근 등록/수정된 정상 공개 상태의 게시글 및 댓글 목록을 Gemini AI에게 일괄 전달하여,
+	 * 욕설/패드립/성희롱/심한 비하 문맥을 판별하고 유해 판정 항목을 IS_BLIND = 'Y'로 자동 제재합니다.
+	 * 
+	 * @param limit 1회 검사 대상 최대 개수 (기본 20~30)
+	 * @return 검사 결과 요약 맵 (checkedCount, blindedPosts, blindedComments, details)
+	 */
+	Map<String, Object> inspectAndBlindHarmfulCommunityBatch(int limit);
 }
