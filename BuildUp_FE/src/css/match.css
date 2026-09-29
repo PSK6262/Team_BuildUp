@@ -53,7 +53,12 @@
   margin-top: 12px;
 }
 
-.match-season-tab:hover,
+.match-season-tab:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.match-season-tab:hover:not(:disabled),
 .match-load-more:hover {
   border-color: #38003c;
 }

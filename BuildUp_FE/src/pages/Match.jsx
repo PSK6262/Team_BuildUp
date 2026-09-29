@@ -515,6 +515,7 @@ export default function Match() {
               type="button"
               className={`match-season-tab ${selectedSeason === season ? 'is-active' : ''}`}
               aria-pressed={selectedSeason === season}
+              disabled={season === 2024 || season === 2025}
               onClick={() => setSelectedSeason(season)}
             >
               {seasonLabel(season)} 시즌
