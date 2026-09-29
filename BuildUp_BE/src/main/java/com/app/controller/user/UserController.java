@@ -1,5 +1,6 @@
 package com.app.controller.user;
 
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -19,6 +20,7 @@ import com.app.common.CommonCode;
 import com.app.common.ResultCode;
 import com.app.dao.user.UserDAO;
 import com.app.dao.user.UserMailDAO;
+import com.app.dto.prediction.PointHistory;
 import com.app.dto.user.Users;
 import com.app.service.user.UserService;
 import com.app.util.JwtProvider;
@@ -145,6 +147,25 @@ public class UserController {
 
 		Map<String, Object> result = userService.getUserLikedPosts(user.getUserId(), page, size);
 		return ApiResponse.success(result);
+	}
+
+	/**
+	 * 마이페이지: 본인 최근 포인트 변동 이력 (최근 5건) 조회
+	 */
+	@GetMapping("/me/points/history")
+	public ApiResponse<List<PointHistory>> getMyPointHistories(HttpServletRequest request) {
+		String loginId = resolveLoginId(request);
+		if (loginId == null) {
+			return ApiResponse.error(ResultCode.UNAUTHORIZED);
+		}
+
+		Users user = userDAO.selectUserByLoginId(loginId);
+		if (user == null) {
+			return ApiResponse.error(ResultCode.USER_NOT_FOUND);
+		}
+
+		List<PointHistory> histories = userService.getUserPointHistories(user.getUserId());
+		return ApiResponse.success(histories);
 	}
 
 	/**

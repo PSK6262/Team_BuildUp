@@ -1,0 +1,2688 @@
+/* ========================================================
+   MyPage CSS: Premier League Dynamic Dashboard
+   (EPL Deep Purple & Neon Palette + LiveScore Modern Layout)
+   ======================================================== */
+
+.mypage-dashboard-bg {
+  min-height: calc(100vh - 120px);
+  margin-top: -98px;
+  padding: 114px 20px 36px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(225, 140, 245, 0.20) 0%, transparent 58%),
+    radial-gradient(ellipse at 85% 15%, rgba(195, 120, 220, 0.14) 0%, transparent 50%),
+    radial-gradient(circle at 10% 22%, rgba(255, 22, 107, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 80% 85%, rgba(0, 255, 135, 0.06) 0%, transparent 42%),
+    linear-gradient(160deg, #27062c 0%, #1c0320 42%, #120115 100%);
+  color: #ffffff;
+  font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  z-index: 10;
+}
+
+/* 마이페이지 전용 은은한 EPL 라일락 리본 & 앰비언트 하이라이트 배경 레이어 */
+.mypage-bg-decor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.mypage-bg-svg {
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  display: block;
+}
+
+.mypage-dashboard-wrapper {
+  max-width: 1320px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+/* --------------------------------------------------------
+   1. 대시보드 상단 헤더
+   -------------------------------------------------------- */
+.mypage-top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 8px 4px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mypage-top-title-area h1 {
+  margin: 0 0 6px 0;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffffff;
+}
+
+.mypage-top-title-area h1 span.mypage-title-highlight {
+  background: linear-gradient(135deg, #00ff87 0%, #4ae3b5 50%, #8ef5cf 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 8px rgba(0, 255, 135, 0.28));
+  display: inline-block;
+}
+
+.mypage-top-title-area p {
+  margin: 0;
+  font-size: 14px;
+  color: #c5b2d6;
+}
+
+.mypage-top-meta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  font-size: 13px;
+  color: #ffffff;
+}
+
+.mypage-top-meta-badge .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00ff87;
+  box-shadow: 0 0 8px #00ff87;
+}
+
+/* --------------------------------------------------------
+   2. 대시보드 메인 2열 그리드
+   -------------------------------------------------------- */
+.mypage-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+/* --------------------------------------------------------
+   3. 좌측 패널 (프로필 카드 + 사이드 탭 메뉴)
+   -------------------------------------------------------- */
+.mypage-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.mypage-card-surface {
+  background: linear-gradient(150deg, rgba(38, 8, 46, 0.78) 0%, rgba(18, 3, 22, 0.88) 100%);
+  border: 1px solid rgba(235, 175, 255, 0.16);
+  border-radius: 20px;
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 16px rgba(185, 85, 215, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-sizing: border-box;
+}
+
+/* 프로필 요약 카드 */
+.mypage-profile-card {
+  padding: 28px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.mypage-profile-card::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(233, 0, 82, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.mypage-avatar-frame {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #220329 0%, #100114 100%);
+  border: 2px solid rgba(0, 255, 135, 0.32);
+  box-shadow: 0 0 16px rgba(0, 255, 135, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.mypage-avatar-img {
+  width: 72%;
+  height: 72%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+}
+
+.mypage-avatar-default {
+  font-size: 38px;
+}
+
+.mypage-user-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 4px;
+}
+
+.mypage-user-id {
+  font-size: 13px;
+  color: #a795b5;
+  margin: 0 0 12px;
+}
+
+.mypage-badge-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.mypage-role-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(0, 255, 135, 0.12);
+  border: 1px solid rgba(0, 255, 135, 0.35);
+  color: #00ff87;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.mypage-fav-team-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 22, 107, 0.12);
+  border: 1px solid rgba(255, 22, 107, 0.4);
+  color: #ff3377;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+/* 포인트 박스 */
+.mypage-point-box {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mypage-point-box:hover {
+  background: rgba(0, 255, 135, 0.09);
+  border-color: rgba(0, 255, 135, 0.4);
+  box-shadow: 0 4px 20px rgba(0, 255, 135, 0.18);
+  transform: translateY(-2px);
+}
+
+.mypage-point-label {
+  font-size: 12.5px;
+  color: #a795b5;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mypage-point-hint {
+  font-size: 11px;
+  color: #c5b4d1;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.mypage-point-box:hover .mypage-point-hint {
+  color: #00ff87;
+  background: rgba(0, 255, 135, 0.2);
+}
+
+.mypage-point-val {
+  font-size: 18px;
+  font-weight: 900;
+  color: #00ff87;
+  text-shadow: 0 0 10px rgba(0, 255, 135, 0.45);
+}
+
+/* 사이드 네비게이션 메뉴 (레퍼런스 사이드바 스타일) */
+.mypage-side-nav {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mypage-side-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #c5b4d1;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.mypage-side-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  transform: translateX(3px);
+}
+
+.mypage-side-btn.is-active {
+  background: linear-gradient(90deg, rgba(0, 255, 135, 0.08) 0%, rgba(0, 255, 135, 0.02) 100%);
+  border-color: rgba(0, 255, 135, 0.28);
+  color: #ffffff;
+  box-shadow: inset 3px 0 0 #00ff87;
+}
+
+.mypage-side-btn-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mypage-side-btn svg {
+  color: #a795b5;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.mypage-side-btn:hover svg {
+  color: #ffffff;
+}
+
+.mypage-side-btn.is-active svg {
+  color: #00ff87;
+  filter: drop-shadow(0 0 6px rgba(0, 255, 135, 0.45));
+}
+
+.mypage-side-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #c5b4d1;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.mypage-side-btn.is-active .mypage-side-badge {
+  background: #00ff87;
+  color: #120117;
+  box-shadow: 0 0 10px rgba(0, 255, 135, 0.5);
+}
+
+/* --------------------------------------------------------
+   사이드바 스폰서/광고 카드 (300x250 애드센스 배너)
+   -------------------------------------------------------- */
+.mypage-ad-card {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.mypage-ad-badge {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #8f7d9e;
+  text-transform: uppercase;
+  align-self: flex-start;
+}
+
+.mypage-ad-box {
+  width: 100%;
+  min-height: 250px;
+  position: relative;
+  background: linear-gradient(145deg, rgba(38, 7, 46, 0.6) 0%, rgba(18, 3, 22, 0.8) 100%);
+  border: 1px dashed rgba(220, 150, 245, 0.3);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+.mypage-ad-ins {
+  width: 100%;
+  min-height: 250px;
+  position: relative;
+  z-index: 2;
+}
+
+.mypage-ad-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
+  gap: 10px;
+  z-index: 1;
+}
+
+.mypage-ad-icon {
+  font-size: 30px;
+  filter: drop-shadow(0 0 12px rgba(0, 255, 135, 0.4));
+}
+
+.mypage-ad-text strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.mypage-ad-text p {
+  margin: 0;
+  font-size: 11.5px;
+  color: #a795b5;
+  line-height: 1.4;
+}
+
+.mypage-ad-subtag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  color: #00ff87;
+  background: rgba(0, 255, 135, 0.08);
+  border: 1px solid rgba(0, 255, 135, 0.25);
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-top: 2px;
+}
+
+/* 프로필 정보 관리 패널 우측 맨 아래: 회원탈퇴 버튼 */
+.mypage-profile-withdraw-area {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mypage-profile-withdraw-btn {
+  background: none;
+  border: none;
+  color: #8b7899;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.mypage-profile-withdraw-btn:hover {
+  color: #ff3377;
+  background: rgba(255, 22, 107, 0.08);
+}
+
+/* --------------------------------------------------------
+   4. 우측 패널 (상단 3구 스탯 위젯 + 메인 콘텐츠)
+   -------------------------------------------------------- */
+.mypage-content-area {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+}
+
+/* 3구 요약 통계 위젯 바 (레퍼런스 스타일) */
+.mypage-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.mypage-stat-card {
+  padding: 20px 22px;
+  cursor: pointer;
+  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(42, 9, 52, 0.78) 0%, rgba(20, 3, 25, 0.88) 100%);
+  border: 1px solid rgba(235, 175, 255, 0.16);
+}
+
+.mypage-stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: transparent;
+  transition: background 0.24s ease;
+}
+
+.mypage-stat-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(0, 255, 135, 0.7);
+  background: linear-gradient(145deg, rgba(50, 12, 60, 0.84) 0%, rgba(26, 4, 32, 0.92) 100%);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5), 0 0 16px rgba(0, 255, 135, 0.16);
+}
+
+.mypage-stat-card.is-active::after {
+  background: #00ff87;
+  box-shadow: 0 0 12px #00ff87;
+}
+
+.mypage-stat-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mypage-stat-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #a795b5;
+}
+
+.mypage-stat-card-num {
+  font-size: 26px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.mypage-stat-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+/* 메인 패널 본문 카드 */
+.mypage-main-panel {
+  padding: 28px 30px;
+  min-height: 480px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 20;
+  overflow: visible;
+}
+
+.mypage-panel-tab-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.mypage-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 18px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mypage-panel-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mypage-panel-header p {
+  margin: 0;
+  font-size: 13px;
+  color: #a795b5;
+}
+
+/* --------------------------------------------------------
+   5. 프로필 설정 모드 (조회 & 수정 폼)
+   -------------------------------------------------------- */
+.mypage-view-table {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mypage-view-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.mypage-view-row-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #a795b5;
+}
+
+.mypage-view-row-val {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.mypage-fav-team-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mypage-fav-team-emblem-sm {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+/* --------------------------------------------------------
+   5-1. 프로필 하단 2열 대시보드 위젯 (승부예측 적중률 & 다음 경기)
+   -------------------------------------------------------- */
+.mypage-dashboard-subwidgets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .mypage-dashboard-subwidgets {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mypage-subwidget-card {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(220, 150, 245, 0.18);
+  border-radius: 14px;
+  padding: 22px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  transition: all 0.22s ease;
+  box-sizing: border-box;
+  min-height: 205px;
+}
+
+.mypage-subwidget-card:hover {
+  border-color: rgba(220, 150, 245, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.mypage-subwidget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mypage-subwidget-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.mypage-subwidget-link {
+  font-size: 13px;
+  font-weight: 700;
+  color: #00ff87;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.mypage-subwidget-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+/* 1) 승부예측 전적/적중률 위젯 */
+.mypage-pred-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.28);
+  border-radius: 12px;
+  padding: 16px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mypage-pred-stat-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+  flex: 1;
+}
+
+.mypage-pred-stat-lbl {
+  font-size: 11.5px;
+  color: #a795b5;
+  font-weight: 600;
+}
+
+.mypage-pred-stat-val {
+  font-size: 18px;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.mypage-pred-stat-win-val {
+  color: #00ff87;
+}
+
+.mypage-pred-rate-val {
+  font-size: 21px;
+  font-weight: 900;
+  color: #00ff87;
+  text-shadow: 0 0 12px rgba(0, 255, 135, 0.45);
+}
+
+.mypage-pred-progress-wrap {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.mypage-pred-progress-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ff166b, #00ff87);
+  transition: width 0.4s ease;
+}
+
+/* 2) 내 응원 구단 다음 경기 위젯 */
+.mypage-match-dday-badge {
+  font-size: 11.5px;
+  font-weight: 900;
+  color: #16021c;
+  background: #00ff87;
+  padding: 4px 9px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 10px rgba(0, 255, 135, 0.4);
+}
+
+.mypage-next-match-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 1;
+}
+
+.mypage-next-match-teams {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: rgba(0, 0, 0, 0.28);
+  border-radius: 12px;
+  padding: 14px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mypage-match-team-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  text-align: center;
+}
+
+.mypage-match-emblem {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+}
+
+.mypage-match-team-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 110px;
+}
+
+.mypage-match-vs {
+  font-size: 13px;
+  font-weight: 900;
+  color: #ff166b;
+  letter-spacing: 1px;
+}
+
+.mypage-match-meta-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #c5b4d1;
+  padding: 2px 0;
+}
+
+.mypage-match-meta-dot {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.mypage-next-match-empty {
+  font-size: 13px;
+  color: #a795b5;
+  text-align: center;
+  padding: 20px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.mypage-next-match-empty p {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.mypage-subwidget-action-btn {
+  font-size: 12px;
+  font-weight: 700;
+  color: #00ff87;
+  background: rgba(0, 255, 135, 0.08);
+  border: 1px solid rgba(0, 255, 135, 0.35);
+  border-radius: 6px;
+  padding: 5px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.mypage-subwidget-action-btn:hover {
+  background: rgba(0, 255, 135, 0.2);
+}
+
+/* 수정 폼 필드 */
+.mypage-dark-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  overflow: visible;
+  flex: 1;
+}
+
+.mypage-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mypage-form-field label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #c5b4d1;
+}
+
+.mypage-dark-input {
+  width: 100%;
+  height: 46px;
+  padding: 0 16px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 14.5px;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.mypage-dark-input:focus {
+  outline: none;
+  border-color: #00ff87;
+  background: rgba(0, 255, 135, 0.04);
+  box-shadow: 0 0 16px rgba(0, 255, 135, 0.25);
+}
+
+.mypage-dark-input:disabled {
+  background: rgba(255, 255, 255, 0.02);
+  color: #6d5b79;
+  border-color: rgba(255, 255, 255, 0.06);
+  cursor: not-allowed;
+}
+
+.mypage-input-with-btn {
+  display: flex;
+  gap: 10px;
+}
+
+.mypage-input-with-btn input {
+  flex: 1;
+}
+
+.mypage-action-outline-btn {
+  height: 46px;
+  padding: 0 18px;
+  border-radius: 10px;
+  background: rgba(0, 255, 135, 0.08);
+  border: 1px solid rgba(0, 255, 135, 0.45);
+  color: #00ff87;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.mypage-action-outline-btn:hover:not(:disabled) {
+  background: rgba(0, 255, 135, 0.22);
+  box-shadow: 0 0 14px rgba(0, 255, 135, 0.45);
+}
+
+.mypage-action-outline-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.mypage-form-hint {
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.mypage-form-hint.is-ok {
+  color: #00ff87;
+}
+
+.mypage-form-hint.is-err {
+  color: #ff3377;
+}
+
+/* --------------------------------------------------------
+   ★ 6. 커스텀 구단 드롭다운 셀렉트 UI (CustomTeamSelect)
+   -------------------------------------------------------- */
+.custom-team-select-wrap {
+  position: relative;
+  width: 100%;
+  z-index: 50;
+}
+
+.custom-team-select-wrap.is-open {
+  z-index: 1000;
+}
+
+.custom-team-trigger {
+  width: 100%;
+  height: 50px;
+  padding: 0 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(220, 150, 245, 0.25);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: all 0.22s ease;
+  font-family: inherit;
+}
+
+.custom-team-trigger:hover,
+.custom-team-trigger.is-open {
+  border-color: #00ff87;
+  box-shadow: 0 0 16px rgba(0, 255, 135, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.custom-team-selected-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.custom-team-emblem-badge {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.custom-team-emblem-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.custom-team-name-primary {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.custom-team-name-sub {
+  font-size: 12.5px;
+  color: #a795b5;
+  margin-left: 6px;
+}
+
+.custom-team-chevron {
+  font-size: 13px;
+  color: #a795b5;
+  transition: transform 0.25s ease;
+}
+
+.custom-team-chevron.is-open {
+  transform: rotate(180deg);
+  color: #00ff87;
+}
+
+/* 드롭다운 팝오버 메뉴 */
+.custom-team-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  max-height: 320px;
+  overflow-y: auto;
+  border-radius: 16px;
+  background: linear-gradient(160deg, #220429 0%, #16021c 65%, #0f0113 100%);
+  border: 1.5px solid rgba(220, 150, 245, 0.35);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 30px rgba(170, 75, 195, 0.25);
+  padding: 8px;
+  animation: teamDropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-sizing: border-box;
+}
+
+@keyframes teamDropdownFadeIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.custom-team-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-team-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.custom-team-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  color: #ffffff;
+}
+
+.custom-team-option:hover {
+  background: rgba(0, 255, 135, 0.12);
+  transform: translateX(4px);
+}
+
+.custom-team-option.is-selected {
+  background: rgba(0, 255, 135, 0.18);
+  border: 1px solid rgba(0, 255, 135, 0.4);
+}
+
+.custom-team-option-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.custom-team-check-mark {
+  color: #00ff87;
+  font-weight: 900;
+  font-size: 14px;
+}
+
+/* 폼 하단 버튼 그룹 */
+.mypage-form-btn-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.mypage-primary-btn {
+  flex: 1;
+  height: 48px;
+  border-radius: 12px;
+  background: #00ff87;
+  color: #120117;
+  font-size: 15px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 18px rgba(0, 255, 135, 0.45);
+  font-family: inherit;
+}
+
+.mypage-primary-btn:hover:not(:disabled) {
+  background: #2aff9d;
+  box-shadow: 0 0 26px rgba(0, 255, 135, 0.7);
+  transform: translateY(-2px);
+}
+
+.mypage-primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mypage-secondary-btn {
+  flex: 1;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.mypage-secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* --------------------------------------------------------
+   7. 활동 리스트 뷰 (작성글, 댓글, 좋아요 - 레퍼런스 카드 뷰)
+   -------------------------------------------------------- */
+.mypage-card-list {
+  flex: 1;
+  display: grid;
+  grid-template-rows: repeat(5, 1fr);
+  gap: 12px;
+  min-height: 480px;
+}
+
+.mypage-card-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+  height: 100%;
+}
+
+.mypage-card-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(0, 255, 135, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(0, 255, 135, 0.15);
+  transform: translateY(-2px);
+}
+
+.mypage-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mypage-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mypage-tag-category {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(0, 255, 135, 0.12);
+  color: #00ff87;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid rgba(0, 255, 135, 0.3);
+}
+
+.mypage-tag-team {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(255, 22, 107, 0.12);
+  color: #ff3377;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid rgba(255, 22, 107, 0.3);
+}
+
+.mypage-tag-origin {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(216, 134, 237, 0.12);
+  color: #d886ed;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid rgba(216, 134, 237, 0.3);
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mypage-tag-blind {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mypage-card-date {
+  font-size: 12px;
+  color: #8e7a9c;
+}
+
+.mypage-card-meta-extra {
+  font-size: 12px;
+  color: #a795b5;
+}
+
+.mypage-card-title {
+  margin: 0;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.16s ease;
+}
+
+.mypage-card-item:hover .mypage-card-title {
+  color: #00ff87;
+}
+
+.mypage-card-cmt-num {
+  color: #00ff87;
+  margin-left: 6px;
+  font-size: 13.5px;
+  font-weight: 800;
+}
+
+.mypage-card-cmt-content {
+  margin: 0;
+  font-size: 14.5px;
+  color: #e2d9eb;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mypage-card-target-post {
+  font-size: 12.5px;
+  color: #8e7a9c;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mypage-card-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-size: 12.5px;
+  color: #a795b5;
+  flex-shrink: 0;
+  margin-left: 20px;
+}
+
+.mypage-stat-like-num {
+  color: #ff3377;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 빈 상태 (Empty State) */
+.mypage-empty-box {
+  text-align: center;
+  padding: 64px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.mypage-empty-icon {
+  font-size: 42px;
+  opacity: 0.8;
+}
+
+.mypage-empty-box p {
+  margin: 0;
+  font-size: 15px;
+  color: #a795b5;
+}
+
+.mypage-empty-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: rgba(0, 255, 135, 0.12);
+  border: 1.5px solid #00ff87;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 0 16px rgba(0, 255, 135, 0.35);
+  transition: all 0.2s ease;
+}
+
+.mypage-empty-action:hover {
+  background: #00ff87;
+  color: #120117;
+  box-shadow: 0 0 24px rgba(0, 255, 135, 0.65);
+  transform: translateY(-2px);
+}
+
+/* 페이지네이션 */
+.mypage-dark-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mypage-page-nav-btn {
+  padding: 7px 14px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #c5b4d1;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.mypage-page-nav-btn:hover:not(:disabled) {
+  border-color: #00ff87;
+  color: #00ff87;
+  background: rgba(0, 255, 135, 0.08);
+}
+
+.mypage-page-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.mypage-page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mypage-page-num-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+
+.mypage-page-num-btn:hover:not(:disabled) {
+  border-color: rgba(0, 255, 135, 0.5);
+  color: #00ff87;
+  background: rgba(0, 255, 135, 0.06);
+}
+
+.mypage-page-num-btn.is-active {
+  background: #00ff87;
+  border-color: #00ff87;
+  color: #120117;
+  box-shadow: 0 0 12px rgba(0, 255, 135, 0.5);
+}
+
+/* --------------------------------------------------------
+   8. 반응형 모바일 미디어 쿼리
+   -------------------------------------------------------- */
+@media (max-width: 960px) {
+  .mypage-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mypage-stat-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .mypage-stat-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .mypage-top-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .mypage-main-panel {
+    padding: 20px 16px;
+  }
+
+  .mypage-card-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .mypage-card-stats {
+    align-items: flex-start;
+    margin-left: 0;
+    flex-direction: row;
+    gap: 12px;
+  }
+}
+
+/* --------------------------------------------------------
+   8. 포인트 변동 이력 모달
+   -------------------------------------------------------- */
+.point-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 2, 14, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: pointFadeIn 0.2s ease;
+}
+
+@keyframes pointFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.point-modal-content {
+  width: 100%;
+  max-width: 500px;
+  background: linear-gradient(150deg, rgba(46, 10, 56, 0.96) 0%, rgba(20, 3, 26, 0.98) 100%);
+  border: 1px solid rgba(235, 175, 255, 0.3);
+  border-radius: 20px;
+  padding: 26px 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 255, 135, 0.12);
+  box-sizing: border-box;
+  animation: pointSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pointSlideUp {
+  from { transform: translateY(16px) scale(0.97); }
+  to { transform: translateY(0) scale(1); }
+}
+
+.point-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.point-modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.point-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.point-modal-close-btn {
+  background: transparent;
+  border: none;
+  color: #a795b5;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.point-modal-close-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.point-modal-summary {
+  background: rgba(0, 255, 135, 0.08);
+  border: 1px solid rgba(0, 255, 135, 0.25);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.point-modal-summary-lbl {
+  font-size: 13.5px;
+  color: #c5b4d1;
+  font-weight: 600;
+}
+
+.point-modal-summary-val {
+  font-size: 20px;
+  font-weight: 900;
+  color: #00ff87;
+  text-shadow: 0 0 10px rgba(0, 255, 135, 0.45);
+}
+
+.point-modal-list-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #a795b5;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.point-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.point-modal-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.point-modal-item-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.point-modal-item-desc {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.point-modal-item-date {
+  font-size: 11.5px;
+  color: #8e7a9c;
+}
+
+.point-modal-item-right {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.point-modal-item-amount {
+  font-size: 14.5px;
+  font-weight: 800;
+}
+
+.point-modal-item-amount.is-plus {
+  color: #00ff87;
+}
+
+.point-modal-item-amount.is-minus {
+  color: #ff3377;
+}
+
+.point-modal-item-bal {
+  font-size: 11px;
+  color: #a795b5;
+}
+
+.point-modal-empty {
+  text-align: center;
+  padding: 30px 10px;
+  color: #a795b5;
+  font-size: 13.5px;
+}
+
+.point-modal-footer {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ========================================================
+   마이페이지 일반모드 (Light Mode) 전용 스타일
+   - 랭킹 페이지(StandingsPage/teams.css)의 화이트 & 클린 EPL 플럼 룩앤필
+   - 눈의 피로도를 최소화하고 명확한 가독성 보장
+   ======================================================== */
+.mypage-light-mode,
+[data-theme='light'] .mypage-dashboard-bg {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+/* 라이트 모드 배경 데코레이션 감춤 (눈부심 제거) */
+.mypage-light-mode .mypage-bg-decor,
+[data-theme='light'] .mypage-dashboard-bg .mypage-bg-decor {
+  display: none !important;
+}
+
+/* 대시보드 헤더 */
+.mypage-light-mode .mypage-top-header,
+[data-theme='light'] .mypage-dashboard-bg .mypage-top-header {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.mypage-light-mode .mypage-top-title-area h1,
+[data-theme='light'] .mypage-dashboard-bg .mypage-top-title-area h1 {
+  color: #0f172a;
+}
+
+.mypage-light-mode .mypage-top-title-area h1 span.mypage-title-highlight,
+[data-theme='light'] .mypage-dashboard-bg .mypage-top-title-area h1 span.mypage-title-highlight {
+  background: linear-gradient(135deg, #38003c 0%, #641670 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(56, 0, 60, 0.15));
+}
+
+.mypage-light-mode .mypage-top-title-area p,
+[data-theme='light'] .mypage-dashboard-bg .mypage-top-title-area p {
+  color: #64748b;
+}
+
+.mypage-light-mode .mypage-top-meta-badge,
+[data-theme='light'] .mypage-dashboard-bg .mypage-top-meta-badge {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #38003c;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.mypage-light-mode .mypage-top-meta-badge .dot,
+[data-theme='light'] .mypage-dashboard-bg .mypage-top-meta-badge .dot {
+  background: #008a55;
+  box-shadow: 0 0 6px rgba(0, 138, 85, 0.4);
+}
+
+/* 공통 카드 표면 */
+.mypage-light-mode .mypage-card-surface,
+[data-theme='light'] .mypage-dashboard-bg .mypage-card-surface {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+/* 프로필 카드 */
+.mypage-light-mode .mypage-user-name,
+[data-theme='light'] .mypage-dashboard-bg .mypage-user-name {
+  color: #0f172a;
+}
+
+.mypage-light-mode .mypage-user-id,
+[data-theme='light'] .mypage-dashboard-bg .mypage-user-id {
+  color: #64748b;
+}
+
+.mypage-light-mode .mypage-avatar-frame,
+[data-theme='light'] .mypage-dashboard-bg .mypage-avatar-frame {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+}
+
+.mypage-light-mode .mypage-role-badge,
+[data-theme='light'] .mypage-dashboard-bg .mypage-role-badge {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+}
+
+.mypage-light-mode .mypage-fav-team-badge,
+[data-theme='light'] .mypage-dashboard-bg .mypage-fav-team-badge {
+  background: #faf5ff;
+  border: 1px solid #e9d5ff;
+  color: #6b21a8;
+}
+
+/* 포인트 박스 (클릭 가능) */
+.mypage-light-mode .mypage-point-box,
+[data-theme='light'] .mypage-dashboard-bg .mypage-point-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.mypage-light-mode .mypage-point-box:hover,
+[data-theme='light'] .mypage-dashboard-bg .mypage-point-box:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.mypage-light-mode .mypage-point-label,
+[data-theme='light'] .mypage-dashboard-bg .mypage-point-label {
+  color: #64748b;
+}
+
+.mypage-light-mode .mypage-point-val,
+[data-theme='light'] .mypage-dashboard-bg .mypage-point-val {
+  color: #008a55;
+  text-shadow: none;
+}
+
+/* 사이드바 네비게이션 버튼 */
+.mypage-light-mode .mypage-side-btn,
+[data-theme='light'] .mypage-dashboard-bg .mypage-side-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #475569;
+}
+
+.mypage-light-mode .mypage-side-btn:hover,
+[data-theme='light'] .mypage-dashboard-bg .mypage-side-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.mypage-light-mode .mypage-side-btn.is-active,
+[data-theme='light'] .mypage-dashboard-bg .mypage-side-btn.is-active {
+  background: #f8eff9;
+  border-color: #e2d2e4;
+  color: #38003c;
+  box-shadow: inset 3px 0 0 #38003c;
+}
+
+.mypage-light-mode .mypage-side-btn svg,
+[data-theme='light'] .mypage-dashboard-bg .mypage-side-btn svg {
+  color: #64748b;
+}
+
+.mypage-light-mode .mypage-side-btn:hover svg,
+[data-theme='light'] .mypage-dashboard-bg .mypage-side-btn:hover svg {
+  color: #0f172a;
+}
+
+.mypage-light-mode .mypage-side-btn.is-active svg,
+[data-theme='light'] .mypage-dashboard-bg .mypage-side-btn.is-active svg {
+  color: #38003c;
+  filter: none;
+}
+
+.mypage-light-mode .mypage-side-badge,
+[data-theme='light'] .mypage-dashboard-bg .mypage-side-badge {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.mypage-light-mode .mypage-side-btn.is-active .mypage-side-badge,
+[data-theme='light'] .mypage-dashboard-bg .mypage-side-btn.is-active .mypage-side-badge {
+  background: #38003c;
+  color: #ffffff;
+  box-shadow: 0 1px 4px rgba(56, 0, 60, 0.2);
+}
+
+/* 사이드바 애드센스 광고 카드 */
+.mypage-light-mode .mypage-ad-card,
+[data-theme='light'] .mypage-dashboard-bg .mypage-ad-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.mypage-light-mode .mypage-ad-badge,
+[data-theme='light'] .mypage-dashboard-bg .mypage-ad-badge {
+  color: #94a3b8;
+}
+
+.mypage-light-mode .mypage-ad-placeholder,
+[data-theme='light'] .mypage-dashboard-bg .mypage-ad-placeholder {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+}
+
+.mypage-light-mode .mypage-ad-text,
+[data-theme='light'] .mypage-dashboard-bg .mypage-ad-text {
+  color: #64748b;
+}
+
+/* 회원 탈퇴 트리거 */
+.mypage-light-mode .mypage-withdraw-trigger,
+[data-theme='light'] .mypage-dashboard-bg .mypage-withdraw-trigger {
+  color: #94a3b8;
+}
+
+.mypage-light-mode .mypage-withdraw-trigger:hover,
+[data-theme='light'] .mypage-dashboard-bg .mypage-withdraw-trigger:hover {
+  color: #e11d48;
+}
+
+/* 상단 3개 통계 위젯 카드 */
+.mypage-light-mode .mypage-stat-card,
+[data-theme='light'] .mypage-dashboard-bg .mypage-stat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.mypage-light-mode .mypage-stat-card .label,
+[data-theme='light'] .mypage-dashboard-bg .mypage-stat-card .label {
+  color: #64748b;
+}
+
+.mypage-light-mode .mypage-stat-card .val,
+[data-theme='light'] .mypage-dashboard-bg .mypage-stat-card .val {
+  color: #0f172a;
+}
+
+.mypage-light-mode .mypage-stat-card .val.val-points,
+[data-theme='light'] .mypage-dashboard-bg .mypage-stat-card .val.val-points {
+  color: #008a55;
+}
+
+.mypage-light-mode .mypage-stat-card .unit,
+[data-theme='light'] .mypage-dashboard-bg .mypage-stat-card .unit {
+  color: #64748b;
+}
+
+.mypage-light-mode .mypage-stat-card .sub-info,
+[data-theme='light'] .mypage-dashboard-bg .mypage-stat-card .sub-info {
+  color: #94a3b8;
+}
+
+.mypage-light-mode .mypage-stat-card .stat-icon-wrap,
+[data-theme='light'] .mypage-dashboard-bg .mypage-stat-card .stat-icon-wrap {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+/* 구단 전적 & 경기 카드 */
+.mypage-light-mode .mypage-team-card,
+[data-theme='light'] .mypage-dashboard-bg .mypage-team-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.mypage-light-mode .mypage-team-stat-item,
+[data-theme='light'] .mypage-dashboard-bg .mypage-team-stat-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.mypage-light-mode .mypage-team-stat-item .stat-title,
+[data-theme='light'] .mypage-dashboard-bg .mypage-team-stat-item .stat-title {
+  color: #64748b;
+}
+
+.mypage-light-mode .mypage-team-stat-item .stat-number,
+[data-theme='light'] .mypage-dashboard-bg .mypage-team-stat-item .stat-number {
+  color: #0f172a;
+}
+
+/* 경기 카드 */
+.mypage-light-mode .mypage-match-card,
+[data-theme='light'] .mypage-dashboard-bg .mypage-match-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.mypage-light-mode .mypage-match-card .match-meta,
+[data-theme='light'] .mypage-dashboard-bg .mypage-match-card .match-meta {
+  color: #64748b;
+}
+
+.mypage-light-mode .mypage-match-card .team-name,
+[data-theme='light'] .mypage-dashboard-bg .mypage-match-card .team-name {
+  color: #0f172a;
+}
+
+.mypage-light-mode .mypage-match-card .match-score,
+[data-theme='light'] .mypage-dashboard-bg .mypage-match-card .match-score {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+}
+
+/* 메인 탭 헤더 */
+.mypage-light-mode .mypage-card-header,
+[data-theme='light'] .mypage-dashboard-bg .mypage-card-header {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.mypage-light-mode .mypage-section-title,
+[data-theme='light'] .mypage-dashboard-bg .mypage-section-title {
+  color: #0f172a;
+}
+
+.mypage-light-mode .mypage-section-title span,
+[data-theme='light'] .mypage-dashboard-bg .mypage-section-title span {
+  color: #64748b;
+}
+
+/* 버튼 */
+.mypage-light-mode .mypage-primary-btn,
+[data-theme='light'] .mypage-dashboard-bg .mypage-primary-btn {
+  background: #38003c;
+  border-color: #38003c;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(56, 0, 60, 0.2);
+}
+
+.mypage-light-mode .mypage-primary-btn:hover,
+[data-theme='light'] .mypage-dashboard-bg .mypage-primary-btn:hover {
+  background: #240026;
+  border-color: #240026;
+  color: #ffffff;
+}
+
+.mypage-light-mode .mypage-outline-btn,
+[data-theme='light'] .mypage-dashboard-bg .mypage-outline-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+}
+
+.mypage-light-mode .mypage-outline-btn:hover,
+[data-theme='light'] .mypage-dashboard-bg .mypage-outline-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.mypage-light-mode .mypage-secondary-btn,
+[data-theme='light'] .mypage-dashboard-bg .mypage-secondary-btn {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.mypage-light-mode .mypage-secondary-btn:hover,
+[data-theme='light'] .mypage-dashboard-bg .mypage-secondary-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* 필드 및 폼 컨트롤 */
+.mypage-light-mode .mypage-field-row,
+[data-theme='light'] .mypage-dashboard-bg .mypage-field-row {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.mypage-light-mode .mypage-field-label,
+[data-theme='light'] .mypage-dashboard-bg .mypage-field-label {
+  color: #64748b;
+}
+
+.mypage-light-mode .mypage-field-value,
+[data-theme='light'] .mypage-dashboard-bg .mypage-field-value {
+  color: #0f172a;
+}
+
+.mypage-light-mode .mypage-input,
+[data-theme='light'] .mypage-dashboard-bg .mypage-input {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+}
+
+.mypage-light-mode .mypage-input:focus,
+[data-theme='light'] .mypage-dashboard-bg .mypage-input:focus {
+  border-color: #38003c;
+  box-shadow: 0 0 0 3px rgba(56, 0, 60, 0.1);
+}
+
+.mypage-light-mode .mypage-select-trigger,
+[data-theme='light'] .mypage-dashboard-bg .mypage-select-trigger {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+}
+
+.mypage-light-mode .mypage-dropdown-menu,
+[data-theme='light'] .mypage-dashboard-bg .mypage-dropdown-menu {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}
+
+.mypage-light-mode .mypage-dropdown-item,
+[data-theme='light'] .mypage-dashboard-bg .mypage-dropdown-item {
+  color: #334155;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.mypage-light-mode .mypage-dropdown-item:hover,
+[data-theme='light'] .mypage-dashboard-bg .mypage-dropdown-item:hover {
+  background: #f8fafc;
+  color: #38003c;
+}
+
+/* 활동 내역 리스트 (게시글, 댓글, 좋아요한 글) - 라이트 모드 */
+.mypage-light-mode .mypage-card-item,
+[data-theme='light'] .mypage-dashboard-bg .mypage-card-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+.mypage-light-mode .mypage-card-item:hover,
+[data-theme='light'] .mypage-dashboard-bg .mypage-card-item:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.mypage-light-mode .mypage-card-title,
+[data-theme='light'] .mypage-dashboard-bg .mypage-card-title {
+  color: #0f172a !important;
+}
+
+.mypage-light-mode .mypage-card-item:hover .mypage-card-title,
+[data-theme='light'] .mypage-dashboard-bg .mypage-card-item:hover .mypage-card-title {
+  color: #38003c !important;
+}
+
+.mypage-light-mode .mypage-card-cmt-num,
+[data-theme='light'] .mypage-dashboard-bg .mypage-card-cmt-num {
+  color: #008a55;
+}
+
+.mypage-light-mode .mypage-card-cmt-content,
+[data-theme='light'] .mypage-dashboard-bg .mypage-card-cmt-content {
+  color: #334155 !important;
+}
+
+.mypage-light-mode .mypage-card-target-post,
+[data-theme='light'] .mypage-dashboard-bg .mypage-card-target-post {
+  color: #64748b;
+}
+
+.mypage-light-mode .mypage-card-date,
+[data-theme='light'] .mypage-dashboard-bg .mypage-card-date {
+  color: #94a3b8;
+}
+
+.mypage-light-mode .mypage-card-stats,
+[data-theme='light'] .mypage-dashboard-bg .mypage-card-stats {
+  color: #64748b;
+}
+
+.mypage-light-mode .mypage-card-meta-extra,
+[data-theme='light'] .mypage-dashboard-bg .mypage-card-meta-extra {
+  color: #64748b;
+}
+
+/* 태그 및 배지 (라이트 모드) */
+.mypage-light-mode .mypage-tag-category,
+[data-theme='light'] .mypage-dashboard-bg .mypage-tag-category {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+}
+
+.mypage-light-mode .mypage-tag-team,
+[data-theme='light'] .mypage-dashboard-bg .mypage-tag-team {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #e11d48;
+}
+
+.mypage-light-mode .mypage-tag-origin,
+[data-theme='light'] .mypage-dashboard-bg .mypage-tag-origin {
+  background: #faf5ff;
+  border: 1px solid #e9d5ff;
+  color: #6b21a8;
+}
+
+.mypage-light-mode .mypage-tag-blind,
+[data-theme='light'] .mypage-dashboard-bg .mypage-tag-blind {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+}
+
+/* 통계 칩 */
+.mypage-light-mode .mypage-stat-chip,
+[data-theme='light'] .mypage-dashboard-bg .mypage-stat-chip {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+}
+
+/* 페이지네이션 */
+.mypage-light-mode .mypage-page-btn,
+[data-theme='light'] .mypage-dashboard-bg .mypage-page-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+}
+
+.mypage-light-mode .mypage-page-btn:hover:not(:disabled),
+[data-theme='light'] .mypage-dashboard-bg .mypage-page-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.mypage-light-mode .mypage-page-btn.active,
+[data-theme='light'] .mypage-dashboard-bg .mypage-page-btn.active {
+  background: #38003c;
+  border-color: #38003c;
+  color: #ffffff;
+}
+
+.mypage-light-mode .mypage-page-btn:disabled,
+[data-theme='light'] .mypage-dashboard-bg .mypage-page-btn:disabled {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #cbd5e1;
+}
+
+/* 빈 상태 */
+.mypage-light-mode .mypage-empty-box,
+[data-theme='light'] .mypage-dashboard-bg .mypage-empty-box {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  color: #64748b;
+}
+
+/* 모달 (포인트 내역 & 회원 탈퇴) */
+.mypage-light-mode .point-history-modal-overlay,
+.mypage-light-mode .withdraw-modal-overlay,
+[data-theme='light'] .point-history-modal-overlay,
+[data-theme='light'] .withdraw-modal-overlay {
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.mypage-light-mode .point-history-modal-content,
+.mypage-light-mode .withdraw-modal-content,
+[data-theme='light'] .point-history-modal-content,
+[data-theme='light'] .withdraw-modal-content {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.14);
+  color: #0f172a;
+}
+
+.mypage-light-mode .point-history-modal-content h3,
+.mypage-light-mode .withdraw-modal-content h3,
+[data-theme='light'] .point-history-modal-content h3,
+[data-theme='light'] .withdraw-modal-content h3 {
+  color: #0f172a;
+}
+
+.mypage-light-mode .point-modal-summary,
+[data-theme='light'] .point-modal-summary {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.mypage-light-mode .point-modal-summary-label,
+[data-theme='light'] .point-modal-summary-label {
+  color: #64748b;
+}
+
+.mypage-light-mode .point-modal-summary-val,
+[data-theme='light'] .point-modal-summary-val {
+  color: #008a55;
+  text-shadow: none;
+}
+
+.mypage-light-mode .point-modal-list-title,
+[data-theme='light'] .point-modal-list-title {
+  color: #64748b;
+}
+
+.mypage-light-mode .point-modal-item,
+[data-theme='light'] .point-modal-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.mypage-light-mode .point-modal-item-desc,
+[data-theme='light'] .point-modal-item-desc {
+  color: #0f172a;
+}
+
+.mypage-light-mode .point-modal-item-date,
+[data-theme='light'] .point-modal-item-date {
+  color: #94a3b8;
+}
+
+.mypage-light-mode .point-modal-item-amount.is-plus,
+[data-theme='light'] .point-modal-item-amount.is-plus {
+  color: #008a55;
+}
+
+.mypage-light-mode .point-modal-item-amount.is-minus,
+[data-theme='light'] .point-modal-item-amount.is-minus {
+  color: #e11d48;
+}
+
+.mypage-light-mode .point-modal-item-bal,
+[data-theme='light'] .point-modal-item-bal {
+  color: #64748b;
+}
+
+.mypage-light-mode .point-modal-empty,
+[data-theme='light'] .point-modal-empty {
+  color: #64748b;
+}
+
+.mypage-light-mode .withdraw-modal-desc,
+[data-theme='light'] .withdraw-modal-desc {
+  color: #475569;
+}
+
+.mypage-light-mode .withdraw-modal-warning-box,
+[data-theme='light'] .withdraw-modal-warning-box {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #9f1239;
+}
+
+/* ========================================================
+   상단 3구 통계 위젯 카드 (라이트 모드)
+   ======================================================== */
+.mypage-light-mode .mypage-stat-card,
+[data-theme='light'] .mypage-dashboard-bg .mypage-stat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.mypage-light-mode .mypage-stat-card:hover,
+[data-theme='light'] .mypage-dashboard-bg .mypage-stat-card:hover {
+  background: #ffffff;
+  border-color: #38003c;
+  box-shadow: 0 10px 24px rgba(56, 0, 60, 0.08);
+}
+
+.mypage-light-mode .mypage-stat-card.is-active::after,
+[data-theme='light'] .mypage-dashboard-bg .mypage-stat-card.is-active::after {
+  background: #38003c;
+  box-shadow: 0 0 10px rgba(56, 0, 60, 0.3);
+}
+
+.mypage-light-mode .mypage-stat-card-title,
+[data-theme='light'] .mypage-dashboard-bg .mypage-stat-card-title {
+  color: #64748b;
+}
+
+.mypage-light-mode .mypage-stat-card-num,
+[data-theme='light'] .mypage-dashboard-bg .mypage-stat-card-num {
+  color: #0f172a;
+}
+
+.mypage-light-mode .mypage-stat-card-icon,
+[data-theme='light'] .mypage-dashboard-bg .mypage-stat-card-icon {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.mypage-light-mode .mypage-stat-card-icon svg,
+[data-theme='light'] .mypage-dashboard-bg .mypage-stat-card-icon svg {
+  color: #38003c !important;
+}
+
+/* ========================================================
+   메인 패널 & 탭 헤더 (라이트 모드)
+   ======================================================== */
+.mypage-light-mode .mypage-main-panel,
+[data-theme='light'] .mypage-dashboard-bg .mypage-main-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.mypage-light-mode .mypage-panel-header,
+[data-theme='light'] .mypage-dashboard-bg .mypage-panel-header {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.mypage-light-mode .mypage-panel-header h2,
+[data-theme='light'] .mypage-dashboard-bg .mypage-panel-header h2 {
+  color: #0f172a;
+}
+
+.mypage-light-mode .mypage-panel-header h2 svg,
+[data-theme='light'] .mypage-dashboard-bg .mypage-panel-header h2 svg {
+  color: #38003c !important;
+}
+
+.mypage-light-mode .mypage-panel-header p,
+[data-theme='light'] .mypage-dashboard-bg .mypage-panel-header p {
+  color: #64748b;
+}
+
+.mypage-light-mode .mypage-action-outline-btn,
+[data-theme='light'] .mypage-dashboard-bg .mypage-action-outline-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+}
+
+.mypage-light-mode .mypage-action-outline-btn:hover,
+[data-theme='light'] .mypage-dashboard-bg .mypage-action-outline-btn:hover {
+  background: #f8fafc;
+  border-color: #38003c;
+  color: #38003c;
+}
+
+/* ========================================================
+   프로필 정보 뷰 테이블 (라이트 모드)
+   ======================================================== */
+.mypage-light-mode .mypage-view-row,
+[data-theme='light'] .mypage-dashboard-bg .mypage-view-row {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.mypage-light-mode .mypage-view-row-label,
+[data-theme='light'] .mypage-dashboard-bg .mypage-view-row-label {
+  color: #64748b;
+}
+
+.mypage-light-mode .mypage-view-row-val,
+[data-theme='light'] .mypage-dashboard-bg .mypage-view-row-val {
+  color: #0f172a;
+}
+
+/* ========================================================
+   프로필 하단 2열 대시보드 위젯 (승부예측 & 다음 경기)
+   ======================================================== */
+.mypage-light-mode .mypage-subwidget-card,
+[data-theme='light'] .mypage-dashboard-bg .mypage-subwidget-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.mypage-light-mode .mypage-subwidget-card:hover,
+[data-theme='light'] .mypage-dashboard-bg .mypage-subwidget-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.mypage-light-mode .mypage-subwidget-title,
+[data-theme='light'] .mypage-dashboard-bg .mypage-subwidget-title {
+  color: #0f172a;
+}
+
+.mypage-light-mode .mypage-subwidget-title svg,
+[data-theme='light'] .mypage-dashboard-bg .mypage-subwidget-title svg {
+  color: #38003c !important;
+  filter: none !important;
+}
+
+.mypage-light-mode .mypage-subwidget-link,
+[data-theme='light'] .mypage-dashboard-bg .mypage-subwidget-link {
+  color: #38003c;
+}
+
+.mypage-light-mode .mypage-pred-stat-row,
+[data-theme='light'] .mypage-dashboard-bg .mypage-pred-stat-row {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.mypage-light-mode .mypage-pred-stat-lbl,
+[data-theme='light'] .mypage-dashboard-bg .mypage-pred-stat-lbl {
+  color: #64748b;
+}
+
+.mypage-light-mode .mypage-pred-stat-val,
+[data-theme='light'] .mypage-dashboard-bg .mypage-pred-stat-val {
+  color: #0f172a;
+}
+
+.mypage-light-mode .mypage-pred-stat-win-val,
+[data-theme='light'] .mypage-dashboard-bg .mypage-pred-stat-win-val {
+  color: #38003c !important;
+}
+
+.mypage-light-mode .mypage-pred-rate-val,
+[data-theme='light'] .mypage-dashboard-bg .mypage-pred-rate-val {
+  color: #38003c !important;
+  text-shadow: none !important;
+}
+
+.mypage-light-mode .mypage-pred-progress-wrap,
+[data-theme='light'] .mypage-dashboard-bg .mypage-pred-progress-wrap {
+  background: #e2e8f0;
+}
+
+.mypage-light-mode .mypage-pred-progress-bar,
+[data-theme='light'] .mypage-dashboard-bg .mypage-pred-progress-bar {
+  background: linear-gradient(90deg, #641670, #38003c);
+}
+
+.mypage-light-mode .mypage-match-dday-badge,
+[data-theme='light'] .mypage-dashboard-bg .mypage-match-dday-badge {
+  background: #38003c !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(56, 0, 60, 0.2) !important;
+}
+
+/* 응원 구단 다음 경기 위젯 (라이트 모드) */
+.mypage-light-mode .mypage-next-match-teams,
+[data-theme='light'] .mypage-dashboard-bg .mypage-next-match-teams {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.mypage-light-mode .mypage-match-team-name,
+[data-theme='light'] .mypage-dashboard-bg .mypage-match-team-name {
+  color: #0f172a !important;
+  font-weight: 800;
+  font-size: 13.5px;
+}
+
+.mypage-light-mode .mypage-match-vs,
+[data-theme='light'] .mypage-dashboard-bg .mypage-match-vs {
+  color: #e11d48 !important;
+  font-weight: 900;
+}
+
+.mypage-light-mode .mypage-match-emblem,
+[data-theme='light'] .mypage-dashboard-bg .mypage-match-emblem {
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.12));
+}
+
+.mypage-light-mode .mypage-match-meta-bar,
+[data-theme='light'] .mypage-dashboard-bg .mypage-match-meta-bar {
+  color: #334155 !important;
+  font-weight: 600;
+  font-size: 12.5px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 12px;
+}
+
+.mypage-light-mode .mypage-match-meta-dot,
+[data-theme='light'] .mypage-dashboard-bg .mypage-match-meta-dot {
+  color: #94a3b8 !important;
+}
+
+.mypage-light-mode .mypage-next-match-empty p,
+[data-theme='light'] .mypage-dashboard-bg .mypage-next-match-empty p {
+  color: #64748b;
+}
+
+/* 사이드바 애드센스 광고 카드 (라이트 모드) */
+.mypage-light-mode .mypage-ad-box,
+[data-theme='light'] .mypage-dashboard-bg .mypage-ad-box {
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  box-shadow: none;
+}
+
+.mypage-light-mode .mypage-ad-icon,
+[data-theme='light'] .mypage-dashboard-bg .mypage-ad-icon {
+  filter: none !important;
+}
+
+.mypage-light-mode .mypage-ad-text strong,
+[data-theme='light'] .mypage-dashboard-bg .mypage-ad-text strong {
+  color: #0f172a !important;
+}
+
+.mypage-light-mode .mypage-ad-text p,
+[data-theme='light'] .mypage-dashboard-bg .mypage-ad-text p {
+  color: #64748b !important;
+}
+
+.mypage-light-mode .mypage-ad-subtag,
+[data-theme='light'] .mypage-dashboard-bg .mypage-ad-subtag {
+  color: #38003c !important;
+  background: #f3e8f8 !important;
+  border-color: #d8c2df !important;
+}
+
+
+/* ========================================================
+   프로필 수정 폼 컨트롤 (라이트 모드)
+   ======================================================== */
+.mypage-light-mode .mypage-dark-input,
+[data-theme='light'] .mypage-dashboard-bg .mypage-dark-input {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #0f172a;
+}
+
+.mypage-light-mode .mypage-dark-input:focus,
+[data-theme='light'] .mypage-dashboard-bg .mypage-dark-input:focus {
+  border-color: #38003c;
+  box-shadow: 0 0 0 3px rgba(56, 0, 60, 0.1);
+}
+
+.mypage-light-mode .mypage-form-field label,
+[data-theme='light'] .mypage-dashboard-bg .mypage-form-field label {
+  color: #475569;
+}
+
+.mypage-light-mode .custom-team-trigger,
+[data-theme='light'] .mypage-dashboard-bg .custom-team-trigger {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #0f172a;
+}
+
+.mypage-light-mode .custom-team-trigger:hover,
+.mypage-light-mode .custom-team-trigger.is-open,
+[data-theme='light'] .mypage-dashboard-bg .custom-team-trigger:hover,
+[data-theme='light'] .mypage-dashboard-bg .custom-team-trigger.is-open {
+  border-color: #38003c;
+  box-shadow: 0 0 10px rgba(56, 0, 60, 0.15);
+  background: #ffffff;
+}
+
+.mypage-light-mode .custom-team-name-primary,
+[data-theme='light'] .mypage-dashboard-bg .custom-team-name-primary {
+  color: #0f172a;
+}
+
+.mypage-light-mode .custom-team-name-sub,
+[data-theme='light'] .mypage-dashboard-bg .custom-team-name-sub {
+  color: #64748b;
+}
+
+.mypage-light-mode .custom-team-chevron,
+[data-theme='light'] .mypage-dashboard-bg .custom-team-chevron {
+  color: #64748b;
+}
+
+.mypage-light-mode .custom-team-chevron.is-open,
+[data-theme='light'] .mypage-dashboard-bg .custom-team-chevron.is-open {
+  color: #38003c;
+}
+
+.mypage-light-mode .custom-team-dropdown,
+[data-theme='light'] .mypage-dashboard-bg .custom-team-dropdown {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+}
+
+.mypage-light-mode .custom-team-option,
+[data-theme='light'] .mypage-dashboard-bg .custom-team-option {
+  color: #334155;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.mypage-light-mode .custom-team-option:hover,
+[data-theme='light'] .mypage-dashboard-bg .custom-team-option:hover {
+  background: #f8fafc;
+  color: #38003c;
+}
+
+.mypage-light-mode .custom-team-option.is-selected,
+[data-theme='light'] .mypage-dashboard-bg .custom-team-option.is-selected {
+  background: #f3e8f8;
+  border: 1px solid #e2d2e4;
+  color: #38003c;
+}
+
+.mypage-light-mode .custom-team-check-mark,
+[data-theme='light'] .mypage-dashboard-bg .custom-team-check-mark {
+  color: #38003c;
+}
+
+.mypage-light-mode .mypage-profile-withdraw-btn,
+[data-theme='light'] .mypage-dashboard-bg .mypage-profile-withdraw-btn {
+  color: #94a3b8;
+}
+
+.mypage-light-mode .mypage-profile-withdraw-btn:hover,
+[data-theme='light'] .mypage-dashboard-bg .mypage-profile-withdraw-btn:hover {
+  color: #e11d48;
+}
+
+

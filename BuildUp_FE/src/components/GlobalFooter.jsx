@@ -40,7 +40,13 @@ export default function GlobalFooter() {
 
             {/* 광고 로드 대기/로컬 테스트용 플레이스홀더 */}
             <div className="global-footer__ad-placeholder" aria-hidden="true">
-              <span className="global-footer__ad-icon">📢</span>
+              <span className="global-footer__ad-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00ff87" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+                  <path d="M18 8a3 3 0 0 1 0 6" />
+                  <path d="M21 5a6 6 0 0 1 0 12" />
+                  <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                </svg>
+              </span>
               <div className="global-footer__ad-text">
                 <strong>PLUGIN FOOTER AD BANNER</strong>
                 <p>프리미어리그 모든 순간을 함께하는 스마트한 축구 플랫폼</p>

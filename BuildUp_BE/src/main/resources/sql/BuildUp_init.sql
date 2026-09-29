@@ -9,7 +9,7 @@
 
 -- 1. USER_ROLES (회원 권한 등급 마스터)
 CREATE TABLE USER_ROLES (
-    ROLE_CODE          NUMBER        NOT NULL, -- 권한 코드 식별자 (1: 일반회원, 7: 탈퇴회원, 8: 제재회원, 9: 관리자 등)
+    ROLE_CODE          NUMBER        NOT NULL, -- 권한 코드 식별자 (1: 일반, 7: 탈퇴회원, 8: 기자, 9: 관리자)
     ROLE_NAME          VARCHAR2(50)  NOT NULL, -- 권한 명칭
     CONSTRAINT PK_USER_ROLES PRIMARY KEY (ROLE_CODE)
 );
@@ -39,8 +39,8 @@ CREATE TABLE STAFF_ROLES (
 
 -- 4. CATEGORY (게시글 분류 카테고리)
 CREATE TABLE CATEGORY (
-    CATEGORY_ID        NUMBER        NOT NULL, -- 게시글 카테고리 식별자
-    CATEGORY_TYPE      VARCHAR2(50)  NOT NULL, -- 카테고리 명칭 (자유, 질문, 뉴스 등)
+    CATEGORY_ID        NUMBER        NOT NULL, -- 게시글 카테고리 식별자 (1: 자유, 2: 질문, 3: 경기, 9: 뉴스)
+    CATEGORY_TYPE      VARCHAR2(50)  NOT NULL, -- 카테고리 명칭
     CONSTRAINT PK_CATEGORY PRIMARY KEY (CATEGORY_ID)
 );
 
@@ -419,42 +419,78 @@ CREATE INDEX IDX_SQUADS_TEAM        ON CUSTOM_SQUADS (CUSTOM_TEAM_ID ASC);
 CREATE INDEX IDX_PLAYERS_TEAM_ID    ON PLAYERS (TEAM_ID ASC);
 
 -- --------------------------------------------------------------------
--- [8. 기존 DB 적용 패치 스크립트 (기존 데이터 보존용 ALTER TABLE)]
--- ※ 테이블을 재생성하지 않고 현재 구동 중인 DB에 즉시 적용할 때 실행
+-- [8. 필수 마스터 코드 및 기본 데이터 (시스템 구동 필수 DML)]
+-- ※ 외래키(FK) 무결성 보장을 위해 반드시 최초 1회 실행되어야 하는 기본 레코드
 -- --------------------------------------------------------------------
 
--- 1. TEAMS 테이블 한글 컬럼 추가
-ALTER TABLE TEAMS ADD (
-    TEAM_NAME_KOR    VARCHAR2(100),
-    HOME_GROUND_KOR  VARCHAR2(100)
-);
-
--- 2. STAFFS 테이블 한글 컬럼 추가
-ALTER TABLE STAFFS ADD (
-    NAME_KOR         VARCHAR2(100),
-    NATIONALITY_KOR  VARCHAR2(50)
-);
-
--- 3. PLAYERS 테이블 한글 컬럼 추가 (및 등번호 삭제)
-ALTER TABLE PLAYERS ADD (
-    NAME_KOR         VARCHAR2(100),
-    NATIONALITY_KOR  VARCHAR2(50)
-);
-
--- 4. USER_ROLES 탈퇴회원(7) 코드 추가
+-- 1. USER_ROLES (회원 등급 마스터: 1 일반, 7 탈퇴회원, 8 기자, 9 관리자)
+INSERT INTO USER_ROLES (ROLE_CODE, ROLE_NAME) VALUES (1, '일반');
 INSERT INTO USER_ROLES (ROLE_CODE, ROLE_NAME) VALUES (7, '탈퇴회원');
+INSERT INTO USER_ROLES (ROLE_CODE, ROLE_NAME) VALUES (8, '기자');
+INSERT INTO USER_ROLES (ROLE_CODE, ROLE_NAME) VALUES (9, '관리자');
 
--- 5. TEAM_STATS 시즌 컬럼 추가 (기존 PK 삭제 후 복합키로 재생성)
--- ※ 기존 데이터가 없는 경우에만 아래 ALTER 실행 가능
--- ※ 기존 데이터가 있는 경우: 먼저 데이터 백업 후 DROP TABLE → init.sql 재실행
-ALTER TABLE TEAM_STATS DROP CONSTRAINT PK_TEAM_STATS;
-ALTER TABLE TEAM_STATS ADD SEASON NUMBER NOT NULL DEFAULT 2026;
-ALTER TABLE TEAM_STATS ADD CONSTRAINT PK_TEAM_STATS PRIMARY KEY (TEAM_ID, SEASON);
+-- 2. STAFF_ROLES (스태프 직책 마스터)
+INSERT INTO STAFF_ROLES (STAFF_ROLE_ID, ROLE_NAME) VALUES (1, '감독');
+INSERT INTO STAFF_ROLES (STAFF_ROLE_ID, ROLE_NAME) VALUES (2, '수석코치');
+INSERT INTO STAFF_ROLES (STAFF_ROLE_ID, ROLE_NAME) VALUES (3, '코치');
+INSERT INTO STAFF_ROLES (STAFF_ROLE_ID, ROLE_NAME) VALUES (4, '피지컬코치');
+INSERT INTO STAFF_ROLES (STAFF_ROLE_ID, ROLE_NAME) VALUES (5, '골키퍼코치');
 
--- 6. EMAIL_VERIFICATIONS AUTH_TYPE 허용값 안내
--- AUTH_TYPE 컬럼은 VARCHAR2(20), 현재 사용 중인 값:
---   'SIGNUP'         : 회원가입 인증 링크 (유효 30분, PAYLOAD 포함)
---   'PASSWORD_RESET' : 비밀번호 재설정 링크 (유효 10분)
---   'EMAIL_CHANGE'   : 이메일 변경 6자리 인증코드 (유효 10분) -- 추후 기능 추가 시 사용
+-- 3. CATEGORY (커뮤니티 게시글 카테고리: 1 자유, 2 질문, 3 경기, 9 뉴스)
+INSERT INTO CATEGORY (CATEGORY_ID, CATEGORY_TYPE) VALUES (1, '자유');
+INSERT INTO CATEGORY (CATEGORY_ID, CATEGORY_TYPE) VALUES (2, '질문');
+INSERT INTO CATEGORY (CATEGORY_ID, CATEGORY_TYPE) VALUES (3, '경기');
+INSERT INTO CATEGORY (CATEGORY_ID, CATEGORY_TYPE) VALUES (9, '뉴스');
+
+-- 4. EVENT_TYPE (경기 타임라인 상세 이벤트 유형 마스터 - ApiBridgeUtil 매핑 8대 규격)
+INSERT INTO EVENT_TYPE (EVENT_TYPE_CODE, EVENT_TYPE_NAME, EVENT_ICON_URL) VALUES (1, '골', '/images/events/goal.png');
+INSERT INTO EVENT_TYPE (EVENT_TYPE_CODE, EVENT_TYPE_NAME, EVENT_ICON_URL) VALUES (2, '페널티킥 골', '/images/events/pk_goal.png');
+INSERT INTO EVENT_TYPE (EVENT_TYPE_CODE, EVENT_TYPE_NAME, EVENT_ICON_URL) VALUES (3, '자책골', '/images/events/own_goal.png');
+INSERT INTO EVENT_TYPE (EVENT_TYPE_CODE, EVENT_TYPE_NAME, EVENT_ICON_URL) VALUES (4, '경고 (옐로카드)', '/images/events/yellow_card.png');
+INSERT INTO EVENT_TYPE (EVENT_TYPE_CODE, EVENT_TYPE_NAME, EVENT_ICON_URL) VALUES (5, '경고 누적 퇴장', '/images/events/yellow_red.png');
+INSERT INTO EVENT_TYPE (EVENT_TYPE_CODE, EVENT_TYPE_NAME, EVENT_ICON_URL) VALUES (6, '퇴장 (레드카드)', '/images/events/red_card.png');
+INSERT INTO EVENT_TYPE (EVENT_TYPE_CODE, EVENT_TYPE_NAME, EVENT_ICON_URL) VALUES (7, '교체', '/images/events/substitution.png');
+INSERT INTO EVENT_TYPE (EVENT_TYPE_CODE, EVENT_TYPE_NAME, EVENT_ICON_URL) VALUES (8, '페널티킥 실축', '/images/events/missed_pk.png');
+
+-- --------------------------------------------------------------------
+-- [9. 기존 DB 적용 패치 스크립트 (기존 운영 데이터 보존용 ALTER TABLE)]
+-- ※ 이미 테이블이 생성되어 가동 중인 기존 DB에 변경사항을 소급 적용할 때만 개별 실행합니다.
+-- ※ 최초 구축 시에는 상단 1~8번 DDL/DML로 모두 완료되므로 아래 구문은 실행하지 않습니다.
+-- --------------------------------------------------------------------
+
+-- 1. TEAMS 테이블 한글 구단명 및 한글 홈구장명 추가
+-- ALTER TABLE TEAMS ADD (
+--     TEAM_NAME_KOR    VARCHAR2(100),
+--     HOME_GROUND_KOR  VARCHAR2(100)
+-- );
+
+-- 2. STAFFS 테이블 한글 스태프명 및 한글 국적 컬럼 추가
+-- ALTER TABLE STAFFS ADD (
+--     NAME_KOR         VARCHAR2(100),
+--     NATIONALITY_KOR  VARCHAR2(50)
+-- );
+
+-- 3. PLAYERS 테이블 한글 선수명 및 한글 국적 컬럼 추가
+-- ALTER TABLE PLAYERS ADD (
+--     NAME_KOR         VARCHAR2(100),
+--     NATIONALITY_KOR  VARCHAR2(50)
+-- );
+
+-- 4. USER_ROLES 탈퇴회원(7) 코드 추가 (신규 DDL 8번 섹션에 포함됨)
+-- INSERT INTO USER_ROLES (ROLE_CODE, ROLE_NAME) VALUES (7, '탈퇴회원');
+
+-- 5. TEAM_STATS 시즌(SEASON) 컬럼 추가 및 PK 복합키 재생성
+-- ALTER TABLE TEAM_STATS DROP CONSTRAINT PK_TEAM_STATS;
+-- ALTER TABLE TEAM_STATS ADD SEASON NUMBER NOT NULL DEFAULT 2026;
+-- ALTER TABLE TEAM_STATS ADD CONSTRAINT PK_TEAM_STATS PRIMARY KEY (TEAM_ID, SEASON);
+
+-- 6. PREDICTIONS 유저-경기 1인 1투표 중복 방어 복합 고유 키 추가 (동시성 방어 - 질문 7)
+-- ALTER TABLE PREDICTIONS ADD CONSTRAINT UQ_PREDICTIONS_USER_MATCH UNIQUE (USER_ID, MATCH_ID);
+
+-- 7. POINT_HISTORY 예측 건별 중복 포인트 적립 방어 유니크 제약 추가 (멱등성 보장 - 질문 8)
+-- ALTER TABLE POINT_HISTORY ADD CONSTRAINT UQ_POINT_HISTORY_PRED UNIQUE (PREDICTION_ID);
+
+-- 8. AI_MATCHES 가상 대결 상대 커스텀팀 식별자 NULL 허용 (실제 구단/AI 상대 매치 지원)
+-- ALTER TABLE AI_MATCHES MODIFY AWAY_TEAM_ID NULL;
 
 COMMIT;

@@ -232,11 +232,19 @@
 			c.CREATED_AT,
 			c.UPDATED_AT,
 			p.TITLE AS POST_TITLE,
-			cat.CATEGORY_TYPE
+			p.VIEW_COUNT AS VIEW_COUNT,
+			cat.CATEGORY_TYPE,
+			COALESCE(t.TEAM_NAME_KOR, t.TEAM_NAME) AS TEAM_NAME,
+			(
+				SELECT COUNT(*)
+				FROM COMMENT_LIKES cl
+				WHERE cl.COMMENT_ID = c.COMMENT_ID
+			) AS LIKE_COUNT
 		FROM COMMENTS c
 		JOIN USERS u ON u.USER_ID = c.USER_ID
 		JOIN POSTS p ON p.POST_ID = c.POST_ID
 		JOIN CATEGORY cat ON cat.CATEGORY_ID = p.CATEGORY_ID
+		LEFT JOIN TEAMS t ON t.TEAM_ID = p.TEAM_ID
 		WHERE c.USER_ID = #{userId}
 		AND c.IS_DELETED = 'N'
 		ORDER BY c.CREATED_AT DESC, c.COMMENT_ID DESC
@@ -293,6 +301,22 @@
 		JOIN POSTS p ON p.POST_ID = pl.POST_ID
 		WHERE pl.USER_ID = #{userId}
 		AND p.IS_DELETED = 'N'
+	</select>
+
+	<!-- 마이페이지: 본인 최근 포인트 변동 이력 (최근 5건) 조회 -->
+	<select id="selectRecentPointHistoriesByUserId" parameterType="long" resultType="PointHistory">
+		SELECT
+			ph.POINT_HISTORY_ID,
+			ph.USER_ID,
+			ph.PREDICTION_ID,
+			ph.AMOUNT,
+			ph.BALANCE_AFTER,
+			ph.DESCRIPTION,
+			ph.CREATED_AT
+		FROM POINT_HISTORY ph
+		WHERE ph.USER_ID = #{userId}
+		ORDER BY ph.CREATED_AT DESC, ph.POINT_HISTORY_ID DESC
+		FETCH FIRST 5 ROWS ONLY
 	</select>
 
 </mapper>

@@ -30,7 +30,7 @@ export async function getMyActivities() {
 /**
  * 로그인 회원이 작성한 게시글 목록 (페이징)
  */
-export async function getMyPosts(page = 1, size = 10) {
+export async function getMyPosts(page = 1, size = 5) {
   const res = await fetch(`/api/users/me/posts?page=${page}&size=${size}`, {
     headers: getAuthHeaders(),
   });
@@ -44,7 +44,7 @@ export async function getMyPosts(page = 1, size = 10) {
 /**
  * 로그인 회원이 작성한 댓글 목록 (페이징)
  */
-export async function getMyComments(page = 1, size = 10) {
+export async function getMyComments(page = 1, size = 5) {
   const res = await fetch(`/api/users/me/comments?page=${page}&size=${size}`, {
     headers: getAuthHeaders(),
   });
@@ -58,7 +58,7 @@ export async function getMyComments(page = 1, size = 10) {
 /**
  * 로그인 회원이 좋아요(추천)한 게시글 목록 (페이징)
  */
-export async function getMyLikedPosts(page = 1, size = 10) {
+export async function getMyLikedPosts(page = 1, size = 5) {
   const res = await fetch(`/api/users/me/likes?page=${page}&size=${size}`, {
     headers: getAuthHeaders(),
   });
@@ -67,4 +67,18 @@ export async function getMyLikedPosts(page = 1, size = 10) {
   }
   const json = await res.json();
   return json.data || { list: [], totalCount: 0, totalPages: 0, currentPage: page };
+}
+
+/**
+ * 로그인 회원의 최근 포인트 변동 이력 (최근 5건)
+ */
+export async function getMyPointHistories() {
+  const res = await fetch('/api/users/me/points/history', {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error('포인트 변동 이력을 불러올 수 없습니다.');
+  }
+  const json = await res.json();
+  return json.data || [];
 }

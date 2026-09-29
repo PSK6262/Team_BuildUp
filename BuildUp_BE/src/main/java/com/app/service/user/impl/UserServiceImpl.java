@@ -387,4 +387,9 @@ public class UserServiceImpl implements UserService {
 		result.put("pageSize", size);
 		return result;
 	}
+
+	@Override
+	public List<com.app.dto.prediction.PointHistory> getUserPointHistories(Long userId) {
+		return userDAO.selectUserPointHistories(userId);
+	}
 }

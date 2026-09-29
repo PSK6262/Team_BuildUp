@@ -124,4 +124,9 @@ public class UserDAOImpl implements UserDAO {
 		Integer count = sqlSession.selectOne("UserMapper.countUserLikedPosts", userId);
 		return count != null ? count : 0;
 	}
+
+	@Override
+	public List<com.app.dto.prediction.PointHistory> selectUserPointHistories(Long userId) {
+		return sqlSession.selectList("UserMapper.selectRecentPointHistoriesByUserId", userId);
+	}
 }

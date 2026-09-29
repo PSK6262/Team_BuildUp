@@ -74,4 +74,9 @@ public interface UserService {
 	 * 사용자가 좋아요(추천)한 게시글 목록 조회 (페이징)
 	 */
 	Map<String, Object> getUserLikedPosts(Long userId, int page, int size);
+
+	/**
+	 * 사용자의 최근 포인트 변동 이력 (최근 5건) 조회
+	 */
+	java.util.List<com.app.dto.prediction.PointHistory> getUserPointHistories(Long userId);
 }

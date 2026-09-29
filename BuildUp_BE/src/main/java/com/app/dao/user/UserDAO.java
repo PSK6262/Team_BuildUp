@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.app.dto.community.Comments;
 import com.app.dto.community.Posts;
+import com.app.dto.prediction.PointHistory;
 import com.app.dto.user.Users;
 
 public interface UserDAO {
@@ -30,4 +31,6 @@ public interface UserDAO {
 
 	List<Posts> selectUserLikedPosts(Map<String, Object> params);
 	int countUserLikedPosts(Long userId);
+
+	List<PointHistory> selectUserPointHistories(Long userId);
 }
