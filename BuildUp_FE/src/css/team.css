@@ -382,6 +382,10 @@ body:has(.team-container) {
 /* --------------------------------------------------------
    상단 내비게이션 버튼 (얇은 아웃라인 알약 캡슐)
    -------------------------------------------------------- */
+.team-mobile-top-nav {
+  display: none;
+}
+
 .team-right-nav {
   display: flex;
   align-items: center;
@@ -834,17 +838,55 @@ body:has(.team-container) {
    반응형 미디어 쿼리 (태블릿 / 모바일, % & 뷰포트 단위)
    -------------------------------------------------------- */
 @media (max-width: 64rem) {
+  html:has(.team-container),
+  body:has(.team-container) {
+    height: auto !important;
+    max-height: none !important;
+    overflow-x: hidden;
+    overflow-y: auto !important;
+  }
+
   .team-container {
-    height: auto;
-    max-height: none;
-    overflow: visible;
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 100vh;
+    overflow: visible !important;
+    background: #18001E;
+  }
+
+  .team-ambient-bleed {
+    display: none !important;
+  }
+
+  .team-mobile-top-nav {
+    display: block;
+    position: relative;
+    z-index: 5;
+    width: 100%;
+    padding: 1.4vh 5%;
+    box-sizing: border-box;
+    background: #18001E;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .team-mobile-top-nav .team-right-nav {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .team-right .team-right-nav {
+    display: none !important;
   }
 
   .team-left {
-    height: auto;
-    min-height: 58vh;
+    width: 100%;
+    height: auto !important;
+    min-height: 52vh;
     overflow: hidden;
+    flex-shrink: 0;
+    touch-action: pan-y;
   }
 
   .team-emblem-bg-overlay {
@@ -857,6 +899,7 @@ body:has(.team-container) {
   }
 
   .team-left__content {
+    height: auto;
     padding: 4vh 6%;
   }
 
@@ -866,9 +909,16 @@ body:has(.team-container) {
   }
 
   .team-right {
-    height: auto;
-    overflow-y: visible;
-    padding: 4vh 5%;
+    width: 100%;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    flex: none;
+    background: #18001E;
+    padding: 4vh 5% 6vh;
+    touch-action: pan-y;
   }
 
   .team-right-inner {
@@ -876,22 +926,91 @@ body:has(.team-container) {
   }
 
   .team-player-grid {
-    grid-template-columns: repeat(auto-fill, minmax(45%, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.4vh 2.4vw;
   }
 
   .team-player-card {
     border-radius: 1.8vw;
   }
+
+  .position-guide-hint--desktop {
+    display: none;
+  }
+
+  .position-guide-hint--mobile {
+    display: inline;
+  }
 }
 
 @media (max-width: 32rem) {
   .team-player-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.6vw 2.4vw;
   }
 
   .team-player-card {
+    border-radius: 2.8vw;
+  }
+}
+
+@media (max-width: 425px) {
+  .team-container {
+    min-width: 320px;
+  }
+
+  .team-mobile-top-nav {
+    padding: 2.6vw 4vw;
+  }
+
+  .team-mobile-top-nav .team-right-nav {
+    gap: 1.8vw;
+  }
+
+  .team-mobile-top-nav .team-back-link,
+  .team-mobile-top-nav .team-nav-arrow {
+    font-size: 2.75vw;
+    padding: 1.5vw 2.6vw;
+    gap: 0.8vw;
+    white-space: nowrap;
+  }
+
+  .team-mobile-top-nav .team-quick-nav {
+    gap: 1vw;
+  }
+
+  .team-player-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.6vw 2.4vw;
+  }
+
+  .team-player-card {
+    padding: 3vw 3.2vw;
     border-radius: 3vw;
+    gap: 1.8vw;
+  }
+
+  .team-player-pos-badge {
+    font-size: 2.4vw;
+    padding: 0.5vw 1.5vw;
+    border-radius: 1.1vw;
+  }
+
+  .team-player-nat-pill {
+    font-size: 2.4vw;
+    padding: 0.5vw 1.8vw;
+  }
+
+  .team-player-name {
+    font-size: 3.2vw;
+  }
+
+  .team-player-name-en {
+    font-size: 2.35vw;
+  }
+
+  .team-player-flag-icon {
+    width: 5.2vw;
   }
 }
 
@@ -1088,6 +1207,20 @@ body:has(.team-container) {
   user-select: none;
 }
 
+.position-guide-hint--mobile {
+  display: none;
+}
+
+@media (max-width: 64rem) {
+  .position-guide-hint--desktop {
+    display: none;
+  }
+
+  .position-guide-hint--mobile {
+    display: inline;
+  }
+}
+
 .position-desc-box {
   display: flex;
   flex-direction: column;
@@ -1267,6 +1400,17 @@ html[data-theme='light'] body:has(.team-container) {
 .team-container--light .team-right::-webkit-scrollbar-thumb:hover,
 [data-theme='light'] .team-right::-webkit-scrollbar-thumb:hover {
   background-color: #705584;
+}
+
+.team-container--light .team-mobile-top-nav,
+[data-theme='light'] .team-mobile-top-nav {
+  background: #F4F6FA;
+  border-bottom: 1px solid #CEBFE0;
+}
+
+.team-container--light .team-mobile-top-nav .team-right-nav,
+[data-theme='light'] .team-mobile-top-nav .team-right-nav {
+  border-bottom: none;
 }
 
 .team-container--light .team-right-nav,

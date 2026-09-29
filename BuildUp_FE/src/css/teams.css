@@ -366,6 +366,7 @@
   color: #ffffff;
   letter-spacing: -0.02vw;
   line-height: 1.3;
+  word-break: keep-all;
   transition: color 0.22s ease, text-shadow 0.22s ease;
 }
 
@@ -376,6 +377,7 @@
   color: rgba(255, 255, 255, 0.76);
   letter-spacing: -0.01vw;
   line-height: 1.3;
+  word-break: keep-all;
   transition: color 0.22s ease;
 }
 
@@ -416,6 +418,10 @@
     padding: 3.5vh 4% 6vh;
   }
 
+  .teams-page-container--teams {
+    padding: 11vh 4% 7vh;
+  }
+
   .teams-page-wrapper {
     width: 95%;
     max-width: 95vw;
@@ -426,7 +432,7 @@
   }
 
   .teams-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 2vh 3vw;
   }
 
@@ -438,23 +444,82 @@
   .team-grid-card__emblem-wrap {
     width: 42%;
     max-width: 14vw;
+    min-width: 3.8rem;
     margin-bottom: 1.6vh;
   }
 }
 
-@media (max-width: 30rem) {
+/* --------------------------------------------------------
+   모바일 기준 브레이크포인트 (<= 425px, 2열 10줄 & 320px까지 동일 구도 유지)
+   -------------------------------------------------------- */
+@media (max-width: 425px) {
+  .teams-page-container--teams {
+    min-width: 320px;
+    padding: 78px 3.5vw 10vw;
+  }
+
+  .teams-page-wrapper {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .teams-page-header {
+    margin-bottom: 5.5vw;
+  }
+
+  .teams-page-eyebrow {
+    font-size: 2.7vw;
+    letter-spacing: 0.35vw;
+    margin-bottom: 1.4vw;
+  }
+
+  .teams-page-title {
+    font-size: 6.2vw;
+    margin: 0 0 2vw;
+    letter-spacing: -0.1vw;
+  }
+
+  .teams-page-desc {
+    width: 90vw;
+    max-width: 90vw;
+    font-size: 3.1vw;
+    line-height: 1.5;
+    word-break: keep-all;
+  }
+
   .teams-grid {
-    grid-template-columns: 1fr;
-    gap: 2vh;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3vw 2.8vw;
   }
 
   .team-grid-card {
-    border-radius: 3.8vw;
+    padding: 4.4vw 2.2vw 3.8vw;
+    border-radius: 3.6vw;
   }
 
   .team-grid-card__emblem-wrap {
-    width: 34%;
-    max-width: 24vw;
+    width: 15.5vw;
+    max-width: 15.5vw;
+    min-width: 0;
+    margin-bottom: 2.4vw;
+  }
+
+  .team-grid-card__info {
+    gap: 0.8vw;
+  }
+
+  .team-grid-card__name {
+    font-size: 3.3vw;
+    line-height: 1.3;
+    letter-spacing: -0.08vw;
+    word-break: keep-all;
+  }
+
+  .team-grid-card__name-en {
+    font-size: 2.4vw;
+    line-height: 1.28;
+    letter-spacing: -0.04vw;
+    word-break: keep-all;
   }
 }
 
