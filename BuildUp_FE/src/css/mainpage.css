@@ -12,6 +12,7 @@
   flex-direction: column;
   position: relative;
   width: 100%;
+  min-width: 320px;
   min-height: 100vh;
   background-color: #240428;
   color: #ffffff;
@@ -718,6 +719,166 @@ body.mainpage-intro-active .mainpage-content {
 
   .mainpage-next-match__stadium {
     font-size: 11px;
+  }
+}
+
+/* --------------------------------------------------------
+   모바일 기준 브레이크포인트 (<= 425px, 320px까지 동일한 화면 비율/구도 유지)
+   -------------------------------------------------------- */
+@media (max-width: 425px) {
+  :root,
+  .mainpage-container {
+    --orbit-radius: 37vw;
+    --emblem-size: 10.6vw;
+  }
+
+  .mainpage-container {
+    min-width: 320px;
+    min-height: 100vh;
+  }
+
+  .mainpage-content {
+    min-height: 100vh;
+    padding: 76px 0 20px;
+  }
+
+  .mainpage-container:has(.mainpage-next-match) .mainpage-content {
+    padding: calc(74px + 26vw) 0 20px;
+  }
+
+  body.mainpage-intro-active .mainpage-content {
+    padding: 20px 2vw;
+  }
+
+  .mainpage-intro-stage {
+    width: 92vw;
+    max-width: 92vw;
+    min-height: 72vh;
+    padding: 6vw 2vw;
+    margin: 0 auto;
+  }
+
+  .mainpage-intro-text {
+    width: 88vw;
+    max-width: 88vw;
+    font-size: 6.6vw;
+    letter-spacing: -0.2vw;
+    line-height: 1.38;
+  }
+
+  .mainpage-intro-text.is-highlight {
+    font-size: 7.8vw;
+    letter-spacing: -0.25vw;
+  }
+
+  .mainpage-intro-skip {
+    bottom: 5vw;
+    right: 4vw;
+    padding: 2.2vw 4.5vw;
+    font-size: 3.1vw;
+  }
+
+  .mainpage-orbit-stage {
+    width: 92vw;
+    max-width: 92vw;
+    height: 92vw;
+    min-height: 92vw;
+    margin: 0 auto;
+  }
+
+  .emblem-img {
+    width: 72%;
+    height: 72%;
+  }
+
+  .mainpage-orbit-center {
+    width: 54vw;
+    max-width: 54vw;
+    padding: 0;
+  }
+
+  .mainpage-orbit-title {
+    font-size: 3.85vw;
+    line-height: 1.38;
+    letter-spacing: -0.12vw;
+    margin: 0 0 1.6vw 0;
+  }
+
+  .mainpage-orbit-subtitle {
+    width: 52vw;
+    max-width: 52vw;
+    font-size: 2.75vw;
+    line-height: 1.4;
+    min-height: 7.8vw;
+    margin: 0 0 1vw 0;
+  }
+
+  .mainpage-quiz-trigger-wrap {
+    margin-top: 2vw;
+  }
+
+  .mainpage-quiz-trigger-btn {
+    padding: 1.8vw 3.8vw;
+    gap: 1.2vw;
+    font-size: 2.9vw;
+  }
+
+  .quiz-btn-flair {
+    font-size: 3vw;
+  }
+
+  .quiz-btn-title {
+    font-size: 2.9vw;
+    white-space: nowrap;
+  }
+
+  .quiz-btn-badge {
+    font-size: 2.5vw;
+    padding: 0.4vw 1.4vw;
+  }
+
+  .mainpage-next-match {
+    top: 70px;
+    right: 3vw;
+    width: 40vw;
+    min-width: 40vw;
+    padding: 2.4vw 3vw 2.2vw;
+    gap: 1.4vw;
+    border-radius: 3.6vw;
+    box-sizing: border-box;
+  }
+
+  .mainpage-next-match__dday {
+    padding: 0.7vw 2.8vw;
+    font-size: 2.6vw;
+    letter-spacing: 0.1vw;
+  }
+
+  .mainpage-next-match__matchup {
+    gap: 2.4vw;
+    margin-top: 0.4vw;
+  }
+
+  .mainpage-next-match__badge-frame {
+    width: 8.8vw;
+    height: 8.8vw;
+  }
+
+  .mainpage-next-match__vs {
+    font-size: 3vw;
+  }
+
+  .mainpage-next-match__info {
+    padding-top: 1.2vw;
+    gap: 0.4vw;
+  }
+
+  .mainpage-next-match__opponent-name {
+    font-size: 2.75vw;
+  }
+
+  .mainpage-next-match__stadium {
+    font-size: 2.4vw;
   }
 }
 
