@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { logout } from '../store/authSlice.js'
 import { toggleTheme } from '../store/themeSlice.js'
@@ -38,6 +39,9 @@ const links = [
 ]
 
 export default function AllUseNav() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const navContainerRef = useRef(null)
+
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn)
   const user = useSelector((state) => state.auth.user)
   const currentTheme = useSelector((state) => state.theme?.mode || 'dark')
@@ -45,6 +49,49 @@ export default function AllUseNav() {
   const pathname = window.location.pathname.replace(/\/$/, '')
   const isMainPage = !pathname || pathname === '' || pathname === '/plug' || pathname === '/plug/mainpage' || pathname === '/plug/teams'
   const isAdmin = user && Number(user.roleCode) === 9
+
+  // 외부 클릭 시 모바일 메뉴 닫기 & ESC 키로 닫기
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (navContainerRef.current && !navContainerRef.current.contains(event.target)) {
+        setIsMenuOpen(false)
+      }
+    }
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false)
+      }
+    }
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('touchstart', handleClickOutside)
+      document.addEventListener('keydown', handleKeyDown)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isMenuOpen])
+
+  // 화면 크기가 1024px 초과로 확장되면 모바일 메뉴 상태 자동 리셋
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth > 1024) {
+        setIsMenuOpen(false)
+      }
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const isLinkActive = (path) => {
+    return (
+      pathname === `/plug/${path}` ||
+      (path.startsWith('community') && (pathname === '/plug/community' || pathname.startsWith('/plug/community/'))) ||
+      (path === 'minigames' && pathname.startsWith('/plug/minigames/'))
+    )
+  }
 
   const renderLink = ([label, path]) => (
     <a
@@ -63,6 +110,7 @@ export default function AllUseNav() {
       {label}
     </a>
   )
+
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
@@ -74,17 +122,24 @@ export default function AllUseNav() {
   }
 
   return (
-    <header className={`user-nav ${isMainPage ? 'user-nav--mainpage' : 'user-nav--subpage'}`}>
+    <header
+      ref={navContainerRef}
+      className={`user-nav ${isMainPage ? 'user-nav--mainpage' : 'user-nav--subpage'} ${isMenuOpen ? 'user-nav--menu-open' : ''}`}
+    >
       <nav className="user-nav__inner" aria-label="공통 네비게이션">
         <a className="user-nav__logo" href="/plug/mainpage" aria-label="PL:UG 메인페이지">
           <span className="user-nav__logo-pl">PL</span>
           <span className="user-nav__logo-colon">:</span>
           <span className="user-nav__logo-ug">UG</span>
         </a>
+
+        {/* 데스크톱 전용 메뉴 링크들 */}
         <div className="user-nav__links">
           {links.map(renderLink)}
           {isAdmin && renderLink(['관리', 'admin'])}
         </div>
+
+        {/* 우측 계정 및 모바일 제어 영역 */}
         <div className="user-nav__account">
           {/* 다크모드 / 일반모드 전환 아이콘 토글 */}
           <button
@@ -101,15 +156,89 @@ export default function AllUseNav() {
               <IconMoon size={17} color="#d886ed" />
             </span>
           </button>
-          {isLoggedIn ? <>
-            <button type="button" onClick={handleLogout}>로그아웃</button>
-            <a className="user-nav__primary" href="/plug/mypage">마이페이지</a>
-          </> : <>
-            <a href="/plug/login">로그인</a>
-            <a className="user-nav__primary" href="/plug/signin">회원가입</a>
-          </>}
+
+          {/* 인증 상태별 버튼 */}
+          {isLoggedIn ? (
+            <>
+              <button
+                type="button"
+                className="user-nav__logout-btn"
+                onClick={handleLogout}
+              >
+                로그아웃
+              </button>
+              <a className="user-nav__primary user-nav__mypage-top" href="/plug/mypage">
+                마이페이지
+              </a>
+            </>
+          ) : (
+            <>
+              <a className="user-nav__login-btn" href="/plug/login">로그인</a>
+              <a className="user-nav__primary" href="/plug/signin">회원가입</a>
+            </>
+          )}
+
+          {/* 모바일 햄버거 토글 버튼 (1024px 이하에서만 노출) */}
+          <button
+            type="button"
+            className={`user-nav__hamburger ${isMenuOpen ? 'is-active' : ''}`}
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            aria-label={isMenuOpen ? '메뉴 닫기' : '전체 메뉴 열기'}
+            aria-expanded={isMenuOpen}
+          >
+            <span className="user-nav__hamburger-box">
+              <span className="user-nav__hamburger-line" />
+              <span className="user-nav__hamburger-line" />
+              <span className="user-nav__hamburger-line" />
+            </span>
+          </button>
         </div>
       </nav>
+
+      {/* 모바일 슬라이드다운 메뉴 패널 */}
+      <div
+        className={`user-nav__mobile-panel ${isMenuOpen ? 'is-open' : ''}`}
+        aria-hidden={!isMenuOpen}
+      >
+        <div className="user-nav__mobile-panel-inner">
+          <div className="user-nav__mobile-grid">
+            {links.map(([label, path]) => {
+              const active = isLinkActive(path)
+              return (
+                <a
+                  key={path}
+                  href={`/plug/${path}`}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`user-nav__mobile-item ${active ? 'is-active' : ''}`}
+                >
+                  <span className="user-nav__mobile-item-title">{label}</span>
+                  {active && <span className="user-nav__mobile-item-dot" />}
+                </a>
+              )
+            })}
+            {isLoggedIn && (
+              <a
+                href="/plug/mypage"
+                onClick={() => setIsMenuOpen(false)}
+                className={`user-nav__mobile-item user-nav__mobile-item--mypage ${pathname === '/plug/mypage' ? 'is-active' : ''}`}
+              >
+                <span className="user-nav__mobile-item-title">마이페이지</span>
+                {pathname === '/plug/mypage' && <span className="user-nav__mobile-item-dot" />}
+              </a>
+            )}
+            {isAdmin && (
+              <a
+                href="/plug/admin"
+                onClick={() => setIsMenuOpen(false)}
+                className={`user-nav__mobile-item user-nav__mobile-item--admin ${pathname === '/plug/admin' ? 'is-active' : ''}`}
+              >
+                <span className="user-nav__mobile-item-title">관리</span>
+                {pathname === '/plug/admin' && <span className="user-nav__mobile-item-dot" />}
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
     </header>
   )
 }

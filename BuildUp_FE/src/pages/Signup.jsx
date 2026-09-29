@@ -349,7 +349,7 @@ export default function Signup() {
               <input
                 id="signupId"
                 type="text"
-                placeholder="영문 소문자, 숫자 4~20자"
+                placeholder="4~20자 영문 소문자·숫자"
                 maxLength={20}
                 value={loginId}
                 onChange={(e) => {
@@ -410,7 +410,7 @@ export default function Signup() {
               <input
                 id="signupNickname"
                 type="text"
-                placeholder="한글, 영문, 숫자 2~20자"
+                placeholder="2~20자 한글·영문·숫자"
                 maxLength={20}
                 value={nickname}
                 onChange={(e) => {
