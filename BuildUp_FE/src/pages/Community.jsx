@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchTeams, fetchCategories } from '../store/teamSlice.js'
 import useBoardState from './useBoardState.js'
@@ -6,6 +6,79 @@ import CommunityNavigation from './CommunityNavigation.jsx'
 import '../css/Community.css'
 
 const PAGE_SIZE = 10
+
+// 목록에서는 제목을 30자까지 표시하고 댓글이 있으면 제목 뒤에 개수를 붙입니다.
+function formatPostTitle(title, commentCount) {
+  const characters = Array.from(title || '')
+  const isTruncated = characters.length > 30
+  const visibleTitle = isTruncated ? `${characters.slice(0, 30).join('')}...` : characters.join('')
+  const count = Number(commentCount) || 0
+
+  if (count === 0) return visibleTitle
+  return `${visibleTitle}${isTruncated ? '' : ' '}(${count})`
+}
+
+// 운영체제 기본 선택창 대신 커뮤니티 디자인과 동일한 드롭다운을 표시합니다.
+function CommunitySelect({ label, value, options, onChange, disabled = false, wide = false }) {
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef(null)
+  const selectedOption = options.find((option) => String(option.value) === String(value)) || options[0]
+
+  useEffect(() => {
+    if (!open) return undefined
+
+    const closeOutside = (event) => {
+      if (!containerRef.current?.contains(event.target)) setOpen(false)
+    }
+    const closeWithEscape = (event) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+
+    document.addEventListener('pointerdown', closeOutside)
+    document.addEventListener('keydown', closeWithEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeOutside)
+      document.removeEventListener('keydown', closeWithEscape)
+    }
+  }, [open])
+
+  return (
+    <div className={`community__custom-select${wide ? ' community__custom-select--wide' : ''}`} ref={containerRef}>
+      <span className="community__custom-select-label">{label}</span>
+      <button
+        type="button"
+        className="community__custom-select-trigger"
+        aria-haspopup="listbox"
+        aria-expanded={open && !disabled}
+        disabled={disabled}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span>{selectedOption?.label}</span>
+        <span className="community__custom-select-arrow" aria-hidden="true">⌄</span>
+      </button>
+      {open && !disabled && (
+        <ul className="community__custom-select-options" role="listbox" aria-label={label}>
+          {options.map((option) => (
+            <li key={option.value || 'all'}>
+              <button
+                type="button"
+                role="option"
+                aria-selected={String(option.value) === String(value)}
+                onClick={() => {
+                  onChange(option.value)
+                  setOpen(false)
+                }}
+              >
+                <span>{option.label}</span>
+                {String(option.value) === String(value) && <span aria-hidden="true">✓</span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
 
 export default function Community({ selectedTeam = null }) {
   const dispatch = useDispatch()
@@ -121,11 +194,14 @@ export default function Community({ selectedTeam = null }) {
   const pageCount = Math.max(1, totalPages)
 
   return (
-    <main className="community">
+    <main className="community community--board">
       <CommunityNavigation section={selectedTeam ? 'teams' : 'main'} teamName={selectedTeamName} />
+      <header className="community__board-heading">
       <p className="community__eyebrow">PLUGIN COMMUNITY</p>
       <h1>{selectedTeam ? `${selectedTeamName} 게시판` : '커뮤니티'}</h1>
       <p className="community__intro">응원하는 팀 이야기부터 소소한 일상까지, 함께 나눠요.</p>
+      </header>
+      <section className="community__controls" aria-label="게시글 검색과 필터">
       <form className="community__search community__main-search" role="search" onSubmit={(event) => {
         event.preventDefault(); setKeyword(input.trim()); setPage(1)
       }}>
@@ -139,20 +215,28 @@ export default function Community({ selectedTeam = null }) {
             <button key={value} type="button" aria-pressed={board === value} onClick={() => { setBoard(value); if (value === 'free' || value === 'showcase') setTeamId(''); setPage(1) }}>{label}</button>)}
         </div>}
         <div className="community__selects">
-          {!selectedTeam && <label>팀 <select value={teamId} disabled={board === 'free' || board === 'showcase'} onChange={(event) => { setTeamId(event.target.value); setPage(1) }}>
-            <option value="">전체 팀</option>
-            {teams.map((team) => <option key={team.teamId} value={team.teamId}>{team.teamNameKor || team.teamName}</option>)}
-          </select></label>}
-          <label>정렬 <select value={sort} onChange={(event) => { setSort(event.target.value); setPage(1) }}>
-            <option value="latest">최신순</option><option value="likes">추천순</option><option value="views">조회순</option>
-          </select></label>
+          {!selectedTeam && <CommunitySelect
+            label="팀"
+            value={teamId}
+            disabled={board === 'free' || board === 'showcase'}
+            wide
+            options={[{ value: '', label: '전체 팀' }, ...teams.map((team) => ({ value: team.teamId, label: team.teamNameKor || team.teamName }))]}
+            onChange={(nextTeamId) => { setTeamId(nextTeamId); setPage(1) }}
+          />}
+          <CommunitySelect
+            label="정렬"
+            value={sort}
+            options={[{ value: 'latest', label: '최신순' }, { value: 'likes', label: '추천순' }, { value: 'views', label: '조회순' }]}
+            onChange={(nextSort) => { setSort(nextSort); setPage(1) }}
+          />
+          <button className="community__reset" type="button" disabled={!keyword && !input && board === 'all' && !teamId && sort === 'latest'} onClick={() => { setInput(''); setKeyword(''); setBoard('all'); setTeamId(''); setSort('latest'); setPage(1) }}>초기화</button>
         </div>
       </div>
+      </section>
       <div className="community__toolbar">
         <p role="status">{postsLoading ? '불러오는 중' : keyword ? `“${keyword}” 검색 결과` : selectedTeam ? `${selectedTeamName} 게시글` : board === 'showcase' ? '나만의 팀 자랑글' : '통합 게시글'} <strong>{totalCount}</strong>개</p>
         <div className="community__toolbar-actions">
-          <button type="button" disabled={!keyword && !input && board === 'all' && !teamId && sort === 'latest'} onClick={() => { setInput(''); setKeyword(''); setBoard('all'); setTeamId(''); setSort('latest'); setPage(1) }}>검색·필터 초기화</button>
-          <a className="community__main-link" href={`/plug/community/write?board=${selectedTeam ? 'team' : board === 'showcase' ? 'showcase' : 'free'}`}>글쓰기</a>
+          <a className="community__main-link community__write-link" href={`/plug/community/write?board=${selectedTeam ? 'team' : board === 'showcase' ? 'showcase' : 'free'}`}>글쓰기 <span aria-hidden="true">＋</span></a>
         </div>
       </div>
       {(error || teamMatchMissing) && <p className="community__form-error" role="alert">{error || '선택한 구단을 DB에서 찾을 수 없습니다.'}</p>}
@@ -170,8 +254,8 @@ export default function Community({ selectedTeam = null }) {
                     블라인드
                   </span>
                 )}
-                <a className="community__post-link" href={`/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.pathname)}`}>
-                  {post.title}
+                <a className="community__post-link" title={post.title} href={`/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.pathname)}`}>
+                  {formatPostTitle(post.title, post.commentCount)}
                 </a>
               </td>
               <td>{post.viewCount}</td>
@@ -188,6 +272,11 @@ export default function Community({ selectedTeam = null }) {
           <button type="button" disabled={page === pageCount || postsLoading} onClick={() => setPage(page + 1)}>다음</button>
         </nav>
       </div>
+      {/* 광고 연결 전에도 공간을 확보해 목록 아래 배치가 밀리지 않도록 합니다. */}
+      <aside className="community__ad" aria-label="광고 영역">
+        <span className="community__ad-label">광고 · ADVERTISEMENT</span>
+        <div className="community__ad-space"><span>광고 영역</span></div>
+      </aside>
       {!selectedTeam && board !== 'team' && board !== 'showcase' && <section className="community__showcase" aria-labelledby="showcase-title">
         <div className="community__showcase-heading">
           <h2 id="showcase-title">내 팀 자랑 인기글</h2>
@@ -201,7 +290,7 @@ export default function Community({ selectedTeam = null }) {
               ? <img className="community__showcase-thumbnail" src={`/api/communities/attachments/${post.showcaseImageId}/content`} alt="나만의 팀 포메이션" />
               : <span className="community__pitch" aria-hidden="true">⚽</span>}
             <small>작성자 {post.nickname}</small>
-            <h3>{post.title}</h3>
+            <h3 title={post.title}>{formatPostTitle(post.title, post.commentCount)}</h3>
             <strong>추천 {post.likeCount || 0} · 조회 {post.viewCount || 0}</strong>
           </a>)}
           {!showcaseLoading && !showcasePosts.length && !showcaseError && <p className="community__showcase-empty">아직 등록된 나만의 팀 자랑글이 없습니다.</p>}
