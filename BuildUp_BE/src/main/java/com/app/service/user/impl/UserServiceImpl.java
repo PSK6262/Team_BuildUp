@@ -1,5 +1,8 @@
 package com.app.service.user.impl;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.app.dao.team.TeamDAO;
 import com.app.dao.user.UserDAO;
 import com.app.dao.user.UserMailDAO;
+import com.app.dto.community.Comments;
+import com.app.dto.community.Posts;
 import com.app.dto.team.Teams;
 import com.app.dto.user.Users;
 import com.app.service.user.UserService;
@@ -293,5 +298,93 @@ public class UserServiceImpl implements UserService {
 			user.setPassword(null);
 		}
 		return user;
+	}
+
+	@Override
+	public Map<String, Object> getUserActivitySummary(Long userId) {
+		if (userId == null) {
+			return new HashMap<>();
+		}
+		int postCount = userDAO.countUserPosts(userId);
+		int commentCount = userDAO.countUserComments(userId);
+		int likedCount = userDAO.countUserLikedPosts(userId);
+
+		Map<String, Object> summary = new HashMap<>();
+		summary.put("postCount", postCount);
+		summary.put("commentCount", commentCount);
+		summary.put("likedPostCount", likedCount);
+		return summary;
+	}
+
+	@Override
+	public Map<String, Object> getUserPosts(Long userId, int page, int size) {
+		if (page < 1) page = 1;
+		if (size < 1) size = 10;
+
+		int offset = (page - 1) * size;
+		Map<String, Object> params = new HashMap<>();
+		params.put("userId", userId);
+		params.put("offset", offset);
+		params.put("size", size);
+
+		List<Posts> list = userDAO.selectUserPosts(params);
+		int totalCount = userDAO.countUserPosts(userId);
+		int totalPages = (int) Math.ceil((double) totalCount / size);
+
+		Map<String, Object> result = new HashMap<>();
+		result.put("list", list);
+		result.put("totalCount", totalCount);
+		result.put("totalPages", totalPages);
+		result.put("currentPage", page);
+		result.put("pageSize", size);
+		return result;
+	}
+
+	@Override
+	public Map<String, Object> getUserComments(Long userId, int page, int size) {
+		if (page < 1) page = 1;
+		if (size < 1) size = 10;
+
+		int offset = (page - 1) * size;
+		Map<String, Object> params = new HashMap<>();
+		params.put("userId", userId);
+		params.put("offset", offset);
+		params.put("size", size);
+
+		List<Comments> list = userDAO.selectUserComments(params);
+		int totalCount = userDAO.countUserComments(userId);
+		int totalPages = (int) Math.ceil((double) totalCount / size);
+
+		Map<String, Object> result = new HashMap<>();
+		result.put("list", list);
+		result.put("totalCount", totalCount);
+		result.put("totalPages", totalPages);
+		result.put("currentPage", page);
+		result.put("pageSize", size);
+		return result;
+	}
+
+	@Override
+	public Map<String, Object> getUserLikedPosts(Long userId, int page, int size) {
+		if (page < 1) page = 1;
+		if (size < 1) size = 10;
+
+		int offset = (page - 1) * size;
+		Map<String, Object> params = new HashMap<>();
+		params.put("userId", userId);
+		params.put("offset", offset);
+		params.put("size", size);
+
+		List<Posts> list = userDAO.selectUserLikedPosts(params);
+		int totalCount = userDAO.countUserLikedPosts(userId);
+		int totalPages = (int) Math.ceil((double) totalCount / size);
+
+		Map<String, Object> result = new HashMap<>();
+		result.put("list", list);
+		result.put("totalCount", totalCount);
+		result.put("totalPages", totalPages);
+		result.put("currentPage", page);
+		result.put("pageSize", size);
+		return result;
 	}
 }

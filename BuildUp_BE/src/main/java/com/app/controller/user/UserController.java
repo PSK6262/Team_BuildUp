@@ -1,5 +1,6 @@
 package com.app.controller.user;
 
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.app.common.ApiResponse;
@@ -58,6 +60,91 @@ public class UserController {
 
 		user.setPassword(null);
 		return ApiResponse.success(user);
+	}
+
+	/**
+	 * 마이페이지 활동 요약 통계 (작성글 수, 작성댓글 수, 좋아요 수)
+	 */
+	@GetMapping("/me/activities")
+	public ApiResponse<Map<String, Object>> getMyActivities(HttpServletRequest request) {
+		String loginId = resolveLoginId(request);
+		if (loginId == null) {
+			return ApiResponse.error(ResultCode.UNAUTHORIZED);
+		}
+
+		Users user = userDAO.selectUserByLoginId(loginId);
+		if (user == null) {
+			return ApiResponse.error(ResultCode.USER_NOT_FOUND);
+		}
+
+		Map<String, Object> summary = userService.getUserActivitySummary(user.getUserId());
+		return ApiResponse.success(summary);
+	}
+
+	/**
+	 * 마이페이지: 본인이 작성한 게시글 목록 조회
+	 */
+	@GetMapping("/me/posts")
+	public ApiResponse<Map<String, Object>> getMyPosts(
+			@RequestParam(value = "page", defaultValue = "1") int page,
+			@RequestParam(value = "size", defaultValue = "10") int size,
+			HttpServletRequest request) {
+		String loginId = resolveLoginId(request);
+		if (loginId == null) {
+			return ApiResponse.error(ResultCode.UNAUTHORIZED);
+		}
+
+		Users user = userDAO.selectUserByLoginId(loginId);
+		if (user == null) {
+			return ApiResponse.error(ResultCode.USER_NOT_FOUND);
+		}
+
+		Map<String, Object> result = userService.getUserPosts(user.getUserId(), page, size);
+		return ApiResponse.success(result);
+	}
+
+	/**
+	 * 마이페이지: 본인이 작성한 댓글 목록 조회
+	 */
+	@GetMapping("/me/comments")
+	public ApiResponse<Map<String, Object>> getMyComments(
+			@RequestParam(value = "page", defaultValue = "1") int page,
+			@RequestParam(value = "size", defaultValue = "10") int size,
+			HttpServletRequest request) {
+		String loginId = resolveLoginId(request);
+		if (loginId == null) {
+			return ApiResponse.error(ResultCode.UNAUTHORIZED);
+		}
+
+		Users user = userDAO.selectUserByLoginId(loginId);
+		if (user == null) {
+			return ApiResponse.error(ResultCode.USER_NOT_FOUND);
+		}
+
+		Map<String, Object> result = userService.getUserComments(user.getUserId(), page, size);
+		return ApiResponse.success(result);
+	}
+
+	/**
+	 * 마이페이지: 본인이 좋아요(추천)한 게시글 목록 조회
+	 */
+	@GetMapping("/me/likes")
+	public ApiResponse<Map<String, Object>> getMyLikedPosts(
+			@RequestParam(value = "page", defaultValue = "1") int page,
+			@RequestParam(value = "size", defaultValue = "10") int size,
+			HttpServletRequest request) {
+		String loginId = resolveLoginId(request);
+		if (loginId == null) {
+			return ApiResponse.error(ResultCode.UNAUTHORIZED);
+		}
+
+		Users user = userDAO.selectUserByLoginId(loginId);
+		if (user == null) {
+			return ApiResponse.error(ResultCode.USER_NOT_FOUND);
+		}
+
+		Map<String, Object> result = userService.getUserLikedPosts(user.getUserId(), page, size);
+		return ApiResponse.success(result);
 	}
 
 	/**

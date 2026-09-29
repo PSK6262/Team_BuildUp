@@ -18,6 +18,8 @@ public class Comments {
 	 private String isBlind;            // 블라인드 여부 (Y/N)
 	 private String isDeleted;          // 작성자 삭제 여부 (Y/N)
 	 private String nickname;           // 조인용 댓글 작성자 닉네임
+	 private String postTitle;          // 조인용 대상 게시글 제목
+	 private String categoryType;       // 조인용 카테고리명
 	 
 	 private LocalDateTime createdAt;   // 작성 일시
 	 private LocalDateTime updatedAt;   // 수정 일시

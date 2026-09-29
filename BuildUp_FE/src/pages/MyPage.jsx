@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateUser, logout } from '../store/authSlice.js'
 import { fetchTeams } from '../store/teamSlice.js'
+import { getMyActivities, getMyPosts, getMyComments, getMyLikedPosts } from '../api/userApi.js'
 
 const EMAIL_REGEX = /^[a-zA-Z0-9](?!.*\.\.)[a-zA-Z0-9._-]{2,28}[a-zA-Z0-9]@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 const NICKNAME_REGEX = /^[가-힣a-zA-Z0-9]{2,20}$/
@@ -16,6 +17,14 @@ export default function MyPage() {
   const [nickname, setNickname] = useState('')
   const [email, setEmail] = useState('')
   const [favoriteTeamId, setFavoriteTeamId] = useState('')
+
+  // 마이페이지 탭 상태 ('profile' | 'posts' | 'comments' | 'likes')
+  const [activeTab, setActiveTab] = useState('profile')
+  const [activityCounts, setActivityCounts] = useState({ postCount: 0, commentCount: 0, likedPostCount: 0 })
+  const [postsData, setPostsData] = useState({ list: [], totalCount: 0, totalPages: 0, currentPage: 1 })
+  const [commentsData, setCommentsData] = useState({ list: [], totalCount: 0, totalPages: 0, currentPage: 1 })
+  const [likesData, setLikesData] = useState({ list: [], totalCount: 0, totalPages: 0, currentPage: 1 })
+  const [listLoading, setListLoading] = useState(false)
 
   // 실제 DB 구단 목록 조회 (Redux Thunk)
   useEffect(() => {
@@ -45,6 +54,44 @@ export default function MyPage() {
   const [withdrawAgreed, setWithdrawAgreed] = useState(false)
   const [withdrawing, setWithdrawing] = useState(false)
 
+  // 활동 요약 통계 로드
+  const loadActivities = async () => {
+    try {
+      const counts = await getMyActivities()
+      setActivityCounts(counts)
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  // 탭 목록 로드
+  const loadTabList = async (tab, page = 1) => {
+    setListLoading(true)
+    try {
+      if (tab === 'posts') {
+        const data = await getMyPosts(page, 10)
+        setPostsData(data)
+      } else if (tab === 'comments') {
+        const data = await getMyComments(page, 10)
+        setCommentsData(data)
+      } else if (tab === 'likes') {
+        const data = await getMyLikedPosts(page, 10)
+        setLikesData(data)
+      }
+    } catch (err) {
+      console.error('[마이페이지 목록 조회 오류]', err)
+    } finally {
+      setListLoading(false)
+    }
+  }
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab)
+    if (tab !== 'profile') {
+      loadTabList(tab, 1)
+    }
+  }
+
   // 사용자 상세 정보 로드
   useEffect(() => {
     if (!isLoggedIn) {
@@ -69,6 +116,7 @@ export default function MyPage() {
           setNickname(userObj.nickname || '')
           setEmail(userObj.email || '')
           setFavoriteTeamId(userObj.favoriteTeamId ? String(userObj.favoriteTeamId) : '')
+          loadActivities()
         } else {
           // 백엔드 세션 만료 시 리덕스 데이터로 1차 폴백
           if (reduxUser) {
@@ -76,6 +124,7 @@ export default function MyPage() {
             setNickname(reduxUser.nickname || '')
             setEmail(reduxUser.email || '')
             setFavoriteTeamId(reduxUser.favoriteTeamId ? String(reduxUser.favoriteTeamId) : '')
+            loadActivities()
           }
         }
       } catch (err) {
@@ -395,222 +444,471 @@ export default function MyPage() {
             <span className="mypage-stat-value">{profile.roleName || (profile.roleCode === 9 ? '관리자' : '일반회원')}</span>
           </div>
           <div className="mypage-stat-item">
-            <span className="mypage-stat-label">가입일</span>
-            <span className="mypage-stat-value">{profile.createdAt ? profile.createdAt.split(' ')[0] : '2026-09-18'}</span>
+            <span className="mypage-stat-label">작성글</span>
+            <span className="mypage-stat-value">{activityCounts.postCount}개</span>
           </div>
+          <div className="mypage-stat-item">
+            <span className="mypage-stat-label">댓글</span>
+            <span className="mypage-stat-value">{activityCounts.commentCount}개</span>
+          </div>
+          <div className="mypage-stat-item">
+            <span className="mypage-stat-label">좋아요</span>
+            <span className="mypage-stat-value">{activityCounts.likedPostCount}개</span>
+          </div>
+        </div>
+
+        {/* 마이페이지 활동 탭 네비게이션 */}
+        <div className="mypage-tab-nav" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'profile'}
+            className={`mypage-tab-btn ${activeTab === 'profile' ? 'is-active' : ''}`}
+            onClick={() => handleTabChange('profile')}
+          >
+            ⚙️ 회원정보 설정
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'posts'}
+            className={`mypage-tab-btn ${activeTab === 'posts' ? 'is-active' : ''}`}
+            onClick={() => handleTabChange('posts')}
+          >
+            📝 내가 쓴 글 <span className="mypage-tab-badge">{activityCounts.postCount}</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'comments'}
+            className={`mypage-tab-btn ${activeTab === 'comments' ? 'is-active' : ''}`}
+            onClick={() => handleTabChange('comments')}
+          >
+            💬 내가 쓴 댓글 <span className="mypage-tab-badge">{activityCounts.commentCount}</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'likes'}
+            className={`mypage-tab-btn ${activeTab === 'likes' ? 'is-active' : ''}`}
+            onClick={() => handleTabChange('likes')}
+          >
+            ❤️ 좋아요한 글 <span className="mypage-tab-badge">{activityCounts.likedPostCount}</span>
+          </button>
         </div>
 
         {message && <div className="auth-success-banner">{message}</div>}
         {errorMsg && <div className="auth-error-banner">{errorMsg}</div>}
 
-        {/* 프로필 상세 및 수정 폼 */}
-        {!isEditing ? (
-          <div className="mypage-view-section">
-            <div className="mypage-info-row">
-              <span className="mypage-info-label">아이디</span>
-              <span className="mypage-info-value">{profile.loginId}</span>
-            </div>
-            <div className="mypage-info-row">
-              <span className="mypage-info-label">닉네임</span>
-              <span className="mypage-info-value">{profile.nickname}</span>
-            </div>
-            <div className="mypage-info-row">
-              <span className="mypage-info-label">이메일</span>
-              <span className="mypage-info-value">{profile.email || '미등록'}</span>
-            </div>
-            <div className="mypage-info-row">
-              <span className="mypage-info-label">응원 구단</span>
-              <span className="mypage-info-value">
-                {favoriteTeam ? (favoriteTeam.teamNameKor || favoriteTeam.teamName) : '선택된 구단 없음'}
-              </span>
-            </div>
+        {/* 탭 1: 회원 정보 조회 및 수정 */}
+        {activeTab === 'profile' && (
+          <>
+            {!isEditing ? (
+              <div className="mypage-view-section">
+                <div className="mypage-info-row">
+                  <span className="mypage-info-label">아이디</span>
+                  <span className="mypage-info-value">{profile.loginId}</span>
+                </div>
+                <div className="mypage-info-row">
+                  <span className="mypage-info-label">닉네임</span>
+                  <span className="mypage-info-value">{profile.nickname}</span>
+                </div>
+                <div className="mypage-info-row">
+                  <span className="mypage-info-label">이메일</span>
+                  <span className="mypage-info-value">{profile.email || '미등록'}</span>
+                </div>
+                <div className="mypage-info-row">
+                  <span className="mypage-info-label">응원 구단</span>
+                  <span className="mypage-info-value">
+                    {favoriteTeam ? (favoriteTeam.teamNameKor || favoriteTeam.teamName) : '선택된 구단 없음'}
+                  </span>
+                </div>
 
-            <div className="mypage-actions">
-              <button
-                type="button"
-                className="auth-submit-btn"
-                onClick={() => {
-                  setIsEditing(true)
-                  // 수정 진입 시 현재 닉네임과 이메일은 이미 본인 것이므로 통과 처리
-                  setNicknameChecked(true)
-                  setNicknameCheckMsg('')
-                  setEmailVerified(true)
-                  setEmailVerifyMsg('')
-                  setEmailCodeSent(false)
-                  setEmailAuthCode('')
-                }}
-              >
-                회원 정보 수정
-              </button>
-            </div>
-          </div>
-        ) : (
-          <form onSubmit={handleSave} className="auth-form" style={{ marginTop: '20px' }}>
-            <div className="auth-field">
-              <label>아이디 (변경 불가)</label>
-              <input type="text" value={profile.loginId} disabled />
-            </div>
-
-            <div className="auth-field">
-              <label htmlFor="editNickname">닉네임</label>
-              <div className="auth-input-group">
-                <input
-                  id="editNickname"
-                  type="text"
-                  placeholder="한글, 영문, 숫자 2~20자"
-                  maxLength={20}
-                  value={nickname}
-                  onChange={(e) => {
-                    setNickname(e.target.value)
-                    setNicknameChecked(false)
-                    setNicknameCheckMsg('')
-                  }}
-                />
-                <button
-                  type="button"
-                  className="auth-check-btn"
-                  onClick={handleCheckNickname}
-                >
-                  중복확인
-                </button>
-              </div>
-              {nicknameCheckMsg && (
-                <span className={`auth-hint ${nicknameChecked ? 'auth-hint--ok' : 'auth-hint--err'}`}>
-                  {nicknameCheckMsg}
-                </span>
-              )}
-            </div>
-
-            <div className="auth-field">
-              <label htmlFor="editEmail">이메일</label>
-              <div className="auth-input-group">
-                <input
-                  id="editEmail"
-                  type="email"
-                  placeholder="example@domain.com"
-                  value={email}
-                  onChange={(e) => {
-                    const newEmail = e.target.value
-                    setEmail(newEmail)
-                    if (newEmail.trim().toLowerCase() === profile?.email?.toLowerCase()) {
+                <div className="mypage-actions">
+                  <button
+                    type="button"
+                    className="auth-submit-btn"
+                    onClick={() => {
+                      setIsEditing(true)
+                      // 수정 진입 시 현재 닉네임과 이메일은 이미 본인 것이므로 통과 처리
+                      setNicknameChecked(true)
+                      setNicknameCheckMsg('')
                       setEmailVerified(true)
                       setEmailVerifyMsg('')
                       setEmailCodeSent(false)
-                    } else {
-                      setEmailVerified(false)
-                      setEmailVerifyMsg('')
-                      setEmailCodeSent(false)
-                    }
-                  }}
-                />
-                {email.trim().toLowerCase() !== profile?.email?.toLowerCase() && (
-                  <button
-                    type="button"
-                    className="auth-check-btn"
-                    onClick={handleSendEmailCode}
-                    disabled={sendingEmailCode || emailVerified}
+                      setEmailAuthCode('')
+                    }}
                   >
-                    {sendingEmailCode ? '발송 중...' : (emailCodeSent ? '재발송' : '인증번호 발송')}
+                    회원 정보 수정
                   </button>
-                )}
+                </div>
               </div>
-              {email && (
-                <span className={`auth-hint ${EMAIL_REGEX.test(email.trim()) ? 'auth-hint--ok' : 'auth-hint--err'}`}>
-                  {EMAIL_REGEX.test(email.trim()) ? '✓ 올바른 이메일 형식입니다.' : '✕ 올바른 이메일 형식이 아닙니다. (영문/숫자 시작·끝, 특수문자 . _ - 허용, 4~30자)'}
-                </span>
-              )}
+            ) : (
+              <form onSubmit={handleSave} className="auth-form" style={{ marginTop: '20px' }}>
+                <div className="auth-field">
+                  <label>아이디 (변경 불가)</label>
+                  <input type="text" value={profile.loginId} disabled />
+                </div>
 
-              {/* 인증번호 입력 필드 (기존 이메일과 다르고 코드가 발송된 경우 또는 아직 인증 전인 경우) */}
-              {email.trim().toLowerCase() !== profile?.email?.toLowerCase() && emailCodeSent && !emailVerified && (
-                <div style={{ marginTop: '10px' }}>
+                <div className="auth-field">
+                  <label htmlFor="editNickname">닉네임</label>
                   <div className="auth-input-group">
                     <input
+                      id="editNickname"
                       type="text"
-                      placeholder="인증번호 6자리 입력"
-                      maxLength={6}
-                      value={emailAuthCode}
-                      onChange={(e) => setEmailAuthCode(e.target.value)}
+                      placeholder="한글, 영문, 숫자 2~20자"
+                      maxLength={20}
+                      value={nickname}
+                      onChange={(e) => {
+                        setNickname(e.target.value)
+                        setNicknameChecked(false)
+                        setNicknameCheckMsg('')
+                      }}
                     />
                     <button
                       type="button"
                       className="auth-check-btn"
-                      onClick={handleVerifyEmailCode}
-                      disabled={verifyingEmailCode}
+                      onClick={handleCheckNickname}
                     >
-                      {verifyingEmailCode ? '확인 중...' : '인증 확인'}
+                      중복확인
                     </button>
                   </div>
+                  {nicknameCheckMsg && (
+                    <span className={`auth-hint ${nicknameChecked ? 'auth-hint--ok' : 'auth-hint--err'}`}>
+                      {nicknameCheckMsg}
+                    </span>
+                  )}
                 </div>
-              )}
 
-              {emailVerifyMsg && (
-                <span className={`auth-hint ${emailVerified ? 'auth-hint--ok' : 'auth-hint--err'}`}>
-                  {emailVerifyMsg}
-                </span>
-              )}
-            </div>
+                <div className="auth-field">
+                  <label htmlFor="editEmail">이메일</label>
+                  <div className="auth-input-group">
+                    <input
+                      id="editEmail"
+                      type="email"
+                      placeholder="example@domain.com"
+                      value={email}
+                      onChange={(e) => {
+                        const newEmail = e.target.value
+                        setEmail(newEmail)
+                        if (newEmail.trim().toLowerCase() === profile?.email?.toLowerCase()) {
+                          setEmailVerified(true)
+                          setEmailVerifyMsg('')
+                          setEmailCodeSent(false)
+                        } else {
+                          setEmailVerified(false)
+                          setEmailVerifyMsg('')
+                          setEmailCodeSent(false)
+                        }
+                      }}
+                    />
+                    {email.trim().toLowerCase() !== profile?.email?.toLowerCase() && (
+                      <button
+                        type="button"
+                        className="auth-check-btn"
+                        onClick={handleSendEmailCode}
+                        disabled={sendingEmailCode || emailVerified}
+                      >
+                        {sendingEmailCode ? '발송 중...' : (emailCodeSent ? '재발송' : '인증번호 발송')}
+                      </button>
+                    )}
+                  </div>
+                  {email && (
+                    <span className={`auth-hint ${EMAIL_REGEX.test(email.trim()) ? 'auth-hint--ok' : 'auth-hint--err'}`}>
+                      {EMAIL_REGEX.test(email.trim()) ? '✓ 올바른 이메일 형식입니다.' : '✕ 올바른 이메일 형식이 아닙니다. (영문/숫자 시작·끝, 특수문자 . _ - 허용, 4~30자)'}
+                    </span>
+                  )}
 
-            <div className="auth-field">
-              <label htmlFor="editTeam">응원 구단</label>
-              <select
-                id="editTeam"
-                value={favoriteTeamId}
-                onChange={(e) => setFavoriteTeamId(e.target.value)}
-              >
-                <option value="">선택 안 함</option>
-                {teamList.map((team) => (
-                  <option key={team.teamId} value={team.teamId}>
-                    {team.teamNameKor ? `${team.teamNameKor} (${team.teamName})` : team.teamName}
-                  </option>
-                ))}
-              </select>
-            </div>
+                  {/* 인증번호 입력 필드 */}
+                  {email.trim().toLowerCase() !== profile?.email?.toLowerCase() && emailCodeSent && !emailVerified && (
+                    <div style={{ marginTop: '10px' }}>
+                      <div className="auth-input-group">
+                        <input
+                          type="text"
+                          placeholder="인증번호 6자리 입력"
+                          maxLength={6}
+                          value={emailAuthCode}
+                          onChange={(e) => setEmailAuthCode(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          className="auth-check-btn"
+                          onClick={handleVerifyEmailCode}
+                          disabled={verifyingEmailCode}
+                        >
+                          {verifyingEmailCode ? '확인 중...' : '인증 확인'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
-            <div className="mypage-actions">
-              <button type="submit" className="auth-submit-btn" disabled={saving}>
-                {saving ? '저장 중...' : '수정 완료'}
-              </button>
+                  {emailVerifyMsg && (
+                    <span className={`auth-hint ${emailVerified ? 'auth-hint--ok' : 'auth-hint--err'}`}>
+                      {emailVerifyMsg}
+                    </span>
+                  )}
+                </div>
+
+                <div className="auth-field">
+                  <label htmlFor="editTeam">응원 구단</label>
+                  <select
+                    id="editTeam"
+                    value={favoriteTeamId}
+                    onChange={(e) => setFavoriteTeamId(e.target.value)}
+                  >
+                    <option value="">선택 안 함</option>
+                    {teamList.map((team) => (
+                      <option key={team.teamId} value={team.teamId}>
+                        {team.teamNameKor ? `${team.teamNameKor} (${team.teamName})` : team.teamName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="mypage-actions">
+                  <button type="submit" className="auth-submit-btn" disabled={saving}>
+                    {saving ? '저장 중...' : '수정 완료'}
+                  </button>
+                  <button
+                    type="button"
+                    className="mypage-cancel-btn"
+                    onClick={() => {
+                      setIsEditing(false)
+                      setNickname(profile.nickname || '')
+                      setEmail(profile.email || '')
+                      setFavoriteTeamId(profile.favoriteTeamId ? String(profile.favoriteTeamId) : '')
+                      setErrorMsg('')
+                      setNicknameChecked(false)
+                      setNicknameCheckMsg('')
+                      setEmailVerified(false)
+                      setEmailVerifyMsg('')
+                      setEmailCodeSent(false)
+                      setEmailAuthCode('')
+                    }}
+                  >
+                    취소
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* 회원 탈퇴 링크 */}
+            <div style={{ marginTop: '28px', textAlign: 'center', borderTop: '1px solid #f1f3f5', paddingTop: '16px' }}>
               <button
                 type="button"
-                className="mypage-cancel-btn"
-                onClick={() => {
-                  setIsEditing(false)
-                  setNickname(profile.nickname || '')
-                  setEmail(profile.email || '')
-                  setFavoriteTeamId(profile.favoriteTeamId ? String(profile.favoriteTeamId) : '')
-                  setErrorMsg('')
-                  setNicknameChecked(false)
-                  setNicknameCheckMsg('')
-                  setEmailVerified(false)
-                  setEmailVerifyMsg('')
-                  setEmailCodeSent(false)
-                  setEmailAuthCode('')
+                onClick={handleWithdrawClick}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#9ca3af',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  padding: '4px 8px'
                 }}
               >
-                취소
+                회원탈퇴
               </button>
             </div>
-          </form>
+          </>
         )}
 
-        {/* 회원 탈퇴 링크 (마이페이지 하단, 회색 글자로 작게) */}
-        <div style={{ marginTop: '28px', textAlign: 'center', borderTop: '1px solid #f1f3f5', paddingTop: '16px' }}>
-          <button
-            type="button"
-            onClick={handleWithdrawClick}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#9ca3af',
-              fontSize: '12px',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              padding: '4px 8px'
-            }}
-          >
-            회원탈퇴
-          </button>
-        </div>
+        {/* 탭 2: 내가 쓴 글 */}
+        {activeTab === 'posts' && (
+          <div className="mypage-tab-pane">
+            {listLoading ? (
+              <div className="mypage-list-loading">작성글 목록을 불러오는 중입니다...</div>
+            ) : postsData.list.length === 0 ? (
+              <div className="mypage-list-empty">
+                <p>작성한 게시글이 없습니다.</p>
+                <a href="/plug/community/posts/write" className="mypage-link-btn">
+                  새 글 작성하러 가기
+                </a>
+              </div>
+            ) : (
+              <>
+                <div className="mypage-activity-list">
+                  {postsData.list.map((post) => (
+                    <div
+                      key={post.postId}
+                      className="mypage-activity-item"
+                      onClick={() => window.location.assign(`/plug/community/posts/${post.postId}`)}
+                    >
+                      <div className="mypage-item-main">
+                        <div className="mypage-item-meta">
+                          <span className="mypage-category-tag">{post.categoryType || '자유'}</span>
+                          {post.teamName && <span className="mypage-team-tag">{post.teamName}</span>}
+                          {post.isBlind === 'Y' && <span className="mypage-blind-tag">블라인드</span>}
+                          <span className="mypage-item-date">{post.createdAt}</span>
+                        </div>
+                        <h4 className="mypage-item-title">
+                          {post.title}
+                          {post.commentCount > 0 && (
+                            <span className="mypage-item-comment-count">[{post.commentCount}]</span>
+                          )}
+                        </h4>
+                      </div>
+                      <div className="mypage-item-stats">
+                        <span>조회 {post.viewCount || 0}</span>
+                        <span>추천 {post.likeCount || 0}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {postsData.totalPages > 1 && (
+                  <div className="mypage-pagination">
+                    <button
+                      type="button"
+                      disabled={postsData.currentPage <= 1 || listLoading}
+                      onClick={() => loadTabList('posts', postsData.currentPage - 1)}
+                    >
+                      &lt; 이전
+                    </button>
+                    <span className="mypage-page-info">
+                      {postsData.currentPage} / {postsData.totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={postsData.currentPage >= postsData.totalPages || listLoading}
+                      onClick={() => loadTabList('posts', postsData.currentPage + 1)}
+                    >
+                      다음 &gt;
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* 탭 3: 내가 쓴 댓글 */}
+        {activeTab === 'comments' && (
+          <div className="mypage-tab-pane">
+            {listLoading ? (
+              <div className="mypage-list-loading">작성댓글 목록을 불러오는 중입니다...</div>
+            ) : commentsData.list.length === 0 ? (
+              <div className="mypage-list-empty">
+                <p>작성한 댓글이 없습니다.</p>
+                <a href="/plug/community/teams" className="mypage-link-btn">
+                  커뮤니티 둘러보기
+                </a>
+              </div>
+            ) : (
+              <>
+                <div className="mypage-activity-list">
+                  {commentsData.list.map((comment) => (
+                    <div
+                      key={comment.commentId}
+                      className="mypage-activity-item"
+                      onClick={() => window.location.assign(`/plug/community/posts/${comment.postId}`)}
+                    >
+                      <div className="mypage-item-main">
+                        <div className="mypage-item-meta">
+                          <span className="mypage-category-tag">{comment.categoryType || '댓글'}</span>
+                          {comment.isBlind === 'Y' && <span className="mypage-blind-tag">블라인드</span>}
+                          <span className="mypage-item-date">{comment.createdAt}</span>
+                        </div>
+                        <p className="mypage-item-comment-content">{comment.content}</p>
+                        <div className="mypage-item-target-post">
+                          <span className="mypage-target-label">원문 글:</span> {comment.postTitle || '게시글'}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {commentsData.totalPages > 1 && (
+                  <div className="mypage-pagination">
+                    <button
+                      type="button"
+                      disabled={commentsData.currentPage <= 1 || listLoading}
+                      onClick={() => loadTabList('comments', commentsData.currentPage - 1)}
+                    >
+                      &lt; 이전
+                    </button>
+                    <span className="mypage-page-info">
+                      {commentsData.currentPage} / {commentsData.totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={commentsData.currentPage >= commentsData.totalPages || listLoading}
+                      onClick={() => loadTabList('comments', commentsData.currentPage + 1)}
+                    >
+                      다음 &gt;
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* 탭 4: 좋아요한 글 */}
+        {activeTab === 'likes' && (
+          <div className="mypage-tab-pane">
+            {listLoading ? (
+              <div className="mypage-list-loading">좋아요한 글 목록을 불러오는 중입니다...</div>
+            ) : likesData.list.length === 0 ? (
+              <div className="mypage-list-empty">
+                <p>좋아요(추천)한 게시글이 없습니다.</p>
+                <a href="/plug/community/teams" className="mypage-link-btn">
+                  커뮤니티 글 보러가기
+                </a>
+              </div>
+            ) : (
+              <>
+                <div className="mypage-activity-list">
+                  {likesData.list.map((post) => (
+                    <div
+                      key={post.postId}
+                      className="mypage-activity-item"
+                      onClick={() => window.location.assign(`/plug/community/posts/${post.postId}`)}
+                    >
+                      <div className="mypage-item-main">
+                        <div className="mypage-item-meta">
+                          <span className="mypage-category-tag">{post.categoryType || '추천'}</span>
+                          {post.teamName && <span className="mypage-team-tag">{post.teamName}</span>}
+                          <span className="mypage-item-author">작성자: {post.nickname}</span>
+                          <span className="mypage-item-date">{post.createdAt}</span>
+                        </div>
+                        <h4 className="mypage-item-title">
+                          {post.title}
+                          {post.commentCount > 0 && (
+                            <span className="mypage-item-comment-count">[{post.commentCount}]</span>
+                          )}
+                        </h4>
+                      </div>
+                      <div className="mypage-item-stats">
+                        <span className="mypage-stat-like">❤️ {post.likeCount || 0}</span>
+                        <span>조회 {post.viewCount || 0}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {likesData.totalPages > 1 && (
+                  <div className="mypage-pagination">
+                    <button
+                      type="button"
+                      disabled={likesData.currentPage <= 1 || listLoading}
+                      onClick={() => loadTabList('likes', likesData.currentPage - 1)}
+                    >
+                      &lt; 이전
+                    </button>
+                    <span className="mypage-page-info">
+                      {likesData.currentPage} / {likesData.totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={likesData.currentPage >= likesData.totalPages || listLoading}
+                      onClick={() => loadTabList('likes', likesData.currentPage + 1)}
+                    >
+                      다음 &gt;
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 회원 탈퇴 경고 모달 */}

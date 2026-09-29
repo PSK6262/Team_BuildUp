@@ -1,5 +1,7 @@
 package com.app.service.user;
 
+import java.util.Map;
+
 import com.app.dto.user.Users;
 
 public interface UserService {
@@ -52,4 +54,24 @@ public interface UserService {
 	 * 로그인 아이디로 사용자 정보 조회 (비밀번호 제외)
 	 */
 	Users getUserByLoginId(String loginId);
+
+	/**
+	 * 마이페이지 활동 요약 통계 (작성글 수, 작성댓글 수, 좋아요 수)
+	 */
+	Map<String, Object> getUserActivitySummary(Long userId);
+
+	/**
+	 * 사용자가 작성한 게시글 목록 조회 (페이징)
+	 */
+	Map<String, Object> getUserPosts(Long userId, int page, int size);
+
+	/**
+	 * 사용자가 작성한 댓글 목록 조회 (페이징)
+	 */
+	Map<String, Object> getUserComments(Long userId, int page, int size);
+
+	/**
+	 * 사용자가 좋아요(추천)한 게시글 목록 조회 (페이징)
+	 */
+	Map<String, Object> getUserLikedPosts(Long userId, int page, int size);
 }
