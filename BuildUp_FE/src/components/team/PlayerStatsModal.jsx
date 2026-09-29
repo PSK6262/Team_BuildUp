@@ -127,20 +127,24 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
             {positionText && (
               <div
                 className="player-stats-position-group"
-                onMouseEnter={() => setIsPosHovered(true)}
-                onMouseLeave={() => setIsPosHovered(false)}
+                onMouseEnter={() => {
+                  if (window.innerWidth > 1024) setIsPosHovered(true);
+                }}
+                onMouseLeave={() => {
+                  if (window.innerWidth > 1024) setIsPosHovered(false);
+                }}
               >
                 <div
                   className={`player-stats-position-pill ${posBadgeClass}`}
                   onClick={() => setIsPosHovered((prev) => !prev)}
                   tabIndex={0}
                   role="button"
-                  title="마우스를 올리면 포지션 설명이 표시됩니다"
+                  title="포지션 설명 보기"
                 >
                   {positionText}
                 </div>
 
-                {/* 태그 밑 안내 문구 / 호버 시 포지션 설명 전환 영역 */}
+                {/* 태그 밑 안내 문구 / 호버·클릭 시 포지션 설명 전환 영역 */}
                 <div className="player-stats-position-guide">
                   {isPosHovered ? (
                     <div className="position-desc-box">
@@ -151,7 +155,8 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
                     </div>
                   ) : (
                     <div className="position-guide-hint">
-                      태그에 마우스를 올려보세요
+                      <span className="position-guide-hint--desktop">태그에 마우스를 올려보세요</span>
+                      <span className="position-guide-hint--mobile">태그를 클릭해보세요</span>
                     </div>
                   )}
                 </div>

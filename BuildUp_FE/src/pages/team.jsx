@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { getTeamById, getTeams } from '../api/teamApi.js';
 import TeamVisualPanel from '../components/team/TeamVisualPanel.jsx';
 import TeamInfoPanel from '../components/team/TeamInfoPanel.jsx';
+import TeamNav from '../components/team/TeamNav.jsx';
 import TeamNotFound from '../components/team/TeamNotFound.jsx';
 import '../css/team.css';
 
@@ -61,8 +62,15 @@ export default function Team({ teamId }) {
     };
   }, [effectiveId]);
 
-  // 좌측 고정 패널 위에서 마우스 휠을 굴려도 우측 스크롤 영역이 자연스럽게 스크롤되도록 연동
+  useEffect(() => {
+    document.body.classList.remove('mainpage-intro-active');
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+  }, []);
+
+  // 데스크톱(> 1024px) 좌우 분할 레이아웃에서만 좌측 패널 휠을 우측 스크롤 영역과 연동
   const handleLeftWheel = (e) => {
+    if (window.innerWidth <= 1024) return;
     if (rightPanelRef.current) {
       rightPanelRef.current.scrollTop += e.deltaY;
     }
@@ -84,6 +92,11 @@ export default function Team({ teamId }) {
 
   return (
     <div className={`team-container team-container--${currentTheme}`}>
+      {/* 반응형 웹(모바일/태블릿) 전용 상단 내비게이션 바 아래 이동 줄 */}
+      <div className="team-mobile-top-nav">
+        <TeamNav prevTeam={prevTeam || team} nextTeam={nextTeam || team} />
+      </div>
+
       {/* 좌측 구단 고유 컬러(엠블럼 색감)가 우측 다크 퍼플 배경으로 자연스럽게 스며드는 그라데이션 블러 글로우 */}
       <div
         className="team-ambient-bleed"
