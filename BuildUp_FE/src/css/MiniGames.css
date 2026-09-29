@@ -1,23 +1,46 @@
-.minigames {
+/* ========================================================
+   MiniGames.css — 다크모드(기본) / 라이트모드
+   마이페이지와 동일한 배색 기준
+   ======================================================== */
+
+/* ---------- 페이지 래퍼 (배경 전체 담당) ---------- */
+.minigames-page {
+  min-height: 100vh;
+  position: relative;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* navbar 위 흰 빈 공간을 배경색으로 채우는 가상 요소 */
+.minigames-page::before {
+  content: '';
+  position: absolute;
+  top: -200px;
+  left: 0;
+  right: 0;
+  height: 200px;
+  z-index: -1;
+}
+
+/* ---------- 내부 컨텐츠 (max-width 제한) ---------- */
+.minigames-inner {
   max-width: 900px;
   margin: 0 auto;
   padding: 48px 20px 80px;
 }
 
+/* ---------- 공통 레이아웃 ---------- */
 .minigames__hero {
   text-align: center;
   margin-bottom: 48px;
 }
 
 .minigames__title {
+  margin: 0 0 8px;
   font-size: 2.2rem;
   font-weight: 800;
-  color: #38003c;
-  margin: 0 0 8px;
 }
 
 .minigames__subtitle {
-  color: #666;
   font-size: 1.05rem;
   margin: 0;
 }
@@ -38,8 +61,6 @@
   gap: 10px;
   padding: 32px 20px;
   border-radius: 16px;
-  border: 2px solid #e8e8e8;
-  background: #fff;
   text-decoration: none;
   color: inherit;
   transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
@@ -48,12 +69,10 @@
 
 .minigames__card--active {
   cursor: pointer;
-  border-color: #38003c;
 }
 
 .minigames__card--active:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(56, 0, 60, 0.15);
 }
 
 .minigames__card--locked {
@@ -63,17 +82,24 @@
 
 .minigames__card-icon {
   font-size: 2.8rem;
+  width: 76px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  /* 다크모드 기본: 흰색 라인 */
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .minigames__card-title {
   font-size: 1.15rem;
   font-weight: 700;
-  color: #38003c;
 }
 
 .minigames__card-desc {
   font-size: 0.88rem;
-  color: #555;
   text-align: center;
   margin: 0;
   line-height: 1.5;
@@ -85,10 +111,128 @@
   border-radius: 20px;
   font-size: 0.82rem;
   font-weight: 700;
-  background: #38003c;
-  color: #fff;
+}
+
+/* ========================================================
+   다크모드 (기본값 — 마이페이지 다크 배색 기준)
+   ======================================================== */
+.minigames-page {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(225, 140, 245, 0.14) 0%, transparent 60%),
+    radial-gradient(circle at 10% 30%, rgba(255, 22, 107, 0.07) 0%, transparent 45%),
+    radial-gradient(circle at 85% 75%, rgba(0, 255, 135, 0.05) 0%, transparent 45%),
+    linear-gradient(160deg, #27062c 0%, #1c0320 42%, #120115 100%);
+}
+
+/* 다크모드 navbar 위 배경 연장 */
+.minigames-page::before {
+  background: #27062c;
+}
+
+.minigames__title {
+  color: #ffffff;
+}
+
+.minigames__subtitle {
+  color: #a795b5;
+}
+
+.minigames__card {
+  background: linear-gradient(150deg, rgba(38, 8, 46, 0.78) 0%, rgba(18, 3, 22, 0.88) 100%);
+  border: 1px solid rgba(235, 175, 255, 0.16);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.minigames__card--active {
+  border-color: rgba(185, 85, 215, 0.45);
+}
+
+.minigames__card--active:hover {
+  border-color: rgba(0, 255, 135, 0.55);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 20px rgba(0, 255, 135, 0.18);
+}
+
+.minigames__card-title {
+  color: #ffffff;
+}
+
+.minigames__card-desc {
+  color: #a795b5;
+}
+
+.minigames__card-badge {
+  background: #00ff87;
+  color: #120117;
+  box-shadow: 0 0 14px rgba(0, 255, 135, 0.4);
 }
 
 .minigames__card-badge--soon {
-  background: #bbb;
+  background: rgba(255, 255, 255, 0.1);
+  color: #a795b5;
+  box-shadow: none;
+}
+
+/* ========================================================
+   라이트모드 — .minigames-page--light 오버라이드
+   마이페이지 라이트모드와 동일한 배색
+   ======================================================== */
+.minigames-page--light {
+  background: #f8fafc;
+}
+
+/* 라이트모드 navbar 위 배경 연장 */
+.minigames-page--light::before {
+  background: #f8fafc;
+}
+
+.minigames-page--light .minigames__card-icon {
+  border: 2px solid rgba(56, 0, 60, 0.25);
+  background: rgba(56, 0, 60, 0.05);
+}
+
+.minigames-page--light .minigames__title {
+  color: #38003c;
+}
+
+.minigames-page--light .minigames__subtitle {
+  color: #64748b;
+}
+
+.minigames-page--light .minigames__card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.minigames-page--light .minigames__card--active {
+  border-color: #38003c;
+}
+
+.minigames-page--light .minigames__card--active:hover {
+  border-color: #641670;
+  box-shadow: 0 8px 24px rgba(56, 0, 60, 0.15);
+}
+
+.minigames-page--light .minigames__card-title {
+  color: #38003c;
+}
+
+.minigames-page--light .minigames__card-desc {
+  color: #64748b;
+}
+
+.minigames-page--light .minigames__card-badge {
+  background: #38003c;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(56, 0, 60, 0.2);
+}
+
+.minigames-page--light .minigames__card-badge--soon {
+  background: #e2e8f0;
+  color: #64748b;
+  box-shadow: none;
 }
