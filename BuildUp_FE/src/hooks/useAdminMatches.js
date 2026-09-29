@@ -12,7 +12,8 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
   const dispatch = useDispatch();
 
   const [matches, setMatches] = useState([]);
-  const [matchDateFilter, setMatchDateFilter] = useState('');
+  const [matchStartDate, setMatchStartDate] = useState('');
+  const [matchEndDate, setMatchEndDate] = useState('');
   const [matchStatusFilter, setMatchStatusFilter] = useState(initialFilter || '');
   const [matchSortOrder, setMatchSortOrder] = useState(initialFilter === 'MISMATCH' ? 'DESC' : 'AUTO');
   const [selectedTeamId, setSelectedTeamId] = useState(57); // 기본 Arsenal
@@ -27,17 +28,6 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
   const [eventModal, setEventModal] = useState(null);   // { matchId, match, events, loading, aiAdvice, aiLoading, newEvent }
   const [eventModalPlayers, setEventModalPlayers] = useState([]);
 
-  // initialFilter가 전달되었을 때 상태 반영
-  useEffect(() => {
-    if (initialFilter) {
-      setMatchStatusFilter(initialFilter);
-      if (initialFilter === 'MISMATCH') {
-        setMatchSortOrder('DESC');
-      }
-      onClearInitialFilter?.();
-    }
-  }, [initialFilter, onClearInitialFilter]);
-
   // 불일치 경기 카운트 갱신 (배너용)
   const refreshMismatchCount = useCallback(async () => {
     try {
@@ -51,16 +41,20 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
     }
   }, []);
 
-  // 1. 경기 목록 조회
-  const fetchMatches = useCallback(async (overrideSort = null) => {
+  // 1. 경기 목록 조회 (overrides를 지원하여 상태 비동기 반영 지연 없이 즉시 조회 가능)
+  const fetchMatches = useCallback(async (overrides = {}) => {
     setLoading(true);
     try {
-      const sortToUse = overrideSort || matchSortOrder;
+      const statusToUse = overrides.status !== undefined ? overrides.status : matchStatusFilter;
+      const sortToUse = overrides.sort !== undefined ? overrides.sort : matchSortOrder;
+      const startDateToUse = overrides.startDate !== undefined ? overrides.startDate : matchStartDate;
+      const endDateToUse = overrides.endDate !== undefined ? overrides.endDate : matchEndDate;
+
       let finalSort = sortToUse;
       if (!sortToUse || sortToUse === 'AUTO') {
-        if (matchStatusFilter === 'SCHEDULED' || matchStatusFilter === 'TIMED') {
+        if (statusToUse === 'SCHEDULED' || statusToUse === 'TIMED') {
           finalSort = 'ASC';
-        } else if (matchStatusFilter === 'FINISHED') {
+        } else if (statusToUse === 'FINISHED' || statusToUse === 'MISMATCH') {
           finalSort = 'DESC';
         } else {
           finalSort = '';
@@ -68,8 +62,9 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
       }
 
       const res = await adminApi.getAdminMatches({
-        date: matchDateFilter,
-        status: matchStatusFilter,
+        startDate: startDateToUse,
+        endDate: endDateToUse,
+        status: statusToUse,
         sort: finalSort,
       });
 
@@ -94,7 +89,20 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
     } finally {
       setLoading(false);
     }
-  }, [matchDateFilter, matchStatusFilter, matchSortOrder, dispatch, showAlert]);
+  }, [matchStartDate, matchEndDate, matchStatusFilter, matchSortOrder, dispatch, showAlert]);
+
+  // initialFilter가 전달되었을 때 상태 반영 및 즉시 조회 (다시 조회 누를 필요 없이 자동 실행)
+  useEffect(() => {
+    if (initialFilter) {
+      setMatchStatusFilter(initialFilter);
+      const sortVal = initialFilter === 'MISMATCH' ? 'DESC' : 'AUTO';
+      setMatchSortOrder(sortVal);
+      onClearInitialFilter?.();
+      fetchMatches({ status: initialFilter, sort: sortVal });
+    } else {
+      fetchMatches();
+    }
+  }, [initialFilter, onClearInitialFilter]);
 
   // 2. 구단별 선수단 조회
   const fetchTeamPlayers = useCallback(async (teamId) => {
@@ -109,12 +117,11 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
     }
   }, []);
 
-  // 마운트 시 데이터 로드
+  // 마운트 시 선수단 및 불일치 카운트 로드
   useEffect(() => {
-    fetchMatches();
     fetchTeamPlayers(selectedTeamId);
     refreshMismatchCount();
-  }, [fetchMatches, fetchTeamPlayers, selectedTeamId, refreshMismatchCount]);
+  }, [fetchTeamPlayers, selectedTeamId, refreshMismatchCount]);
 
   // 경기 공지사항 저장
   const handleSaveNotice = async () => {
@@ -360,8 +367,10 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
 
   return {
     matches,
-    matchDateFilter,
-    setMatchDateFilter,
+    matchStartDate,
+    setMatchStartDate,
+    matchEndDate,
+    setMatchEndDate,
     matchStatusFilter,
     setMatchStatusFilter,
     matchSortOrder,

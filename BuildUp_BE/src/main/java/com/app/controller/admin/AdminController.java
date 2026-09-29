@@ -87,6 +87,35 @@ public class AdminController {
 		return false;
 	}
 
+	// 현재 접속 중인 관리자 사용자 엔티티 조회 헬퍼
+	private Users getLoginAdmin(HttpServletRequest request) {
+		HttpSession session = request.getSession(false);
+		if (session != null) {
+			Users sessionUser = (Users) session.getAttribute(CommonCode.SESSION_LOGIN_USER);
+			if (sessionUser != null && CommonCode.ROLE_ADMIN.equals(sessionUser.getRoleCode())) {
+				return sessionUser;
+			}
+		}
+		String sessionLoginId = LoginManager.getLoginUserId(request);
+		if (sessionLoginId != null && userDAO != null) {
+			Users user = userDAO.selectUserByLoginId(sessionLoginId);
+			if (user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode())) {
+				return user;
+			}
+		}
+		String token = JwtProvider.extractToken(request);
+		if (token != null && JwtProvider.isValidToken(token)) {
+			String tokenLoginId = JwtProvider.getLoginIdFromToken(token);
+			if (tokenLoginId != null && userDAO != null) {
+				Users user = userDAO.selectUserByLoginId(tokenLoginId);
+				if (user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode())) {
+					return user;
+				}
+			}
+		}
+		return null;
+	}
+
 	// 1. 대시보드 KPI 요약 지표 조회
 	@GetMapping("/summary")
 	public ApiResponse<Map<String, Object>> getSummary(HttpServletRequest request) {
@@ -100,13 +129,15 @@ public class AdminController {
 	@GetMapping("/matches")
 	public ApiResponse<List<Matches>> getMatches(
 			@RequestParam(value = "date", required = false) String date,
+			@RequestParam(value = "startDate", required = false) String startDate,
+			@RequestParam(value = "endDate", required = false) String endDate,
 			@RequestParam(value = "status", required = false) String status,
 			@RequestParam(value = "sort", required = false) String sort,
 			HttpServletRequest request) {
 		if (!isAdmin(request)) {
 			return ApiResponse.error(ResultCode.FORBIDDEN);
 		}
-		return ApiResponse.success(adminService.getAdminMatches(date, status, sort));
+		return ApiResponse.success(adminService.getAdminMatches(date, startDate, endDate, status, sort));
 	}
 
 	// 3. 경기 공지사항(NOTICE) 수정
@@ -383,9 +414,17 @@ public class AdminController {
 			return ApiResponse.error(ResultCode.INVALID_INPUT);
 		}
 		Long amount = Long.valueOf(body.get("amount").toString());
+		if (Math.abs(amount) > 10000) {
+			return ApiResponse.error(ResultCode.INVALID_INPUT, "한 번에 변경할 수 있는 포인트는 최대 ±10,000P 입니다.");
+		}
 		String description = (String) body.get("description");
+		Users loginAdmin = getLoginAdmin(request);
+		String adminPrefix = (loginAdmin != null && loginAdmin.getNickname() != null)
+				? "[관리자: " + loginAdmin.getNickname() + "] "
+				: "[관리자 직권] ";
+		String finalDescription = adminPrefix + (description != null && !description.trim().isEmpty() ? description.trim() : "포인트 직권 조정");
 
-		boolean success = adminService.adjustUserPoints(userId, amount, description);
+		boolean success = adminService.adjustUserPoints(userId, amount, finalDescription);
 		return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
 	}
 

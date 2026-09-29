@@ -16,9 +16,12 @@ public interface AdminService {
 	Map<String, Object> getAdminSummary();
 
 	// 경기 목록 조회 및 공지사항/스코어 수정
-	List<Matches> getAdminMatches(String date, String status, String sortOrder);
+	List<Matches> getAdminMatches(String date, String startDate, String endDate, String status, String sortOrder);
+	default List<Matches> getAdminMatches(String date, String status, String sortOrder) {
+		return getAdminMatches(date, null, null, status, sortOrder);
+	}
 	default List<Matches> getAdminMatches(String date, String status) {
-		return getAdminMatches(date, status, null);
+		return getAdminMatches(date, null, null, status, null);
 	}
 	boolean updateMatchNotice(Long matchId, String notice);
 	boolean updateMatchScore(Long matchId, Long homeScore, Long awayScore, String status);

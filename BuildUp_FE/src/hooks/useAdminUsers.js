@@ -78,12 +78,25 @@ export function useAdminUsers({ showAlert }) {
     }
   };
 
-  // 포인트 직권 지급/차감
+  // 포인트 직권 지급/차감 (한번에 최대 +-10,000P 제한)
   const handleSavePoints = async () => {
-    if (!pointModal || !pointModal.amount) return;
+    if (!pointModal || pointModal.amount === '' || pointModal.amount === null) {
+      showAlert?.('변경할 포인트를 입력해주세요.', 'error');
+      return;
+    }
+    const amountNum = Number(pointModal.amount);
+    if (isNaN(amountNum) || amountNum === 0) {
+      showAlert?.('0이 아닌 유효한 포인트 숫자를 입력해주세요.', 'error');
+      return;
+    }
+    if (amountNum > 10000 || amountNum < -10000) {
+      showAlert?.('한 번에 변경할 수 있는 포인트는 최대 ±10,000P 입니다.', 'error');
+      return;
+    }
+
     try {
       const res = await adminApi.adjustUserPoints(pointModal.userId, {
-        amount: Number(pointModal.amount),
+        amount: amountNum,
         description: pointModal.description || '관리자 수동 조정',
       });
       const json = await res.json();
@@ -92,7 +105,7 @@ export function useAdminUsers({ showAlert }) {
         setPointModal(null);
         fetchUsers();
       } else {
-        showAlert?.('포인트 조정 실패', 'error');
+        showAlert?.(json.message || '포인트 조정 실패', 'error');
       }
     } catch (e) {
       showAlert?.('포인트 조정 중 통신 오류가 발생했습니다.', 'error');

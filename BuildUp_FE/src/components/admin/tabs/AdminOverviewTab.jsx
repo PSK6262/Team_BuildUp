@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAdminOverview } from '../../../hooks/useAdminOverview.js';
+import { getTeamFullNameKor } from '../../../data/communityTeams.js';
 
 /**
  * [관리자 대시보드 개요 탭 - BuildUp_FE/src/components/admin/tabs/AdminOverviewTab.jsx]
@@ -15,6 +16,77 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
     setInjuryModal,
     handleSaveInjury,
   } = useAdminOverview({ showAlert });
+
+  const [visibleInjured, setVisibleInjured] = useState(10);
+  const [visiblePoints, setVisiblePoints] = useState(10);
+
+  // --- [부상/결장자 현황 검색 필터 상태] ---
+  const [injuredTeamFilter, setInjuredTeamFilter] = useState('');
+  const [injuredNameKeyword, setInjuredNameKeyword] = useState('');
+  const [injuredPosFilter, setInjuredPosFilter] = useState('');
+  const [injuredStatusFilter, setInjuredStatusFilter] = useState('');
+
+  // 등록된 부상자 목록에서 고유 구단명 목록 자동 추출 (DB 기준 한국어 풀네임)
+  const uniqueInjuredTeams = useMemo(() => {
+    const set = new Set();
+    injuredSummary.forEach((i) => {
+      const name = getTeamFullNameKor(i.teamId, i.teamNameKor || i.teamName);
+      if (name) set.add(name);
+    });
+    return Array.from(set).sort();
+  }, [injuredSummary]);
+
+  // 부상자 필터링 결과
+  const filteredInjured = useMemo(() => {
+    return injuredSummary.filter((item) => {
+      if (injuredTeamFilter) {
+        const team = getTeamFullNameKor(item.teamId, item.teamNameKor || item.teamName || '');
+        if (team !== injuredTeamFilter) return false;
+      }
+      if (injuredNameKeyword.trim()) {
+        const kw = injuredNameKeyword.trim().toLowerCase();
+        const kor = (item.playerNameKor || '').toLowerCase();
+        const eng = (item.playerName || '').toLowerCase();
+        if (!kor.includes(kw) && !eng.includes(kw)) return false;
+      }
+      if (injuredPosFilter) {
+        const pos = (item.detailPosition || item.mainPosition || '').toUpperCase();
+        if (!pos.includes(injuredPosFilter.toUpperCase())) return false;
+      }
+      if (injuredStatusFilter === 'INJURED' && item.isInjured !== 'Y') return false;
+      if (injuredStatusFilter === 'SUSPENDED' && item.isSuspended !== 'Y') return false;
+      if (injuredStatusFilter === 'BOTH' && (item.isInjured !== 'Y' || item.isSuspended !== 'Y')) return false;
+      return true;
+    });
+  }, [injuredSummary, injuredTeamFilter, injuredNameKeyword, injuredPosFilter, injuredStatusFilter]);
+
+  // --- [Audit Log 검색 필터 상태] ---
+  const [auditUserKeyword, setAuditUserKeyword] = useState('');
+  const [auditAdminFilter, setAuditAdminFilter] = useState('');
+  const [auditAdminKeyword, setAuditAdminKeyword] = useState('');
+
+  // 포인트 이력 필터링 결과
+  const filteredPoints = useMemo(() => {
+    return recentPoints.filter((item) => {
+      if (auditUserKeyword.trim()) {
+        const kw = auditUserKeyword.trim().toLowerCase();
+        const nick = (item.nickname || '').toLowerCase();
+        const uId = String(item.userId || '');
+        const login = (item.loginId || '').toLowerCase();
+        if (!nick.includes(kw) && !uId.includes(kw) && !login.includes(kw)) return false;
+      }
+      const desc = item.description || '';
+      const isSystem = Boolean(item.predictionId || desc.includes('[시스템]'));
+      if (auditAdminFilter === 'SYSTEM' && !isSystem) return false;
+      if (auditAdminFilter === 'ADMIN' && isSystem) return false;
+
+      if (auditAdminKeyword.trim()) {
+        const kw = auditAdminKeyword.trim().toLowerCase();
+        if (!desc.toLowerCase().includes(kw)) return false;
+      }
+      return true;
+    });
+  }, [recentPoints, auditUserKeyword, auditAdminFilter, auditAdminKeyword]);
 
   return (
     <div>
@@ -76,8 +148,91 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
       {/* 2. 현재 부상 및 결장 선수 현황 */}
       <section className="admin-section">
         <div className="admin-section__header">
-          <h2 className="admin-section__title">현재 리그 부상 및 결장자 현황</h2>
-          <span className="badge badge--yellow">총 {injuredSummary.length}명 관리 중</span>
+          <div>
+            <h2 className="admin-section__title">현재 리그 부상 및 결장자 현황</h2>
+            <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 4 }}>
+              총 {injuredSummary.length}명 관리 중 {filteredInjured.length !== injuredSummary.length && `(검색 결과: ${filteredInjured.length}명)`}
+            </div>
+          </div>
+          <div className="admin-filters">
+            {/* 1. 구단별 검색 */}
+            <select
+              className="admin-select"
+              value={injuredTeamFilter}
+              onChange={(e) => {
+                setInjuredTeamFilter(e.target.value);
+                setVisibleInjured(10);
+              }}
+              title="구단별 필터"
+            >
+              <option value="">전체 구단</option>
+              {uniqueInjuredTeams.map((team) => (
+                <option key={team} value={team}>{team}</option>
+              ))}
+            </select>
+
+            {/* 2. 포지션별 검색 */}
+            <select
+              className="admin-select"
+              value={injuredPosFilter}
+              onChange={(e) => {
+                setInjuredPosFilter(e.target.value);
+                setVisibleInjured(10);
+              }}
+              title="포지션별 필터"
+            >
+              <option value="">전체 포지션</option>
+              <option value="FW">공격수 (FW)</option>
+              <option value="MF">미드필더 (MF)</option>
+              <option value="DF">수비수 (DF)</option>
+              <option value="GK">골키퍼 (GK)</option>
+            </select>
+
+            {/* 3. 상태별 검색 */}
+            <select
+              className="admin-select"
+              value={injuredStatusFilter}
+              onChange={(e) => {
+                setInjuredStatusFilter(e.target.value);
+                setVisibleInjured(10);
+              }}
+              title="상태별 필터"
+            >
+              <option value="">전체 상태</option>
+              <option value="INJURED">부상중</option>
+              <option value="SUSPENDED">출장정지</option>
+              <option value="BOTH">부상 & 정지</option>
+            </select>
+
+            {/* 4. 선수명별 검색 */}
+            <input
+              type="text"
+              className="admin-input"
+              placeholder="선수명 검색 (한글/영문)"
+              value={injuredNameKeyword}
+              onChange={(e) => {
+                setInjuredNameKeyword(e.target.value);
+                setVisibleInjured(10);
+              }}
+              style={{ width: 170 }}
+            />
+
+            {(injuredTeamFilter || injuredNameKeyword || injuredPosFilter || injuredStatusFilter) && (
+              <button
+                type="button"
+                className="btn-action btn-action--outline"
+                onClick={() => {
+                  setInjuredTeamFilter('');
+                  setInjuredNameKeyword('');
+                  setInjuredPosFilter('');
+                  setInjuredStatusFilter('');
+                  setVisibleInjured(10);
+                }}
+              >
+                초기화
+              </button>
+            )}
+          </div>
         </div>
         <div className="admin-table-wrapper">
           <table className="admin-table">
@@ -92,16 +247,16 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
               </tr>
             </thead>
             <tbody>
-              {injuredSummary.length === 0 ? (
+              {filteredInjured.length === 0 ? (
                 <tr>
                   <td colSpan="6" style={{ textAlign: 'center', padding: '30px', color: '#94a3b8' }}>
-                    현재 등록된 부상 및 결장 선수가 없습니다.
+                    {injuredSummary.length === 0 ? '현재 등록된 부상 및 결장 선수가 없습니다.' : '일치하는 부상/결장 선수가 없습니다.'}
                   </td>
                 </tr>
               ) : (
-                injuredSummary.map((item) => (
+                filteredInjured.slice(0, visibleInjured).map((item) => (
                   <tr key={item.playerId}>
-                    <td><strong>{item.teamNameKor || item.teamName}</strong></td>
+                    <td><strong>{getTeamFullNameKor(item.teamId, item.teamNameKor || item.teamName)}</strong></td>
                     <td>{item.playerNameKor || item.playerName}</td>
                     <td>{item.detailPosition || item.mainPosition}</td>
                     <td>
@@ -132,12 +287,85 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
             </tbody>
           </table>
         </div>
+        {filteredInjured.length > visibleInjured && (
+          <div className="admin-load-more-wrap">
+            <button
+              type="button"
+              className="admin-load-more-btn"
+              onClick={() => setVisibleInjured((prev) => prev + 10)}
+            >
+              10명 더보기 ▾ ({Math.min(visibleInjured, filteredInjured.length)} / {filteredInjured.length})
+            </button>
+          </div>
+        )}
       </section>
 
       {/* 3. 최근 포인트 변동 이력 (Audit Log) */}
       <section className="admin-section">
         <div className="admin-section__header">
-          <h2 className="admin-section__title">최근 포인트 변동 이력 (Audit Log)</h2>
+          <div>
+            <h2 className="admin-section__title">최근 포인트 변동 이력 (Audit Log)</h2>
+            <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 4 }}>
+              최근 {recentPoints.length}건 기록 {filteredPoints.length !== recentPoints.length && `(검색 결과: ${filteredPoints.length}건)`}
+            </div>
+          </div>
+          <div className="admin-filters">
+            {/* 1. 처리 주체 분류 필터 */}
+            <select
+              className="admin-select"
+              value={auditAdminFilter}
+              onChange={(e) => {
+                setAuditAdminFilter(e.target.value);
+                setVisiblePoints(10);
+              }}
+              title="처리 주체 분류"
+            >
+              <option value="">전체 처리자</option>
+              <option value="ADMIN">관리자 직권</option>
+              <option value="SYSTEM">시스템 (승부예측)</option>
+            </select>
+
+            {/* 2. 회원 닉네임/ID 검색 */}
+            <input
+              type="text"
+              className="admin-input"
+              placeholder="회원 닉네임 / ID 검색"
+              value={auditUserKeyword}
+              onChange={(e) => {
+                setAuditUserKeyword(e.target.value);
+                setVisiblePoints(10);
+              }}
+              style={{ width: 170 }}
+            />
+
+            {/* 3. 처리한 관리자명 검색 */}
+            <input
+              type="text"
+              className="admin-input"
+              placeholder="처리 관리자명 검색"
+              value={auditAdminKeyword}
+              onChange={(e) => {
+                setAuditAdminKeyword(e.target.value);
+                setVisiblePoints(10);
+              }}
+              style={{ width: 170 }}
+            />
+
+            {(auditUserKeyword || auditAdminFilter || auditAdminKeyword) && (
+              <button
+                type="button"
+                className="btn-action btn-action--outline"
+                onClick={() => {
+                  setAuditUserKeyword('');
+                  setAuditAdminFilter('');
+                  setAuditAdminKeyword('');
+                  setVisiblePoints(10);
+                }}
+              >
+                초기화
+              </button>
+            )}
+          </div>
         </div>
         <div className="admin-table-wrapper">
           <table className="admin-table">
@@ -145,6 +373,7 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
               <tr>
                 <th>번호</th>
                 <th>회원 ID</th>
+                <th>회원 닉네임</th>
                 <th>변동 포인트</th>
                 <th>변동 후 잔액</th>
                 <th>사유 내용</th>
@@ -152,29 +381,68 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
               </tr>
             </thead>
             <tbody>
-              {recentPoints.length === 0 ? (
+              {filteredPoints.length === 0 ? (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
-                    최근 포인트 변동 내역이 없습니다.
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
+                    {recentPoints.length === 0 ? '최근 포인트 변동 내역이 없습니다.' : '일치하는 포인트 변동 내역이 없습니다.'}
                   </td>
                 </tr>
               ) : (
-                recentPoints.map((item) => (
+                filteredPoints.slice(0, visiblePoints).map((item) => (
                   <tr key={item.pointHistoryId}>
                     <td>{item.pointHistoryId}</td>
-                    <td>회원 #{item.userId}</td>
+                    <td><strong>{item.userId}</strong></td>
+                    <td>{item.nickname || <span style={{ color: '#94a3b8' }}>-</span>}</td>
                     <td style={{ fontWeight: 700, color: item.amount > 0 ? '#16744b' : '#dc2626' }}>
-                      {item.amount > 0 ? `+${item.amount}` : item.amount} P
+                      {item.amount > 0 ? `+${item.amount.toLocaleString()}` : `${item.amount.toLocaleString()}`} P
                     </td>
-                    <td>{item.balanceAfter} P</td>
-                    <td>{item.description}</td>
-                    <td style={{ color: '#64748b', fontSize: 13 }}>{item.createdAt}</td>
+                    <td>{item.balanceAfter != null ? item.balanceAfter.toLocaleString() : '-'} P</td>
+                    <td>
+                      {(() => {
+                        const desc = item.description || '';
+                        const match = desc.match(/^(\[[^\]]+\])\s*(.*)$/);
+                        if (match) {
+                          return (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                              <span className="badge badge--purple">{match[1]}</span>
+                              <span>{match[2]}</span>
+                            </div>
+                          );
+                        }
+                        if (item.predictionId) {
+                          return (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                              <span className="badge badge--blue">[시스템]</span>
+                              <span>{desc}</span>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                            <span className="badge badge--purple">[관리자 직권]</span>
+                            <span>{desc}</span>
+                          </div>
+                        );
+                      })()}
+                    </td>
+                    <td style={{ color: '#64748b', fontSize: 13, whiteSpace: 'nowrap' }}>{item.createdAt}</td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
         </div>
+        {filteredPoints.length > visiblePoints && (
+          <div className="admin-load-more-wrap">
+            <button
+              type="button"
+              className="admin-load-more-btn"
+              onClick={() => setVisiblePoints((prev) => prev + 10)}
+            >
+              10개 더보기 ▾ ({Math.min(visiblePoints, filteredPoints.length)} / {filteredPoints.length})
+            </button>
+          </div>
+        )}
       </section>
 
       {/* 선수 부상/결장 정보 수정 모달 */}

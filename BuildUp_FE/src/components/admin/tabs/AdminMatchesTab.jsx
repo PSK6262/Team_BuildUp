@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAdminMatches } from '../../../hooks/useAdminMatches.js';
-import { communityTeams } from '../../../data/communityTeams.js';
+import { communityTeams, getTeamFullNameKor } from '../../../data/communityTeams.js';
 
 /**
  * [관리자 경기 & 부상 관리 탭 - BuildUp_FE/src/components/admin/tabs/AdminMatchesTab.jsx]
@@ -11,8 +11,10 @@ import { communityTeams } from '../../../data/communityTeams.js';
 export default function AdminMatchesTab({ showAlert, initialFilter, onClearInitialFilter }) {
   const {
     matches,
-    matchDateFilter,
-    setMatchDateFilter,
+    matchStartDate,
+    setMatchStartDate,
+    matchEndDate,
+    setMatchEndDate,
     matchStatusFilter,
     setMatchStatusFilter,
     matchSortOrder,
@@ -48,6 +50,9 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
     handleGetAiAdvice,
   } = useAdminMatches({ showAlert, initialFilter, onClearInitialFilter });
 
+  const [visibleMatches, setVisibleMatches] = useState(10);
+  const [visibleTeamPlayers, setVisibleTeamPlayers] = useState(10);
+
   return (
     <div>
       {/* 1. 경기 목록 & 공지사항 수정 섹션 */}
@@ -55,40 +60,58 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
         <div className="admin-section__header">
           <h2 className="admin-section__title">경기 일정 및 결장/알림 공지 관리</h2>
           <div className="admin-filters">
-            <input
-              type="date"
-              className="admin-input"
-              value={matchDateFilter}
-              onChange={(e) => setMatchDateFilter(e.target.value)}
-            />
+            <div className="admin-date-range">
+              <input
+                type="date"
+                className="admin-input"
+                value={matchStartDate}
+                onChange={(e) => setMatchStartDate(e.target.value)}
+                title="조회 시작일 (From)"
+              />
+              <span className="admin-date-separator">~</span>
+              <input
+                type="date"
+                className="admin-input"
+                value={matchEndDate}
+                onChange={(e) => setMatchEndDate(e.target.value)}
+                title="조회 종료일 (To)"
+              />
+            </div>
             <select
               className="admin-select"
               value={matchStatusFilter}
               onChange={(e) => {
                 const nextStatus = e.target.value;
                 setMatchStatusFilter(nextStatus);
-                const autoSort = (nextStatus === 'SCHEDULED' || nextStatus === 'TIMED') ? 'ASC' : (nextStatus === 'FINISHED' ? 'DESC' : 'AUTO');
-                setMatchSortOrder(autoSort);
+                setVisibleMatches(10);
               }}
             >
               <option value="">모든 경기 상태</option>
-              <option value="SCHEDULED">예정 (가장 가까운 순 ⏶)</option>
               <option value="LIVE">진행중 (LIVE)</option>
-              <option value="FINISHED">종료 (가장 최근 순 ⏷)</option>
+              <option value="CANCELLED_OR_POSTPONED">취소 및 연기됨</option>
               <option value="MISMATCH">⚠️ 스코어-이벤트 불일치 경기</option>
-              <option value="CANCELLED">취소 (CANCELLED)</option>
             </select>
             <select
               className="admin-select"
               value={matchSortOrder}
-              onChange={(e) => setMatchSortOrder(e.target.value)}
+              onChange={(e) => {
+                setMatchSortOrder(e.target.value);
+                setVisibleMatches(10);
+              }}
               title="정렬 기준"
             >
               <option value="AUTO">자동 정렬 (상태 기준)</option>
-              <option value="ASC">가장 가까운 순 (ASC ⏶)</option>
-              <option value="DESC">가장 최근 순 (DESC ⏷)</option>
+              <option value="ASC">오름차순 (ASC ⏶)</option>
+              <option value="DESC">내림차순 (DESC ⏷)</option>
             </select>
-            <button type="button" className="btn-action btn-action--primary" onClick={() => fetchMatches()}>
+            <button
+              type="button"
+              className="btn-action btn-action--primary"
+              onClick={() => {
+                setVisibleMatches(10);
+                fetchMatches();
+              }}
+            >
               조회
             </button>
           </div>
@@ -122,7 +145,9 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                 style={{ fontSize: 12, padding: '6px 12px', whiteSpace: 'nowrap' }}
                 onClick={() => {
                   setMatchStatusFilter('MISMATCH');
-                  fetchMatches('DESC');
+                  setMatchSortOrder('DESC');
+                  setVisibleMatches(10);
+                  fetchMatches({ status: 'MISMATCH', sort: 'DESC' });
                 }}
               >
                 불일치 경기만 모아보기 ({mismatchCount}건)
@@ -139,7 +164,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                 <th>매치업</th>
                 <th>스코어</th>
                 <th>상태</th>
-                <th>공지사항 (결장/지연 알림)</th>
+                <th>공지사항</th>
                 <th>관리 액션</th>
               </tr>
             </thead>
@@ -149,7 +174,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
               ) : matches.length === 0 ? (
                 <tr><td colSpan="6" style={{ textAlign: 'center', padding: 30, color: '#94a3b8' }}>해당 조건의 경기가 없습니다.</td></tr>
               ) : (
-                matches.slice(0, 50).map((m) => {
+                matches.slice(0, visibleMatches).map((m) => {
                   const isMismatch = m.status === 'FINISHED' && m.homeScore !== null && m.awayScore !== null &&
                     ((m.homeScore !== (m.homeGoalEvents ?? 0)) || (m.awayScore !== (m.awayGoalEvents ?? 0)));
 
@@ -159,13 +184,17 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                       <td>
                         <div className="match-team-cell">
                           {m.homeEmblemUrl && <img src={m.homeEmblemUrl} alt="" className="match-emblem" />}
-                          <span>{m.homeTeamNameKor || m.homeTeamName}</span>
-                          <span style={{ color: '#94a3b8', margin: '0 4px' }}>vs</span>
+                          <span className="match-team-name" title={getTeamFullNameKor(m.homeTeamId, m.homeTeamNameKor || m.homeTeamName)}>
+                            {getTeamFullNameKor(m.homeTeamId, m.homeTeamNameKor || m.homeTeamName)}
+                          </span>
+                          <span className="match-vs-tag">vs</span>
                           {m.awayEmblemUrl && <img src={m.awayEmblemUrl} alt="" className="match-emblem" />}
-                          <span>{m.awayTeamNameKor || m.awayTeamName}</span>
+                          <span className="match-team-name" title={getTeamFullNameKor(m.awayTeamId, m.awayTeamNameKor || m.awayTeamName)}>
+                            {getTeamFullNameKor(m.awayTeamId, m.awayTeamNameKor || m.awayTeamName)}
+                          </span>
                         </div>
                       </td>
-                      <td style={{ fontWeight: 700 }}>
+                      <td style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
                         <div>
                           {m.homeScore !== null && m.awayScore !== null
                             ? `${m.homeScore} : ${m.awayScore}`
@@ -214,7 +243,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                             onClick={() => {
                               setNoticeModal({
                                 matchId: m.matchId,
-                                title: `${m.homeTeamNameKor || m.homeTeamName} vs ${m.awayTeamNameKor || m.awayTeamName}`,
+                                title: `${getTeamFullNameKor(m.homeTeamId, m.homeTeamNameKor || m.homeTeamName)} vs ${getTeamFullNameKor(m.awayTeamId, m.awayTeamNameKor || m.awayTeamName)}`,
                                 notice: m.notice || '',
                               });
                             }}
@@ -227,7 +256,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                             onClick={() => {
                               setScoreModal({
                                 matchId: m.matchId,
-                                title: `${m.homeTeamNameKor || m.homeTeamName} vs ${m.awayTeamNameKor || m.awayTeamName}`,
+                                title: `${getTeamFullNameKor(m.homeTeamId, m.homeTeamNameKor || m.homeTeamName)} vs ${getTeamFullNameKor(m.awayTeamId, m.awayTeamNameKor || m.awayTeamName)}`,
                                 homeScore: m.homeScore !== null ? m.homeScore : '',
                                 awayScore: m.awayScore !== null ? m.awayScore : '',
                                 status: m.status,
@@ -245,6 +274,17 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
             </tbody>
           </table>
         </div>
+        {matches.length > visibleMatches && (
+          <div className="admin-load-more-wrap">
+            <button
+              type="button"
+              className="admin-load-more-btn"
+              onClick={() => setVisibleMatches((prev) => prev + 10)}
+            >
+              10경기 더보기 ▾ ({Math.min(visibleMatches, matches.length)} / {matches.length})
+            </button>
+          </div>
+        )}
       </section>
 
       {/* 2. 구단별 선수 부상 현황 관리 섹션 */}
@@ -259,11 +299,12 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                 const tId = Number(e.target.value);
                 setSelectedTeamId(tId);
                 fetchTeamPlayers(tId);
+                setVisibleTeamPlayers(10);
               }}
             >
               {communityTeams.map((t) => (
                 <option key={t.teamId} value={t.teamId}>
-                  {t.name}
+                  {t.fullNameKor || t.name}
                 </option>
               ))}
             </select>
@@ -289,7 +330,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
               ) : teamPlayers.length === 0 ? (
                 <tr><td colSpan="7" style={{ textAlign: 'center', padding: 24, color: '#94a3b8' }}>선수 데이터가 없습니다.</td></tr>
               ) : (
-                teamPlayers.map((p) => (
+                teamPlayers.slice(0, visibleTeamPlayers).map((p) => (
                   <tr key={p.playerId}>
                     <td><strong>{p.playerName}</strong></td>
                     <td>{p.playerNameKor || '-'}</td>
@@ -336,6 +377,17 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
             </tbody>
           </table>
         </div>
+        {teamPlayers.length > visibleTeamPlayers && (
+          <div className="admin-load-more-wrap">
+            <button
+              type="button"
+              className="admin-load-more-btn"
+              onClick={() => setVisibleTeamPlayers((prev) => prev + 10)}
+            >
+              선수 10명 더보기 ▾ ({Math.min(visibleTeamPlayers, teamPlayers.length)} / {teamPlayers.length})
+            </button>
+          </div>
+        )}
       </section>
 
       {/* ================= 모달 모음 ================= */}
@@ -741,8 +793,12 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                         newEvent: { ...eventModal.newEvent, teamId: Number(e.target.value), playerId: '' }
                       })}
                     >
-                      <option value={eventModal.match?.homeTeamId}>[홈] {eventModal.match?.homeTeamNameKor || eventModal.match?.homeTeamName}</option>
-                      <option value={eventModal.match?.awayTeamId}>[원정] {eventModal.match?.awayTeamNameKor || eventModal.match?.awayTeamName}</option>
+                      <option value={eventModal.match?.homeTeamId}>
+                        [홈] {getTeamFullNameKor(eventModal.match?.homeTeamId, eventModal.match?.homeTeamNameKor || eventModal.match?.homeTeamName)}
+                      </option>
+                      <option value={eventModal.match?.awayTeamId}>
+                        [원정] {getTeamFullNameKor(eventModal.match?.awayTeamId, eventModal.match?.awayTeamNameKor || eventModal.match?.awayTeamName)}
+                      </option>
                     </select>
                   </div>
                   <div>
