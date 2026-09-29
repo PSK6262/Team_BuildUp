@@ -41,5 +41,11 @@ public class Posts {
     // 조인용 (Teams): 구단 이름
     private String teamName;
 
+    // 조인용: 댓글 수
+    private Long commentCount;
+
+    // 조인용 (PostLikes): 추천 일시
+    private String likedAt;
+
 }
 

@@ -1,21 +1,190 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateUser, logout } from '../store/authSlice.js'
 import { fetchTeams } from '../store/teamSlice.js'
+import { getMyActivities, getMyPosts, getMyComments, getMyLikedPosts, getMyPointHistories } from '../api/userApi.js'
+import '../css/MyPage.css'
 
 const EMAIL_REGEX = /^[a-zA-Z0-9](?!.*\.\.)[a-zA-Z0-9._-]{2,28}[a-zA-Z0-9]@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 const NICKNAME_REGEX = /^[가-힣a-zA-Z0-9]{2,20}$/
+
+// ----------------------------------------------------
+// 프로페셔널 축구 플랫폼 전용 모던 SVG 벡터 아이콘 컴포넌트
+// ----------------------------------------------------
+function IconTarget({ size = 18, color = 'currentColor', className = '', style = {} }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, ...style }}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+      <circle cx="12" cy="12" r="3" fill={color} fillOpacity="0.25" />
+    </svg>
+  )
+}
+
+function IconBall({ size = 18, color = 'currentColor', className = '', style = {} }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, ...style }}>
+      <circle cx="12" cy="12" r="10" />
+      <polygon points="12,7 15.5,9.5 14,14 10,14 8.5,9.5" fill={color} fillOpacity="0.2" />
+      <line x1="12" y1="7" x2="12" y2="2" />
+      <line x1="15.5" y1="9.5" x2="20" y2="8" />
+      <line x1="14" y1="14" x2="17.5" y2="18" />
+      <line x1="10" y1="14" x2="6.5" y2="18" />
+      <line x1="8.5" y1="9.5" x2="4" y2="8" />
+    </svg>
+  )
+}
+
+function IconSettings({ size = 18, color = 'currentColor', className = '', style = {} }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, ...style }}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  )
+}
+
+function IconArticle({ size = 18, color = 'currentColor', className = '', style = {} }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, ...style }}>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+      <line x1="10" y1="9" x2="8" y2="9" />
+    </svg>
+  )
+}
+
+function IconComment({ size = 18, color = 'currentColor', className = '', style = {} }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, ...style }}>
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+    </svg>
+  )
+}
+
+function IconHeart({ size = 18, color = 'currentColor', className = '', style = {}, filled = false }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : 'none'} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, ...style }}>
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  )
+}
+
+function IconLock({ size = 18, color = 'currentColor', className = '', style = {} }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, ...style }}>
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  )
+}
+
+function IconAlertTriangle({ size = 18, color = 'currentColor', className = '', style = {} }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, ...style }}>
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  )
+}
+
+function IconCoins({ size = 18, color = 'currentColor', className = '', style = {} }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, ...style }}>
+      <circle cx="8" cy="8" r="6" />
+      <path d="M18.09 10.37A6 6 0 1 1 10.34 18" />
+      <path d="M7 6h1v4" />
+      <path d="M17 12h1v4" />
+    </svg>
+  )
+}
+
+function IconX({ size = 18, color = 'currentColor', className = '', style = {} }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, ...style }}>
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  )
+}
 
 export default function MyPage() {
   const dispatch = useDispatch()
   const reduxUser = useSelector((state) => state.auth.user)
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn)
-  const teamList = useSelector((state) => state.team.teams)
+  const teamList = useSelector((state) => state.team.teams || [])
+  const currentTheme = useSelector((state) => state.theme?.mode || 'dark')
 
   const [profile, setProfile] = useState(null)
   const [nickname, setNickname] = useState('')
   const [email, setEmail] = useState('')
   const [favoriteTeamId, setFavoriteTeamId] = useState('')
+
+  // 마이페이지 탭 상태 ('profile' | 'posts' | 'comments' | 'likes')
+  const [activeTab, setActiveTab] = useState('profile')
+  const [activityCounts, setActivityCounts] = useState({ postCount: 0, commentCount: 0, likedPostCount: 0 })
+  const [postsData, setPostsData] = useState({ list: [], totalCount: 0, totalPages: 0, currentPage: 1 })
+  const [commentsData, setCommentsData] = useState({ list: [], totalCount: 0, totalPages: 0, currentPage: 1 })
+  const [likesData, setLikesData] = useState({ list: [], totalCount: 0, totalPages: 0, currentPage: 1 })
+  const [listLoading, setListLoading] = useState(false)
+
+  // 커스텀 구단 드롭다운 열림/닫힘 상태
+  const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false)
+  const teamDropdownRef = useRef(null)
+
+  // 사이드바 애드센스 광고 Ref 및 초기화
+  const sideAdRef = useRef(null)
+  const isSideAdPushed = useRef(false)
+
+  useEffect(() => {
+    if (isSideAdPushed.current) return
+    try {
+      if (typeof window !== 'undefined' && sideAdRef.current) {
+        ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+        isSideAdPushed.current = true
+      }
+    } catch (e) {
+      console.debug('MyPage Sidebar AdSense init:', e)
+    }
+  }, [])
+
+  // 승부예측 전적 및 경기 일정 데이터
+  const [predictStats, setPredictStats] = useState({ total: 0, win: 0, rate: '0.0', loaded: false })
+  const [matches, setMatches] = useState([])
+
+  // 승부예측 전적 조회 (/api/predictions/my)
+  useEffect(() => {
+    if (!isLoggedIn) return
+    const token = localStorage.getItem('buildup_token')
+    fetch('/api/predictions/my', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === 'SUCCESS' && Array.isArray(data.items)) {
+          const items = data.items
+          const total = items.length
+          const win = items.filter((p) => p.isSuccess === 'Y').length
+          const settled = items.filter((p) => p.isSuccess === 'Y' || p.isSuccess === 'N').length
+          const rate = settled > 0 ? ((win / settled) * 100).toFixed(1) : (total > 0 ? '0.0' : '0.0')
+          setPredictStats({ total, win, rate, loaded: true })
+        }
+      })
+      .catch(() => {})
+  }, [isLoggedIn])
+
+  // 전체 경기 일정 조회 (/api/matches)
+  useEffect(() => {
+    fetch('/api/matches')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setMatches(data)
+      })
+      .catch(() => {})
+  }, [])
 
   // 실제 DB 구단 목록 조회 (Redux Thunk)
   useEffect(() => {
@@ -45,6 +214,199 @@ export default function MyPage() {
   const [withdrawAgreed, setWithdrawAgreed] = useState(false)
   const [withdrawing, setWithdrawing] = useState(false)
 
+  // 포인트 변동 이력 모달 상태
+  const [showPointModal, setShowPointModal] = useState(false)
+  const [pointHistories, setPointHistories] = useState([])
+  const [pointHistoriesLoading, setPointHistoriesLoading] = useState(false)
+
+  const handleOpenPointModal = async () => {
+    setShowPointModal(true)
+    setPointHistoriesLoading(true)
+    try {
+      const histories = await getMyPointHistories()
+      setPointHistories(histories || [])
+    } catch (err) {
+      console.error('포인트 변동 이력 로드 오류:', err)
+      setPointHistories([])
+    } finally {
+      setPointHistoriesLoading(false)
+    }
+  }
+
+  // 커스텀 드롭다운 외부 클릭 감지
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (teamDropdownRef.current && !teamDropdownRef.current.contains(e.target)) {
+        setIsTeamDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [])
+
+  // 응원 구단의 가장 가까운 다음 경기 계산
+  const nextFavoriteMatch = useMemo(() => {
+    const favId = profile?.favoriteTeamId ? Number(profile.favoriteTeamId) : null
+    if (!favId || !Array.isArray(matches) || matches.length === 0) return null
+
+    const now = new Date()
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
+
+    const parseDate = (dateStr) => {
+      if (!dateStr) return null
+      const normalized = String(dateStr).trim().replace(' ', 'T')
+      const d = new Date(normalized)
+      return isNaN(d.getTime()) ? null : d
+    }
+
+    const upcoming = matches
+      .filter((m) => {
+        const isMyTeam = Number(m.homeTeamId) === favId || Number(m.awayTeamId) === favId
+        if (!isMyTeam) return false
+        const d = parseDate(m.matchDate)
+        if (!d) return false
+        const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0)
+        return dayStart.getTime() >= todayStart.getTime()
+      })
+      .map((m) => {
+        const d = parseDate(m.matchDate)
+        const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0)
+        return {
+          ...m,
+          _matchTime: d.getTime(),
+          _matchDayStart: dayStart.getTime(),
+          _dateObj: d
+        }
+      })
+      .sort((a, b) => a._matchTime - b._matchTime)
+
+    if (upcoming.length === 0) return null
+
+    const closest = upcoming[0]
+    const diffDays = Math.round((closest._matchDayStart - todayStart.getTime()) / (1000 * 60 * 60 * 24))
+    const dDayTag = diffDays === 0 ? 'D-DAY' : `D-${diffDays}`
+
+    const isHome = Number(closest.homeTeamId) === favId
+    const opponentId = isHome ? Number(closest.awayTeamId) : Number(closest.homeTeamId)
+    const opponentTeam = teamList.find((t) => Number(t.teamId) === opponentId)
+    const favTeam = teamList.find((t) => Number(t.teamId) === favId)
+
+    const opponentName = isHome
+      ? (closest.awayTeamNameKor || opponentTeam?.teamNameKor || closest.awayTeamName || opponentTeam?.teamName || '상대팀')
+      : (closest.homeTeamNameKor || opponentTeam?.teamNameKor || closest.homeTeamName || opponentTeam?.teamName || '상대팀')
+
+    const favTeamName = favTeam?.teamNameKor || favTeam?.teamName || '응원 구단'
+    const stadium = closest.homeGroundKor || closest.homeGround || (isHome ? '홈 경기장' : '원정 경기장')
+
+    const normalizeEmblem = (url) => (url && url.includes('/badges/50/') ? url.replace('/badges/50/', '/badges/') : url)
+
+    const matchDateStr = closest._dateObj
+      ? `${closest._dateObj.getMonth() + 1}월 ${closest._dateObj.getDate()}일 (${['일', '월', '화', '수', '목', '금', '토'][closest._dateObj.getDay()]}) ${String(closest._dateObj.getHours()).padStart(2, '0')}:${String(closest._dateObj.getMinutes()).padStart(2, '0')}`
+      : closest.matchDate
+
+    return {
+      matchId: closest.matchId,
+      dDayTag,
+      diffDays,
+      isHome,
+      favTeamName,
+      favTeamEmblem: normalizeEmblem(favTeam?.emblemUrl || (isHome ? closest.homeEmblemUrl : closest.awayEmblemUrl)),
+      opponentName,
+      opponentEmblem: normalizeEmblem(closest.awayEmblemUrl || opponentTeam?.emblemUrl || closest.homeEmblemUrl),
+      stadium,
+      matchDateStr
+    }
+  }, [profile?.favoriteTeamId, matches, teamList])
+
+  // 활동 요약 통계 로드
+  const loadActivities = async () => {
+    try {
+      const counts = await getMyActivities()
+      setActivityCounts(counts)
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  const PAGE_SIZE = 5
+
+  // 탭 목록 로드 (5개 단위 페이징)
+  const loadTabList = async (tab, page = 1) => {
+    setListLoading(true)
+    try {
+      if (tab === 'posts') {
+        const data = await getMyPosts(page, PAGE_SIZE)
+        setPostsData(data)
+      } else if (tab === 'comments') {
+        const data = await getMyComments(page, PAGE_SIZE)
+        setCommentsData(data)
+      } else if (tab === 'likes') {
+        const data = await getMyLikedPosts(page, PAGE_SIZE)
+        setLikesData(data)
+      }
+    } catch (err) {
+      console.error('[마이페이지 목록 조회 오류]', err)
+    } finally {
+      setListLoading(false)
+    }
+  }
+
+  // 넘버링 지원 모던 다크 페이지네이션 렌더러 (항목이 5개 이하(1페이지)라도 일관되게 노출)
+  const renderPagination = (tabName, currentData) => {
+    if (!currentData || !currentData.list || currentData.list.length === 0) return null
+
+    const totalPages = Math.max(1, currentData.totalPages || 1)
+    const currentPage = currentData.currentPage || 1
+
+    const pages = []
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i)
+    }
+
+    return (
+      <div className="mypage-dark-pagination">
+        <button
+          type="button"
+          disabled={currentPage <= 1 || listLoading}
+          onClick={() => loadTabList(tabName, currentPage - 1)}
+          className="mypage-page-nav-btn"
+        >
+          &lt; 이전
+        </button>
+
+        <div className="mypage-page-numbers">
+          {pages.map((p) => (
+            <button
+              key={p}
+              type="button"
+              className={`mypage-page-num-btn ${p === currentPage ? 'is-active' : ''}`}
+              disabled={listLoading}
+              onClick={() => loadTabList(tabName, p)}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          disabled={currentPage >= totalPages || listLoading}
+          onClick={() => loadTabList(tabName, currentPage + 1)}
+          className="mypage-page-nav-btn"
+        >
+          다음 &gt;
+        </button>
+      </div>
+    )
+  }
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab)
+    if (tab !== 'profile') {
+      loadTabList(tab, 1)
+    }
+  }
+
   // 사용자 상세 정보 로드
   useEffect(() => {
     if (!isLoggedIn) {
@@ -68,6 +430,7 @@ export default function MyPage() {
           setNickname(userObj.nickname || '')
           setEmail(userObj.email || '')
           setFavoriteTeamId(userObj.favoriteTeamId ? String(userObj.favoriteTeamId) : '')
+          loadActivities()
         } else {
           // 백엔드 세션 만료 시 리덕스 데이터로 1차 폴백
           if (reduxUser) {
@@ -75,6 +438,7 @@ export default function MyPage() {
             setNickname(reduxUser.nickname || '')
             setEmail(reduxUser.email || '')
             setFavoriteTeamId(reduxUser.favoriteTeamId ? String(reduxUser.favoriteTeamId) : '')
+            loadActivities()
           }
         }
       } catch {
@@ -108,96 +472,82 @@ export default function MyPage() {
       } else if (/[^가-힣a-zA-Z0-9]/.test(trimmed)) {
         setNicknameCheckMsg('✕ 특수문자는 사용할 수 없습니다. (한글, 영문, 숫자만 허용)')
       } else {
-        setNicknameCheckMsg('✕ 닉네임은 2~20자의 한글, 영문, 숫자만 사용할 수 있습니다.')
+        setNicknameCheckMsg('✕ 닉네임 형식이 올바르지 않습니다.')
       }
       return
     }
-    // 현재 닉네임과 동일하면 별도 중복확인 불필요
-    if (trimmed === profile?.nickname) {
+
+    // 본인의 기존 닉네임과 동일한 경우 통과
+    if (trimmed.toLowerCase() === profile?.nickname?.toLowerCase()) {
       setNicknameChecked(true)
-      setNicknameCheckMsg('✓ 현재 사용 중인 닉네임입니다.')
+      setNicknameCheckMsg('✓ 현재 사용 중인 회원님의 닉네임입니다.')
       return
     }
+
     try {
-      const res = await fetch(`/api/auth/check-nickname?nickname=${encodeURIComponent(trimmed)}`)
-      if (!res.ok) throw new Error(`서버 응답 오류 (HTTP ${res.status})`)
+      const res = await fetch(`/api/users/check-nickname?nickname=${encodeURIComponent(trimmed)}`)
       const data = await res.json()
-      const isAvailable = Boolean(data.data === true || data.available || data.data?.available || (data.code === 'SUC_001' && data.status !== 'FAIL'))
-      if (isAvailable) {
+      if (res.ok && data.data === true) {
         setNicknameChecked(true)
         setNicknameCheckMsg('✓ 사용 가능한 닉네임입니다.')
       } else {
         setNicknameChecked(false)
-        setNicknameCheckMsg(data.message || '✕ 이미 사용 중인 닉네임입니다.')
+        setNicknameCheckMsg('✕ 이미 사용 중인 닉네임입니다.')
       }
     } catch (err) {
-      console.error('[닉네임 중복확인 실패]', err)
+      setNicknameChecked(false)
       setNicknameCheckMsg('중복확인 중 오류가 발생했습니다.')
     }
   }
 
-  // 이메일 변경 인증번호 발송
+  // 이메일 인증번호 발송
   const handleSendEmailCode = async () => {
-    const trimmedEmail = email.trim()
-    if (!trimmedEmail) {
+    const trimmed = email.trim()
+    if (!trimmed) {
       setEmailVerifyMsg('이메일을 입력해주세요.')
       return
     }
-    if (!EMAIL_REGEX.test(trimmedEmail)) {
+    if (!EMAIL_REGEX.test(trimmed)) {
       setEmailVerifyMsg('올바른 이메일 형식을 입력해주세요.')
-      return
-    }
-    if (trimmedEmail.toLowerCase() === profile?.email?.toLowerCase()) {
-      setEmailVerified(true)
-      setEmailVerifyMsg('✓ 현재 사용 중인 이메일입니다.')
       return
     }
 
     setSendingEmailCode(true)
     setEmailVerifyMsg('')
     try {
-      const token = localStorage.getItem('buildup_token')
-      const headers = {}
-      if (token) headers['Authorization'] = `Bearer ${token}`
-
-      const res = await fetch(`/api/auth/send-email-change-code?email=${encodeURIComponent(trimmedEmail)}`, {
+      const res = await fetch('/api/mail/send-change-code', {
         method: 'POST',
-        headers
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmed })
       })
       const data = await res.json()
       if (res.ok && (data.status === 'SUCCESS' || data.code === 'SUC_001')) {
         setEmailCodeSent(true)
-        setEmailVerified(false)
         setEmailVerifyMsg('✓ 인증번호가 발송되었습니다. 메일함을 확인해주세요.')
       } else {
-        setEmailVerifyMsg(data.message || '✕ 인증번호 발송에 실패했습니다.')
+        setEmailVerifyMsg(data.message || '인증번호 발송에 실패했습니다. (중복된 이메일 여부를 확인해주세요)')
       }
     } catch (err) {
-      console.error('[이메일 인증코드 발송 오류]', err)
-      setEmailVerifyMsg('서버와 통신할 수 없습니다. 잠시 후 다시 시도해주세요.')
+      setEmailVerifyMsg('서버와 통신할 수 없습니다.')
     } finally {
       setSendingEmailCode(false)
     }
   }
 
-  // 이메일 변경 인증번호 확인
+  // 이메일 인증번호 검증
   const handleVerifyEmailCode = async () => {
-    const trimmedEmail = email.trim()
     const trimmedCode = emailAuthCode.trim()
     if (!trimmedCode) {
-      setEmailVerifyMsg('인증번호를 입력해주세요.')
+      setEmailVerifyMsg('인증번호 6자리를 입력해주세요.')
       return
     }
 
     setVerifyingEmailCode(true)
     try {
-      const token = localStorage.getItem('buildup_token')
-      const headers = {}
-      if (token) headers['Authorization'] = `Bearer ${token}`
-
-      const res = await fetch(`/api/auth/verify-email-change-code?email=${encodeURIComponent(trimmedEmail)}&code=${encodeURIComponent(trimmedCode)}`, {
+      const res = await fetch('/api/mail/verify-change-code', {
         method: 'POST',
-        headers
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), authCode: trimmedCode })
       })
       const data = await res.json()
       if (res.ok && (data.status === 'SUCCESS' || data.code === 'SUC_001')) {
@@ -205,55 +555,50 @@ export default function MyPage() {
         setEmailVerifyMsg('✓ 이메일 인증이 완료되었습니다.')
       } else {
         setEmailVerified(false)
-        setEmailVerifyMsg(data.message || '✕ 인증번호가 일치하지 않거나 만료되었습니다.')
+        setEmailVerifyMsg(data.message || '인증번호가 일치하지 않거나 만료되었습니다.')
       }
     } catch (err) {
-      console.error('[이메일 인증코드 확인 오류]', err)
-      setEmailVerifyMsg('서버와 통신할 수 없습니다. 잠시 후 다시 시도해주세요.')
+      setEmailVerifyMsg('인증 확인 중 오류가 발생했습니다.')
     } finally {
       setVerifyingEmailCode(false)
     }
   }
 
-  // 정보 수정 저장
+  // 프로필 저장
   const handleSave = async (e) => {
     e.preventDefault()
     setMessage('')
     setErrorMsg('')
 
     const trimmedNickname = nickname.trim()
+    const trimmedEmail = email.trim()
+
     if (!trimmedNickname) {
       setErrorMsg('닉네임을 입력해주세요.')
       return
     }
+
     if (!NICKNAME_REGEX.test(trimmedNickname)) {
-      setErrorMsg('닉네임은 2~20자의 한글, 영문, 숫자만 사용할 수 있습니다. (특수문자, 공백 불가)')
+      setErrorMsg('닉네임은 2~20자의 한글, 영문, 숫자만 사용할 수 있습니다.')
       return
     }
-    if (!nicknameChecked) {
+
+    if (trimmedNickname.toLowerCase() !== profile?.nickname?.toLowerCase() && !nicknameChecked) {
       setErrorMsg('닉네임 중복확인을 진행해주세요.')
       return
     }
 
-    const trimmedEmail = email.trim()
-    if (!trimmedEmail) {
-      setErrorMsg('이메일을 입력해주세요.')
+    if (trimmedEmail && !EMAIL_REGEX.test(trimmedEmail)) {
+      setErrorMsg('올바른 이메일 형식을 입력해주세요.')
       return
     }
 
-    if (!EMAIL_REGEX.test(trimmedEmail)) {
-      setErrorMsg('올바른 이메일 형식을 입력해주세요. (영문, 숫자, 특수문자 . _ - 허용, 4~30자)')
-      return
-    }
-
-    // 이메일이 기존과 다른 경우 인증 완료 필수
     if (trimmedEmail.toLowerCase() !== profile?.email?.toLowerCase() && !emailVerified) {
-      setErrorMsg('이메일 변경을 위해 이메일 인증을 완료해주세요.')
+      setErrorMsg('변경된 이메일의 인증을 완료해주세요.')
       return
     }
 
     setSaving(true)
-
     try {
       const token = localStorage.getItem('buildup_token')
       const headers = { 'Content-Type': 'application/json' }
@@ -265,8 +610,8 @@ export default function MyPage() {
         method: 'PUT',
         headers,
         body: JSON.stringify({
-          nickname: nickname.trim(),
-          email: email.trim(),
+          nickname: trimmedNickname,
+          email: trimmedEmail,
           favoriteTeamId: favoriteTeamId ? Number(favoriteTeamId) : null
         })
       })
@@ -275,22 +620,21 @@ export default function MyPage() {
       const updatedUser = data.data || data.user
 
       if (res.ok && (data.status === 'SUCCESS' || data.code === 'SUC_001') && updatedUser) {
-        setMessage('회원 정보가 성공적으로 수정되었습니다.')
         setProfile(updatedUser)
         dispatch(updateUser(updatedUser))
+        setMessage('회원 정보가 성공적으로 변경되었습니다.')
         setIsEditing(false)
       } else {
         setErrorMsg(data.message || '정보 수정 중 오류가 발생했습니다.')
       }
     } catch (err) {
-      console.error('[프로필 수정 오류]', err)
-      setErrorMsg('서버와 통신할 수 없습니다. 잠시 후 다시 시도해주세요.')
+      setErrorMsg('서버와 통신할 수 없습니다.')
     } finally {
       setSaving(false)
     }
   }
 
-  // 회원 탈퇴 모달 열기
+  // 회원 탈퇴 버튼 클릭
   const handleWithdrawClick = () => {
     setWithdrawAgreed(false)
     setShowWithdrawModal(true)
@@ -333,282 +677,973 @@ export default function MyPage() {
     }
   }
 
+<<<<<<< HEAD
   if (isLoggedIn && loading) {
     return <div className="mypage-loading">회원 정보를 불러오는 중입니다...</div>
+=======
+  if (loading) {
+    return (
+      <div className={`mypage-dashboard-bg ${currentTheme === 'light' ? 'mypage-light-mode' : ''}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: currentTheme === 'light' ? '#38003c' : '#00ff87', fontSize: '16px', fontWeight: 700 }}>회원 대시보드를 불러오는 중입니다...</p>
+      </div>
+    )
+>>>>>>> 77b02eaac4ad236b864969fb1e831fa39dd79b01
   }
 
   if (!isLoggedIn || !profile) {
     return (
-      <div className="auth-container">
-        <div className="auth-card">
-          <div className="auth-header">
-            <h2>로그인이 필요합니다</h2>
-            <p>마이페이지는 로그인 후 이용하실 수 있습니다.</p>
+      <div className={`mypage-dashboard-bg ${currentTheme === 'light' ? 'mypage-light-mode' : ''}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="mypage-card-surface" style={{ maxWidth: '440px', padding: '40px 32px', textAlign: 'center' }}>
+          <div style={{ marginBottom: '18px', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255, 22, 107, 0.12)', border: '1px solid rgba(255, 22, 107, 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <IconLock size={26} color="#ff3377" />
+            </div>
           </div>
-          <div style={{ textAlign: 'center', marginTop: '20px' }}>
-            <a href="/plug/login" className="auth-submit-btn" style={{ display: 'inline-block', textDecoration: 'none' }}>
-              로그인하러 가기
-            </a>
-          </div>
+          <h2 style={{ color: currentTheme === 'light' ? '#0f172a' : '#ffffff', fontSize: '22px', fontWeight: 800, margin: '0 0 8px' }}>로그인이 필요합니다</h2>
+          <p style={{ color: currentTheme === 'light' ? '#64748b' : '#a795b5', fontSize: '14px', margin: '0 0 24px' }}>마이페이지는 회원 로그인 후 이용하실 수 있습니다.</p>
+          <a
+            href="/plug/login"
+            className="mypage-primary-btn"
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', padding: '0 28px' }}
+          >
+            로그인하러 가기
+          </a>
         </div>
       </div>
     )
   }
 
-  // 응원 구단 데이터 찾기 (실제 DB 구단 목록 탐색)
-  const favoriteTeam = teamList.find((t) => String(t.teamId) === String(profile.favoriteTeamId))
+  // 선택된 응원 구단 데이터
+  const selectedFavoriteTeam = teamList.find((t) => String(t.teamId) === String(favoriteTeamId))
+  const profileFavoriteTeam = teamList.find((t) => String(t.teamId) === String(profile?.favoriteTeamId))
 
   return (
-    <div className="mypage-container">
-      <div className="mypage-card">
-        {/* 상단 프로필 요약 헤더 */}
-        <div className="mypage-header">
-          <div className="mypage-avatar-area">
-            {favoriteTeam?.emblemUrl ? (
-              <img
-                src={favoriteTeam.emblemUrl}
-                alt={favoriteTeam.teamNameKor || favoriteTeam.teamName}
-                className="mypage-team-emblem"
-              />
-            ) : (
-              <div className="mypage-default-avatar">⚽</div>
-            )}
-          </div>
-          <div className="mypage-user-title">
-            <h2>{profile.nickname} <span>님</span></h2>
-            <p className="mypage-login-id">@{profile.loginId}</p>
-            {favoriteTeam && (
-              <span className="mypage-team-badge">응원 구단: {favoriteTeam.teamNameKor || favoriteTeam.teamName}</span>
-            )}
-          </div>
-        </div>
+    <div className={`mypage-dashboard-bg ${currentTheme === 'light' ? 'mypage-light-mode' : ''}`}>
+      {/* 프리미어리그 시그니처 곡면 라일락 리본 & 앰비언트 하이라이트 배경 (대시보드 전용) */}
+      <div className="mypage-bg-decor" aria-hidden="true">
+        <svg
+          className="mypage-bg-svg"
+          viewBox="0 0 1440 900"
+          preserveAspectRatio="xMidYMid slice"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <linearGradient id="mypageRibbonGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#d886ed" stopOpacity="0.15" />
+              <stop offset="40%" stopColor="#a33eb0" stopOpacity="0.10" />
+              <stop offset="75%" stopColor="#641670" stopOpacity="0.05" />
+              <stop offset="100%" stopColor="#2c0533" stopOpacity="0" />
+            </linearGradient>
+            <linearGradient id="mypageRibbonGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#f0aeff" stopOpacity="0.14" />
+              <stop offset="45%" stopColor="#962ba3" stopOpacity="0.09" />
+              <stop offset="100%" stopColor="#2c0533" stopOpacity="0" />
+            </linearGradient>
+            <radialGradient id="mypageNeonGreenGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#00ff87" stopOpacity="0.08" />
+              <stop offset="50%" stopColor="#00ff87" stopOpacity="0.03" />
+              <stop offset="100%" stopColor="#00ff87" stopOpacity="0" />
+            </radialGradient>
+            <radialGradient id="mypagePinkGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#ff166b" stopOpacity="0.09" />
+              <stop offset="60%" stopColor="#ff166b" stopOpacity="0.02" />
+              <stop offset="100%" stopColor="#ff166b" stopOpacity="0" />
+            </radialGradient>
+            <radialGradient id="mypageTopGlow" cx="50%" cy="0%" r="65%">
+              <stop offset="0%" stopColor="#e8a8fc" stopOpacity="0.18" />
+              <stop offset="35%" stopColor="#b446c7" stopOpacity="0.11" />
+              <stop offset="70%" stopColor="#691175" stopOpacity="0.04" />
+              <stop offset="100%" stopColor="#2c0533" stopOpacity="0" />
+            </radialGradient>
+            <filter id="ribbonSoftGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="18" />
+            </filter>
+          </defs>
 
-        {/* 포인트 및 활동 요약 바 */}
-        <div className="mypage-stat-bar">
-          <div className="mypage-stat-item">
-            <span className="mypage-stat-label">보유 포인트</span>
-            <span className="mypage-stat-value">{profile.point?.toLocaleString() || 100} P</span>
+          {/* ★ 네비바 바로 아래를 화사하게 밝히는 상단 중앙 라일락 오로라 빔 ★ */}
+          <ellipse cx="720" cy="50" rx="650" ry="180" fill="url(#mypageTopGlow)" filter="url(#ribbonSoftGlow)" />
+
+          {/* 좌상단 비비드 핑크 앰비언트 글로우 */}
+          <circle cx="120" cy="180" r="260" fill="url(#mypagePinkGlow)" />
+
+          {/* 우하단 네온 그린 앰비언트 글로우 */}
+          <circle cx="1280" cy="740" r="320" fill="url(#mypageNeonGreenGlow)" />
+
+          {/* 네비바 바로 아래를 비추며 우측으로 뻗어나가는 상단 아크 리본 0 */}
+          <path
+            d="M 280,0 C 460,70 780,110 1140,40 L 1260,0 C 880,90 540,55 350,0 Z"
+            fill="url(#mypageRibbonGrad2)"
+            filter="url(#ribbonSoftGlow)"
+          />
+
+          {/* 우상단에서 중앙으로 흐르는 라일락 아크 리본 1 */}
+          <path
+            d="M 960,-60 C 1140,80 1300,220 1480,360 L 1480,210 C 1310,90 1160,-20 1020,-60 Z"
+            fill="url(#mypageRibbonGrad1)"
+            filter="url(#ribbonSoftGlow)"
+          />
+
+          {/* 우측 상단에서 좌하단으로 유려하게 가로지르는 메인 쉐브론 곡면 리본 2 */}
+          <path
+            d="M 1440,70 C 1220,180 1040,330 850,530 C 700,690 550,800 280,890 L 210,820 C 490,730 650,620 800,450 C 970,270 1170,130 1440,-10 Z"
+            fill="url(#mypageRibbonGrad2)"
+            filter="url(#ribbonSoftGlow)"
+          />
+
+          {/* 좌상단 보조 쉐브론 곡선 3 */}
+          <path
+            d="M -40,110 C 130,170 270,280 390,450 L 320,490 C 210,330 80,230 -40,170 Z"
+            fill="url(#mypageRibbonGrad1)"
+            filter="url(#ribbonSoftGlow)"
+          />
+        </svg>
+      </div>
+
+      <div className="mypage-dashboard-wrapper">
+        {/* 상단 대시보드 헤더 */}
+        <header className="mypage-top-header">
+          <div className="mypage-top-title-area">
+            <h1>
+              MY <span className="mypage-title-highlight">DASHBOARD</span>
+            </h1>
+            <p>프리미어리그 팬 커뮤니티 활동과 프로필을 한눈에 관리하세요</p>
           </div>
-          <div className="mypage-stat-item">
-            <span className="mypage-stat-label">회원 등급</span>
-            <span className="mypage-stat-value">{profile.roleName || (profile.roleCode === 9 ? '관리자' : '일반회원')}</span>
+          <div className="mypage-top-meta-badge">
+            <span className="dot"></span>
+            <span>{profile.roleName || (profile.roleCode === 9 ? '최고 관리자' : '정규 회원')}</span>
           </div>
-          <div className="mypage-stat-item">
-            <span className="mypage-stat-label">가입일</span>
-            <span className="mypage-stat-value">{profile.createdAt ? profile.createdAt.split(' ')[0] : '2026-09-18'}</span>
-          </div>
-        </div>
+        </header>
 
-        {message && <div className="auth-success-banner">{message}</div>}
-        {errorMsg && <div className="auth-error-banner">{errorMsg}</div>}
-
-        {/* 프로필 상세 및 수정 폼 */}
-        {!isEditing ? (
-          <div className="mypage-view-section">
-            <div className="mypage-info-row">
-              <span className="mypage-info-label">아이디</span>
-              <span className="mypage-info-value">{profile.loginId}</span>
-            </div>
-            <div className="mypage-info-row">
-              <span className="mypage-info-label">닉네임</span>
-              <span className="mypage-info-value">{profile.nickname}</span>
-            </div>
-            <div className="mypage-info-row">
-              <span className="mypage-info-label">이메일</span>
-              <span className="mypage-info-value">{profile.email || '미등록'}</span>
-            </div>
-            <div className="mypage-info-row">
-              <span className="mypage-info-label">응원 구단</span>
-              <span className="mypage-info-value">
-                {favoriteTeam ? (favoriteTeam.teamNameKor || favoriteTeam.teamName) : '선택된 구단 없음'}
-              </span>
-            </div>
-
-            <div className="mypage-actions">
-              <button
-                type="button"
-                className="auth-submit-btn"
-                onClick={() => {
-                  setIsEditing(true)
-                  // 수정 진입 시 현재 닉네임과 이메일은 이미 본인 것이므로 통과 처리
-                  setNicknameChecked(true)
-                  setNicknameCheckMsg('')
-                  setEmailVerified(true)
-                  setEmailVerifyMsg('')
-                  setEmailCodeSent(false)
-                  setEmailAuthCode('')
-                }}
-              >
-                회원 정보 수정
-              </button>
-            </div>
-          </div>
-        ) : (
-          <form onSubmit={handleSave} className="auth-form" style={{ marginTop: '20px' }}>
-            <div className="auth-field">
-              <label>아이디 (변경 불가)</label>
-              <input type="text" value={profile.loginId} disabled />
-            </div>
-
-            <div className="auth-field">
-              <label htmlFor="editNickname">닉네임</label>
-              <div className="auth-input-group">
-                <input
-                  id="editNickname"
-                  type="text"
-                  placeholder="한글, 영문, 숫자 2~20자"
-                  maxLength={20}
-                  value={nickname}
-                  onChange={(e) => {
-                    setNickname(e.target.value)
-                    setNicknameChecked(false)
-                    setNicknameCheckMsg('')
-                  }}
-                />
-                <button
-                  type="button"
-                  className="auth-check-btn"
-                  onClick={handleCheckNickname}
-                >
-                  중복확인
-                </button>
-              </div>
-              {nicknameCheckMsg && (
-                <span className={`auth-hint ${nicknameChecked ? 'auth-hint--ok' : 'auth-hint--err'}`}>
-                  {nicknameCheckMsg}
-                </span>
-              )}
-            </div>
-
-            <div className="auth-field">
-              <label htmlFor="editEmail">이메일</label>
-              <div className="auth-input-group">
-                <input
-                  id="editEmail"
-                  type="email"
-                  placeholder="example@domain.com"
-                  value={email}
-                  onChange={(e) => {
-                    const newEmail = e.target.value
-                    setEmail(newEmail)
-                    if (newEmail.trim().toLowerCase() === profile?.email?.toLowerCase()) {
-                      setEmailVerified(true)
-                      setEmailVerifyMsg('')
-                      setEmailCodeSent(false)
-                    } else {
-                      setEmailVerified(false)
-                      setEmailVerifyMsg('')
-                      setEmailCodeSent(false)
-                    }
-                  }}
-                />
-                {email.trim().toLowerCase() !== profile?.email?.toLowerCase() && (
-                  <button
-                    type="button"
-                    className="auth-check-btn"
-                    onClick={handleSendEmailCode}
-                    disabled={sendingEmailCode || emailVerified}
-                  >
-                    {sendingEmailCode ? '발송 중...' : (emailCodeSent ? '재발송' : '인증번호 발송')}
-                  </button>
+        {/* 2열 메인 대시보드 그리드 */}
+        <div className="mypage-grid">
+          {/* 좌측 패널: 프로필 카드 & 사이드 네비게이션 */}
+          <aside className="mypage-sidebar">
+            <div className="mypage-card-surface mypage-profile-card">
+              <div className="mypage-avatar-frame">
+                {profileFavoriteTeam?.emblemUrl ? (
+                  <img
+                    src={profileFavoriteTeam.emblemUrl}
+                    alt={profileFavoriteTeam.teamNameKor || profileFavoriteTeam.teamName}
+                    className="mypage-avatar-img"
+                  />
+                ) : (
+                  <span className="mypage-avatar-default">
+                    <IconBall size={42} color="#00ff87" />
+                  </span>
                 )}
               </div>
-              {email && (
-                <span className={`auth-hint ${EMAIL_REGEX.test(email.trim()) ? 'auth-hint--ok' : 'auth-hint--err'}`}>
-                  {EMAIL_REGEX.test(email.trim()) ? '✓ 올바른 이메일 형식입니다.' : '✕ 올바른 이메일 형식이 아닙니다. (영문/숫자 시작·끝, 특수문자 . _ - 허용, 4~30자)'}
-                </span>
-              )}
+              <h3 className="mypage-user-name">{profile.nickname}</h3>
+              <p className="mypage-user-id">@{profile.loginId}</p>
 
-              {/* 인증번호 입력 필드 (기존 이메일과 다르고 코드가 발송된 경우 또는 아직 인증 전인 경우) */}
-              {email.trim().toLowerCase() !== profile?.email?.toLowerCase() && emailCodeSent && !emailVerified && (
-                <div style={{ marginTop: '10px' }}>
-                  <div className="auth-input-group">
-                    <input
-                      type="text"
-                      placeholder="인증번호 6자리 입력"
-                      maxLength={6}
-                      value={emailAuthCode}
-                      onChange={(e) => setEmailAuthCode(e.target.value)}
-                    />
+              <div className="mypage-badge-group">
+                <span className="mypage-role-badge">
+                  {profile.roleName || (profile.roleCode === 9 ? 'ADMIN' : 'MEMBER')}
+                </span>
+                {profileFavoriteTeam && (
+                  <span className="mypage-fav-team-badge">
+                    {profileFavoriteTeam.teamNameKor || profileFavoriteTeam.teamName}
+                  </span>
+                )}
+              </div>
+
+              <div
+                className="mypage-point-box"
+                onClick={handleOpenPointModal}
+                title="클릭하여 최근 5번의 포인트 변동 이력을 확인하세요"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    handleOpenPointModal()
+                  }
+                }}
+              >
+                <span className="mypage-point-label">
+                  보유 포인트
+                  <span className="mypage-point-hint">내역</span>
+                </span>
+                <span className="mypage-point-val">{profile.point?.toLocaleString() || 100} P</span>
+              </div>
+            </div>
+
+            {/* 사이드 탭 메뉴 (레퍼런스 사이드바 스타일) */}
+            <div className="mypage-card-surface mypage-side-nav">
+              <button
+                type="button"
+                className={`mypage-side-btn ${activeTab === 'profile' ? 'is-active' : ''}`}
+                onClick={() => handleTabChange('profile')}
+              >
+                <span className="mypage-side-btn-label">
+                  <IconSettings size={18} />
+                  <span>프로필 정보 설정</span>
+                </span>
+              </button>
+              <button
+                type="button"
+                className={`mypage-side-btn ${activeTab === 'posts' ? 'is-active' : ''}`}
+                onClick={() => handleTabChange('posts')}
+              >
+                <span className="mypage-side-btn-label">
+                  <IconArticle size={18} />
+                  <span>내가 쓴 글</span>
+                </span>
+                <span className="mypage-side-badge">{activityCounts.postCount}</span>
+              </button>
+              <button
+                type="button"
+                className={`mypage-side-btn ${activeTab === 'comments' ? 'is-active' : ''}`}
+                onClick={() => handleTabChange('comments')}
+              >
+                <span className="mypage-side-btn-label">
+                  <IconComment size={18} />
+                  <span>내가 쓴 댓글</span>
+                </span>
+                <span className="mypage-side-badge">{activityCounts.commentCount}</span>
+              </button>
+              <button
+                type="button"
+                className={`mypage-side-btn ${activeTab === 'likes' ? 'is-active' : ''}`}
+                onClick={() => handleTabChange('likes')}
+              >
+                <span className="mypage-side-btn-label">
+                  <IconHeart size={18} />
+                  <span>좋아요한 글</span>
+                </span>
+                <span className="mypage-side-badge">{activityCounts.likedPostCount}</span>
+              </button>
+            </div>
+
+            {/* 좌측 사이드바: 애드센스 스폰서 배너 카드 (300x250) */}
+            <div className="mypage-card-surface mypage-ad-card">
+              <div className="mypage-ad-badge">ADVERTISEMENT</div>
+              <div className="mypage-ad-box">
+                {/* 실제 애드센스 단위 */}
+                <ins
+                  ref={sideAdRef}
+                  className="adsbygoogle mypage-ad-ins"
+                  style={{ display: 'block' }}
+                  data-ad-client="ca-pub-6961977480009285"
+                  data-ad-format="rectangle"
+                  data-full-width-responsive="true"
+                  data-ad-test="on"
+                />
+
+                {/* 광고 로드 전 / 로컬 개발 환경용 플레이스홀더 */}
+                <div className="mypage-ad-placeholder" aria-hidden="true">
+                  <span className="mypage-ad-icon">
+                    <IconBall size={30} color={currentTheme === 'light' ? '#38003c' : '#00ff87'} />
+                  </span>
+                  <div className="mypage-ad-text">
+                    <strong>PLUGIN SIDEBAR AD BANNER</strong>
+                    <p>프리미어리그 실시간 분석 & 팬 커뮤니티 PL:UG</p>
+                  </div>
+                  <span className="mypage-ad-subtag">Official Partner</span>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          {/* 우측 패널: 상단 3구 스탯 위젯 + 메인 워크스페이스 */}
+          <main className="mypage-content-area">
+            {/* 3구 요약 통계 위젯 바 (레퍼런스 카드 스타일) */}
+            <section className="mypage-stat-grid" aria-label="활동 통계 요약">
+              <div
+                className={`mypage-card-surface mypage-stat-card ${activeTab === 'posts' ? 'is-active' : ''}`}
+                onClick={() => handleTabChange('posts')}
+              >
+                <div className="mypage-stat-card-info">
+                  <span className="mypage-stat-card-title">작성한 게시글</span>
+                  <span className="mypage-stat-card-num">{activityCounts.postCount}</span>
+                </div>
+                <div className="mypage-stat-card-icon">
+                  <IconArticle size={22} color={currentTheme === 'light' ? '#38003c' : '#00ff87'} />
+                </div>
+              </div>
+
+              <div
+                className={`mypage-card-surface mypage-stat-card ${activeTab === 'comments' ? 'is-active' : ''}`}
+                onClick={() => handleTabChange('comments')}
+              >
+                <div className="mypage-stat-card-info">
+                  <span className="mypage-stat-card-title">남긴 댓글</span>
+                  <span className="mypage-stat-card-num">{activityCounts.commentCount}</span>
+                </div>
+                <div className="mypage-stat-card-icon">
+                  <IconComment size={22} color="#d886ed" />
+                </div>
+              </div>
+
+              <div
+                className={`mypage-card-surface mypage-stat-card ${activeTab === 'likes' ? 'is-active' : ''}`}
+                onClick={() => handleTabChange('likes')}
+              >
+                <div className="mypage-stat-card-info">
+                  <span className="mypage-stat-card-title">좋아요한 글</span>
+                  <span className="mypage-stat-card-num">{activityCounts.likedPostCount}</span>
+                </div>
+                <div className="mypage-stat-card-icon">
+                  <IconHeart size={22} color="#ff166b" filled />
+                </div>
+              </div>
+            </section>
+
+            {/* 알림 메시지 배너 */}
+            {message && (
+              <div
+                style={{
+                  padding: '12px 18px',
+                  borderRadius: '12px',
+                  background: 'rgba(0, 255, 135, 0.12)',
+                  border: '1px solid rgba(0, 255, 135, 0.4)',
+                  color: '#00ff87',
+                  fontSize: '14px',
+                  fontWeight: 700
+                }}
+              >
+                ✓ {message}
+              </div>
+            )}
+            {errorMsg && (
+              <div
+                style={{
+                  padding: '12px 18px',
+                  borderRadius: '12px',
+                  background: 'rgba(255, 22, 107, 0.12)',
+                  border: '1px solid rgba(255, 22, 107, 0.4)',
+                  color: '#ff3377',
+                  fontSize: '14px',
+                  fontWeight: 700
+                }}
+              >
+                ✕ {errorMsg}
+              </div>
+            )}
+
+            {/* 메인 탭 콘텐츠 카드 */}
+            <div className="mypage-card-surface mypage-main-panel">
+              {/* ---------------- 탭 1: 프로필 설정 ---------------- */}
+              {activeTab === 'profile' && (
+                <div className="mypage-panel-tab-pane">
+                  <div className="mypage-panel-header">
+                    <div>
+                      <h2>
+                        <IconSettings size={22} color={currentTheme === 'light' ? '#38003c' : '#00ff87'} />
+                        프로필 정보 관리
+                      </h2>
+                      <p>기본 회원 정보 및 응원하는 구단을 수정할 수 있습니다.</p>
+                    </div>
+                    {!isEditing && (
+                      <button
+                        type="button"
+                        className="mypage-action-outline-btn"
+                        onClick={() => {
+                          setIsEditing(true)
+                          setNicknameChecked(true)
+                          setNicknameCheckMsg('')
+                          setEmailVerified(true)
+                          setEmailVerifyMsg('')
+                          setEmailCodeSent(false)
+                          setEmailAuthCode('')
+                        }}
+                      >
+                        프로필 수정하기
+                      </button>
+                    )}
+                  </div>
+
+                  {!isEditing ? (
+                    <>
+                      <div className="mypage-view-table">
+                      <div className="mypage-view-row">
+                        <span className="mypage-view-row-label">로그인 아이디</span>
+                        <span className="mypage-view-row-val">{profile.loginId}</span>
+                      </div>
+                      <div className="mypage-view-row">
+                        <span className="mypage-view-row-label">닉네임</span>
+                        <span className="mypage-view-row-val">{profile.nickname}</span>
+                      </div>
+                      <div className="mypage-view-row">
+                        <span className="mypage-view-row-label">이메일 계정</span>
+                        <span className="mypage-view-row-val">{profile.email || '미등록'}</span>
+                      </div>
+                      <div className="mypage-view-row">
+                        <span className="mypage-view-row-label">마이 응원 구단</span>
+                        <div className="mypage-fav-team-display">
+                          {profileFavoriteTeam ? (
+                            <>
+                              <img
+                                src={profileFavoriteTeam.emblemUrl}
+                                alt={profileFavoriteTeam.teamNameKor}
+                                className="mypage-fav-team-emblem-sm"
+                              />
+                              <span className="mypage-view-row-val">
+                                {profileFavoriteTeam.teamNameKor} ({profileFavoriteTeam.teamName})
+                              </span>
+                            </>
+                          ) : (
+                            <span className="mypage-view-row-val" style={{ color: '#8e7a9c' }}>
+                              선택된 구단 없음
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mypage-view-row">
+                        <span className="mypage-view-row-label">가입 일자</span>
+                        <span className="mypage-view-row-val">
+                          {profile.createdAt ? profile.createdAt.split(' ')[0] : '2026-09-18'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 2열 하단 대시보드 위젯: 1) 나의 승부예측 전적/적중률  2) 마이 응원 구단 다음 경기 */}
+                    <div className="mypage-dashboard-subwidgets">
+                      {/* 위젯 1: 나의 승부예측 전적 & 적중률 */}
+                      <div className="mypage-subwidget-card">
+                        <div className="mypage-subwidget-header">
+                          <span className="mypage-subwidget-title">
+                            <IconTarget size={18} color={currentTheme === 'light' ? '#38003c' : '#00ff87'} />
+                            승부예측 전적 & 적중률
+                          </span>
+                          <a href="/plug/prediction" className="mypage-subwidget-link">
+                            예측하기 →
+                          </a>
+                        </div>
+
+                        <div className="mypage-pred-stat-row">
+                          <div className="mypage-pred-stat-box">
+                            <span className="mypage-pred-stat-lbl">총 참여 횟수</span>
+                            <strong className="mypage-pred-stat-val">{predictStats.total}회</strong>
+                          </div>
+                          <div className="mypage-pred-stat-box">
+                            <span className="mypage-pred-stat-lbl">적중 성공</span>
+                            <strong className="mypage-pred-stat-val mypage-pred-stat-win-val">
+                              {predictStats.win}회
+                            </strong>
+                          </div>
+                          <div className="mypage-pred-stat-box mypage-pred-stat-rate-box">
+                            <span className="mypage-pred-stat-lbl">적중률</span>
+                            <strong className="mypage-pred-rate-val">{predictStats.rate}%</strong>
+                          </div>
+                        </div>
+
+                        {/* 적중률 프로그레스 게이지 바 */}
+                        <div className="mypage-pred-progress-wrap">
+                          <div
+                            className="mypage-pred-progress-bar"
+                            style={{ width: `${Math.min(Number(predictStats.rate) || 0, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* 위젯 2: 내 응원 구단 다음 경기 프리뷰 */}
+                      <div className="mypage-subwidget-card">
+                        <div className="mypage-subwidget-header">
+                          <span className="mypage-subwidget-title">
+                            <IconBall size={18} color={currentTheme === 'light' ? '#38003c' : '#00ff87'} />
+                            응원 구단 다음 경기
+                          </span>
+                          {nextFavoriteMatch && (
+                            <span className="mypage-match-dday-badge">{nextFavoriteMatch.dDayTag}</span>
+                          )}
+                        </div>
+
+                        {nextFavoriteMatch ? (
+                          <div className="mypage-next-match-content">
+                            <div className="mypage-next-match-teams">
+                              <div className="mypage-match-team-col">
+                                {nextFavoriteMatch.favTeamEmblem ? (
+                                  <img
+                                    src={nextFavoriteMatch.favTeamEmblem}
+                                    alt={nextFavoriteMatch.favTeamName}
+                                    className="mypage-match-emblem"
+                                  />
+                                ) : (
+                                  <IconBall size={32} color="#8b7899" />
+                                )}
+                                <span className="mypage-match-team-name">{nextFavoriteMatch.favTeamName}</span>
+                              </div>
+
+                              <div className="mypage-match-vs">VS</div>
+
+                              <div className="mypage-match-team-col">
+                                {nextFavoriteMatch.opponentEmblem ? (
+                                  <img
+                                    src={nextFavoriteMatch.opponentEmblem}
+                                    alt={nextFavoriteMatch.opponentName}
+                                    className="mypage-match-emblem"
+                                  />
+                                ) : (
+                                  <IconBall size={32} color="#8b7899" />
+                                )}
+                                <span className="mypage-match-team-name">{nextFavoriteMatch.opponentName}</span>
+                              </div>
+                            </div>
+
+                            <div className="mypage-match-meta-bar">
+                              <span>{nextFavoriteMatch.matchDateStr}</span>
+                              <span className="mypage-match-meta-dot">•</span>
+                              <span>{nextFavoriteMatch.stadium}</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mypage-next-match-empty">
+                            {profileFavoriteTeam ? (
+                              <p>예정된 가까운 경기 일정이 없습니다.</p>
+                            ) : (
+                              <>
+                                <p>응원 구단을 등록하시면 다음 경기 일정이 표시됩니다.</p>
+                                <button
+                                  type="button"
+                                  className="mypage-subwidget-action-btn"
+                                  onClick={() => setIsEditing(true)}
+                                >
+                                  응원 구단 선택하기
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                  ) : (
+                    <form onSubmit={handleSave} className="mypage-dark-form">
+                      <div className="mypage-form-field">
+                        <label>아이디 (변경 불가)</label>
+                        <input type="text" className="mypage-dark-input" value={profile.loginId} disabled />
+                      </div>
+
+                      <div className="mypage-form-field">
+                        <label htmlFor="editNickname">닉네임</label>
+                        <div className="mypage-input-with-btn">
+                          <input
+                            id="editNickname"
+                            type="text"
+                            className="mypage-dark-input"
+                            placeholder="한글, 영문, 숫자 2~20자"
+                            maxLength={20}
+                            value={nickname}
+                            onChange={(e) => {
+                              setNickname(e.target.value)
+                              setNicknameChecked(false)
+                              setNicknameCheckMsg('')
+                            }}
+                          />
+                          <button
+                            type="button"
+                            className="mypage-action-outline-btn"
+                            onClick={handleCheckNickname}
+                          >
+                            중복확인
+                          </button>
+                        </div>
+                        {nicknameCheckMsg && (
+                          <span className={`mypage-form-hint ${nicknameChecked ? 'is-ok' : 'is-err'}`}>
+                            {nicknameCheckMsg}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="mypage-form-field">
+                        <label htmlFor="editEmail">이메일</label>
+                        <div className="mypage-input-with-btn">
+                          <input
+                            id="editEmail"
+                            type="email"
+                            className="mypage-dark-input"
+                            placeholder="example@domain.com"
+                            value={email}
+                            onChange={(e) => {
+                              const newEmail = e.target.value
+                              setEmail(newEmail)
+                              if (newEmail.trim().toLowerCase() === profile?.email?.toLowerCase()) {
+                                setEmailVerified(true)
+                                setEmailVerifyMsg('')
+                                setEmailCodeSent(false)
+                              } else {
+                                setEmailVerified(false)
+                                setEmailVerifyMsg('')
+                                setEmailCodeSent(false)
+                              }
+                            }}
+                          />
+                          {email.trim().toLowerCase() !== profile?.email?.toLowerCase() && (
+                            <button
+                              type="button"
+                              className="mypage-action-outline-btn"
+                              onClick={handleSendEmailCode}
+                              disabled={sendingEmailCode || emailVerified}
+                            >
+                              {sendingEmailCode ? '발송 중...' : emailCodeSent ? '재발송' : '인증번호 발송'}
+                            </button>
+                          )}
+                        </div>
+                        {email && (
+                          <span
+                            className={`mypage-form-hint ${
+                              EMAIL_REGEX.test(email.trim()) ? 'is-ok' : 'is-err'
+                            }`}
+                          >
+                            {EMAIL_REGEX.test(email.trim())
+                              ? '✓ 올바른 이메일 형식입니다.'
+                              : '✕ 올바른 이메일 형식이 아닙니다.'}
+                          </span>
+                        )}
+
+                        {/* 인증번호 입력 필드 */}
+                        {email.trim().toLowerCase() !== profile?.email?.toLowerCase() &&
+                          emailCodeSent &&
+                          !emailVerified && (
+                            <div className="mypage-input-with-btn" style={{ marginTop: '8px' }}>
+                              <input
+                                type="text"
+                                className="mypage-dark-input"
+                                placeholder="인증번호 6자리 입력"
+                                maxLength={6}
+                                value={emailAuthCode}
+                                onChange={(e) => setEmailAuthCode(e.target.value)}
+                              />
+                              <button
+                                type="button"
+                                className="mypage-action-outline-btn"
+                                onClick={handleVerifyEmailCode}
+                                disabled={verifyingEmailCode}
+                              >
+                                {verifyingEmailCode ? '확인 중...' : '인증 확인'}
+                              </button>
+                            </div>
+                          )}
+
+                        {emailVerifyMsg && (
+                          <span className={`mypage-form-hint ${emailVerified ? 'is-ok' : 'is-err'}`}>
+                            {emailVerifyMsg}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* ★ 핵심: 엠블럼이 포함된 커스텀 구단 드롭다운 셀렉트 UI ★ */}
+                      <div className="mypage-form-field">
+                        <label>응원 구단 선택</label>
+                        <div className={`custom-team-select-wrap ${isTeamDropdownOpen ? 'is-open' : ''}`} ref={teamDropdownRef}>
+                          <button
+                            type="button"
+                            className={`custom-team-trigger ${isTeamDropdownOpen ? 'is-open' : ''}`}
+                            onClick={() => setIsTeamDropdownOpen((prev) => !prev)}
+                          >
+                            <div className="custom-team-selected-content">
+                              {selectedFavoriteTeam ? (
+                                <>
+                                  <div className="custom-team-emblem-badge">
+                                    <img
+                                      src={selectedFavoriteTeam.emblemUrl}
+                                      alt={selectedFavoriteTeam.teamNameKor}
+                                    />
+                                  </div>
+                                  <span className="custom-team-name-primary">
+                                    {selectedFavoriteTeam.teamNameKor}
+                                  </span>
+                                  <span className="custom-team-name-sub">
+                                    ({selectedFavoriteTeam.teamName})
+                                  </span>
+                                </>
+                              ) : (
+                                <span style={{ color: '#a795b5' }}>응원하는 구단을 선택해주세요</span>
+                              )}
+                            </div>
+                            <span className={`custom-team-chevron ${isTeamDropdownOpen ? 'is-open' : ''}`}>
+                              ▼
+                            </span>
+                          </button>
+
+                          {/* 팝오버 드롭다운 목록 */}
+                          {isTeamDropdownOpen && (
+                            <div className="custom-team-dropdown">
+                              <div
+                                className={`custom-team-option ${!favoriteTeamId ? 'is-selected' : ''}`}
+                                onClick={() => {
+                                  setFavoriteTeamId('')
+                                  setIsTeamDropdownOpen(false)
+                                }}
+                              >
+                                <div className="custom-team-option-left">
+                                  <span style={{ fontSize: '18px', width: '28px', textAlign: 'center' }}>⚪</span>
+                                  <span style={{ fontSize: '14px', color: '#c5b4d1' }}>선택 안 함</span>
+                                </div>
+                                {!favoriteTeamId && <span className="custom-team-check-mark">✓</span>}
+                              </div>
+
+                              {teamList.map((team) => {
+                                const isSelected = String(team.teamId) === String(favoriteTeamId)
+                                return (
+                                  <div
+                                    key={team.teamId}
+                                    className={`custom-team-option ${isSelected ? 'is-selected' : ''}`}
+                                    onClick={() => {
+                                      setFavoriteTeamId(String(team.teamId))
+                                      setIsTeamDropdownOpen(false)
+                                    }}
+                                  >
+                                    <div className="custom-team-option-left">
+                                      <div className="custom-team-emblem-badge">
+                                        <img
+                                          src={team.emblemUrl}
+                                          alt={team.teamNameKor || team.teamName}
+                                        />
+                                      </div>
+                                      <div>
+                                        <span className="custom-team-name-primary" style={{ fontSize: '14px' }}>
+                                          {team.teamNameKor || team.teamName}
+                                        </span>
+                                        <span className="custom-team-name-sub" style={{ fontSize: '12px' }}>
+                                          {team.teamName}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    {isSelected && <span className="custom-team-check-mark">✓</span>}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mypage-form-btn-row">
+                        <button type="submit" className="mypage-primary-btn" disabled={saving}>
+                          {saving ? '저장 중...' : '변경사항 저장 완료'}
+                        </button>
+                        <button
+                          type="button"
+                          className="mypage-secondary-btn"
+                          onClick={() => {
+                            setIsEditing(false)
+                            setNickname(profile.nickname || '')
+                            setEmail(profile.email || '')
+                            setFavoriteTeamId(profile.favoriteTeamId ? String(profile.favoriteTeamId) : '')
+                            setErrorMsg('')
+                            setNicknameChecked(false)
+                            setNicknameCheckMsg('')
+                            setEmailVerified(false)
+                            setEmailVerifyMsg('')
+                            setEmailCodeSent(false)
+                            setEmailAuthCode('')
+                            setIsTeamDropdownOpen(false)
+                          }}
+                        >
+                          수정 취소
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* 프로필 정보 관리 패널 오른쪽 맨 아래: 회원탈퇴 신청 */}
+                  <div className="mypage-profile-withdraw-area">
                     <button
                       type="button"
-                      className="auth-check-btn"
-                      onClick={handleVerifyEmailCode}
-                      disabled={verifyingEmailCode}
+                      className="mypage-profile-withdraw-btn"
+                      onClick={handleWithdrawClick}
                     >
-                      {verifyingEmailCode ? '확인 중...' : '인증 확인'}
+                      회원탈퇴 신청
                     </button>
                   </div>
                 </div>
               )}
 
-              {emailVerifyMsg && (
-                <span className={`auth-hint ${emailVerified ? 'auth-hint--ok' : 'auth-hint--err'}`}>
-                  {emailVerifyMsg}
-                </span>
+              {/* ---------------- 탭 2: 내가 쓴 글 ---------------- */}
+              {activeTab === 'posts' && (
+                <div className="mypage-panel-tab-pane">
+                  <div className="mypage-panel-header">
+                    <div>
+                      <h2>
+                        <IconArticle size={22} color={currentTheme === 'light' ? '#38003c' : '#00ff87'} />
+                        내가 작성한 게시글
+                      </h2>
+                      <p>커뮤니티에 직접 등록한 게시글 목록입니다 (총 {postsData.totalCount}건)</p>
+                    </div>
+                  </div>
+
+                  {listLoading ? (
+                    <div className="mypage-empty-box">
+                      <p>게시글 목록을 불러오는 중입니다...</p>
+                    </div>
+                  ) : postsData.list.length === 0 ? (
+                    <div className="mypage-empty-box">
+                      <span className="mypage-empty-icon">
+                        <IconArticle size={36} color="#8b7899" />
+                      </span>
+                      <p>아직 작성하신 게시글이 없습니다.</p>
+                      <a href="/plug/community/posts/write" className="mypage-empty-action">
+                        첫 게시글 작성하러 가기
+                      </a>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="mypage-card-list">
+                        {postsData.list.map((post) => (
+                          <div
+                            key={post.postId}
+                            className="mypage-card-item"
+                            onClick={() => window.location.assign(`/plug/community/posts/${post.postId}`)}
+                          >
+                            <div className="mypage-card-main">
+                              <div className="mypage-card-meta">
+                                <span className="mypage-tag-category">{post.categoryType || '자유'}</span>
+                                {post.teamName && <span className="mypage-tag-team">{post.teamName}</span>}
+                                {post.isBlind === 'Y' && <span className="mypage-tag-blind">블라인드</span>}
+                                <span className="mypage-card-date">{post.createdAt}</span>
+                              </div>
+                              <h4 className="mypage-card-title">
+                                {post.title}
+                                {post.commentCount > 0 && (
+                                  <span className="mypage-card-cmt-num">[{post.commentCount}]</span>
+                                )}
+                              </h4>
+                            </div>
+                            <div className="mypage-card-stats">
+                              <span>조회 {post.viewCount || 0}</span>
+                              <span className="mypage-stat-like-num" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <IconHeart size={13} color="#ff3377" filled />
+                                {post.likeCount || 0}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {renderPagination('posts', postsData)}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* ---------------- 탭 3: 내가 쓴 댓글 ---------------- */}
+              {activeTab === 'comments' && (
+                <div className="mypage-panel-tab-pane">
+                  <div className="mypage-panel-header">
+                    <div>
+                      <h2>
+                        <IconComment size={22} color="#d886ed" />
+                        내가 작성한 댓글
+                      </h2>
+                      <p>회원님께서 다른 글에 남기신 의견 목록입니다 (총 {commentsData.totalCount}건)</p>
+                    </div>
+                  </div>
+
+                  {listLoading ? (
+                    <div className="mypage-empty-box">
+                      <p>댓글 목록을 불러오는 중입니다...</p>
+                    </div>
+                  ) : commentsData.list.length === 0 ? (
+                    <div className="mypage-empty-box">
+                      <span className="mypage-empty-icon">
+                        <IconComment size={36} color="#8b7899" />
+                      </span>
+                      <p>아직 남기신 댓글이 없습니다.</p>
+                      <a href="/plug/community/teams" className="mypage-empty-action">
+                        커뮤니티 둘러보기
+                      </a>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="mypage-card-list">
+                        {commentsData.list.map((comment) => (
+                          <div
+                            key={comment.commentId}
+                            className="mypage-card-item"
+                            onClick={() => window.location.assign(`/plug/community/posts/${comment.postId}`)}
+                          >
+                            <div className="mypage-card-main">
+                              <div className="mypage-card-meta">
+                                <span className="mypage-tag-category">{comment.categoryType || '자유'}</span>
+                                {comment.teamName && <span className="mypage-tag-team">{comment.teamName}</span>}
+                                <span className="mypage-card-meta-extra">원문: {comment.postTitle || '게시글'}</span>
+                                {comment.isBlind === 'Y' && <span className="mypage-tag-blind">블라인드</span>}
+                                <span className="mypage-card-date">{comment.createdAt}</span>
+                              </div>
+                              <h4 className="mypage-card-title">{comment.content}</h4>
+                            </div>
+                            <div className="mypage-card-stats">
+                              <span>조회 {comment.viewCount || 0}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {renderPagination('comments', commentsData)}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* ---------------- 탭 4: 좋아요한 글 ---------------- */}
+              {activeTab === 'likes' && (
+                <div className="mypage-panel-tab-pane">
+                  <div className="mypage-panel-header">
+                    <div>
+                      <h2>
+                        <IconHeart size={22} color="#ff166b" filled />
+                        좋아요(추천)한 글
+                      </h2>
+                      <p>회원님께서 공감을 누르신 추천 게시글 목록입니다 (총 {likesData.totalCount}건)</p>
+                    </div>
+                  </div>
+
+                  {listLoading ? (
+                    <div className="mypage-empty-box">
+                      <p>좋아요 목록을 불러오는 중입니다...</p>
+                    </div>
+                  ) : likesData.list.length === 0 ? (
+                    <div className="mypage-empty-box">
+                      <span className="mypage-empty-icon">
+                        <IconHeart size={36} color="#8b7899" />
+                      </span>
+                      <p>아직 좋아요를 누른 게시글이 없습니다.</p>
+                      <a href="/plug/community/teams" className="mypage-empty-action">
+                        인기 게시글 보러가기
+                      </a>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="mypage-card-list">
+                        {likesData.list.map((post) => (
+                          <div
+                            key={post.postId}
+                            className="mypage-card-item"
+                            onClick={() => window.location.assign(`/plug/community/posts/${post.postId}`)}
+                          >
+                            <div className="mypage-card-main">
+                              <div className="mypage-card-meta">
+                                <span className="mypage-tag-category">{post.categoryType || '자유'}</span>
+                                {post.teamName && <span className="mypage-tag-team">{post.teamName}</span>}
+                                <span className="mypage-card-meta-extra">작성자: {post.nickname}</span>
+                                <span className="mypage-card-date">{post.createdAt}</span>
+                              </div>
+                              <h4 className="mypage-card-title">
+                                {post.title}
+                                {post.commentCount > 0 && (
+                                  <span className="mypage-card-cmt-num">[{post.commentCount}]</span>
+                                )}
+                              </h4>
+                            </div>
+                            <div className="mypage-card-stats">
+                              <span>조회 {post.viewCount || 0}</span>
+                              <span className="mypage-stat-like-num" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <IconHeart size={13} color="#ff3377" filled />
+                                {post.likeCount || 0}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {renderPagination('likes', likesData)}
+                    </>
+                  )}
+                </div>
               )}
             </div>
-
-            <div className="auth-field">
-              <label htmlFor="editTeam">응원 구단</label>
-              <select
-                id="editTeam"
-                value={favoriteTeamId}
-                onChange={(e) => setFavoriteTeamId(e.target.value)}
-              >
-                <option value="">선택 안 함</option>
-                {teamList.map((team) => (
-                  <option key={team.teamId} value={team.teamId}>
-                    {team.teamNameKor ? `${team.teamNameKor} (${team.teamName})` : team.teamName}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="mypage-actions">
-              <button type="submit" className="auth-submit-btn" disabled={saving}>
-                {saving ? '저장 중...' : '수정 완료'}
-              </button>
-              <button
-                type="button"
-                className="mypage-cancel-btn"
-                onClick={() => {
-                  setIsEditing(false)
-                  setNickname(profile.nickname || '')
-                  setEmail(profile.email || '')
-                  setFavoriteTeamId(profile.favoriteTeamId ? String(profile.favoriteTeamId) : '')
-                  setErrorMsg('')
-                  setNicknameChecked(false)
-                  setNicknameCheckMsg('')
-                  setEmailVerified(false)
-                  setEmailVerifyMsg('')
-                  setEmailCodeSent(false)
-                  setEmailAuthCode('')
-                }}
-              >
-                취소
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* 회원 탈퇴 링크 (마이페이지 하단, 회색 글자로 작게) */}
-        <div style={{ marginTop: '28px', textAlign: 'center', borderTop: '1px solid #f1f3f5', paddingTop: '16px' }}>
-          <button
-            type="button"
-            onClick={handleWithdrawClick}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#9ca3af',
-              fontSize: '12px',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              padding: '4px 8px'
-            }}
-          >
-            회원탈퇴
-          </button>
+          </main>
         </div>
       </div>
 
@@ -617,7 +1652,7 @@ export default function MyPage() {
         <div className="withdraw-modal-overlay" onClick={() => !withdrawing && setShowWithdrawModal(false)}>
           <div className="withdraw-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="withdraw-modal-header">
-              <span style={{ fontSize: '22px' }}>⚠️</span>
+              <IconAlertTriangle size={24} color="#ff3377" />
               <h3>회원 탈퇴 전 필수 확인 사항</h3>
             </div>
 
@@ -673,6 +1708,87 @@ export default function MyPage() {
                 disabled={!withdrawAgreed || withdrawing}
               >
                 {withdrawing ? '탈퇴 처리 중...' : '탈퇴 완료하기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 포인트 변동 이력 모달 (최근 5건) */}
+      {showPointModal && (
+        <div className="point-modal-overlay" onClick={() => setShowPointModal(false)}>
+          <div className="point-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="point-modal-header">
+              <div className="point-modal-header-left">
+                <IconCoins size={22} color="#00ff87" />
+                <h3 className="point-modal-title">최근 포인트 변동 이력</h3>
+              </div>
+              <button
+                type="button"
+                className="point-modal-close-btn"
+                onClick={() => setShowPointModal(false)}
+                title="닫기"
+              >
+                <IconX size={20} />
+              </button>
+            </div>
+
+            <div className="point-modal-summary">
+              <span className="point-modal-summary-lbl">현재 보유 포인트</span>
+              <span className="point-modal-summary-val">{profile?.point?.toLocaleString() || 100} P</span>
+            </div>
+
+            <div className="point-modal-list-title">
+              <span>변동 내역 (최근 5건)</span>
+              <span>변동 금액 / 잔여</span>
+            </div>
+
+            <div className="point-modal-list">
+              {pointHistoriesLoading ? (
+                <div className="point-modal-empty">
+                  <p>포인트 내역을 불러오는 중입니다...</p>
+                </div>
+              ) : pointHistories.length === 0 ? (
+                <div className="point-modal-empty">
+                  <p>최근 포인트 변동 이력이 없습니다.</p>
+                  <span style={{ fontSize: '12px', color: '#8e7a9c', marginTop: '4px', display: 'inline-block' }}>
+                    회원가입 기본 지급 포인트: 100 P
+                  </span>
+                </div>
+              ) : (
+                pointHistories.slice(0, 5).map((history, idx) => {
+                  const amount = Number(history.amount) || 0
+                  const isPlus = amount >= 0
+                  return (
+                    <div key={history.pointHistoryId || idx} className="point-modal-item">
+                      <div className="point-modal-item-left">
+                        <span className="point-modal-item-desc">
+                          {history.description || (isPlus ? '포인트 적립' : '포인트 사용')}
+                        </span>
+                        <span className="point-modal-item-date">{history.createdAt}</span>
+                      </div>
+                      <div className="point-modal-item-right">
+                        <span className={`point-modal-item-amount ${isPlus ? 'is-plus' : 'is-minus'}`}>
+                          {isPlus ? `+${amount.toLocaleString()}` : amount.toLocaleString()} P
+                        </span>
+                        <span className="point-modal-item-bal">
+                          잔여 {history.balanceAfter != null ? history.balanceAfter.toLocaleString() : profile?.point?.toLocaleString()} P
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+
+            <div className="point-modal-footer">
+              <button
+                type="button"
+                className="mypage-action-outline-btn"
+                onClick={() => setShowPointModal(false)}
+                style={{ padding: '8px 20px', borderRadius: '10px' }}
+              >
+                닫기
               </button>
             </div>
           </div>

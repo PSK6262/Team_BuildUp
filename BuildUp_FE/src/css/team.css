@@ -1,26 +1,58 @@
 /* ========================================================
-   TEAM PAGE - FULL-BLEED EDITORIAL WEB DESIGN (White Theme)
+   TEAM PAGE - DARK GLASSMORPHISM & NEON EDITORIAL DESIGN
    ======================================================== */
 
+body:has(.team-container) {
+  background-color: #18001E;
+}
+
 .team-container {
-  height: calc(100vh - 85px);
-  max-height: calc(100vh - 85px);
-  background-color: #ffffff;
+  height: 89vh;
+  max-height: 89vh;
+  background: linear-gradient(90deg, #18001E 0%, #18001E 42%, #1E0026 72%, #22002A 100%);
   display: grid;
-  grid-template-columns: 3.2fr 6.8fr;
+  grid-template-columns: 32% 68%;
   padding: 0;
   margin: 0;
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  color: #0f172a;
+  font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
+  color: #ffffff;
+  position: relative;
+}
+
+.team-container--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 89vh;
+  background: linear-gradient(135deg, #18001E 0%, #22002A 100%);
+  color: #cbd5e1;
+  font-size: clamp(1rem, 1.1vw, 1.25rem);
+}
+
+/* 좌측 구단 고유 컬러가 우측 다크 배경으로 끊김 없이 스며드는 앰비언트 블러 글로우 */
+.team-ambient-bleed {
+  position: absolute;
+  top: 5%;
+  left: 8%;
+  width: 46%;
+  height: 90%;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(6vw) saturate(210%);
+  opacity: 0.28;
+  pointer-events: none;
+  z-index: 2;
 }
 
 /* --------------------------------------------------------
-   Left Panel (30%): Fixed (No scroll, emblem background)
+   Left Panel (32%): Fixed Visual Area with Seamless Right Bleed
    -------------------------------------------------------- */
 .team-left {
   position: relative;
-  background: #0f172a;
+  z-index: 1;
+  background: #18001E;
   border-radius: 0;
   border: none;
   box-shadow: none;
@@ -31,30 +63,39 @@
   min-height: 0;
 }
 
-/* 엠블럼을 화면 전체에 가득 채우는 배경 (초미세 블러 1.5px) */
+/* 엠블럼을 좌측 배경 전체에 채우는 레이어 */
 .team-emblem-full-bg {
   position: absolute;
-  inset: -20px;
+  inset: -2%;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  filter: blur(1.5px);
-  opacity: 0.94;
+  filter: blur(0.15vw);
+  opacity: 0.88;
   transform: scale(1.08);
   pointer-events: none;
   z-index: 0;
 }
 
-/* 텍스트 가독성을 위한 고급 다크 비네팅 오버레이 */
+/* 좌우 경계 칼단면을 없애고 우측 다크 퍼플(#18001E)로 자연스럽게 스며드는 그라데이션 블러 페이드 */
 .team-emblem-bg-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(15, 23, 42, 0.72) 0%,
-    rgba(15, 23, 42, 0.12) 40%,
-    rgba(15, 23, 42, 0.88) 100%
-  );
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.72) 0%,
+      rgba(14, 0, 18, 0.18) 38%,
+      rgba(24, 0, 30, 0.82) 78%,
+      #18001E 97%,
+      #18001E 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(18, 0, 24, 0.76) 0%,
+      rgba(18, 0, 24, 0.14) 42%,
+      rgba(18, 0, 24, 0.88) 100%
+    );
   z-index: 1;
 }
 
@@ -66,7 +107,7 @@
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
-  padding: 44px 40px 48px;
+  padding: 4.5vh 8% 5vh;
   box-sizing: border-box;
 }
 
@@ -74,146 +115,134 @@
 .team-left-top {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 1.2vh;
   width: 100%;
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
 }
 
-.team-back-link {
-  color: #334155;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 16px;
-  border-radius: 8px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-  transition: all 0.2s ease;
-}
-
-.team-back-link:hover {
-  color: #0f172a;
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-  transform: translateX(-3px);
-}
-
 .team-badge-group {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.8vw;
 }
 
-/* 창단연도 뱃지 (사이즈 확대) */
+/* 창단연도 뱃지 */
 .team-founded-chip {
   display: inline-block;
-  padding: 8px 20px;
+  padding: 0.7vh 1.3vw;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  border: 1.5px solid rgba(255, 255, 255, 0.35);
-  font-size: 15px;
+  border: clamp(0.06rem, 0.09vw, 0.12rem) solid rgba(255, 255, 255, 0.28);
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-size: clamp(0.82rem, 0.95vw, 1.05rem);
   font-weight: 800;
-  color: #ffffff;
-  letter-spacing: 0.8px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  color: #00FF85;
+  letter-spacing: 0.06vw;
+  box-shadow: 0 0.4vh 1.2vw rgba(0, 0, 0, 0.35);
 }
 
 .team-name {
-  font-size: 44px;
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: clamp(1.8rem, 2.8vw, 3rem);
   font-weight: 900;
   color: #ffffff;
-  margin: 4px 0 0;
+  margin: 0.4vh 0 0;
   line-height: 1.15;
-  letter-spacing: -0.8px;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.85);
+  letter-spacing: -0.05vw;
+  text-shadow: 0 0.4vh 1.6vw rgba(0, 0, 0, 0.85);
   white-space: nowrap;
   word-break: keep-all;
   overflow: visible;
 }
 
 .team-subname-en {
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  color: #94A3B8;
+  font-weight: 600;
+  margin-top: 0.4vh;
+  letter-spacing: -0.01vw;
+  text-shadow: 0 0.2vh 0.8vw rgba(0, 0, 0, 0.75);
   white-space: nowrap;
   word-break: keep-all;
 }
 
-/* 중앙 엠블럼 띄우기 영역 (원 없이 대형 엠블럼 단독 노출) */
+/* 중앙 엠블럼 띄우기 영역 */
 .team-left-middle {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 0;
-  min-height: 200px;
-  padding: 20px 0;
-  min-height: 240px;
+  padding: 2vh 0;
+  min-height: 22vh;
 }
 
 .team-center-emblem {
-  width: 200px;
-  height: 200px;
-  max-width: 85%;
-  width: 250px;
-  height: 250px;
-  max-width: 90%;
+  width: 55%;
+  max-width: 16vw;
+  aspect-ratio: 1 / 1;
   object-fit: contain;
-  filter: drop-shadow(0 16px 36px rgba(0, 0, 0, 0.75)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
-  filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.78)) drop-shadow(0 4px 14px rgba(0, 0, 0, 0.5));
+  filter:
+    drop-shadow(0 1.8vh 2.8vw rgba(0, 0, 0, 0.8))
+    drop-shadow(0 0 1.8vw rgba(232, 24, 228, 0.22));
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s ease;
   user-select: none;
 }
 
 .team-center-emblem:hover {
-  transform: translateY(-6px) scale(1.06);
-  filter: drop-shadow(0 24px 46px rgba(0, 0, 0, 0.85)) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.6));
-  transform: translateY(-6px) scale(1.05);
-  filter: drop-shadow(0 26px 50px rgba(0, 0, 0, 0.88)) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.6));
+  transform: translateY(-0.6vh) scale(1.05);
+  filter:
+    drop-shadow(0 2.4vh 3.4vw rgba(0, 0, 0, 0.88))
+    drop-shadow(0 0 2.4vw rgba(232, 24, 228, 0.42));
 }
 
 /* --------------------------------------------------------
-   순수 오디오 플레이어 바 (유튜브 링크 없음)
+   좌측 하단 응원가 플레이어 ("Official Anthem" 반투명 다크 캡슐)
    -------------------------------------------------------- */
 .team-player-bar {
-  background: rgba(15, 23, 42, 0.88);
+  background: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 20px;
-  padding: 16px 20px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  border: clamp(0.06rem, 0.08vw, 0.1rem) solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  padding: 1.4vh 4.5%;
+  box-shadow:
+    0 1.2vh 2.4vw rgba(0, 0, 0, 0.5),
+    inset 0 0.1vh 0 rgba(255, 255, 255, 0.1);
 }
 
 .team-player-controls {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 1vw;
 }
 
 .team-play-btn {
-  width: 46px;
-  height: 46px;
+  width: clamp(2.6rem, 3.1vw, 3.2rem);
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
-  background: #00ff87;
+  background: #00FF85;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0, 255, 135, 0.45);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow:
+    0 0 1.2vw rgba(0, 255, 133, 0.55),
+    0 0.4vh 1vw rgba(0, 255, 133, 0.4);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   flex-shrink: 0;
 }
 
 .team-play-btn:hover {
   transform: scale(1.08);
   background: #33ff9e;
-  box-shadow: 0 6px 18px rgba(0, 255, 135, 0.65);
+  box-shadow:
+    0 0 1.8vw rgba(0, 255, 133, 0.8),
+    0 0.6vh 1.4vw rgba(0, 255, 133, 0.55);
 }
 
 .team-play-btn:active {
@@ -222,25 +251,26 @@
 
 .team-play-btn.is-playing {
   background: #ffffff;
-  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 1.2vw rgba(255, 255, 255, 0.6);
 }
 
 .player-icon {
-  width: 20px;
-  height: 20px;
-  fill: #0f172a;
+  width: 44%;
+  height: 44%;
+  fill: #18001E;
 }
 
 .team-player-info {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 0.3vh;
   flex: 1;
   min-width: 0;
 }
 
 .team-player-title {
-  font-size: 14px;
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-size: clamp(0.82rem, 0.95vw, 1rem);
   font-weight: 700;
   color: #ffffff;
   white-space: nowrap;
@@ -249,24 +279,27 @@
 }
 
 .team-player-sub {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.75);
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: clamp(0.72rem, 0.82vw, 0.88rem);
+  color: #94A3B8;
 }
 
 /* 사운드 웨이브 애니메이션 */
 .team-sound-wave {
   display: flex;
   align-items: flex-end;
-  gap: 3px;
-  height: 20px;
-  padding: 0 4px;
+  gap: 0.22vw;
+  height: 2.2vh;
+  padding: 0 0.4vw;
 }
 
 .sound-bar {
-  width: 3px;
-  height: 4px;
-  background: #00ff87;
-  border-radius: 2px;
+  width: 0.22vw;
+  min-width: 0.18rem;
+  height: 0.5vh;
+  background: #00FF85;
+  border-radius: 999px;
+  box-shadow: 0 0 0.4vw rgba(0, 255, 133, 0.5);
   transition: height 0.2s ease;
 }
 
@@ -285,28 +318,30 @@
 
 @keyframes soundWave {
   0% {
-    height: 4px;
+    height: 0.5vh;
   }
   100% {
-    height: 18px;
+    height: 2vh;
   }
 }
 
 .team-hidden-audio-frame {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  width: 0.1vw;
+  height: 0.1vh;
   opacity: 0;
   pointer-events: none;
   border: none;
 }
 
 /* --------------------------------------------------------
-   Right Panel (70%): Clean White Editorial Presentation (Scrollable)
+   Right Panel (68%): Dark Purple Glassmorphic Editorial Area
    -------------------------------------------------------- */
 .team-right {
-  background: #ffffff;
-  padding: 56px 64px 60px;
+  position: relative;
+  z-index: 3;
+  background: radial-gradient(ellipse at 85% 15%, rgba(159, 86, 170, 0.1) 0%, transparent 55%);
+  padding: 5vh 5.5% 7vh;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -316,11 +351,11 @@
   box-sizing: border-box;
   scroll-behavior: smooth;
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: rgba(232, 24, 228, 0.4) transparent;
 }
 
 .team-right::-webkit-scrollbar {
-  width: 8px;
+  width: 0.5vw;
 }
 
 .team-right::-webkit-scrollbar-track {
@@ -328,81 +363,97 @@
 }
 
 .team-right::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
+  background-color: rgba(232, 24, 228, 0.38);
   border-radius: 999px;
-  border: 2px solid #ffffff;
 }
 
 .team-right::-webkit-scrollbar-thumb:hover {
-  background-color: #94a3b8;
+  background-color: rgba(232, 24, 228, 0.68);
 }
 
 .team-right-inner {
-  max-width: 860px;
   width: 100%;
+  max-width: 94%;
   display: flex;
   flex-direction: column;
-  gap: 36px;
+  gap: 3.8vh;
 }
 
+/* --------------------------------------------------------
+   상단 내비게이션 버튼 (얇은 아웃라인 알약 캡슐)
+   -------------------------------------------------------- */
 .team-right-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 24px;
-  border-bottom: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+  gap: 1.2vh 1vw;
+  padding-bottom: 2.4vh;
+  border-bottom: 0.08vh solid rgba(255, 255, 255, 0.1);
 }
 
+.team-back-link,
+.team-nav-arrow {
+  color: #CBD5E1;
+  text-decoration: none;
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: clamp(0.78rem, 0.88vw, 0.95rem);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5vw;
+  padding: 0.85vh 1.3vw;
+  border-radius: 999px;
+  background: transparent;
+  border: clamp(0.06rem, 0.08vw, 0.1rem) solid rgba(255, 255, 255, 0.2);
+  transition: all 0.22s ease;
+}
+
+.team-back-link:hover,
+.team-nav-arrow:hover {
+  color: #00FF85;
+  border-color: #00FF85;
+  background: rgba(0, 255, 133, 0.08);
+  box-shadow: 0 0 0.9vw rgba(0, 255, 133, 0.3);
+}
+
+.team-back-link:hover {
+  transform: translateX(-0.2vw);
+}
 
 .team-quick-nav {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.team-nav-arrow {
-  color: #475569;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 7px 16px;
-  border-radius: 8px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-  transition: all 0.2s ease;
-}
-
-.team-nav-arrow:hover {
-  color: #0f172a;
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  gap: 0.7vw;
 }
 
 .team-nav-divider {
-  color: #cbd5e1;
+  color: rgba(255, 255, 255, 0.2);
 }
 
-/* 홈구장 섹션 (뱃지 없음) */
+/* --------------------------------------------------------
+   1. 홈구장 섹션
+   -------------------------------------------------------- */
 .team-stadium-section {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0.6vh;
 }
 
 .team-stadium-name {
-  font-size: 38px;
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: clamp(1.9rem, 2.5vw, 2.7rem);
   font-weight: 900;
-  color: #0f172a;
+  color: #FFFFFF;
   margin: 0;
-  letter-spacing: -0.8px;
+  letter-spacing: -0.05vw;
   line-height: 1.2;
 }
 
 .team-stadium-desc {
-  font-size: 16px;
-  color: #0f172a;
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-size: clamp(0.92rem, 1.08vw, 1.18rem);
+  color: #94A3B8;
   font-weight: 600;
   line-height: 1.5;
   margin: 0;
@@ -410,29 +461,34 @@
 
 /* 섹션 구분선 */
 .team-section-divider {
-  height: 1px;
-  background: #e2e8f0;
+  height: 0.08vh;
+  min-height: 1px;
+  background: linear-gradient(90deg, rgba(232, 24, 228, 0.32) 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
 }
 
-/* 구단 역사 섹션 (뱃지 없음) */
+/* --------------------------------------------------------
+   2. 구단 역사 섹션
+   -------------------------------------------------------- */
 .team-history-section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1.6vh;
 }
 
 .team-history-title {
-  font-size: 26px;
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: clamp(1.35rem, 1.75vw, 1.95rem);
   font-weight: 800;
-  color: #0f172a;
+  color: #FFFFFF;
   margin: 0;
-  letter-spacing: -0.4px;
+  letter-spacing: -0.03vw;
 }
 
 .team-history-text {
-  font-size: 18px;
-  line-height: 2.1;
-  color: #334155;
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: clamp(0.98rem, 1.15vw, 1.22rem);
+  line-height: 2.05;
+  color: #CBD5E1;
   margin: 0;
   word-break: keep-all;
 }
@@ -443,76 +499,105 @@
 .team-squad-container {
   display: flex;
   flex-direction: column;
-  gap: 36px;
+  gap: 3.6vh;
+}
+
+.team-squad-loading {
+  padding: 4vh 0;
+  text-align: center;
+  color: #94A3B8;
 }
 
 .team-squad-section-header {
   display: flex;
   align-items: baseline;
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: 0.8vw;
+  margin-bottom: 1.4vh;
 }
 
 .team-squad-title {
-  font-size: 26px;
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: clamp(1.35rem, 1.75vw, 1.95rem);
   font-weight: 800;
-  color: #0f172a;
+  color: #FFFFFF;
   margin: 0;
-  letter-spacing: -0.4px;
+  letter-spacing: -0.03vw;
 }
 
 .team-squad-subtitle {
-  font-size: 14px;
-  font-weight: 600;
-  color: #64748b;
-  letter-spacing: 0.2px;
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-size: clamp(0.8rem, 0.92vw, 1rem);
+  font-weight: 700;
+  color: #00FF85;
+  letter-spacing: 0.03vw;
+  text-shadow: 0 0 0.6vw rgba(0, 255, 133, 0.35);
 }
 
-/* 감독 (Head Coach) 카드 */
+/* 감독 (Head Coach) 다크 글래스 카드 */
 .team-manager-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 16px 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  background: rgba(255, 255, 255, 0.04);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.1vw;
+  padding: 2vh 2.2%;
+  box-shadow: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.team-manager-card:hover {
+  transform: translateY(-2px);
+  border: 1px solid #E90052;
+  box-shadow: 0 0 16px rgba(233, 0, 82, 0.35);
 }
 
 .team-manager-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 1vw;
 }
 
 .team-manager-name {
-  font-size: 20px;
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: clamp(1.1rem, 1.32vw, 1.45rem);
   font-weight: 800;
-  color: #0f172a;
+  color: #FFFFFF;
   margin: 0;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.02vw;
+}
+
+.team-manager-name-en {
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-size: clamp(0.75rem, 0.85vw, 0.92rem);
+  color: #94A3B8;
+  font-weight: 600;
+  display: block;
+  margin-top: 0.2vh;
 }
 
 .team-manager-nat-badge {
   display: inline-flex;
   align-items: center;
-  font-size: 12.5px;
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: clamp(0.72rem, 0.82vw, 0.9rem);
   font-weight: 600;
-  color: #334155;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  padding: 3px 11px;
+  color: #CBD5E1;
+  background: rgba(255, 255, 255, 0.07);
+  border: clamp(0.05rem, 0.07vw, 0.09rem) solid rgba(255, 255, 255, 0.16);
+  padding: 0.4vh 0.9vw;
   border-radius: 999px;
 }
 
 .team-manager-flag-icon {
-  width: 32px;
-  height: 22px;
+  width: clamp(1.8rem, 2.2vw, 2.4rem);
+  aspect-ratio: 16 / 11;
   object-fit: cover;
-  border-radius: 4px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0.3vw;
+  box-shadow: 0 0.2vh 0.6vw rgba(0, 0, 0, 0.35);
+  border: clamp(0.05rem, 0.06vw, 0.08rem) solid rgba(255, 255, 255, 0.18);
   flex-shrink: 0;
 }
 
@@ -522,39 +607,42 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 1.4vh 1.2vw;
+  margin-bottom: 2vh;
 }
 
 .team-position-tabs {
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: #f1f5f9;
-  padding: 4px;
-  border-radius: 10px;
+  gap: 0.35vw;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.45vh 0.4vw;
+  border-radius: 999px;
 }
 
 .team-pos-tab {
-  border: none;
+  border: 1px solid transparent;
   background: transparent;
-  padding: 6px 14px;
-  border-radius: 7px;
-  font-size: 13px;
+  padding: 0.65vh 1vw;
+  border-radius: 999px;
+  font-family: var(--font-plug);
+  font-size: clamp(0.76rem, 0.86vw, 0.94rem);
   font-weight: 700;
-  color: #64748b;
+  color: #94A3B8;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease-in-out;
 }
 
 .team-pos-tab:hover {
-  color: #0f172a;
+  color: #FFFFFF;
 }
 
 .team-pos-tab.is-active {
-  background: #ffffff;
-  color: #0f172a;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.1);
+  color: #00FF85;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: none;
   font-weight: 800;
 }
 
@@ -562,124 +650,135 @@
 .team-squad-groups {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 3.4vh;
 }
 
 .team-squad-group {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 1.5vh;
 }
 
 .team-group-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 8px;
-  border-bottom: 1.5px solid #f1f5f9;
+  padding-bottom: 0.9vh;
+  border-bottom: 0.08vh solid rgba(255, 255, 255, 0.1);
 }
 
 .team-group-title {
-  font-size: 18px;
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: clamp(1rem, 1.18vw, 1.3rem);
   font-weight: 800;
-  color: #0f172a;
+  color: #FFFFFF;
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.4vw;
 }
 
 .team-group-code {
-  font-size: 18px;
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-size: clamp(0.92rem, 1.08vw, 1.2rem);
   font-weight: 800;
-  color: #0f172a;
+  color: #00FF85;
 }
 
 .team-group-count {
-  font-size: 12px;
+  font-family: var(--font-plug);
+  font-size: clamp(0.72rem, 0.82vw, 0.9rem);
   font-weight: 700;
-  color: #64748b;
-  background: #f1f5f9;
-  padding: 3px 10px;
+  color: #CBD5E1;
+  background: rgba(255, 255, 255, 0.07);
+  border: clamp(0.05rem, 0.07vw, 0.09rem) solid rgba(255, 255, 255, 0.14);
+  padding: 0.35vh 0.8vw;
   border-radius: 999px;
 }
 
-/* 개별 선수 카드 그리드 */
+/* 개별 선수 카드 그리드 (무채색 다크 글래스 기본 + 호버 시 마젠타 포인트 강조) */
 .team-player-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(22%, 1fr));
+  gap: 1.4vh 1.1vw;
 }
 
 .team-player-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.95vw;
+  padding: 1.6vh 5.5%;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  gap: 0.9vh;
+  box-shadow: none;
+  transition: all 0.2s ease-in-out;
   cursor: pointer;
   user-select: none;
 }
 
-.team-player-card:hover {
-  border-color: #94a3b8;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  transform: translateY(-3px);
+.team-player-card:hover,
+.team-player-card:focus-visible {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid #E90052;
+  box-shadow: 0 0 16px rgba(233, 0, 82, 0.35);
+  transform: translateY(-2px);
+  outline: none;
 }
 
 .team-player-card-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 0.5vw;
 }
 
 .team-player-pos-badge {
-  font-size: 11px;
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-size: clamp(0.68rem, 0.75vw, 0.82rem);
   font-weight: 800;
-  padding: 2px 7px;
-  border-radius: 6px;
-  letter-spacing: 0.3px;
+  padding: 0.25vh 0.55vw;
+  border-radius: 0.4vw;
+  letter-spacing: 0.03vw;
 }
 
 .badge-fw {
-  background: #fef2f2;
-  color: #ef4444;
-  border: 1px solid #fecaca;
+  background: rgba(239, 68, 68, 0.16);
+  color: #ff7b7b;
+  border: 1px solid rgba(239, 68, 68, 0.45);
 }
 
 .badge-mf {
-  background: #ecfdf5;
-  color: #10b981;
-  border: 1px solid #a7f3d0;
+  background: rgba(0, 255, 133, 0.14);
+  color: #00FF85;
+  border: 1px solid rgba(0, 255, 133, 0.42);
 }
 
 .badge-df {
-  background: #eff6ff;
-  color: #3b82f6;
-  border: 1px solid #bfdbfe;
+  background: rgba(59, 130, 246, 0.18);
+  color: #7cc0ff;
+  border: 1px solid rgba(59, 130, 246, 0.45);
 }
 
 .badge-gk {
-  background: #f5f3ff;
-  color: #8b5cf6;
-  border: 1px solid #ddd6fe;
+  background: rgba(168, 85, 247, 0.2);
+  color: #d8b4fe;
+  border: 1px solid rgba(168, 85, 247, 0.48);
 }
 
 .team-player-nat-pill {
   display: inline-flex;
   align-items: center;
-  font-size: 11.5px;
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: clamp(0.68rem, 0.76vw, 0.84rem);
   font-weight: 600;
-  color: #475569;
-  background: #f8fafc;
-  padding: 3px 9px;
+  color: #CBD5E1;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 0.25vh 0.65vw;
   border-radius: 999px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .team-player-nat-name {
@@ -690,33 +789,51 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-top: 2px;
+  gap: 0.6vw;
+  margin-top: 0.2vh;
+}
+
+.team-player-name-wrap {
+  overflow: hidden;
+  min-width: 0;
+  flex: 1;
 }
 
 .team-player-name {
-  font-size: 15px;
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: clamp(0.88rem, 1vw, 1.08rem);
   font-weight: 700;
-  color: #0f172a;
+  color: #FFFFFF;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.team-player-name-en {
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-size: clamp(0.68rem, 0.75vw, 0.82rem);
+  color: #94A3B8;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.15vh;
+}
+
 .team-player-flag-icon {
-  width: 24px;
-  height: 16px;
+  width: clamp(1.4rem, 1.65vw, 1.8rem);
+  aspect-ratio: 3 / 2;
   object-fit: cover;
-  border-radius: 3px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0.2vw;
+  box-shadow: 0 0.15vh 0.4vw rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   flex-shrink: 0;
 }
 
 /* --------------------------------------------------------
-   반응형 미디어 쿼리 (1024px 이하 모바일/태블릿)
+   반응형 미디어 쿼리 (태블릿 / 모바일, % & 뷰포트 단위)
    -------------------------------------------------------- */
-@media (max-width: 1024px) {
+@media (max-width: 64rem) {
   .team-container {
     height: auto;
     max-height: none;
@@ -726,39 +843,60 @@
 
   .team-left {
     height: auto;
-    min-height: 540px;
+    min-height: 58vh;
     overflow: hidden;
   }
 
+  .team-emblem-bg-overlay {
+    background: linear-gradient(
+      180deg,
+      rgba(18, 0, 24, 0.68) 0%,
+      rgba(18, 0, 24, 0.2) 45%,
+      #18001E 100%
+    );
+  }
+
   .team-left__content {
-    padding: 32px 24px;
+    padding: 4vh 6%;
+  }
+
+  .team-center-emblem {
+    width: 38%;
+    max-width: 32vw;
   }
 
   .team-right {
     height: auto;
     overflow-y: visible;
-    padding: 36px 24px;
+    padding: 4vh 5%;
   }
 
-  .team-name {
-    font-size: 36px;
-  }
-
-  .team-stadium-name {
-    font-size: 28px;
-  }
-
-  .team-history-title {
-    font-size: 22px;
+  .team-right-inner {
+    max-width: 100%;
   }
 
   .team-player-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(45%, 1fr));
+    gap: 1.4vh 2.4vw;
+  }
+
+  .team-player-card {
+    border-radius: 1.8vw;
+  }
+}
+
+@media (max-width: 32rem) {
+  .team-player-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .team-player-card {
+    border-radius: 3vw;
   }
 }
 
 /* ========================================================
-   선수 2026-2027 시즌 스탯 모달 (Player Stats Modal)
+   선수 2026-2027 시즌 스탯 모달 (Dark Glassmorphism & Neon Modal)
    ======================================================== */
 
 .player-stats-modal-backdrop {
@@ -767,129 +905,141 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(15, 23, 42, 0.68);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(12, 0, 16, 0.76);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  padding: 20px;
+  padding: 2vh 4vw;
+  box-sizing: border-box;
   animation: playerModalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .player-stats-modal-card {
-  background: #ffffff;
-  border-radius: 20px;
-  width: 100%;
-  max-width: 480px;
-  padding: 30px 32px 32px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  background: rgba(28, 4, 34, 0.92);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border-radius: 1.4vw;
+  width: 92%;
+  max-width: 32vw;
+  min-width: min(26rem, 92vw);
+  padding: 3.2vh 3.5%;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.65);
   position: relative;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #FFFFFF;
+  box-sizing: border-box;
   animation: playerModalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .player-stats-modal-close {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 32px;
-  height: 32px;
+  top: 2.2vh;
+  right: 4%;
+  width: clamp(2rem, 2.2vw, 2.4rem);
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  color: #64748b;
-  font-size: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+  color: #CBD5E1;
+  font-size: clamp(0.85rem, 0.95vw, 1.05rem);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
 }
 
 .player-stats-modal-close:hover {
-  background: #0f172a;
-  color: #ffffff;
-  border-color: #0f172a;
+  background: rgba(0, 255, 133, 0.16);
+  color: #00FF85;
+  border-color: #00FF85;
 }
 
 .player-stats-modal-eyebrow {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: 0.6vw;
+  font-family: var(--font-plug);
+  font-size: clamp(0.76rem, 0.86vw, 0.95rem);
   font-weight: 800;
-  color: #38003c;
-  letter-spacing: 0.5px;
-  margin-bottom: 16px;
+  color: #00FF85;
+  letter-spacing: 0.04vw;
+  margin-bottom: 1.6vh;
   text-transform: uppercase;
 }
 
 .player-status-badge {
-  font-size: 11px;
+  font-size: clamp(0.68rem, 0.75vw, 0.82rem);
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 0.2vh 0.6vw;
   border-radius: 999px;
 }
 
 .badge-injured {
-  background: #fee2e2;
-  color: #ef4444;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ff7b7b;
+  border: 1px solid rgba(239, 68, 68, 0.45);
 }
 
 .badge-suspended {
-  background: #fef3c7;
-  color: #d97706;
+  background: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.45);
 }
 
 .player-stats-modal-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 1.2vw;
+  margin-bottom: 2vh;
 }
 
 .player-stats-name-col {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.4vh;
 }
 
 .player-stats-name-kor {
-  font-size: 26px;
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: clamp(1.35rem, 1.75vw, 1.95rem);
   font-weight: 900;
-  color: #0f172a;
+  color: #FFFFFF;
   margin: 0;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.03vw;
   line-height: 1.2;
 }
 
 .player-stats-name-en {
-  font-size: 15px;
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-size: clamp(0.85rem, 0.98vw, 1.08rem);
   font-weight: 600;
-  color: #0f172a;
-  letter-spacing: -0.2px;
+  color: #94A3B8;
+  letter-spacing: -0.01vw;
 }
 
 .player-stats-position-group {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  margin-top: 6px;
-  gap: 3px;
+  margin-top: 0.6vh;
+  gap: 0.4vh;
 }
 
 .player-stats-position-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 14px;
+  padding: 0.4vh 1vw;
   border-radius: 999px;
-  font-size: 12.5px;
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-size: clamp(0.74rem, 0.84vw, 0.92rem);
   font-weight: 800;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.03vw;
   width: fit-content;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -897,74 +1047,65 @@
 }
 
 .player-stats-position-pill:hover {
-  filter: brightness(0.96);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  transform: translateY(-0.15vh);
 }
 
 .player-stats-position-pill.badge-fw {
-  background: #fef2f2;
-  color: #ef4444;
-  border: 1px solid #fecaca;
+  background: rgba(239, 68, 68, 0.18);
+  color: #ff7b7b;
+  border: 1px solid rgba(239, 68, 68, 0.5);
 }
 
 .player-stats-position-pill.badge-mf {
-  background: #ecfdf5;
-  color: #10b981;
-  border: 1px solid #a7f3d0;
+  background: rgba(0, 255, 133, 0.16);
+  color: #00FF85;
+  border: 1px solid rgba(0, 255, 133, 0.48);
 }
 
 .player-stats-position-pill.badge-df {
-  background: #eff6ff;
-  color: #3b82f6;
-  border: 1px solid #bfdbfe;
+  background: rgba(59, 130, 246, 0.2);
+  color: #7cc0ff;
+  border: 1px solid rgba(59, 130, 246, 0.5);
 }
 
 .player-stats-position-pill.badge-gk {
-  background: #f5f3ff;
-  color: #8b5cf6;
-  border: 1px solid #ddd6fe;
+  background: rgba(168, 85, 247, 0.22);
+  color: #d8b4fe;
+  border: 1px solid rgba(168, 85, 247, 0.5);
 }
 
 .player-stats-position-guide {
-  min-height: 38px;
+  min-height: 3.8vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
 .position-guide-hint {
-  font-size: 11px;
-  color: #94a3b8;
+  font-size: clamp(0.68rem, 0.76vw, 0.82rem);
+  color: #94A3B8;
   font-weight: 600;
-  letter-spacing: -0.2px;
   user-select: none;
-  transition: color 0.2s ease;
-}
-
-.player-stats-position-group:hover .position-guide-hint {
-  color: #64748b;
 }
 
 .position-desc-box {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0.2vh;
   animation: positionFadeIn 0.16s ease-out forwards;
 }
 
 .position-desc-line {
-  font-size: 11.5px;
+  font-size: clamp(0.7rem, 0.78vw, 0.85rem);
   font-weight: 700;
-  color: #1e293b;
-  letter-spacing: -0.2px;
+  color: #CBD5E1;
   line-height: 1.35;
 }
 
 @keyframes positionFadeIn {
   from {
     opacity: 0;
-    transform: translateY(2px);
+    transform: translateY(0.2vh);
   }
   to {
     opacity: 1;
@@ -976,28 +1117,28 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 6px;
+  gap: 0.6vh;
 }
 
 .player-stats-nat-name {
-  font-size: 14px;
+  font-size: clamp(0.8rem, 0.92vw, 1rem);
   font-weight: 700;
-  color: #475569;
+  color: #CBD5E1;
 }
 
 .player-stats-flag-icon {
-  width: 42px;
-  height: 28px;
+  width: clamp(2.2rem, 2.8vw, 3rem);
+  aspect-ratio: 3 / 2;
   object-fit: cover;
-  border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0.3vw;
+  box-shadow: 0 0.2vh 0.6vw rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .player-stats-modal-divider {
   height: 1px;
-  background: #f1f5f9;
-  margin: 0 0 20px 0;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 0 0 2vh 0;
 }
 
 .player-stats-modal-body {
@@ -1007,48 +1148,51 @@
 .player-stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 1vw;
 }
 
 .player-stat-item {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 16px 18px;
+  gap: 0.6vw;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.8vw;
+  padding: 1.6vh 4%;
   transition: all 0.2s ease;
 }
 
 .player-stat-item:hover {
-  border-color: #cbd5e1;
-  background: #f1f5f9;
+  border-color: rgba(232, 24, 228, 0.6);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .player-stat-item .stat-label {
-  font-size: 16px;
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-size: clamp(0.88rem, 1vw, 1.1rem);
   font-weight: 800;
-  color: #0f172a;
+  color: #CBD5E1;
 }
 
 .stat-item-goal .stat-value {
-  font-size: 18px;
+  font-family: var(--font-plug);
+  font-size: clamp(1rem, 1.18vw, 1.3rem);
   font-weight: 900;
-  color: #ef4444;
+  color: #00FF85;
 }
 
 .stat-item-assist .stat-value {
-  font-size: 18px;
+  font-family: var(--font-plug);
+  font-size: clamp(1rem, 1.18vw, 1.3rem);
   font-weight: 900;
-  color: #3b82f6;
+  color: #ff72f9;
 }
 
 .player-stats-loading {
   text-align: center;
-  padding: 24px 0;
-  color: #64748b;
+  padding: 2.4vh 0;
+  color: #94A3B8;
   font-weight: 600;
 }
 
@@ -1060,11 +1204,10 @@
 @keyframes playerModalScaleIn {
   from {
     opacity: 0;
-    transform: scale(0.95) translateY(10px);
+    transform: scale(0.95) translateY(1vh);
   }
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
 }
-

@@ -81,3 +81,66 @@ from team_stats ts
         on ts.team_id = t.team_id
 where ts.season in (2026)
 order by current_rank;
+
+-- 5. 승부예측 참여 및 정산 현황 조회 (회원명, 경기, 예측결과, 적중여부)
+SELECT p.PREDICTION_ID,
+       u.LOGIN_ID,
+       u.NICKNAME,
+       m.MATCH_ID,
+       ht.TEAM_NAME AS HOME_TEAM,
+       at.TEAM_NAME AS AWAY_TEAM,
+       p.PREDICT_RESULT,
+       m.STATUS AS MATCH_STATUS,
+       m.HOME_SCORE || ' : ' || m.AWAY_SCORE AS SCORE,
+       p.IS_SUCCESS,
+       p.CREATED_AT
+FROM PREDICTIONS p
+JOIN USERS u ON p.USER_ID = u.USER_ID
+JOIN MATCHES m ON p.MATCH_ID = m.MATCH_ID
+JOIN TEAMS ht ON m.HOME_TEAM_ID = ht.TEAM_ID
+JOIN TEAMS at ON m.AWAY_TEAM_ID = at.TEAM_ID
+ORDER BY p.CREATED_AT DESC;
+
+-- 6. 포인트 변동 이력 및 잔액 추이 조회
+SELECT ph.POINT_HISTORY_ID,
+       u.LOGIN_ID,
+       u.NICKNAME,
+       ph.AMOUNT,
+       ph.BALANCE_AFTER,
+       ph.DESCRIPTION,
+       ph.CREATED_AT
+FROM POINT_HISTORY ph
+JOIN USERS u ON ph.USER_ID = u.USER_ID
+ORDER BY ph.CREATED_AT DESC;
+
+-- 7. 회원별 승부예측 랭킹 (다승 및 적중률)
+SELECT up.USER_ID,
+       u.NICKNAME,
+       up.PREDICT_WIN AS "적중수",
+       up.PREDICT_TOTAL AS "참여수",
+       ROUND(up.PREDICT_WIN / NULLIF(up.PREDICT_TOTAL, 0) * 100, 1) || '%' AS "적중률"
+FROM USER_PREDICTS up
+JOIN USERS u ON up.USER_ID = u.USER_ID
+WHERE up.PREDICT_TOTAL >= 1 AND u.ROLE_CODE != 7
+ORDER BY up.PREDICT_WIN DESC, (up.PREDICT_WIN / NULLIF(up.PREDICT_TOTAL, 0)) DESC;
+
+-- 8. AI 가상 대결 전적 TOP 10 랭킹
+SELECT ct.USER_ID,
+       ct.TEAM_NAME AS "커스텀팀명",
+       u.NICKNAME AS "구단주",
+       COUNT(*) AS "총경기수",
+       SUM(CASE WHEN m.HOME_SCORE > m.AWAY_SCORE THEN 1 ELSE 0 END) AS "승리",
+       SUM(CASE WHEN m.HOME_SCORE = m.AWAY_SCORE THEN 1 ELSE 0 END) AS "무승부",
+       SUM(CASE WHEN m.HOME_SCORE < m.AWAY_SCORE THEN 1 ELSE 0 END) AS "패배"
+FROM AI_MATCHES m
+JOIN CUSTOM_TEAMS ct ON ct.CUSTOM_TEAM_ID = m.HOME_TEAM_ID
+JOIN USERS u ON u.USER_ID = ct.USER_ID
+WHERE u.ROLE_CODE != 7
+GROUP BY ct.USER_ID, ct.CUSTOM_TEAM_ID, ct.TEAM_NAME, u.NICKNAME
+ORDER BY "승리" DESC;
+
+-- 9. 마스터 코드 등록 현황 확인
+SELECT 'USER_ROLES' AS "TABLE", COUNT(*) AS "COUNT" FROM USER_ROLES UNION ALL
+SELECT 'STAFF_ROLES', COUNT(*) FROM STAFF_ROLES UNION ALL
+SELECT 'CATEGORY', COUNT(*) FROM CATEGORY UNION ALL
+SELECT 'EVENT_TYPE', COUNT(*) FROM EVENT_TYPE;

@@ -1,6 +1,7 @@
 package com.app.dao.user.impl;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.mybatis.spring.SqlSessionTemplate;
@@ -8,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.app.dao.user.UserDAO;
+import com.app.dto.community.Comments;
+import com.app.dto.community.Posts;
 import com.app.dto.user.Users;
 
 @Repository
@@ -87,5 +90,43 @@ public class UserDAOImpl implements UserDAO {
 	@Override
 	public int anonymizeUser(Long userId) {
 		return sqlSession.update("UserMapper.anonymizeUser", userId);
+	}
+
+	@Override
+	public List<Posts> selectUserPosts(Map<String, Object> params) {
+		return sqlSession.selectList("UserMapper.selectUserPosts", params);
+	}
+
+	@Override
+	public int countUserPosts(Long userId) {
+		Integer count = sqlSession.selectOne("UserMapper.countUserPosts", userId);
+		return count != null ? count : 0;
+	}
+
+	@Override
+	public List<Comments> selectUserComments(Map<String, Object> params) {
+		return sqlSession.selectList("UserMapper.selectUserComments", params);
+	}
+
+	@Override
+	public int countUserComments(Long userId) {
+		Integer count = sqlSession.selectOne("UserMapper.countUserComments", userId);
+		return count != null ? count : 0;
+	}
+
+	@Override
+	public List<Posts> selectUserLikedPosts(Map<String, Object> params) {
+		return sqlSession.selectList("UserMapper.selectUserLikedPosts", params);
+	}
+
+	@Override
+	public int countUserLikedPosts(Long userId) {
+		Integer count = sqlSession.selectOne("UserMapper.countUserLikedPosts", userId);
+		return count != null ? count : 0;
+	}
+
+	@Override
+	public List<com.app.dto.prediction.PointHistory> selectUserPointHistories(Long userId) {
+		return sqlSession.selectList("UserMapper.selectRecentPointHistoriesByUserId", userId);
 	}
 }

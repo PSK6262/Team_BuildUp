@@ -256,3 +256,32 @@ body.mainpage-intro-active .chatbot-widget__panel {
     font-size: 22px;
   }
 }
+
+/* --------------------------------------------------------
+   화면 테마(다크/라이트) 전환 아이콘 버튼
+   - 네비바는 테마와 관계없이 항상 기존의 다크 글래스모피즘 스타일을 유지합니다.
+   -------------------------------------------------------- */
+.user-nav__theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+  flex-shrink: 0;
+}
+
+.user-nav__theme-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(0, 255, 135, 0.5);
+  color: #00ff87;
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(0, 255, 135, 0.25);
+}

@@ -1,12 +1,46 @@
 import { useDispatch, useSelector } from 'react-redux'
 import { logout } from '../store/authSlice.js'
+import { toggleTheme } from '../store/themeSlice.js'
 import '../css/AllUseNav.css'
 
-const links = [['팀소개', 'teams'], ['경기 일정', 'match'], ['커뮤니티', 'community/teams'], ['랭킹', 'rankpage'], ['예측', 'prediction'], ['미니게임', 'minigames']]
+function IconSun({ size = 15, color = 'currentColor', className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }}>
+      <circle cx="12" cy="12" r="5" />
+      <line x1="12" y1="1" x2="12" y2="3" />
+      <line x1="12" y1="21" x2="12" y2="23" />
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <line x1="1" y1="12" x2="3" y2="12" />
+      <line x1="21" y1="12" x2="23" y2="12" />
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+    </svg>
+  )
+}
+
+function IconMoon({ size = 15, color = 'currentColor', className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }}>
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  )
+}
+
+const links = [
+  ['팀소개', 'teams'],
+  ['경기 일정', 'match'],
+  ['커뮤니티', 'community/teams'],
+  ['나만의 팀', 'myteam'],
+  ['랭킹', 'rankpage'],
+  ['예측', 'prediction'],
+  ['미니게임', 'minigames'],
+]
 
 export default function AllUseNav() {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn)
   const user = useSelector((state) => state.auth.user)
+  const currentTheme = useSelector((state) => state.theme?.mode || 'dark')
   const dispatch = useDispatch()
   const pathname = window.location.pathname.replace(/\/$/, '')
   const isMainPage = !pathname || pathname === '' || pathname === '/plug' || pathname === '/plug/mainpage' || pathname === '/plug/teams'
@@ -49,25 +83,24 @@ export default function AllUseNav() {
         </a>
         <div className="user-nav__links">
           {links.map(renderLink)}
+          {isAdmin && renderLink(['관리', 'admin'])}
         </div>
         <div className="user-nav__account">
-          {isLoggedIn ? <>
-            {isAdmin && (
-              <a
-                href="/plug/admin"
-                style={{
-                  background: '#38003c',
-                  color: '#fff',
-                  padding: '10px 14px',
-                  borderRadius: '8px',
-                  fontWeight: 700,
-                  fontSize: '13px',
-                  textDecoration: 'none',
-                }}
-              >
-                관리자
-              </a>
+          {/* 다크모드 / 일반모드 전환 아이콘 토글 */}
+          <button
+            type="button"
+            className="user-nav__theme-btn"
+            onClick={() => dispatch(toggleTheme())}
+            title={currentTheme === 'dark' ? '일반모드(라이트)로 전환' : '다크모드로 전환'}
+            aria-label={currentTheme === 'dark' ? '일반모드(라이트)로 전환' : '다크모드로 전환'}
+          >
+            {currentTheme === 'dark' ? (
+              <IconSun size={17} color="#ffd700" />
+            ) : (
+              <IconMoon size={17} color="#d886ed" />
             )}
+          </button>
+          {isLoggedIn ? <>
             <button type="button" onClick={handleLogout}>로그아웃</button>
             <a className="user-nav__primary" href="/plug/mypage">마이페이지</a>
           </> : <>

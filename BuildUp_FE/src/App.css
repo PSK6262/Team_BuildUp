@@ -495,3 +495,271 @@
 .withdraw-cancel-modal-btn:hover {
   background-color: #e5e7eb;
 }
+
+/* ========================================================
+   마이페이지 확장 스타일: 탭 네비게이션 & 활동 내역 리스트
+   ======================================================== */
+.mypage-card {
+  max-width: 720px;
+}
+
+.mypage-tab-nav {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid #e5e9ef;
+  margin-top: 24px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.mypage-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.mypage-tab-btn:hover {
+  color: #38003c;
+}
+
+.mypage-tab-btn.is-active {
+  color: #38003c;
+  border-bottom-color: #38003c;
+}
+
+.mypage-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.mypage-tab-btn.is-active .mypage-tab-badge {
+  background: #38003c;
+  color: #ffffff;
+}
+
+.mypage-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mypage-activity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.mypage-activity-item:hover {
+  transform: translateY(-2px);
+  border-color: #00ff87;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.mypage-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mypage-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mypage-category-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #e0f2fe;
+  color: #0284c7;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mypage-team-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #f3e8ff;
+  color: #7e22ce;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mypage-blind-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #ef4444;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mypage-item-date {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.mypage-item-author {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.mypage-item-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mypage-item-comment-count {
+  color: #008a55;
+  margin-left: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mypage-item-comment-content {
+  margin: 0;
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mypage-item-target-post {
+  font-size: 12px;
+  color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mypage-target-label {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.mypage-item-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-size: 12px;
+  color: #64748b;
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+
+.mypage-stat-like {
+  color: #e11d48;
+  font-weight: 700;
+}
+
+.mypage-list-loading,
+.mypage-list-empty {
+  text-align: center;
+  padding: 48px 16px;
+  color: #64748b;
+}
+
+.mypage-list-empty p {
+  font-size: 15px;
+  margin: 0 0 14px;
+  color: #64748b;
+}
+
+.mypage-link-btn {
+  display: inline-block;
+  padding: 9px 18px;
+  border-radius: 8px;
+  background: #38003c;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.mypage-link-btn:hover {
+  opacity: 0.9;
+}
+
+.mypage-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.mypage-pagination button {
+  padding: 6px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mypage-pagination button:hover:not(:disabled) {
+  border-color: #38003c;
+  color: #38003c;
+  background: #f8fafc;
+}
+
+.mypage-pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.mypage-page-info {
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+}

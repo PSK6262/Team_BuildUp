@@ -1,5 +1,11 @@
 package com.app.dao.user;
 
+import java.util.List;
+import java.util.Map;
+
+import com.app.dto.community.Comments;
+import com.app.dto.community.Posts;
+import com.app.dto.prediction.PointHistory;
 import com.app.dto.user.Users;
 
 public interface UserDAO {
@@ -15,4 +21,16 @@ public interface UserDAO {
 	int deleteUserRelatedData(Long userId);
 	int deleteUser(Long userId);
 	int anonymizeUser(Long userId);
+
+	// 마이페이지 활동 내역
+	List<Posts> selectUserPosts(Map<String, Object> params);
+	int countUserPosts(Long userId);
+
+	List<Comments> selectUserComments(Map<String, Object> params);
+	int countUserComments(Long userId);
+
+	List<Posts> selectUserLikedPosts(Map<String, Object> params);
+	int countUserLikedPosts(Long userId);
+
+	List<PointHistory> selectUserPointHistories(Long userId);
 }
