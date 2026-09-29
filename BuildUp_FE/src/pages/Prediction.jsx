@@ -17,6 +17,30 @@ export default function Prediction() {
   const [loading, setLoading] = useState(true);
   const [votingMatchId, setVotingMatchId] = useState(null);
 
+  // 모바일 (<= 425px) 1경기씩 카드 넘기기 슬라이더 상태
+  const [mobileMatchIndex, setMobileMatchIndex] = useState(0);
+  const touchStartXRef = useRef(null);
+
+  const handleTouchStart = (e) => {
+    touchStartXRef.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e) => {
+    if (touchStartXRef.current === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diffX = touchStartXRef.current - touchEndX;
+    if (Math.abs(diffX) > 40) {
+      if (diffX > 0) {
+        // 오른쪽 -> 왼쪽: 다음 경기
+        setMobileMatchIndex((prev) => Math.min(matches.length - 1, prev + 1));
+      } else {
+        // 왼쪽 -> 오른쪽: 이전 경기
+        setMobileMatchIndex((prev) => Math.max(0, prev - 1));
+      }
+    }
+    touchStartXRef.current = null;
+  };
+
   // 사이드바 구글 애드센스 Ref 및 푸시 처리
   const sideAdRef = useRef(null);
   const isSideAdPushed = useRef(false);
@@ -211,8 +235,16 @@ export default function Prediction() {
           <span className="prediction-header__eyebrow">PREMIER LEAGUE</span>
           <h1 className="prediction-header__title">승부예측</h1>
           <p className="prediction-header__desc">
-            내가 응원하는 애정팀을 선택하고 승부예측 랭킹 1위에 도전하세요!<br />
-            <strong>[승리 +100P]</strong> &nbsp;|&nbsp; <strong>[무승부 +150P]</strong> &nbsp;|&nbsp; <strong>[언더독 승리 +250P 🔥]</strong>
+            <span className="prediction-header__desc-main">
+              내가 응원하는 애정팀을 선택하고<span className="prediction-desc-br"> </span>승부예측 랭킹 1위에 도전하세요!
+            </span>
+            <span className="prediction-header__chips">
+              <span className="prediction-chip prediction-chip--win">[승리 +100P]</span>
+              <span className="prediction-chip-sep">|</span>
+              <span className="prediction-chip prediction-chip--draw">[무승부 +150P]</span>
+              <span className="prediction-chip-sep">|</span>
+              <span className="prediction-chip prediction-chip--underdog">[언더독 승리 +250P 🔥]</span>
+            </span>
           </p>
         </header>
 
@@ -251,148 +283,318 @@ export default function Prediction() {
                   {matches.length === 0 ? (
                     <div className="prediction-my-empty">예정된 승부예측 경기가 없습니다.</div>
                   ) : (
-                    matches.slice(0, visibleCount).map((m) => {
-                      const odds = oddsData[m.matchId] || {};
-                      const myVote = myVotes[m.matchId];
-                      const isFinished = m.status === 'FINISHED';
-                      const homePoint = odds.homePoint || 100;
-                      const drawPoint = odds.drawPoint || 150;
-                      const awayPoint = odds.awayPoint || 100;
-                      const isVoting = votingMatchId === m.matchId;
-
-                      return (
-                        <article key={m.matchId} className="prediction-card">
-                          <div className="prediction-card__header">
-                            <span>{m.matchDate ? m.matchDate.substring(0, 16).replace('T', ' ') : '일정 미정'}</span>
-                            <span className={`prediction-card__badge ${isFinished ? 'is-finished' : ''}`}>
-                              {isFinished
-                                ? '경기 종료'
-                                : myVote
-                                ? '예측 완료 (변경 가능)'
-                                : '예측 진행중'}
-                            </span>
-                          </div>
-
-                          {/* 팀 대진 */}
-                          <div className="prediction-teams">
-                            <div className="prediction-team is-home">
-                              <img
-                                src={odds.homeEmblemUrl || m.homeEmblemUrl || 'https://crests.football-data.org/57.png'}
-                                alt={odds.homeTeamNameKor || odds.homeTeamName || '홈팀'}
-                                className="prediction-team__emblem"
-                                onError={(e) => { e.target.src = 'https://crests.football-data.org/57.png'; }}
-                              />
-                              <div className="prediction-team__info">
-                                <span className="prediction-team__name">
-                                  {odds.homeTeamNameKor || odds.homeTeamName || `팀 ${m.homeTeamId}`}
-                                </span>
-                                <span className="prediction-team__rank">
-                                  {odds.homeRank ? `${odds.homeRank}위` : ''} {odds.homeUnderdog ? '🔥 언더독' : ''}
-                                </span>
-                              </div>
-                            </div>
-
-                            <div style={{ textAlign: 'center' }}>
-                              {isFinished ? (
-                                <div className="prediction-score">
-                                  {m.homeScore} : {m.awayScore}
-                                </div>
-                              ) : (
-                                <div className="prediction-vs">VS</div>
-                              )}
-                            </div>
-
-                            <div className="prediction-team is-away">
-                              <img
-                                src={odds.awayEmblemUrl || m.awayEmblemUrl || 'https://crests.football-data.org/65.png'}
-                                alt={odds.awayTeamNameKor || odds.awayTeamName || '원정팀'}
-                                className="prediction-team__emblem"
-                                onError={(e) => { e.target.src = 'https://crests.football-data.org/65.png'; }}
-                              />
-                              <div className="prediction-team__info">
-                                <span className="prediction-team__name">
-                                  {odds.awayTeamNameKor || odds.awayTeamName || `팀 ${m.awayTeamId}`}
-                                </span>
-                                <span className="prediction-team__rank">
-                                  {odds.awayRank ? `${odds.awayRank}위` : ''} {odds.awayUnderdog ? '🔥 언더독' : ''}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* 투표 버튼 3개 (경기 시작 전에는 예측 변경 가능) */}
-                          <div className="prediction-buttons">
-                            <button
-                              type="button"
-                              className={`prediction-vote-btn ${myVote?.predictResult === 'HOME' ? 'is-selected' : ''}`}
-                              onClick={() => handleVote(m.matchId, 'HOME')}
-                              disabled={isFinished || isVoting}
-                              title={myVote ? '클릭하여 예측을 변경할 수 있습니다' : '홈팀 승 투표'}
-                            >
-                              <span className="prediction-vote-btn__label">홈팀 승</span>
-                              <span className={`prediction-vote-btn__point ${odds.homeUnderdog ? 'is-underdog' : ''}`}>
-                                +{homePoint}P {odds.homeUnderdog ? '🔥' : ''}
-                              </span>
-                            </button>
-
-                            <button
-                              type="button"
-                              className={`prediction-vote-btn ${myVote?.predictResult === 'DRAW' ? 'is-selected' : ''}`}
-                              onClick={() => handleVote(m.matchId, 'DRAW')}
-                              disabled={isFinished || isVoting}
-                              title={myVote ? '클릭하여 예측을 변경할 수 있습니다' : '무승부 투표'}
-                            >
-                              <span className="prediction-vote-btn__label">무승부</span>
-                              <span className="prediction-vote-btn__point">+{drawPoint}P</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              className={`prediction-vote-btn ${myVote?.predictResult === 'AWAY' ? 'is-selected' : ''}`}
-                              onClick={() => handleVote(m.matchId, 'AWAY')}
-                              disabled={isFinished || isVoting}
-                              title={myVote ? '클릭하여 예측을 변경할 수 있습니다' : '원정팀 승 투표'}
-                            >
-                              <span className="prediction-vote-btn__label">원정팀 승</span>
-                              <span className={`prediction-vote-btn__point ${odds.awayUnderdog ? 'is-underdog' : ''}`}>
-                                +{awayPoint}P {odds.awayUnderdog ? '🔥' : ''}
-                              </span>
-                            </button>
-                          </div>
-
-
-                          {/* 실시간 투표율 게이지 바 (투표가 있거나 내가 투표한 경우) */}
-                          {odds.totalVotes > 0 && (
-                            <div className="prediction-vote-bar">
-                              <div className="prediction-vote-bar__meta">
-                                <span>팬 투표율 (총 {odds.totalVotes}표)</span>
-                                <span>
-                                  홈 {odds.homeVoteRate}% | 무 {odds.drawVoteRate}% | 원정 {odds.awayVoteRate}%
-                                </span>
-                              </div>
-                              <div className="prediction-vote-bar__track">
-                                <div className="prediction-vote-bar__seg-home" style={{ width: `${odds.homeVoteRate || 33.3}%` }} />
-                                <div className="prediction-vote-bar__seg-draw" style={{ width: `${odds.drawVoteRate || 33.3}%` }} />
-                                <div className="prediction-vote-bar__seg-away" style={{ width: `${odds.awayVoteRate || 33.4}%` }} />
-                              </div>
-                            </div>
-                          )}
-                        </article>
-                      );
-                    })
-                  )}
-
-                  {/* 5개씩 더보기 버튼 */}
-                  {activeTab === 'matches' && visibleCount < matches.length && (
-                    <div className="prediction-more-wrap">
-                      <button
-                        type="button"
-                        className="prediction-more-btn"
-                        onClick={() => setVisibleCount((prev) => prev + 5)}
+                    <>
+                      {/* 1) 모바일 전용: 1경기씩 카드 넘기기 슬라이더 (<= 425px) */}
+                      <div
+                        className="prediction-mobile-slider"
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
                       >
-                        {Math.min(5, matches.length - visibleCount)}경기 더보기 ▾
-                      </button>
-                    </div>
+                        <div className="prediction-slider-bar">
+                          <button
+                            type="button"
+                            className="prediction-slider-btn is-prev"
+                            onClick={() => setMobileMatchIndex((prev) => Math.max(0, prev - 1))}
+                            disabled={mobileMatchIndex === 0}
+                            aria-label="이전 경기"
+                          >
+                            ‹
+                          </button>
+                          <div className="prediction-slider-info">
+                            <span className="prediction-slider-counter">
+                              경기 {mobileMatchIndex + 1} / {matches.length}
+                            </span>
+                            <div className="prediction-slider-dots">
+                              {matches.slice(0, Math.min(10, matches.length)).map((_, idx) => (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  className={`prediction-slider-dot ${idx === mobileMatchIndex ? 'is-active' : ''}`}
+                                  onClick={() => setMobileMatchIndex(idx)}
+                                  aria-label={`${idx + 1}번째 경기로 이동`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            className="prediction-slider-btn is-next"
+                            onClick={() => setMobileMatchIndex((prev) => Math.min(matches.length - 1, prev + 1))}
+                            disabled={mobileMatchIndex >= matches.length - 1}
+                            aria-label="다음 경기"
+                          >
+                            ›
+                          </button>
+                        </div>
+
+                        {matches[mobileMatchIndex] && (
+                          <article key={matches[mobileMatchIndex].matchId} className="prediction-card">
+                            <div className="prediction-card__header">
+                              <span>{matches[mobileMatchIndex].matchDate ? matches[mobileMatchIndex].matchDate.substring(0, 16).replace('T', ' ') : '일정 미정'}</span>
+                              <span className={`prediction-card__badge ${matches[mobileMatchIndex].status === 'FINISHED' ? 'is-finished' : ''}`}>
+                                {matches[mobileMatchIndex].status === 'FINISHED'
+                                  ? '경기 종료'
+                                  : myVotes[matches[mobileMatchIndex].matchId]
+                                  ? '예측 완료 (변경 가능)'
+                                  : '예측 진행중'}
+                              </span>
+                            </div>
+
+                            {/* 팀 대진 */}
+                            <div className="prediction-teams">
+                              <div className="prediction-team is-home">
+                                <img
+                                  src={oddsData[matches[mobileMatchIndex].matchId]?.homeEmblemUrl || matches[mobileMatchIndex].homeEmblemUrl || 'https://crests.football-data.org/57.png'}
+                                  alt={oddsData[matches[mobileMatchIndex].matchId]?.homeTeamNameKor || oddsData[matches[mobileMatchIndex].matchId]?.homeTeamName || '홈팀'}
+                                  className="prediction-team__emblem"
+                                  onError={(e) => { e.target.src = 'https://crests.football-data.org/57.png'; }}
+                                />
+                                <div className="prediction-team__info">
+                                  <span className="prediction-team__name">
+                                    {oddsData[matches[mobileMatchIndex].matchId]?.homeTeamNameKor || oddsData[matches[mobileMatchIndex].matchId]?.homeTeamName || `팀 ${matches[mobileMatchIndex].homeTeamId}`}
+                                  </span>
+                                  <span className="prediction-team__rank">
+                                    {oddsData[matches[mobileMatchIndex].matchId]?.homeRank ? `${oddsData[matches[mobileMatchIndex].matchId].homeRank}위` : ''} {oddsData[matches[mobileMatchIndex].matchId]?.homeUnderdog ? '🔥 언더독' : ''}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div style={{ textAlign: 'center' }}>
+                                {matches[mobileMatchIndex].status === 'FINISHED' ? (
+                                  <div className="prediction-score">
+                                    {matches[mobileMatchIndex].homeScore} : {matches[mobileMatchIndex].awayScore}
+                                  </div>
+                                ) : (
+                                  <div className="prediction-vs">VS</div>
+                                )}
+                              </div>
+
+                              <div className="prediction-team is-away">
+                                <img
+                                  src={oddsData[matches[mobileMatchIndex].matchId]?.awayEmblemUrl || matches[mobileMatchIndex].awayEmblemUrl || 'https://crests.football-data.org/65.png'}
+                                  alt={oddsData[matches[mobileMatchIndex].matchId]?.awayTeamNameKor || oddsData[matches[mobileMatchIndex].matchId]?.awayTeamName || '원정팀'}
+                                  className="prediction-team__emblem"
+                                  onError={(e) => { e.target.src = 'https://crests.football-data.org/65.png'; }}
+                                />
+                                <div className="prediction-team__info">
+                                  <span className="prediction-team__name">
+                                    {oddsData[matches[mobileMatchIndex].matchId]?.awayTeamNameKor || oddsData[matches[mobileMatchIndex].matchId]?.awayTeamName || `팀 ${matches[mobileMatchIndex].awayTeamId}`}
+                                  </span>
+                                  <span className="prediction-team__rank">
+                                    {oddsData[matches[mobileMatchIndex].matchId]?.awayRank ? `${oddsData[matches[mobileMatchIndex].matchId].awayRank}위` : ''} {oddsData[matches[mobileMatchIndex].matchId]?.awayUnderdog ? '🔥 언더독' : ''}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* 투표 버튼 3개 */}
+                            <div className="prediction-buttons">
+                              <button
+                                type="button"
+                                className={`prediction-vote-btn ${myVotes[matches[mobileMatchIndex].matchId]?.predictResult === 'HOME' ? 'is-selected' : ''}`}
+                                onClick={() => handleVote(matches[mobileMatchIndex].matchId, 'HOME')}
+                                disabled={matches[mobileMatchIndex].status === 'FINISHED' || votingMatchId === matches[mobileMatchIndex].matchId}
+                                title={myVotes[matches[mobileMatchIndex].matchId] ? '클릭하여 예측을 변경할 수 있습니다' : '홈팀 승 투표'}
+                              >
+                                <span className="prediction-vote-btn__label">홈팀 승</span>
+                                <span className={`prediction-vote-btn__point ${oddsData[matches[mobileMatchIndex].matchId]?.homeUnderdog ? 'is-underdog' : ''}`}>
+                                  +{oddsData[matches[mobileMatchIndex].matchId]?.homePoint || 100}P {oddsData[matches[mobileMatchIndex].matchId]?.homeUnderdog ? '🔥' : ''}
+                                </span>
+                              </button>
+
+                              <button
+                                type="button"
+                                className={`prediction-vote-btn ${myVotes[matches[mobileMatchIndex].matchId]?.predictResult === 'DRAW' ? 'is-selected' : ''}`}
+                                onClick={() => handleVote(matches[mobileMatchIndex].matchId, 'DRAW')}
+                                disabled={matches[mobileMatchIndex].status === 'FINISHED' || votingMatchId === matches[mobileMatchIndex].matchId}
+                                title={myVotes[matches[mobileMatchIndex].matchId] ? '클릭하여 예측을 변경할 수 있습니다' : '무승부 투표'}
+                              >
+                                <span className="prediction-vote-btn__label">무승부</span>
+                                <span className="prediction-vote-btn__point">+{oddsData[matches[mobileMatchIndex].matchId]?.drawPoint || 150}P</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                className={`prediction-vote-btn ${myVotes[matches[mobileMatchIndex].matchId]?.predictResult === 'AWAY' ? 'is-selected' : ''}`}
+                                onClick={() => handleVote(matches[mobileMatchIndex].matchId, 'AWAY')}
+                                disabled={matches[mobileMatchIndex].status === 'FINISHED' || votingMatchId === matches[mobileMatchIndex].matchId}
+                                title={myVotes[matches[mobileMatchIndex].matchId] ? '클릭하여 예측을 변경할 수 있습니다' : '원정팀 승 투표'}
+                              >
+                                <span className="prediction-vote-btn__label">원정팀 승</span>
+                                <span className={`prediction-vote-btn__point ${oddsData[matches[mobileMatchIndex].matchId]?.awayUnderdog ? 'is-underdog' : ''}`}>
+                                  +{oddsData[matches[mobileMatchIndex].matchId]?.awayPoint || 100}P {oddsData[matches[mobileMatchIndex].matchId]?.awayUnderdog ? '🔥' : ''}
+                                </span>
+                              </button>
+                            </div>
+
+                            {/* 실시간 투표율 게이지 바 */}
+                            {(oddsData[matches[mobileMatchIndex].matchId]?.totalVotes || 0) > 0 && (
+                              <div className="prediction-vote-bar">
+                                <div className="prediction-vote-bar__meta">
+                                  <span>팬 투표율 (총 {oddsData[matches[mobileMatchIndex].matchId].totalVotes}표)</span>
+                                  <span>
+                                    홈 {oddsData[matches[mobileMatchIndex].matchId].homeVoteRate}% | 무 {oddsData[matches[mobileMatchIndex].matchId].drawVoteRate}% | 원정 {oddsData[matches[mobileMatchIndex].matchId].awayVoteRate}%
+                                  </span>
+                                </div>
+                                <div className="prediction-vote-bar__track">
+                                  <div className="prediction-vote-bar__seg-home" style={{ width: `${oddsData[matches[mobileMatchIndex].matchId].homeVoteRate || 33.3}%` }} />
+                                  <div className="prediction-vote-bar__seg-draw" style={{ width: `${oddsData[matches[mobileMatchIndex].matchId].drawVoteRate || 33.3}%` }} />
+                                  <div className="prediction-vote-bar__seg-away" style={{ width: `${oddsData[matches[mobileMatchIndex].matchId].awayVoteRate || 33.4}%` }} />
+                                </div>
+                              </div>
+                            )}
+                          </article>
+                        )}
+                        <div className="prediction-slider-hint">
+                          👈 좌우로 넘겨서 다음 경기를 예측해보세요 👉
+                        </div>
+                      </div>
+
+                      {/* 2) 데스크톱/태블릿 전용: 5개씩 세로 나열 목록 (> 425px) */}
+                      <div className="prediction-desktop-list">
+                        {matches.slice(0, visibleCount).map((m) => {
+                          const odds = oddsData[m.matchId] || {};
+                          const myVote = myVotes[m.matchId];
+                          const isFinished = m.status === 'FINISHED';
+                          const homePoint = odds.homePoint || 100;
+                          const drawPoint = odds.drawPoint || 150;
+                          const awayPoint = odds.awayPoint || 100;
+                          const isVoting = votingMatchId === m.matchId;
+
+                          return (
+                            <article key={m.matchId} className="prediction-card">
+                              <div className="prediction-card__header">
+                                <span>{m.matchDate ? m.matchDate.substring(0, 16).replace('T', ' ') : '일정 미정'}</span>
+                                <span className={`prediction-card__badge ${isFinished ? 'is-finished' : ''}`}>
+                                  {isFinished
+                                    ? '경기 종료'
+                                    : myVote
+                                    ? '예측 완료 (변경 가능)'
+                                    : '예측 진행중'}
+                                </span>
+                              </div>
+
+                              {/* 팀 대진 */}
+                              <div className="prediction-teams">
+                                <div className="prediction-team is-home">
+                                  <img
+                                    src={odds.homeEmblemUrl || m.homeEmblemUrl || 'https://crests.football-data.org/57.png'}
+                                    alt={odds.homeTeamNameKor || odds.homeTeamName || '홈팀'}
+                                    className="prediction-team__emblem"
+                                    onError={(e) => { e.target.src = 'https://crests.football-data.org/57.png'; }}
+                                  />
+                                  <div className="prediction-team__info">
+                                    <span className="prediction-team__name">
+                                      {odds.homeTeamNameKor || odds.homeTeamName || `팀 ${m.homeTeamId}`}
+                                    </span>
+                                    <span className="prediction-team__rank">
+                                      {odds.homeRank ? `${odds.homeRank}위` : ''} {odds.homeUnderdog ? '🔥 언더독' : ''}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div style={{ textAlign: 'center' }}>
+                                  {isFinished ? (
+                                    <div className="prediction-score">
+                                      {m.homeScore} : {m.awayScore}
+                                    </div>
+                                  ) : (
+                                    <div className="prediction-vs">VS</div>
+                                  )}
+                                </div>
+
+                                <div className="prediction-team is-away">
+                                  <img
+                                    src={odds.awayEmblemUrl || m.awayEmblemUrl || 'https://crests.football-data.org/65.png'}
+                                    alt={odds.awayTeamNameKor || odds.awayTeamName || '원정팀'}
+                                    className="prediction-team__emblem"
+                                    onError={(e) => { e.target.src = 'https://crests.football-data.org/65.png'; }}
+                                  />
+                                  <div className="prediction-team__info">
+                                    <span className="prediction-team__name">
+                                      {odds.awayTeamNameKor || odds.awayTeamName || `팀 ${m.awayTeamId}`}
+                                    </span>
+                                    <span className="prediction-team__rank">
+                                      {odds.awayRank ? `${odds.awayRank}위` : ''} {odds.awayUnderdog ? '🔥 언더독' : ''}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* 투표 버튼 3개 */}
+                              <div className="prediction-buttons">
+                                <button
+                                  type="button"
+                                  className={`prediction-vote-btn ${myVote?.predictResult === 'HOME' ? 'is-selected' : ''}`}
+                                  onClick={() => handleVote(m.matchId, 'HOME')}
+                                  disabled={isFinished || isVoting}
+                                  title={myVote ? '클릭하여 예측을 변경할 수 있습니다' : '홈팀 승 투표'}
+                                >
+                                  <span className="prediction-vote-btn__label">홈팀 승</span>
+                                  <span className={`prediction-vote-btn__point ${odds.homeUnderdog ? 'is-underdog' : ''}`}>
+                                    +{homePoint}P {odds.homeUnderdog ? '🔥' : ''}
+                                  </span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  className={`prediction-vote-btn ${myVote?.predictResult === 'DRAW' ? 'is-selected' : ''}`}
+                                  onClick={() => handleVote(m.matchId, 'DRAW')}
+                                  disabled={isFinished || isVoting}
+                                  title={myVote ? '클릭하여 예측을 변경할 수 있습니다' : '무승부 투표'}
+                                >
+                                  <span className="prediction-vote-btn__label">무승부</span>
+                                  <span className="prediction-vote-btn__point">+{drawPoint}P</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  className={`prediction-vote-btn ${myVote?.predictResult === 'AWAY' ? 'is-selected' : ''}`}
+                                  onClick={() => handleVote(m.matchId, 'AWAY')}
+                                  disabled={isFinished || isVoting}
+                                  title={myVote ? '클릭하여 예측을 변경할 수 있습니다' : '원정팀 승 투표'}
+                                >
+                                  <span className="prediction-vote-btn__label">원정팀 승</span>
+                                  <span className={`prediction-vote-btn__point ${odds.awayUnderdog ? 'is-underdog' : ''}`}>
+                                    +{awayPoint}P {odds.awayUnderdog ? '🔥' : ''}
+                                  </span>
+                                </button>
+                              </div>
+
+                              {/* 실시간 투표율 게이지 바 */}
+                              {odds.totalVotes > 0 && (
+                                <div className="prediction-vote-bar">
+                                  <div className="prediction-vote-bar__meta">
+                                    <span>팬 투표율 (총 {odds.totalVotes}표)</span>
+                                    <span>
+                                      홈 {odds.homeVoteRate}% | 무 {odds.drawVoteRate}% | 원정 {odds.awayVoteRate}%
+                                    </span>
+                                  </div>
+                                  <div className="prediction-vote-bar__track">
+                                    <div className="prediction-vote-bar__seg-home" style={{ width: `${odds.homeVoteRate || 33.3}%` }} />
+                                    <div className="prediction-vote-bar__seg-draw" style={{ width: `${odds.drawVoteRate || 33.3}%` }} />
+                                    <div className="prediction-vote-bar__seg-away" style={{ width: `${odds.awayVoteRate || 33.4}%` }} />
+                                  </div>
+                                </div>
+                              )}
+                            </article>
+                          );
+                        })}
+
+                        {/* 5개씩 더보기 버튼 */}
+                        {visibleCount < matches.length && (
+                          <div className="prediction-more-wrap">
+                            <button
+                              type="button"
+                              className="prediction-more-btn"
+                              onClick={() => setVisibleCount((prev) => prev + 5)}
+                            >
+                              {Math.min(5, matches.length - visibleCount)}경기 더보기 ▾
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </>
                   )}
                 </div>
               ) : (
