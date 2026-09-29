@@ -1028,6 +1028,15 @@ body:has(.community) .user-nav__dropdown {
   .community__custom-select--wide .community__custom-select-options { right: auto; left: 0; min-width: min(280px, 88vw); }
 }
 
+/* 광고 영역의 높이를 미리 확보하고 화면 너비에 맞춰 표시합니다. */
+.community__ad { width: 100%; max-width: 970px; margin: 36px auto 0; }
+.community__ad-label { display: block; margin-bottom: 8px; text-align: center; color: #64748b; font-size: 10px; letter-spacing: 1px; }
+.community__ad-space { display: grid; place-items: center; width: 100%; min-height: 100px; box-sizing: border-box; border: 1px solid #e2e8f0; border-radius: 8px; background: #eef1f6; color: #64748b; font-size: 12px; }
+@media (max-width: 680px) {
+  .community__ad { margin-top: 28px; }
+  .community__ad-space { min-height: 100px; }
+}
+
 /* 목록 화면의 탐색, 검색, 게시글, 인기글을 읽는 순서로 배치합니다. */
 .community--board { padding-top: 24px; }
 .community--board .community__navigation { padding: 0 0 18px; margin-bottom: 26px; border: 0; border-bottom: 1px solid #e2e8f0; border-radius: 0; background: transparent; box-shadow: none; backdrop-filter: none; }

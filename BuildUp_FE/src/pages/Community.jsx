@@ -272,6 +272,11 @@ export default function Community({ selectedTeam = null }) {
           <button type="button" disabled={page === pageCount || postsLoading} onClick={() => setPage(page + 1)}>다음</button>
         </nav>
       </div>
+      {/* 광고 연결 전에도 공간을 확보해 목록 아래 배치가 밀리지 않도록 합니다. */}
+      <aside className="community__ad" aria-label="광고 영역">
+        <span className="community__ad-label">광고 · ADVERTISEMENT</span>
+        <div className="community__ad-space"><span>광고 영역</span></div>
+      </aside>
       {!selectedTeam && board !== 'team' && board !== 'showcase' && <section className="community__showcase" aria-labelledby="showcase-title">
         <div className="community__showcase-heading">
           <h2 id="showcase-title">내 팀 자랑 인기글</h2>
