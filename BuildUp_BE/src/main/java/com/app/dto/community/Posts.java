@@ -18,6 +18,7 @@ public class Posts {
     private Long categoryId;           // [FK] 카테고리 식별자
     private String boardType;          // 등록 요청 게시판 종류 (free, team, showcase)
     private Long showcaseImageId;      // 조인용: 자동 생성된 스쿼드 이미지 번호
+    private Long commentCount;          // 조인용: 삭제되지 않은 댓글과 대댓글 수
 
     private LocalDateTime createdAt;   // 작성 일시
     private LocalDateTime updatedAt;   // 수정 일시
