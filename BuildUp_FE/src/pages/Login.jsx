@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { loginSuccess } from '../store/authSlice.js'
+import '../css/Auth.css'
 
 export default function Login() {
   const dispatch = useDispatch()
+  const currentTheme = useSelector((state) => state.theme?.mode || 'dark')
   const [loginId, setLoginId] = useState('')
   const [password, setPassword] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
@@ -51,11 +53,15 @@ export default function Login() {
   }
 
   return (
-    <div className="auth-container">
+    <div className={`auth-container ${currentTheme === 'light' ? 'auth-light-mode' : 'auth-dark-mode'}`}>
       <div className="auth-card">
         <div className="auth-header">
+          <div className="auth-brand-badge">
+            <span>⚽</span>
+            <span>PL:UG FOOTBALL</span>
+          </div>
           <h2>로그인</h2>
-          <p>PL:UG 서비스에 오신 것을 환영합니다.</p>
+          <p>프리미어리그 팬 커뮤니티 PL:UG에 오신 것을 환영합니다</p>
         </div>
 
         {errorMsg && <div className="auth-error-banner">{errorMsg}</div>}
@@ -85,13 +91,13 @@ export default function Login() {
           </div>
 
           <button type="submit" className="auth-submit-btn" disabled={loading}>
-            {loading ? '로그인 중...' : '로그인'}
+            {loading ? '로그인 처리 중...' : '로그인'}
           </button>
         </form>
 
         <div className="auth-footer">
           <span>아직 계정이 없으신가요?</span>
-          <a href="/plug/signin">회원가입</a>
+          <a href="/plug/signin">회원가입 하러 가기</a>
         </div>
       </div>
     </div>

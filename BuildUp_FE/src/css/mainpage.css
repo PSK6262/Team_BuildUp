@@ -721,5 +721,206 @@ body.mainpage-intro-active .mainpage-content {
   }
 }
 
+/* ========================================================
+   메인페이지 라이트 모드 (Light Mode - Lavender Tint) 전용 스타일
+   - 다크 모드([data-theme='dark'])에서는 기존의 다크 퍼플 & 다크 글래스모피즘 유지
+   - 라이트 모드([data-theme='light']) 전환 시 라벤더-바이올렛 컬러 토큰 적용
+   ======================================================== */
+html[data-theme='light'] body:has(.mainpage-container) {
+  background-color: #E3DCED;
+}
+
+.mainpage-container.mainpage--light,
+[data-theme='light'] .mainpage-container {
+  background-color: #E3DCED;
+  color: #260E36;
+}
+
+.mainpage--light .mainpage-bg__svg rect,
+[data-theme='light'] .mainpage-bg__svg rect {
+  fill: #E3DCED;
+}
+
+.mainpage--light .mainpage-bg__bolts .bolt,
+[data-theme='light'] .mainpage-bg__bolts .bolt {
+  fill: #D6CBE6;
+  opacity: 0.72;
+}
+
+.mainpage--light .mainpage-bg__vignette,
+[data-theme='light'] .mainpage-bg__vignette {
+  background: radial-gradient(
+    ellipse at 60% 45%,
+    transparent 52%,
+    rgba(206, 191, 224, 0.35) 82%,
+    rgba(206, 191, 224, 0.55) 100%
+  );
+}
+
+.mainpage--light .mainpage-intro-text,
+[data-theme='light'] .mainpage-intro-text {
+  color: #260E36;
+  text-shadow: none;
+}
+
+.mainpage--light .mainpage-intro-text.is-highlight,
+[data-theme='light'] .mainpage-intro-text.is-highlight {
+  color: #260E36;
+  text-shadow: none;
+}
+
+.mainpage--light .mainpage-intro-skip,
+[data-theme='light'] .mainpage-intro-skip {
+  background: #F3EEF9;
+  border: 1px solid #CEBFE0;
+  color: #705584;
+  box-shadow: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.mainpage--light .mainpage-intro-skip:hover,
+[data-theme='light'] .mainpage-intro-skip:hover {
+  background: #F3EEF9;
+  border: 1px solid #E90052;
+  color: #260E36;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 94, 122, 0.15);
+}
+
+.mainpage--light .mainpage-orbit-title,
+[data-theme='light'] .mainpage-orbit-title {
+  color: #260E36;
+  text-shadow: none;
+}
+
+.mainpage--light .mainpage-orbit-subtitle,
+[data-theme='light'] .mainpage-orbit-subtitle {
+  color: #705584;
+}
+
+.mainpage--light .mainpage-orbit-subtitle .team-details,
+[data-theme='light'] .mainpage-orbit-subtitle .team-details {
+  color: #260E36;
+}
+
+.mainpage--light .mainpage-orbit-subtitle .team-placeholder,
+[data-theme='light'] .mainpage-orbit-subtitle .team-placeholder {
+  color: #705584;
+}
+
+.mainpage--light .emblem-card,
+[data-theme='light'] .emblem-card {
+  background: #F3EEF9;
+  border: 2px solid #CEBFE0;
+  box-shadow: none;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease,
+    opacity 0.25s ease,
+    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mainpage--light .emblem-img,
+[data-theme='light'] .emblem-img {
+  filter: drop-shadow(0 2px 4px rgba(107, 94, 122, 0.15));
+}
+
+.mainpage--light .emblem-card.is-hovered,
+.mainpage--light .emblem-card:hover,
+.mainpage--light .emblem-card:focus-visible,
+[data-theme='light'] .emblem-card.is-hovered,
+[data-theme='light'] .emblem-card:hover,
+[data-theme='light'] .emblem-card:focus-visible {
+  background: #F3EEF9;
+  border-color: var(--team-hex, #00ff87);
+  box-shadow:
+    0 0 18px var(--team-hex, #00ff87),
+    0 0 38px var(--team-glow, rgba(0, 255, 135, 0.75)),
+    0 0 65px var(--team-glow, rgba(0, 255, 135, 0.45)),
+    inset 0 0 16px var(--team-glow, rgba(0, 255, 135, 0.45));
+  transform: translateZ(0) scale(1.62) !important;
+  z-index: 50;
+}
+
+.mainpage--light .emblem-card.is-hovered .emblem-img,
+.mainpage--light .emblem-card:hover .emblem-img,
+.mainpage--light .emblem-card:focus-visible .emblem-img,
+[data-theme='light'] .emblem-card.is-hovered .emblem-img,
+[data-theme='light'] .emblem-card:hover .emblem-img,
+[data-theme='light'] .emblem-card:focus-visible .emblem-img {
+  transform: translateZ(0);
+  filter: drop-shadow(0 4px 8px rgba(38, 14, 54, 0.35));
+}
+
+.mainpage--light .emblem-card.is-favorite:not(.is-hovered):not(:hover),
+[data-theme='light'] .emblem-card.is-favorite:not(.is-hovered):not(:hover) {
+  background: #F3EEF9;
+  border-color: #00ff87;
+  box-shadow:
+    0 0 16px #00ff87,
+    0 0 35px rgba(0, 255, 135, 0.75),
+    0 0 55px rgba(0, 255, 135, 0.4),
+    inset 0 0 14px rgba(0, 255, 135, 0.45);
+  animation: eplFavoriteNeonPulse 3s ease-in-out infinite alternate;
+  z-index: 20;
+}
+
+.mainpage--light .mainpage-next-match,
+[data-theme='light'] .mainpage-next-match {
+  background: #F3EEF9;
+  border: 1px solid #CEBFE0;
+  box-shadow: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.mainpage--light .mainpage-next-match:hover,
+[data-theme='light'] .mainpage-next-match:hover {
+  background: #F3EEF9;
+  border: 1px solid #E90052;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 94, 122, 0.15);
+}
+
+.mainpage--light .mainpage-next-match__badge-frame,
+[data-theme='light'] .mainpage-next-match__badge-frame {
+  background: #E3DCED;
+  border: 1px solid #CEBFE0;
+  box-shadow: none;
+}
+
+.mainpage--light .mainpage-next-match:hover .mainpage-next-match__badge-frame,
+[data-theme='light'] .mainpage-next-match:hover .mainpage-next-match__badge-frame {
+  border-color: #E90052;
+}
+
+.mainpage--light .mainpage-next-match__emblem,
+[data-theme='light'] .mainpage-next-match__emblem {
+  filter: drop-shadow(0 2px 4px rgba(107, 94, 122, 0.12));
+}
+
+.mainpage--light .mainpage-next-match__vs,
+[data-theme='light'] .mainpage-next-match__vs {
+  color: #260E36;
+  text-shadow: none;
+}
+
+.mainpage--light .mainpage-next-match__info,
+[data-theme='light'] .mainpage-next-match__info {
+  border-top: 1px solid #CEBFE0;
+}
+
+.mainpage--light .mainpage-next-match__opponent-name,
+[data-theme='light'] .mainpage-next-match__opponent-name {
+  color: #260E36;
+}
+
+.mainpage--light .mainpage-next-match__stadium,
+[data-theme='light'] .mainpage-next-match__stadium {
+  color: #705584;
+}
+
+
+
 
 

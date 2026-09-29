@@ -16,6 +16,7 @@ const INTRO_SENTENCES = [
 
 export default function MainPage() {
   const dispatch = useDispatch();
+  const currentTheme = useSelector((state) => state.theme?.mode || 'dark');
   const isLoggedIn = useSelector((state) => state.auth?.isLoggedIn);
   const currentUser = useSelector((state) => state.auth?.user);
   const favoriteTeamId = currentUser?.favoriteTeamId
@@ -172,7 +173,7 @@ export default function MainPage() {
     const favEmblemRaw = favTeamObj?.emblemUrl || (isHome ? closest.homeEmblemUrl : closest.awayEmblemUrl) || '';
 
     const normalizeEmblem = (url) =>
-      url && url.includes('/badges/50/') ? url.replace('/badges/50/', '/badges/') : url;
+      url && url.includes('/badges/50/') ? url.replace('/badges/50/', '/badges/100/') : url;
 
     return {
       matchId: closest.matchId,
@@ -248,7 +249,7 @@ export default function MainPage() {
   };
 
   return (
-    <div className="mainpage-container">
+    <div className={`mainpage-container mainpage--${currentTheme}`}>
       {/* 프리미어리그 공식 시그니처 딥 플럼 & 곡면 라이트닝 쉐브론 리본 배경 그래픽 (SVG) */}
       <div className="mainpage-bg" aria-hidden="true">
         <svg
@@ -538,7 +539,7 @@ export default function MainPage() {
                         title={`${team.teamNameKor || team.teamName}${isFavorite ? ' (내 애정팀)' : ''} 상세 보기`}
                       >
                         <img
-                          src={team.emblemUrl ? (team.emblemUrl.includes('/badges/50/') ? team.emblemUrl.replace('/badges/50/', '/badges/') : team.emblemUrl) : ''}
+                          src={team.emblemUrl ? (team.emblemUrl.includes('/badges/50/') ? team.emblemUrl.replace('/badges/50/', '/badges/100/') : team.emblemUrl) : ''}
                           alt={`${team.teamNameKor || team.teamName} 로고`}
                           className="emblem-img"
                           loading="eager"

@@ -1,0 +1,551 @@
+/* ========================================================
+   PL:UG Auth (Login & Signup) Common Styles
+   - 다크모드 (EPL Deep Purple & Neon Palette)
+   - 일반모드 (Clean Slate White & EPL Deep Plum)
+   ======================================================== */
+
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 130px 20px 60px;
+  box-sizing: border-box;
+  font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
+  transition: background 0.25s ease, color 0.25s ease;
+  position: relative;
+  z-index: 10;
+}
+
+/* navbar 위의 흰 빈 공간을 배경색으로 채우는 가상 요소 */
+.auth-container::before {
+  content: '';
+  position: absolute;
+  top: -200px;
+  left: 0;
+  right: 0;
+  height: 200px;
+  z-index: -1;
+}
+
+/* --------------------------------------------------------
+   1. 다크모드 (기본 테마)
+   -------------------------------------------------------- */
+.auth-container,
+.auth-container.auth-dark-mode,
+[data-theme='dark'] .auth-container {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(225, 140, 245, 0.18) 0%, transparent 60%),
+    radial-gradient(circle at 10% 25%, rgba(255, 22, 107, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(0, 255, 135, 0.06) 0%, transparent 45%),
+    linear-gradient(160deg, #27062c 0%, #1c0320 42%, #120115 100%);
+  color: #ffffff;
+}
+
+.auth-container.auth-dark-mode::before,
+[data-theme='dark'] .auth-container::before {
+  background: #27062c;
+}
+
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  border-radius: 20px;
+  padding: 38px 34px;
+  box-sizing: border-box;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 1;
+}
+
+.auth-container.auth-dark-mode .auth-card,
+[data-theme='dark'] .auth-card {
+  background: linear-gradient(145deg, rgba(38, 7, 46, 0.82) 0%, rgba(20, 3, 25, 0.92) 100%);
+  border: 1px solid rgba(235, 175, 255, 0.18);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), 0 0 30px rgba(180, 70, 200, 0.1);
+  backdrop-filter: blur(16px);
+}
+
+.auth-card--signup {
+  max-width: 520px;
+}
+
+/* 브랜드 미니 배지 */
+.auth-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+.auth-container.auth-dark-mode .auth-brand-badge,
+[data-theme='dark'] .auth-brand-badge {
+  background: rgba(0, 255, 135, 0.12);
+  border: 1px solid rgba(0, 255, 135, 0.35);
+  color: #00ff87;
+}
+
+/* 헤더 영역 */
+.auth-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.auth-header h2 {
+  font-size: 26px;
+  font-weight: 900;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
+}
+
+.auth-container.auth-dark-mode .auth-header h2,
+[data-theme='dark'] .auth-header h2 {
+  color: #ffffff;
+}
+
+.auth-header p {
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.auth-container.auth-dark-mode .auth-header p,
+[data-theme='dark'] .auth-header p {
+  color: #c5b4d1;
+}
+
+/* 폼 컨트롤 */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.auth-field label {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.auth-container.auth-dark-mode .auth-field label,
+[data-theme='dark'] .auth-field label {
+  color: #e2d9eb;
+}
+
+.auth-field input,
+.auth-field select {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font-size: 14.5px;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.auth-container.auth-dark-mode .auth-field input,
+.auth-container.auth-dark-mode .auth-field select,
+[data-theme='dark'] .auth-field input,
+[data-theme='dark'] .auth-field select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(220, 150, 245, 0.22);
+  color: #ffffff;
+}
+
+.auth-container.auth-dark-mode .auth-field input:focus,
+.auth-container.auth-dark-mode .auth-field select:focus,
+[data-theme='dark'] .auth-field input:focus,
+[data-theme='dark'] .auth-field select:focus {
+  outline: none;
+  border-color: #00ff87;
+  box-shadow: 0 0 14px rgba(0, 255, 135, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.auth-container.auth-dark-mode .auth-field input::placeholder,
+[data-theme='dark'] .auth-field input::placeholder {
+  color: #8b799c;
+}
+
+.auth-input-group {
+  display: flex;
+  gap: 10px;
+}
+
+.auth-input-group input {
+  flex: 1;
+}
+
+/* 중복확인 버튼 */
+.auth-check-btn {
+  height: 48px;
+  padding: 0 18px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.auth-container.auth-dark-mode .auth-check-btn,
+[data-theme='dark'] .auth-check-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(220, 150, 245, 0.24);
+  color: #ffffff;
+}
+
+.auth-container.auth-dark-mode .auth-check-btn:hover,
+[data-theme='dark'] .auth-check-btn:hover {
+  background: rgba(0, 255, 135, 0.15);
+  border-color: #00ff87;
+  color: #00ff87;
+}
+
+/* 힌트 텍스트 */
+.auth-hint {
+  font-size: 12px;
+  margin-top: 3px;
+  font-weight: 600;
+}
+
+.auth-hint--ok {
+  color: #00ff87;
+}
+
+.auth-hint--err {
+  color: #ff3377;
+}
+
+/* 제출 버튼 */
+.auth-submit-btn {
+  width: 100%;
+  height: 50px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15.5px;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.auth-container.auth-dark-mode .auth-submit-btn,
+[data-theme='dark'] .auth-submit-btn {
+  background: #00ff87;
+  color: #120117;
+  box-shadow: 0 0 20px rgba(0, 255, 135, 0.42);
+}
+
+.auth-container.auth-dark-mode .auth-submit-btn:hover:not(:disabled),
+[data-theme='dark'] .auth-submit-btn:hover:not(:disabled) {
+  background: #33ff9f;
+  transform: translateY(-2px);
+  box-shadow: 0 0 26px rgba(0, 255, 135, 0.65);
+}
+
+.auth-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* 푸터 영역 */
+.auth-footer {
+  margin-top: 26px;
+  padding-top: 20px;
+  text-align: center;
+  font-size: 13.5px;
+}
+
+.auth-container.auth-dark-mode .auth-footer,
+[data-theme='dark'] .auth-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: #a795b5;
+}
+
+.auth-footer a {
+  font-weight: 700;
+  text-decoration: none;
+  margin-left: 8px;
+  transition: all 0.2s ease;
+}
+
+.auth-container.auth-dark-mode .auth-footer a,
+[data-theme='dark'] .auth-footer a {
+  color: #00ff87;
+}
+
+.auth-container.auth-dark-mode .auth-footer a:hover,
+[data-theme='dark'] .auth-footer a:hover {
+  text-decoration: underline;
+  text-shadow: 0 0 10px rgba(0, 255, 135, 0.5);
+}
+
+/* 알림 배너 */
+.auth-error-banner {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.auth-container.auth-dark-mode .auth-error-banner,
+[data-theme='dark'] .auth-error-banner {
+  background: rgba(255, 22, 107, 0.12);
+  border: 1px solid rgba(255, 22, 107, 0.4);
+  color: #ff3377;
+}
+
+/* --------------------------------------------------------
+   2. 일반모드 (라이트 모드)
+   - 랭킹 페이지 및 마이페이지 라이트모드(teams.css)의 클린 룩앤필
+   -------------------------------------------------------- */
+.auth-container.auth-light-mode,
+[data-theme='light'] .auth-container {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.auth-container.auth-light-mode::before,
+[data-theme='light'] .auth-container::before {
+  background: #f8fafc;
+}
+
+.auth-container.auth-light-mode .auth-card,
+[data-theme='light'] .auth-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.auth-container.auth-light-mode .auth-brand-badge,
+[data-theme='light'] .auth-brand-badge {
+  background: #f3e8f8;
+  border: 1px solid #e2d2e4;
+  color: #38003c;
+}
+
+.auth-container.auth-light-mode .auth-header h2,
+[data-theme='light'] .auth-header h2 {
+  color: #0f172a;
+}
+
+.auth-container.auth-light-mode .auth-header p,
+[data-theme='light'] .auth-header p {
+  color: #64748b;
+}
+
+.auth-container.auth-light-mode .auth-field label,
+[data-theme='light'] .auth-field label {
+  color: #334155;
+}
+
+.auth-container.auth-light-mode .auth-field input,
+.auth-container.auth-light-mode .auth-field select,
+[data-theme='light'] .auth-field input,
+[data-theme='light'] .auth-field select {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #0f172a;
+}
+
+.auth-container.auth-light-mode .auth-field input:focus,
+.auth-container.auth-light-mode .auth-field select:focus,
+[data-theme='light'] .auth-field input:focus,
+[data-theme='light'] .auth-field select:focus {
+  outline: none;
+  border-color: #38003c;
+  box-shadow: 0 0 0 3.5px rgba(56, 0, 60, 0.1);
+  background: #ffffff;
+}
+
+.auth-container.auth-light-mode .auth-field input::placeholder,
+[data-theme='light'] .auth-field input::placeholder {
+  color: #94a3b8;
+}
+
+.auth-container.auth-light-mode .auth-check-btn,
+[data-theme='light'] .auth-check-btn {
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  color: #334155;
+}
+
+.auth-container.auth-light-mode .auth-check-btn:hover,
+[data-theme='light'] .auth-check-btn:hover {
+  background: #f1f5f9;
+  border-color: #38003c;
+  color: #38003c;
+}
+
+.auth-container.auth-light-mode .auth-hint--ok,
+[data-theme='light'] .auth-hint--ok {
+  color: #008a55;
+}
+
+.auth-container.auth-light-mode .auth-hint--err,
+[data-theme='light'] .auth-hint--err {
+  color: #e11d48;
+}
+
+.auth-container.auth-light-mode .auth-submit-btn,
+[data-theme='light'] .auth-submit-btn {
+  background: #38003c;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(56, 0, 60, 0.25);
+}
+
+.auth-container.auth-light-mode .auth-submit-btn:hover:not(:disabled),
+[data-theme='light'] .auth-submit-btn:hover:not(:disabled) {
+  background: #240026;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(56, 0, 60, 0.35);
+}
+
+.auth-container.auth-light-mode .auth-footer,
+[data-theme='light'] .auth-footer {
+  border-top: 1px solid #e2e8f0;
+  color: #64748b;
+}
+
+.auth-container.auth-light-mode .auth-footer a,
+[data-theme='light'] .auth-footer a {
+  color: #38003c;
+  font-weight: 800;
+}
+
+.auth-container.auth-light-mode .auth-footer a:hover,
+[data-theme='light'] .auth-footer a:hover {
+  text-decoration: underline;
+}
+
+.auth-container.auth-light-mode .auth-error-banner,
+[data-theme='light'] .auth-error-banner {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #e11d48;
+}
+
+/* --------------------------------------------------------
+   3. 인증 확인 & 가입 완료 화면 전용 스타일
+   -------------------------------------------------------- */
+.auth-confirm-card {
+  text-align: center;
+  padding: 44px 32px;
+}
+
+.auth-confirm-icon {
+  font-size: 52px;
+  margin-bottom: 16px;
+}
+
+.auth-confirm-title {
+  font-size: 24px;
+  font-weight: 900;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.5px;
+}
+
+.auth-container.auth-dark-mode .auth-confirm-title,
+[data-theme='dark'] .auth-confirm-title {
+  color: #ffffff;
+}
+
+.auth-container.auth-light-mode .auth-confirm-title,
+[data-theme='light'] .auth-confirm-title {
+  color: #0f172a;
+}
+
+.auth-confirm-desc {
+  font-size: 15px;
+  line-height: 1.65;
+  margin: 0 0 24px 0;
+  word-break: keep-all;
+}
+
+.auth-container.auth-dark-mode .auth-confirm-desc,
+[data-theme='dark'] .auth-confirm-desc {
+  color: #c5b4d1;
+}
+
+.auth-container.auth-light-mode .auth-confirm-desc,
+[data-theme='light'] .auth-confirm-desc {
+  color: #475569;
+}
+
+.auth-confirm-subdesc {
+  font-size: 13px;
+  margin-top: 14px;
+}
+
+.auth-container.auth-dark-mode .auth-confirm-subdesc,
+[data-theme='dark'] .auth-confirm-subdesc {
+  color: #8b799c;
+}
+
+.auth-container.auth-light-mode .auth-confirm-subdesc,
+[data-theme='light'] .auth-confirm-subdesc {
+  color: #94a3b8;
+}
+
+.auth-secondary-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 14.5px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.auth-container.auth-dark-mode .auth-secondary-btn,
+[data-theme='dark'] .auth-secondary-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(220, 150, 245, 0.24);
+  color: #ffffff;
+}
+
+.auth-container.auth-dark-mode .auth-secondary-btn:hover,
+[data-theme='dark'] .auth-secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.auth-container.auth-light-mode .auth-secondary-btn,
+[data-theme='light'] .auth-secondary-btn {
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  color: #334155;
+}
+
+.auth-container.auth-light-mode .auth-secondary-btn:hover,
+[data-theme='light'] .auth-secondary-btn:hover {
+  background: #f1f5f9;
+  border-color: #38003c;
+  color: #38003c;
+}
