@@ -68,7 +68,7 @@ export default function Team({ teamId }) {
 
   if (loading) {
     return (
-      <div className="team-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0a0d14', color: '#ffffff' }}>
+      <div className="team-container team-container--loading">
         <p>구단 정보를 불러오는 중입니다...</p>
       </div>
     );
@@ -78,12 +78,21 @@ export default function Team({ teamId }) {
     return <TeamNotFound teamId={teamId} />;
   }
 
+  const highResEmblem = (team.emblemUrl || '').replace('/50/', '/100/');
+
   return (
     <div className="team-container">
-      {/* 좌측 30% 고정 영역: 엠블럼 풀배경 & 창단연도 & 구단명 & 오디오 플레이어 */}
+      {/* 좌측 구단 고유 컬러(엠블럼 색감)가 우측 다크 퍼플 배경으로 자연스럽게 스며드는 그라데이션 블러 글로우 */}
+      <div
+        className="team-ambient-bleed"
+        style={{ backgroundImage: `url(${highResEmblem || team.emblemUrl})` }}
+        aria-hidden="true"
+      />
+
+      {/* 좌측 32% 고정 영역: 엠블럼 풀배경 & 창단연도 & 구단명 & 오디오 플레이어 */}
       <TeamVisualPanel team={team} onWheel={handleLeftWheel} />
 
-      {/* 우측 70% 스크롤 영역: 화이트 에디토리얼 홈구장 & 역사 소개 및 내비게이션, 선수단 */}
+      {/* 우측 68% 스크롤 영역: 다크 글래스모피즘 홈구장 & 역사 소개 및 내비게이션, 선수단 */}
       <TeamInfoPanel
         ref={rightPanelRef}
         team={team}
