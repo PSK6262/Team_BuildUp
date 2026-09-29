@@ -35,7 +35,13 @@ export default function MainPage() {
   const hoveredTheme = hoveredTeam ? getTeamTheme(hoveredTeam) : null;
   const [ introIndex, setIntroIndex ] = useState(0);
   const [ isTextVisible, setIsTextVisible ] = useState(true);
-  const [ isIntroFinished, setIsIntroFinished ] = useState(false);
+  const [ isIntroFinished, setIsIntroFinished ] = useState(() => {
+    try {
+      return sessionStorage.getItem('plug_mainpage_intro_seen') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [ isQuizOpen, setIsQuizOpen ] = useState(false);
 
   // 로그인 상태일 때 최신 회원 정보(애정 구단 ID 포함) 동기화
@@ -191,6 +197,11 @@ export default function MainPage() {
       document.body.classList.remove('mainpage-intro-active');
       document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
+      try {
+        sessionStorage.setItem('plug_mainpage_intro_seen', 'true');
+      } catch {
+        // sessionStorage 접근 제한 시 무시
+      }
     }
     return () => {
       document.body.classList.remove('mainpage-intro-active');
@@ -209,6 +220,11 @@ export default function MainPage() {
 
     const nextSentenceTimer = setTimeout(() => {
       if (introIndex + 1 >= INTRO_SENTENCES.length) {
+        try {
+          sessionStorage.setItem('plug_mainpage_intro_seen', 'true');
+        } catch {
+          // ignore
+        }
         setIsIntroFinished(true);
       } else {
         setIntroIndex((prev) => prev + 1);
@@ -223,6 +239,11 @@ export default function MainPage() {
   }, [ introIndex, isIntroFinished ]);
 
   const handleSkipIntro = () => {
+    try {
+      sessionStorage.setItem('plug_mainpage_intro_seen', 'true');
+    } catch {
+      // ignore
+    }
     setIsIntroFinished(true);
   };
 
