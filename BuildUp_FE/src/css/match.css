@@ -3,6 +3,12 @@
    ======================================================== */
 
 .match-page-container {
+  color-scheme: light;
+  --match-warning-bg: #fffbeb;
+  --match-warning-line: #fef08a;
+  --match-warning-text: #854d0e;
+  --match-warning-muted: #a16207;
+  --match-accent-text: #38003c;
   min-height: calc(100vh - 84px);
   background-color: #f8fafc;
   padding: 40px 24px 80px;
@@ -851,4 +857,124 @@
 
 .match-reload-btn {
   cursor: pointer;
+}
+
+/* Follow the navigation theme using the community palette. */
+html[data-theme='dark'] .match-page-container {
+  color-scheme: dark;
+  --match-warning-bg: #302515;
+  --match-warning-line: #786035;
+  --match-warning-text: #ffe0a3;
+  --match-warning-muted: #e5c58f;
+  --match-accent-text: #cba4f5;
+  background: radial-gradient(ellipse at 15% 0%, #291131 0%, transparent 48%), #0c0a14;
+  color: #f4f1fa;
+}
+
+html[data-theme='dark'] .match-page-container :is(.match-page-title, .match-card__date, .match-team__name-kor, .match-team__name, .match-score, .match-score--large) {
+  color: #f4f1fa;
+}
+
+html[data-theme='dark'] .match-page-container :is(.match-page-desc, .team-filter-label, .team-filter-arrow, .match-count, .match-card__time, .match-team__name-eng, .match-score__divider) {
+  color: #b5adc4;
+}
+
+html[data-theme='dark'] .match-page-container :is(.match-page-eyebrow, .match-count strong) {
+  color: #00e58a;
+}
+
+html[data-theme='dark'] .match-page-container :is(.match-card, .match-empty, .month-filter-nav, .round-filter-nav, .team-filter-select-wrapper) {
+  background: #191321;
+  border-color: #3b304a;
+  box-shadow: 0 8px 24px #0002;
+  color: #b5adc4;
+}
+
+html[data-theme='dark'] .match-page-container .match-card {
+  border-left-color: #9475aa;
+}
+
+html[data-theme='dark'] .match-page-container .match-card:hover {
+  background: #24182e;
+  border-color: #9475aa;
+}
+
+html[data-theme='dark'] .match-page-container .match-card--live {
+  background: #2b1520;
+  border-left-color: #ff849d;
+}
+
+html[data-theme='dark'] .match-page-container :is(.match-card--focused, .match-card:focus) {
+  background: linear-gradient(90deg, #102e28 0%, #191321 45%);
+  border-color: #00e58a;
+  box-shadow: 0 0 0 3px #00e58a60, 0 12px 32px #0003;
+}
+
+html[data-theme='dark'] .match-page-container .filter-mode-toggle__inner {
+  background: #100c18;
+}
+
+html[data-theme='dark'] .match-page-container :is(.match-season-tab, .match-load-more, .match-main-tab, .team-filter-reset-btn) {
+  background: #271b33;
+  border-color: #725682;
+  color: #eadff4;
+}
+
+html[data-theme='dark'] .match-page-container :is(.filter-mode-btn, .month-filter-btn, .round-filter-btn) {
+  color: #b5adc4;
+}
+
+html[data-theme='dark'] .match-page-container :is(.match-season-tab, .match-load-more, .match-main-tab, .team-filter-reset-btn, .filter-mode-btn, .month-filter-btn, .round-filter-btn):hover:not(:disabled) {
+  background: #352140;
+  border-color: #9475aa;
+  color: #f4f1fa;
+}
+
+html[data-theme='dark'] .match-page-container :is(.match-season-tab.is-active, .match-main-tab.is-active, .filter-mode-btn.active, .month-filter-btn.active, .round-filter-btn.active) {
+  background: #762578;
+  border-color: #c258b2;
+  color: #fff;
+  box-shadow: 0 4px 12px #0003;
+}
+
+html[data-theme='dark'] .match-page-container :is(.team-filter-select, .team-filter-select option) {
+  background: #191321;
+  color: #f4f1fa;
+}
+
+html[data-theme='dark'] .match-page-container .team-filter-select-wrapper:is(:hover, :focus-within) {
+  border-color: #00e58a;
+}
+
+html[data-theme='dark'] .match-page-container :is(button, select):focus-visible {
+  outline: 3px solid #00e58a;
+  outline-offset: 3px;
+}
+
+html[data-theme='dark'] .match-page-container :is(.match-card__round-tag, .match-badge--finished) {
+  background: #30203c;
+  color: #e3ccee;
+}
+
+html[data-theme='dark'] .match-page-container :is(.match-score--vs, .match-badge--scheduled, .match-team-rank-badge--default, .match-ground-pill) {
+  background: #241b30;
+  border-color: #493954;
+  color: #bdb4cb;
+}
+
+html[data-theme='dark'] .match-page-container :is(.match-badge--live, .match-team-rank-badge--danger) {
+  background: #361622;
+  border-color: #874354;
+  color: #ffc0d0;
+}
+
+html[data-theme='dark'] .match-page-container .match-team-rank-badge--top {
+  background: #102e28;
+  border-color: #28614d;
+  color: #6df2bc;
+}
+
+html[data-theme='dark'] .match-page-container .match-loading-spinner {
+  border-color: #3b304a;
+  border-top-color: #00e58a;
 }
