@@ -2072,7 +2072,15 @@ html[data-theme='light'] .myteam-page :is(.selected-club-banner, .myteam-opponen
   box-shadow: 0 0 0 2px #16744b12;
 }
 
-html[data-theme='light'] .myteam-page :is(.myteam-title-badge, .sum-badge.valid, .club-total-badge, .club-player-count-badge, .roster-count, .in-squad-badge) {
+html[data-theme='light'] .myteam-page .myteam-title-badge {
+  background: transparent;
+  border: 0;
+  color: #38003c;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+html[data-theme='light'] .myteam-page :is(.sum-badge.valid, .club-total-badge, .club-player-count-badge, .roster-count, .in-squad-badge) {
   background: #edf7f1;
   border-color: #b8d8c5;
   color: #16744b;
@@ -2250,7 +2258,7 @@ html[data-theme='light'] .myteam-page .member-ranking-scroll tr > :nth-child(2) 
 }
 
 html[data-theme='light'] .myteam-page .member-ranking-scroll thead tr > :nth-child(2),
-html[data-theme='light'] .myteam-page .member-ranking-scroll .member-ranking-mine > * {
+html[data-theme='light'] .myteam-page .member-ranking-scroll tr.member-ranking-mine > * {
   background: #edf7f1;
   color: #16744b;
 }

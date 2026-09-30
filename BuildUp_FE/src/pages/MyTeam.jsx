@@ -1,9 +1,11 @@
 import { shuffledCopy } from '../utils/shuffle.js';
+import { captureMatchSquads, restoreMatchPlacement, matchPitchPoint } from '../utils/matchPlacement.js';
 import { findOverlappingPitchSlot } from '../utils/pitchCollision.js';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { getAllPremierLeaguePlayers, getInitialTeams, getTeams } from '../api/teamApi.js';
 import '../css/MyTeam.css';
+import '../css/virtual-match.css';
 import { MemberRankings } from './teams.jsx';
 
 // 지정 프리셋 포메이션 정의 (DF - MF - FW 합계는 모두 10)
@@ -213,7 +215,7 @@ function AiMatchTimeline({ match }) {
   // 현재 선택된 이벤트 기준 공(Ball) 위치 및 라벨 계산
   const isSecondHalf = event.minute >= 46;
   const baseBallPos = getBallPosition(event, selectedIndex) || { x: 180, y: 220, label: '경기 중' };
-  const ballPos = isSecondHalf
+  const ballPos = !isSecondHalf
     ? { ...baseBallPos, x: 360 - baseBallPos.x, y: 440 - baseBallPos.y }
     : baseBallPos;
 
@@ -269,7 +271,7 @@ function AiMatchTimeline({ match }) {
   }, [isSetPiece, isCorner, isPk, isFreeKick, event.side, baseBallPos.x, baseBallPos.y, selectedIndex]);
 
   return (
-    <section aria-label="주요 사건과 AI 포메이션 움직임">
+    <section className="myteam-ai-timeline" aria-label="주요 사건과 AI 포메이션 움직임">
       <h3>주요 사건 타임라인</h3>
       <div className="myteam-ai-replay">
         <ol className="myteam-ai-events" aria-label="경기 주요 사건 시간순 기록">
@@ -279,9 +281,9 @@ function AiMatchTimeline({ match }) {
               className={`myteam-ai-event myteam-ai-event--${item.type}${item.isGoal ? ` myteam-ai-event--goal-${item.side === 0 ? 'home' : 'away'}` : ''}`}>
               <button type="button" className="myteam-ai-event-select" onClick={() => selectEvent(index)} aria-pressed={selectedIndex === index}>
                 <span className="myteam-ai-event-minute">{item.minute}분</span>
-                <span>
+                <span className="myteam-ai-event-copy">
                   <strong>{item.label}</strong>
-                  {item.side !== null && <span className="myteam-ai-event-team"> · {item.side === 0 ? match.homeName : match.opponentName}</span>}
+                  {item.side !== null && <span className="myteam-ai-event-team">{item.side === 0 ? match.homeName : match.opponentName}</span>}
                   <span className="myteam-ai-event-description">{item.description}</span>
                 </span>
                 <span className="myteam-ai-event-score" aria-label={`현재 점수 ${item.score[0]} 대 ${item.score[1]}`}>{item.score.join(' : ')}</span>
@@ -290,8 +292,13 @@ function AiMatchTimeline({ match }) {
           ))}
         </ol>
         <aside className="myteam-ai-movement">
-          <h3>{match.opponentName} · {match.opponent.formation.label} · {phase}</h3>
-          <p aria-live="polite">{event.minute}분 · {event.label} · {event.score.join(' : ')}</p>
+          <div className="myteam-ai-replay-heading">
+            <h3>경기 중계</h3><span>{phase}</span>
+          </div>
+          <p className="myteam-ai-opponent-caption">{match.opponentName} · {match.opponent.formation.label}</p>
+          <div className="myteam-ai-current-event" aria-live="polite">
+            <span>{event.minute}분</span><strong>{event.label}</strong><b>{event.score.join(' : ')}</b>
+          </div>
           <div className="myteam-ai-actions">
             <button type="button" className="myteam-btn myteam-btn-secondary" disabled={selectedIndex === 0} onClick={() => selectEvent(selectedIndex - 1)}>이전</button>
             <button type="button" className="myteam-btn myteam-btn-primary" onClick={() => {
@@ -300,16 +307,16 @@ function AiMatchTimeline({ match }) {
             }}>{playing ? '일시정지' : '움직임 재생'}</button>
             <button type="button" className="myteam-btn myteam-btn-secondary" disabled={selectedIndex >= match.events.length - 1} onClick={() => selectEvent(selectedIndex + 1)}>다음</button>
           </div>
-          <p>{isSecondHalf ? '후반' : '전반'} · <span style={{ color: 'var(--myteam-home, #60a5fa)' }}>● {match.homeName} {homeLineup.length}명 · {isSecondHalf ? '↑' : '↓'} 공격</span>{' / '}<span style={{ color: 'var(--myteam-danger, #f87171)' }}>● {match.opponentName} {lineup.length}명 · {isSecondHalf ? '↓' : '↑'} 공격</span></p>
+          <p>{isSecondHalf ? '후반' : '전반'} · <span style={{ color: 'var(--myteam-home, #60a5fa)' }}>● {match.homeName} {homeLineup.length}명 · {isSecondHalf ? '↓' : '↑'} 공격</span>{' / '}<span style={{ color: 'var(--myteam-danger, #f87171)' }}>● {match.opponentName} {lineup.length}명 · {isSecondHalf ? '↑' : '↓'} 공격</span></p>
           <svg className="myteam-ai-mini-pitch" viewBox="0 0 360 440" role="img" aria-label={`양 팀 선수 배치: ${match.homeName} ${homeLineup.length}명, ${match.opponentName} ${lineup.length}명`}>
             <rect x="10" y="10" width="340" height="420" rx="8" fill="#123e30" stroke="#a7c9ba" />
             <path d="M10 220H350 M100 10V70H260V10 M100 430V370H260V430" fill="none" stroke="#a7c9ba" />
             <circle cx="180" cy="220" r="45" fill="none" stroke="#a7c9ba" />
-            <text x="180" y="30" textAnchor="middle" fill="#d1fae5" fontSize="12">{isSecondHalf ? '↓' : '↑'} AI 공격 방향</text>
+            <text x="180" y="30" textAnchor="middle" fill="#d1fae5" fontSize="12">{isSecondHalf ? '↑' : '↓'} AI 공격 방향</text>
 
             {/* 세트피스(코너킥/PK/프리킥) 궤적 곡선/직선 점선 */}
             {setPieceTrajectoryPath && (
-              <g className="corner-trajectory-group" transform={isSecondHalf ? 'rotate(180 180 220)' : undefined}>
+              <g className="corner-trajectory-group" transform={!isSecondHalf ? 'rotate(180 180 220)' : undefined}>
                 <path
                   d={setPieceTrajectoryPath}
                   fill="none"
@@ -340,7 +347,7 @@ function AiMatchTimeline({ match }) {
             {[
               { side: 1, fullLineup: match.opponent.lineup, activeLineup: lineup },
               { side: 0, fullLineup: match.home, activeLineup: homeLineup },
-            ].flatMap(({ side, fullLineup, activeLineup }) => activeLineup.map(({ pos, player }) => {
+            ].flatMap(({ side, fullLineup, activeLineup }) => activeLineup.map(({ pos, player, x: placedX, y: placedY }) => {
               const isBooked = bookedPlayers.has(`${side}-${player.playerId}`);
               const originalRow = fullLineup.filter((slot) => slot.pos === pos);
               const teamAttacking = !neutral && (event.type === 'save' ? event.side !== side : event.side === side);
@@ -351,15 +358,16 @@ function AiMatchTimeline({ match }) {
               const rowSize = Math.min(originalRow.length, 5);
               const subRow = Math.floor(index / 5);
               const count = Math.min(rowSize, originalRow.length - subRow * 5);
-              const baseX = 35 + (index % 5 + 1) * 290 / (count + 1);
-              const baseY = { GK: 392, DF: 315, MF: 225, FW: 125 }[pos];
+              const placed = side === 0 ? matchPitchPoint({ x: placedX, y: placedY }) : null;
+              const baseX = placed?.x ?? 35 + (index % 5 + 1) * 290 / (count + 1);
+              const baseY = placed?.y ?? ({ GK: 392, DF: 315, MF: 225, FW: 125 }[pos] + subRow * 38);
               const shift = pos === 'GK' || neutral ? 0 : teamAttacking ? -38 : 35;
               const wide = event.type === 'corner' || event.type === 'free-kick';
               const flank = selectedIndex % 2 === 0 ? -1 : 1;
               const lateral = neutral ? 0 : wide ? flank * 24 : teamAttacking ? (180 - baseX) * 0.2 : flank * 10;
 
-              let x = Math.max(30, Math.min(330, baseX + lateral));
-              let y = Math.max(58, Math.min(392, baseY + subRow * 38 + shift));
+              let x = Math.max(10, Math.min(350, baseX + lateral));
+              let y = Math.max(10, Math.min(430, baseY + shift));
 
               // 세트피스(코너킥, PK, 프리킥) 전담 키커 여부
               const isKicker = isSetPiece && player.playerId === kickerId && event.side === side;
@@ -402,7 +410,7 @@ function AiMatchTimeline({ match }) {
                 y = 42 + ((pIdx * 16) % 32);
               }
 
-              if (side === 0) { x = 360 - x; y = 440 - y; }
+              if (side === 1) { x = 360 - x; y = 440 - y; }
               if (isSecondHalf) { x = 360 - x; y = 440 - y; }
 
               // 키커 배지 텍스트
@@ -1668,6 +1676,7 @@ export default function MyTeam() {
       return;
     }
     const controller = new AbortController();
+    const submittedSquads = captureMatchSquads(slots);
     matchRequestRef.current = controller;
     setMatching(true);
     const timeout = setTimeout(() => controller.abort(), 30000);
@@ -1681,7 +1690,7 @@ export default function MyTeam() {
           teamName: teamName.trim() || '나만의 드림 스쿼드',
           presetLabel: formation.presetLabel,
           opponentTeamId: club?.teamId ?? null,
-          squads: slots.map((slot) => ({ positionNo: slot.id + 1, position: slot.pos, playerId: slot.player.playerId, x: slot.x, y: slot.y })),
+          squads: submittedSquads,
         }),
       });
       const result = await response.json().catch(() => null);
@@ -1691,7 +1700,7 @@ export default function MyTeam() {
         throw new Error('AI 대전 결과를 확인하지 못했습니다.');
       }
       if (matchRequestRef.current === controller && !controller.signal.aborted) {
-        setAiMatch({ ...result, replayId: ++aiMatchIdRef.current });
+        setAiMatch({ ...result, home: restoreMatchPlacement(result.home, submittedSquads), replayId: ++aiMatchIdRef.current });
       }
     } catch (error) {
       if (matchRequestRef.current === controller) {
@@ -1719,9 +1728,9 @@ export default function MyTeam() {
         {/* 1. 상단 헤더 & 툴바 */}
         <header className="myteam-header">
           <div className="myteam-title-box">
+            <span className="myteam-title-badge">FORMATION BUILDER</span>
             <h1>
               나만의 팀 & 포메이션 빌더
-              <span className="myteam-title-badge">PL:UG MY TEAM</span>
             </h1>
             <p>포메이션을 자유롭게 설정하고, 원하는 프리미어리그 선수들을 필드에 드래그하거나 클릭하여 배치하세요.</p>
           </div>
@@ -1978,13 +1987,19 @@ export default function MyTeam() {
           <MemberRankings type="virtual" refreshKey={aiMatch?.replayId ?? 0} />
           {aiMatch && (
             <div className="myteam-ai-result">
-              <p>{aiMatch.rankingRecorded ? '랭킹에 반영된 경기입니다.' : '비회원 연습 경기 · 랭킹에 반영되지 않습니다.'} <a href="/plug/rankpage?tab=virtual">가상 대결 승리수 랭킹 보기</a></p>
+              <div className="myteam-ai-result-heading">
+                <div><h2>가상 대결 결과</h2><p>{aiMatch.rankingRecorded ? '랭킹에 반영된 경기입니다.' : '비회원 연습 경기 · 랭킹에 반영되지 않습니다.'}</p></div>
+                <a href="/plug/rankpage?tab=virtual">승리수 랭킹 보기 <span aria-hidden="true">↗</span></a>
+              </div>
               <div className="myteam-ai-score" role="status">
                 <span>{aiMatch.homeName}</span>
                 <strong>{aiMatch.score[0]} : {aiMatch.score[1]}</strong>
                 <span>{aiMatch.opponentName}</span>
                 <b>{aiMatch.score[0] === aiMatch.score[1] ? '무승부' : aiMatch.score[0] > aiMatch.score[1] ? '승리!' : '패배'} · 경기 종료</b>
               </div>
+              <AiMatchTimeline key={aiMatch.replayId} match={aiMatch} />
+              <details className="myteam-ai-squad-details">
+              <summary>출전 명단과 팀 효과 <span>자세히 보기</span></summary>
               <div className="myteam-ai-lineups">
                 {[
                   { name: aiMatch.homeName, formation: aiMatch.homeFormation, lineup: aiMatch.home },
@@ -2101,7 +2116,7 @@ export default function MyTeam() {
                   );
                 })}
               </div>
-              <AiMatchTimeline key={aiMatch.replayId} match={aiMatch} />
+              </details>
             </div>
           )}
         </section>

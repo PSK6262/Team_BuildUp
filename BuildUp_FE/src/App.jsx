@@ -6,6 +6,7 @@ import { communityTeams } from './data/communityTeams.js'
 import GlobalFooter from './components/GlobalFooter.jsx'
 import './App.css'
 import './css/mobile-tabs.css'
+import './css/page-headings.css'
 
 const TeamsPage = lazy(() => import('./pages/teams.jsx'))
 const StandingsPage = lazy(() => import('./pages/teams.jsx').then((module) => ({ default: module.StandingsPage })))
