@@ -98,7 +98,8 @@
 @media (max-width: 760px) { .community__team-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 380px) { .community__team-grid { grid-template-columns: 1fr; } }
 
-.community__team-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
+.community__team-heading { display: flex; flex-direction: column; align-items: center; gap: 16px; margin: 28px 0 36px; text-align: center; }
+.community__team-heading .community__intro { margin: 0; max-width: 560px; text-wrap: balance; }
 .community__team-heading .community__eyebrow { margin: 0; }
 .community__main-link { color: #16744b; text-decoration: none; font-size: 14px; font-weight: 600; border: 1px solid #b8d8c5; border-radius: 8px; padding: 12px 16px; }
 .community__main-link:hover { background: #edf7f1; }
@@ -157,6 +158,11 @@
 .community__attachment-upload input { min-width: 240px; flex: 1; padding: 8px; background: white; }
 .community__attachment-upload span { color: #637083; font-size: 12px; }
 .community__detail-actions { display: flex; justify-content: flex-end; gap: 8px; margin: 24px 0; }
+.community__recommendation { display: flex; justify-content: center; padding: 28px 0; }
+.community .community__recommend-button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 12px 22px; border-radius: 999px; }
+.community__recommend-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.community__recommend-button[aria-pressed='true'] svg { fill: currentColor; }
+.community__recommend-button strong { font-variant-numeric: tabular-nums; }
 .community .community__like { border-color: #16744b; color: #16744b; font-weight: 700; }
 .community .community__like--active { background: #16744b; color: white; }
 .community .community__like--active:not(:disabled):hover { background: #105a39; }
@@ -1022,6 +1028,8 @@ body:has(.community) .user-nav__dropdown {
 .community__custom-select-options::-webkit-scrollbar-thumb { background: #b8a9bd; border-radius: 8px; }
 
 @media (max-width: 680px) {
+  /* 모바일에서는 하단 게시글을 세 개까지만 표시합니다. */
+  .community__more-list > li:nth-child(n + 4) { display: none; }
   .community__selects { width: 100%; }
   .community__custom-select { flex: 1; }
   .community .community__custom-select-trigger { width: 100%; min-width: 0; }
@@ -1041,10 +1049,10 @@ body:has(.community) .user-nav__dropdown {
 .community--board { padding-top: 24px; }
 .community--board .community__navigation { padding: 0 0 18px; margin-bottom: 26px; border: 0; border-bottom: 1px solid #e2e8f0; border-radius: 0; background: transparent; box-shadow: none; backdrop-filter: none; }
 .community--board .community__navigation-actions a { padding: 6px 0 6px 16px; border: 0; background: transparent; font-size: 13px; }
-.community__board-heading { margin-bottom: 26px; }
+.community__board-heading { margin-bottom: 36px; text-align: center; }
 .community__board-heading .community__eyebrow { margin: 0 0 8px; font-size: 11px; }
-.community__board-heading h1 { font-size: clamp(28px, 3vw, 36px); }
-.community__board-heading .community__intro { margin: 10px 0 0; font-size: 14px; }
+.community__board-heading h1 { font-size: clamp(28px, 3vw, 36px); overflow-wrap: anywhere; text-wrap: balance; }
+.community__board-heading .community__intro { max-width: 560px; margin: 10px auto 0; font-size: 14px; text-wrap: balance; }
 .community__controls { position: relative; padding: 20px 24px 0; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; }
 .community--board .community__main-search { padding: 0 0 18px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 .community--board .community__main-search input { min-height: 46px; background: #f8fafc; }
@@ -1229,6 +1237,7 @@ html[data-theme='dark'] .community .community__navigation-actions .community__ma
 .community__write-ad { width: 300px; }
 .community__vertical-ad { width: 100%; aspect-ratio: 1 / 2; display: grid; place-items: center; border: 1px solid var(--community-line); border-radius: 8px; background: #eef1f6; color: #64748b; font-size: 12px; overflow: hidden; }
 .community__vertical-ad img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.community__vertical-ad picture { display: block; width: 100%; height: 100%; }
 .community__more-posts { margin-top: 40px; padding: 24px; border: 1px solid var(--community-line); border-radius: 12px; background: #fff; }
 .community__more-posts .community__showcase-heading h2::before { display: none; }
 .community__more-posts h2 { font-size: 22px; }
@@ -1264,7 +1273,8 @@ html[data-theme='dark'] .community__comment-count { background: #352140; color: 
 html[data-theme='dark'] .community__vertical-ad { background: #16111f; color: #b5adc4; }
 @media (max-width: 1000px) {
   .community__write-layout { grid-template-columns: minmax(0, 1fr); }
-  .community__write-ad { width: min(300px, 100%); margin: 16px auto 0; }
+  .community__write-ad { width: min(600px, 100%); margin: 16px auto 0; }
+  .community__vertical-ad { aspect-ratio: 3 / 1; }
 }
 @media (max-width: 680px) {
   .community__more-list a { grid-template-columns: minmax(0, 1fr); gap: 8px; }
@@ -1287,7 +1297,7 @@ html[data-theme='dark'] .community__vertical-ad { background: #16111f; color: #b
 @media (max-width: 1000px) {
   .community__reading-layout { display: flex; flex-direction: column; }
   .community__reading-content, .community__reading-layout > .community__more-posts { width: 100%; }
-  .community__reading-ad { width: min(300px, 100%); margin: 32px auto 0; }
+  .community__reading-ad { width: min(600px, 100%); margin: 32px auto 0; }
 }
 
 /* 320px 화면에서 목록을 두 줄 카드로 바꾸고 입력 영역의 최소 너비를 해제합니다. */

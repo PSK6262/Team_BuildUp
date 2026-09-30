@@ -84,7 +84,13 @@ function App() {
   return (
     <>
       <AllUseNav />
-      <Suspense fallback={<p role="status">페이지를 불러오는 중입니다...</p>}>
+      <Suspense
+        fallback={
+          <div className="app-loading-fallback" role="status" aria-label="로딩 중">
+            <div className="app-loading-spinner" />
+          </div>
+        }
+      >
       {/* 메인 및 구단 소개 */}
       {isMainPage && <MainPage />}
       {isTeamsPage && <TeamsPage />}
@@ -111,7 +117,7 @@ function App() {
       {pathname === '/plug/community/free' && <FreeBoard />}
       {pathname === '/plug/community/teams' && <TeamBoards />}
       {pathname === '/plug/community/write' && <PostWrite />}
-      {postMatch && <PostDetail postId={postMatch[ 1 ]} />}
+      {postMatch && <PostDetail key={postMatch[ 1 ]} postId={postMatch[ 1 ]} />}
       {commuTeam && <Community key={commuTeam.slug} selectedTeam={commuTeam} />}
       {pathname.startsWith('/plug/community/teams/') && !commuTeam && (
         <main className="community">
