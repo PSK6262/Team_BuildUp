@@ -3,6 +3,7 @@ import teamDbFallback from '../data/teamDbFallback.json'
 import { getTeams } from '../api/teamApi.js'
 import FcManagerModeModal from '../components/match/FcManagerModeModal.jsx'
 import '../css/match.css'
+import { MatchClubPicker, MatchRoundPicker } from '../components/match/MatchFilters.jsx'
 
 const teamsData = teamDbFallback.teams
 const SEASONS = [2024, 2025, 2026]
@@ -26,7 +27,7 @@ const MONTH_TABS = [
 ]
 
 // 프리미어리그 38개 라운드 목록 (1R ~ 38R)
-const ROUND_LIST = Array.from({ length: 38 }, (_, i) => i + 1)
+
 
 // 기본 한글 구단명 매핑 사전
 const TEAM_NAMES_KOR = {
@@ -608,44 +609,7 @@ export default function Match() {
         </div>
 
         {/* 구단(팀) 선택 필터 바 - DB 구단 및 실시간 순위 함께 표기 */}
-        <div className="team-filter-bar">
-          <span className="team-filter-label">구단 선택:</span>
-          <div className="team-filter-select-wrapper">
-            {selectedTeam?.emblemUrl && (
-              <img
-                src={selectedTeam.emblemUrl}
-                alt={selectedTeam.teamNameKor || selectedTeam.teamName}
-                className="team-filter-emblem"
-              />
-            )}
-            <select
-              className="team-filter-select"
-              value={selectedTeamId}
-              onChange={(e) => setSelectedTeamId(e.target.value)}
-              aria-label="구단 선택"
-            >
-              <option value="ALL">전체 구단</option>
-              {dbTeams.map((team) => {
-                return (
-                  <option key={team.teamId} value={team.teamId}>
-                    {team.teamNameKor} ({team.teamName})
-                  </option>
-                )
-              })}
-            </select>
-            <span className="team-filter-arrow">▼</span>
-          </div>
-
-          {selectedTeamId !== 'ALL' && (
-            <button
-              type="button"
-              className="team-filter-reset-btn"
-              onClick={() => setSelectedTeamId('ALL')}
-            >
-              ✕ 전체 보기
-            </button>
-          )}
-        </div>
+        <MatchClubPicker teams={dbTeams} value={selectedTeamId} onChange={setSelectedTeamId} />
 
         {/* 1. 월별 필터 탭 바 (MONTH 모드일 때 노출) */}
         {filterMode === 'MONTH' && (
@@ -671,30 +635,7 @@ export default function Match() {
 
         {/* 2. 라운드별 필터 UI (ROUND 모드일 때 노출) */}
         {filterMode === 'ROUND' && (
-          <section className="round-filter-container" aria-label="라운드별 일정 필터">
-            <div className="round-filter-nav">
-              <button
-                type="button"
-                className={`round-filter-btn ${selectedRound === 'ALL' ? 'active' : ''}`}
-                onClick={() => setSelectedRound('ALL')}
-              >
-                전체
-              </button>
-              {ROUND_LIST.map((r) => {
-                const isActive = Number(selectedRound) === r
-                return (
-                  <button
-                    key={r}
-                    type="button"
-                    className={`round-filter-btn ${isActive ? 'active' : ''}`}
-                    onClick={() => setSelectedRound(r)}
-                  >
-                    {r}R
-                  </button>
-                )
-              })}
-            </div>
-          </section>
+          <MatchRoundPicker value={selectedRound} onChange={setSelectedRound} />
         )}
 
         {/* 경기 카운트 및 새로고침 상태바 */}
