@@ -1491,11 +1491,18 @@ html[data-theme='light'] body:has(.myteam-page) {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 12px;
+  align-items: stretch;
 }
 
 .myteam-opponent-mode {
   display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: 96px;
+  white-space: normal;
   align-items: center;
   gap: 14px;
   padding: 20px;
@@ -1510,7 +1517,34 @@ html[data-theme='light'] body:has(.myteam-page) {
 
 .myteam-opponent-mode>span:first-child {
   font-size: 28px;
+  flex-shrink: 0;
 }
+
+.myteam-opponent-mode>span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.myteam-match-rules {
+  margin-top: 28px;
+  padding-top: 12px;
+  border-top: 1px solid #53677a;
+  font-size: 13px;
+}
+
+.myteam-match-rules summary {
+  cursor: pointer;
+  line-height: 1.7;
+}
+
+.myteam-match-rules summary span {
+  display: inline-block;
+  margin-left: 12px;
+  color: #b7c4d5;
+}
+
+html[data-theme='light'] .myteam-match-rules { border-color: #d9e1dc; }
+html[data-theme='light'] .myteam-match-rules summary span { color: #637083; }
 
 .myteam-opponent-mode strong {
   display: block;

@@ -1911,9 +1911,6 @@ export default function MyTeam() {
           <div className="myteam-ai-heading">
             <div className="myteam-opponent-section">
               <h2 id="ai-match-title">AI 팀과 대전</h2>
-              <p>매판 무작위 포메이션과 선수로 구성된 AI 팀에 도전하세요. AI는 각 자리에 같은 포지션의 선수만 배치합니다.</p>
-              <p>90분 경기를 즉시 시뮬레이션합니다. 원래 포지션과 다른 자리에 배치한 선수 1명당 팀의 득점 확률이 5%씩, 최대 50% 감소합니다. 일반 슈팅·PK·프리킥에 모두 적용되며 실제 선수 능력치는 반영하지 않습니다.</p>
-              <p>현재 내 팀: 포지션 불일치 {slots.filter(({ pos, player }) => player && pos !== player.mainPosition).length}명</p>
               <div className="myteam-opponent-modes" role="group" aria-label="대전 상대 유형">
                 <button type="button" className="myteam-opponent-mode"
                   aria-pressed={opponentMode === 'RANDOM'} onClick={() => setOpponentMode('RANDOM')}>
@@ -1966,6 +1963,11 @@ export default function MyTeam() {
             </div>
           </div>
           {filledCount !== 11 && <p>선수 11명을 배치하면 대전을 시작할 수 있습니다. ({filledCount}/11명)</p>}
+          <details className="myteam-match-rules">
+            <summary>대전 규칙 <span>포지션 불일치 {slots.filter(({ pos, player }) => player && pos !== player.mainPosition).length}명</span></summary>
+            <p>매판 무작위 포메이션과 선수로 구성된 AI 팀에 도전하세요. AI는 각 자리에 같은 포지션의 선수만 배치합니다.</p>
+            <p>90분 경기를 즉시 시뮬레이션합니다. 원래 포지션과 다른 자리에 배치한 선수 1명당 팀의 득점 확률이 5%씩, 최대 50% 감소합니다. 일반 슈팅·PK·프리킥에 모두 적용되며 실제 선수 능력치는 반영하지 않습니다.</p>
+          </details>
           <MemberRankings type="virtual" refreshKey={aiMatch?.replayId ?? 0} />
           {aiMatch && (
             <div className="myteam-ai-result">
