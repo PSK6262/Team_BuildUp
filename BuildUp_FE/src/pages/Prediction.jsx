@@ -27,13 +27,24 @@ export default function Prediction() {
   const [predictionModal, setPredictionModal] = useState(null);
   const [resolvingDummyLock, setResolvingDummyLock] = useState(false);
 
-  // 날짜 유틸리티: 기준일 ±3일 표시 및 이전/이후 6일 단위 이동
+  // 날짜 유틸리티: 주간(월요일 ~ 일요일, 총 7일) 표시 및 이전/이후 7일(1주) 단위 이동
   const DAY_MS = 24 * 60 * 60 * 1000;
 
   const getStartOfDayMs = (dateLike) => {
     const d = new Date(dateLike);
     if (Number.isNaN(d.getTime())) return Date.now();
     d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  };
+
+  // 해당 날짜가 속한 주의 월요일 00:00:00.000 반환 (월~일 7일 기준)
+  const getMondayOfWeekMs = (dateLike) => {
+    const d = new Date(dateLike);
+    if (Number.isNaN(d.getTime())) return getStartOfDayMs(Date.now());
+    d.setHours(0, 0, 0, 0);
+    const day = d.getDay(); // 0(일) ~ 6(토)
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+    d.setDate(d.getDate() + diffToMonday);
     return d.getTime();
   };
 
@@ -45,10 +56,10 @@ export default function Prediction() {
     return Number.isNaN(t) ? null : t;
   };
 
-  const getWindowBounds = (centerMs, days = 3) => {
-    const base = getStartOfDayMs(centerMs);
-    const start = base - days * DAY_MS;
-    const end = base + (days + 1) * DAY_MS - 1;
+  // 월요일 00:00:00.000 ~ 일요일 23:59:59.999 (총 7일) 구간 반환
+  const getWindowBounds = (centerMs) => {
+    const start = getMondayOfWeekMs(centerMs);
+    const end = start + 7 * DAY_MS - 1;
     return { start, end };
   };
 
@@ -60,9 +71,9 @@ export default function Prediction() {
     return `${yyyy}.${mm}.${dd}`;
   };
 
-  // 날짜 뒤에 (±3일) 문구 제거
+  // 월요일 ~ 일요일 날짜 범위 표시
   const formatRangeText = (centerMs) => {
-    const { start, end } = getWindowBounds(centerMs, 3);
+    const { start, end } = getWindowBounds(centerMs);
     return `${formatShortDate(start)} ~ ${formatShortDate(end)}`;
   };
 
@@ -74,10 +85,10 @@ export default function Prediction() {
   // 현재 임시(더미) 경기가 존재하는지 여부
   const hasDummyMatches = allMatches.some((m) => isDummyMatchId(m.matchId));
 
-  // 경기 승부예측 및 내 예측 내역의 ±3일 기준일 상태
-  const [matchCenterMs, setMatchCenterMs] = useState(() => getStartOfDayMs(Date.now()));
+  // 경기 승부예측 및 내 예측 내역의 주간(월~일) 기준일 상태
+  const [matchCenterMs, setMatchCenterMs] = useState(() => getMondayOfWeekMs(Date.now()));
   const [showAllMatchesPeriod, setShowAllMatchesPeriod] = useState(false);
-  const [historyCenterMs, setHistoryCenterMs] = useState(() => getStartOfDayMs(Date.now()));
+  const [historyCenterMs, setHistoryCenterMs] = useState(() => getMondayOfWeekMs(Date.now()));
   const [showAllHistory, setShowAllHistory] = useState(false);
 
   const getChoiceLabel = (choice) => {
@@ -198,19 +209,20 @@ export default function Prediction() {
     });
   };
 
-  // 전체 경기 목록에서 최근 경기 기준일 계산 (오늘 ±3일 내 경기가 있으면 오늘, 없으면 가장 가까운 경기일)
+  // 전체 경기 목록에서 최근 경기 주간(월~일) 계산 (이번 주 월~일 내 경기가 있으면 이번 주, 없으면 가장 가까운 주간)
   const computeDefaultMatchCenterMs = (matchList) => {
     const nowMs = Date.now();
     const todayBase = getStartOfDayMs(nowMs);
-    if (!Array.isArray(matchList) || matchList.length === 0) return todayBase;
+    const thisWeekMonday = getMondayOfWeekMs(nowMs);
+    if (!Array.isArray(matchList) || matchList.length === 0) return thisWeekMonday;
 
-    const { start, end } = getWindowBounds(todayBase, 3);
-    const hasInTodayWindow = matchList.some((m) => {
+    const { start, end } = getWindowBounds(thisWeekMonday);
+    const hasInThisWeek = matchList.some((m) => {
       if (isDummyMatchId(m.matchId)) return true;
       const t = parseItemTime(m.matchDate);
       return t !== null && t >= start && t <= end;
     });
-    if (hasInTodayWindow) return todayBase;
+    if (hasInThisWeek) return thisWeekMonday;
 
     // 오늘 이후 가장 가까운 예정 경기 탐색 (오름차순)
     const upcoming = matchList
@@ -218,44 +230,46 @@ export default function Prediction() {
       .filter((t) => t !== null && t >= todayBase)
       .sort((a, b) => a - b);
     if (upcoming.length > 0) {
-      return getStartOfDayMs(upcoming[0]);
+      return getMondayOfWeekMs(upcoming[0]);
     }
 
-    // 예정 경기가 없으면 가장 최근 경기일
+    // 예정 경기가 없으면 가장 최근 경기일이 속한 주간(월~일)
     const validTimes = matchList
       .map((m) => parseItemTime(m.matchDate))
       .filter((t) => t !== null)
       .sort((a, b) => b - a);
-    return validTimes.length > 0 ? getStartOfDayMs(validTimes[0]) : todayBase;
+    return validTimes.length > 0 ? getMondayOfWeekMs(validTimes[0]) : thisWeekMonday;
   };
 
-  // 내 예측 내역에서 최근 경기 기준일 계산 (오늘 ±3일 내 내역이 있으면 오늘, 없으면 가장 최근 내역 기준)
+  // 내 예측 내역에서 최근 경기 주간(월~일) 계산
   const computeDefaultHistoryCenterMs = (historyList) => {
-    const todayBase = getStartOfDayMs(Date.now());
-    if (!Array.isArray(historyList) || historyList.length === 0) return todayBase;
+    const nowMs = Date.now();
+    const todayBase = getStartOfDayMs(nowMs);
+    const thisWeekMonday = getMondayOfWeekMs(nowMs);
+    if (!Array.isArray(historyList) || historyList.length === 0) return thisWeekMonday;
 
-    const { start, end } = getWindowBounds(todayBase, 3);
-    const hasInTodayWindow = historyList.some((item) => {
+    const { start, end } = getWindowBounds(thisWeekMonday);
+    const hasInThisWeek = historyList.some((item) => {
       if (isDummyMatchId(item.matchId)) return true;
       const t = parseItemTime(item.matchDate, item.createdAt);
       return t !== null && t >= start && t <= end;
     });
-    if (hasInTodayWindow) return todayBase;
+    if (hasInThisWeek) return thisWeekMonday;
 
-    // 오늘 이후 예정된 내역이 있으면 가장 가까운 내역, 없으면 가장 최근 내역
+    // 오늘 이후 예정된 내역이 있으면 가장 가까운 내역의 주간, 없으면 가장 최근 내역의 주간
     const upcoming = historyList
       .map((item) => parseItemTime(item.matchDate, item.createdAt))
       .filter((t) => t !== null && t >= todayBase)
       .sort((a, b) => a - b);
     if (upcoming.length > 0) {
-      return getStartOfDayMs(upcoming[0]);
+      return getMondayOfWeekMs(upcoming[0]);
     }
 
     const latest = historyList
       .map((item) => parseItemTime(item.matchDate, item.createdAt))
       .filter((t) => t !== null)
       .sort((a, b) => b - a);
-    return latest.length > 0 ? getStartOfDayMs(latest[0]) : todayBase;
+    return latest.length > 0 ? getMondayOfWeekMs(latest[0]) : thisWeekMonday;
   };
 
   // 내 예측 내역 비동기 조회 (오름차순 정렬 기반)
@@ -360,7 +374,7 @@ export default function Prediction() {
     };
   }, [isLoggedIn]);
 
-  // 경기 승부예측 탭: ±3일 필터링 + 오름차순(ASC) 정렬 반영
+  // 경기 승부예측 탭: 주간(월~일, 7일) 필터링 + 오름차순(ASC) 정렬 반영
   useEffect(() => {
     if (!Array.isArray(allMatches) || allMatches.length === 0) {
       setMatches([]);
@@ -371,12 +385,12 @@ export default function Prediction() {
     if (showAllMatchesPeriod) {
       filtered = [...allMatches];
     } else {
-      const { start, end } = getWindowBounds(matchCenterMs, 3);
-      const todayBase = getStartOfDayMs(Date.now());
-      const isNearToday = Math.abs(matchCenterMs - todayBase) <= 3 * DAY_MS;
+      const { start, end } = getWindowBounds(matchCenterMs);
+      const thisWeekMonday = getMondayOfWeekMs(Date.now());
+      const isCurrentWeek = start === thisWeekMonday;
 
       filtered = allMatches.filter((m) => {
-        if (isDummyMatchId(m.matchId) && isNearToday) return true;
+        if (isDummyMatchId(m.matchId) && isCurrentWeek) return true;
         const t = parseItemTime(m.matchDate);
         if (t === null) return false;
         return t >= start && t <= end;
@@ -402,10 +416,10 @@ export default function Prediction() {
     ensureOddsLoaded(filtered);
   }, [allMatches, matchCenterMs, showAllMatchesPeriod]);
 
-  // 경기 승부예측 날짜 구간 6일 단위 이동 (±3일 구간이 겹치지 않고 딱 맞아떨어지도록 6일씩 이동)
+  // 경기 승부예측 날짜 구간 7일(월~일 1주) 단위 이동
   const shiftMatchWindow = (direction) => {
     setShowAllMatchesPeriod(false);
-    setMatchCenterMs((prev) => prev + direction * 6 * DAY_MS);
+    setMatchCenterMs((prev) => getMondayOfWeekMs(prev) + direction * 7 * DAY_MS);
   };
 
   const resetMatchWindow = () => {
@@ -413,11 +427,11 @@ export default function Prediction() {
     setMatchCenterMs(computeDefaultMatchCenterMs(allMatches));
   };
 
-  // 내 예측 내역 날짜 구간 6일 단위 이동
+  // 내 예측 내역 날짜 구간 7일(월~일 1주) 단위 이동
   const shiftHistoryWindow = (direction) => {
     setShowAllHistory(false);
     setVisibleHistoryCount(10);
-    setHistoryCenterMs((prev) => prev + direction * 6 * DAY_MS);
+    setHistoryCenterMs((prev) => getMondayOfWeekMs(prev) + direction * 7 * DAY_MS);
   };
 
   const resetHistoryWindow = () => {
@@ -426,15 +440,15 @@ export default function Prediction() {
     setHistoryCenterMs(computeDefaultHistoryCenterMs(myHistory));
   };
 
-  // 내 예측 내역 ±3일 필터링 + 오름차순(ASC) 정렬 목록
+  // 내 예측 내역 주간(월~일, 7일) 필터링 + 오름차순(ASC) 정렬 목록
   const filteredHistory = (
     showAllHistory
       ? [...myHistory]
       : myHistory.filter((item) => {
-          const { start, end } = getWindowBounds(historyCenterMs, 3);
-          const todayBase = getStartOfDayMs(Date.now());
-          const isNearToday = Math.abs(historyCenterMs - todayBase) <= 3 * DAY_MS;
-          if (isDummyMatchId(item.matchId) && isNearToday) return true;
+          const { start, end } = getWindowBounds(historyCenterMs);
+          const thisWeekMonday = getMondayOfWeekMs(Date.now());
+          const isCurrentWeek = start === thisWeekMonday;
+          if (isDummyMatchId(item.matchId) && isCurrentWeek) return true;
           const t = parseItemTime(item.matchDate, item.createdAt);
           if (t === null) return true;
           return t >= start && t <= end;
