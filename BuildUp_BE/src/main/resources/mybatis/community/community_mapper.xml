@@ -103,7 +103,7 @@
 	<!-- 게시글 추천수 증가 -->
 	<update id="increaseLikeCount" parameterType="long">
 		UPDATE POSTS
-		SET LIKE_COUNT = LIKE_COUNT + 1
+		SET LIKE_COUNT = NVL(LIKE_COUNT, 0) + 1
 		WHERE POST_ID = #{postId}
 		AND IS_BLIND = 'N'
 		AND IS_DELETED = 'N'
@@ -112,7 +112,7 @@
 	<!-- 게시글 추천수 감소 -->
 	<update id="decreaseLikeCount" parameterType="long">
 		UPDATE POSTS
-		SET LIKE_COUNT = GREATEST(LIKE_COUNT - 1, 0)
+		SET LIKE_COUNT = GREATEST(NVL(LIKE_COUNT, 0) - 1, 0)
 		WHERE POST_ID = #{postId}
 		AND IS_BLIND = 'N'
 		AND IS_DELETED = 'N'
@@ -287,7 +287,10 @@
 			p.TITLE,
 			p.CONTENT,
 			p.VIEW_COUNT,
-			p.LIKE_COUNT,
+			(SELECT COUNT(*) FROM POST_LIKES pl WHERE pl.POST_ID = p.POST_ID) AS LIKE_COUNT,
+			(SELECT MIN(pa.ATTACHMENT_ID) FROM POST_ATTACHMENTS pa
+			 WHERE pa.POST_ID = p.POST_ID
+			 AND (pa.STORED_NAME LIKE 'showcase-%' OR pa.ORIGINAL_NAME LIKE 'plugin-squad-%')) AS SHOWCASE_IMAGE_ID,
 			NVL(comment_counts.COMMENT_COUNT, 0) AS COMMENT_COUNT,
 			p.IS_BLIND,
 			p.IS_DELETED,
@@ -303,6 +306,7 @@
 				COUNT(*) AS COMMENT_COUNT
 			FROM COMMENTS
 			WHERE IS_DELETED = 'N'
+			AND IS_BLIND = 'N'
 			GROUP BY POST_ID
 		) comment_counts ON comment_counts.POST_ID = p.POST_ID
 		WHERE p.POST_ID = #{postId}
@@ -379,7 +383,7 @@
 			c.CATEGORY_TYPE,
 			p.TITLE,
 			p.VIEW_COUNT,
-			p.LIKE_COUNT,
+			(SELECT COUNT(*) FROM POST_LIKES pl WHERE pl.POST_ID = p.POST_ID) AS LIKE_COUNT,
 			NVL(comment_counts.COMMENT_COUNT, 0) AS COMMENT_COUNT,
 			p.IS_BLIND,
 			p.IS_DELETED,
@@ -394,6 +398,7 @@
 				COUNT(*) AS COMMENT_COUNT
 			FROM COMMENTS
 			WHERE IS_DELETED = 'N'
+			AND IS_BLIND = 'N'
 			GROUP BY POST_ID
 		) comment_counts ON comment_counts.POST_ID = p.POST_ID
 		WHERE 1=1
@@ -435,7 +440,7 @@
 		ORDER BY
 		<choose>
 			<when test="sort == 'likes'">
-				p.LIKE_COUNT DESC,
+				LIKE_COUNT DESC,
 			</when>
 			<when test="sort == 'views'">
 				p.VIEW_COUNT DESC,

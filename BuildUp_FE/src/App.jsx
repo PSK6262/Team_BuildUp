@@ -117,7 +117,7 @@ function App() {
       {pathname === '/plug/community/free' && <FreeBoard />}
       {pathname === '/plug/community/teams' && <TeamBoards />}
       {pathname === '/plug/community/write' && <PostWrite />}
-      {postMatch && <PostDetail postId={postMatch[ 1 ]} />}
+      {postMatch && <PostDetail key={postMatch[ 1 ]} postId={postMatch[ 1 ]} />}
       {commuTeam && <Community key={commuTeam.slug} selectedTeam={commuTeam} />}
       {pathname.startsWith('/plug/community/teams/') && !commuTeam && (
         <main className="community">

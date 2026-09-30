@@ -201,18 +201,22 @@ export default function PostWrite() {
       }
 
       if (attachments.length > 0) {
-        const formData = new FormData()
-        attachments.forEach((file) => formData.append('files', file))
-        const uploadResponse = await fetch(`/api/communities/${createdPostId}/attachments`, {
-          method: 'POST',
-          headers: uploadHeaders,
-          body: formData,
-        })
-        const isJson = uploadResponse.headers.get('content-type')?.includes('application/json')
-        const uploadResult = isJson ? await uploadResponse.json() : null
-        if (!uploadResponse.ok) {
+        // 게시글 저장 후 업로드 실패는 글 재등록 대신 상세 화면에서 복구합니다.
+        try {
+          const formData = new FormData()
+          attachments.forEach((file) => formData.append('files', file))
+          const uploadResponse = await fetch(`/api/communities/${createdPostId}/attachments`, {
+            method: 'POST',
+            headers: uploadHeaders,
+            body: formData,
+          })
+          const isJson = uploadResponse.headers.get('content-type')?.includes('application/json')
+          const uploadResult = isJson ? await uploadResponse.json() : null
+          if (!uploadResponse.ok) {
+            throw new Error(uploadResult?.message || '첨부파일 업로드에 실패했습니다.')
+          }
+        } catch {
           attachmentFailed = true
-          window.alert(uploadResult?.message || '게시글은 등록되었지만 첨부파일 업로드에 실패했습니다. 상세 화면에서 다시 등록해주세요.')
         }
       }
 
@@ -332,7 +336,10 @@ export default function PostWrite() {
     <aside className="community__write-ad" aria-label="광고 영역">
       <span className="community__ad-label">광고 · ADVERTISEMENT</span>
       <div className="community__vertical-ad">
-        <img src="/je.png" width="300" height="600" alt="제때약 — 내 약을 제때, 더 안전하게. 복약 일정부터 AI 상담까지." />
+        <picture>
+          <source media="(max-width: 1000px)" srcSet="/je-mobile.png" width="2172" height="724" />
+          <img src="/je.png" width="300" height="600" alt="제때약 — 내 약을 제때, 더 안전하게." />
+        </picture>
       </div>
     </aside>
     </div>
