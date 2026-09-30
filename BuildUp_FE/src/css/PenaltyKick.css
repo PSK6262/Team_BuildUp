@@ -1,5 +1,5 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   패널티킥 미니게임 스타일 (와이드 스타디움)
+   승부차기 미니게임 스타일 (와이드 스타디움)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .pk {
   min-height: calc(100vh - 60px);
@@ -9,8 +9,9 @@
   align-items: center;
   color: #fff;
   user-select: none;
-  padding-bottom: 50px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 40px 24px 80px;
+  box-sizing: border-box;
+  font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
   position: relative;
 }
 
@@ -26,31 +27,15 @@
   z-index: -1;
 }
 
-/* ── 상단 바 ── */
+/* ── 상단 스코어보드 바 (플레이 시) ── */
 .pk__topbar {
   width: 100%;
   max-width: 880px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 16px;
-  padding: 16px 20px 12px;
-}
-
-.pk__back {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.88rem;
-  font-weight: 600;
-  text-decoration: none;
-}
-.pk__back:hover { color: #fff; }
-
-.pk__title {
-  flex: 1;
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 800;
-  text-align: center;
-  letter-spacing: -0.5px;
+  padding: 0 0 14px;
 }
 
 .pk__score {
@@ -85,41 +70,89 @@
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   난이도 선택 / 게임 오버 화면
+   난이도 선택 / 게임 오버 화면 (상단 헤더 통일 규격 적용)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .pk__intro,
 .pk__over {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 50px 24px;
+  padding: 0;
+  width: 100%;
   max-width: 720px;
-  gap: 20px;
+  gap: 28px;
+}
+
+.pk__back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 2px solid #2ecc71;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  z-index: 35;
+}
+
+.pk__back:hover {
+  background: #2ecc71;
+  color: #000000;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.pk__back--stadium {
+  top: 14px;
+  left: 16px;
+  background: rgba(9, 11, 16, 0.72);
+  backdrop-filter: blur(6px);
+}
+
+.pk__intro-header {
+  text-align: center;
 }
 
 .pk__intro-badge {
-  font-size: 12px;
+  display: inline-block;
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-size: 13px;
   letter-spacing: 2px;
   font-weight: 800;
-  color: #00ff87;
-  background: rgba(0, 255, 135, 0.1);
-  padding: 4px 14px;
-  border-radius: 20px;
-  border: 1px solid rgba(0, 255, 135, 0.3);
+  text-transform: uppercase;
+  color: #00e58a;
+  text-shadow: 0 0 0.8vw rgba(0, 255, 135, 0.55);
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  border: none;
+  margin-bottom: 8px;
 }
 
 .pk__intro-heading {
-  margin: 0;
-  font-size: 2rem;
+  font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
+  margin: 0 0 10px;
+  font-size: 36px;
   font-weight: 900;
-  color: #fff;
+  letter-spacing: -0.5px;
+  color: #f4f1fa;
+  text-shadow: 0 0.4vh 1.6vw rgba(0, 0, 0, 0.45);
 }
 
 .pk__intro-desc {
-  font-size: 0.95rem;
-  line-height: 1.8;
-  color: rgba(255, 255, 255, 0.75);
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: 15px;
+  line-height: 1.7;
+  color: #b5adc4;
   margin: 0;
 }
 .pk__intro-dot { color: #ff5252; font-size: 1.1rem; }
@@ -128,7 +161,6 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
-  margin-top: 10px;
   width: 100%;
 }
 

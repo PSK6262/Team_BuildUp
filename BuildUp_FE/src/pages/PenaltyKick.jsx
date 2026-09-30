@@ -636,11 +636,9 @@ export default function PenaltyKick() {
 
   return (
     <main className="pk">
-      {/* 상단 스코어보드 */}
-      <header className="pk__topbar">
-        <a className="pk__back" href="/plug/minigames">← 미니게임</a>
-        <h1 className="pk__title">⚽ 승부차기 패널티킥</h1>
-        {isPlaying && (
+      {/* 상단 스코어보드 (플레이 중에만 노출) */}
+      {isPlaying && (
+        <header className="pk__topbar">
           <div className="pk__score" aria-label={`${difficulty.winScore}골 선취 경기`}>
             <span className="pk__score-team">YOU</span>
             <strong className="pk__score-num">{score.p}</strong>
@@ -649,22 +647,25 @@ export default function PenaltyKick() {
             <span className="pk__score-team">AI</span>
             <span className="pk__score-target">/{difficulty.winScore}</span>
           </div>
-        )}
-      </header>
+        </header>
+      )}
 
       {/* 난이도 선택 */}
       {phase === P.INTRO && (
         <div className="pk__intro">
-          <div className="pk__intro-badge">PENALTY SHOOTOUT</div>
-          <h2 className="pk__intro-heading">실력 기반 승부차기 1:1</h2>
-          <p className="pk__intro-desc">
-            하·중·상은 3골, 익스트림은 15골을 먼저 득점하면 승리합니다.<br />
-            <strong>[슛하는 법]</strong> 코스를 클릭하면 5초 타이밍 바가 시작됩니다.<br />
-            초록색 95% · 주황색 55% · 빨간색 15% 구간에서 다시 클릭하세요.<br />
-            익스트림은 어려움보다 약 2.5배 빠르고 판정 범위가 좁으며 돌발 상황도 크게 증가합니다.<br />
-            돌발 상황의 직접 피해로 실축하면 50% 확률로 같은 슛을 다시 찰 수 있습니다.<br />
-            <strong>[막는 법]</strong> 3, 2, 1 카운트 후 뜨는 <span className="pk__intro-dot">●</span> 힌트 점을 찰나에 클릭!
-          </p>
+          <a className="pk__back" href="/plug/minigames">돌아가기</a>
+          <header className="pk__intro-header">
+            <span className="pk__intro-badge">SHOOTOUT</span>
+            <h2 className="pk__intro-heading">실력 기반 승부차기 1:1</h2>
+            <p className="pk__intro-desc">
+              하·중·상은 3골, 익스트림은 15골을 먼저 득점하면 승리합니다.<br />
+              <strong>[슛하는 법]</strong> 코스를 클릭하면 5초 타이밍 바가 시작됩니다.<br />
+              초록색 95% · 주황색 55% · 빨간색 15% 구간에서 다시 클릭하세요.<br />
+              익스트림은 어려움보다 약 2.5배 빠르고 판정 범위가 좁으며 돌발 상황도 크게 증가합니다.<br />
+              돌발 상황의 직접 피해로 실축하면 50% 확률로 같은 슛을 다시 찰 수 있습니다.<br />
+              <strong>[막는 법]</strong> 3, 2, 1 카운트 후 뜨는 <span className="pk__intro-dot">●</span> 힌트 점을 찰나에 클릭!
+            </p>
+          </header>
           <div className="pk__diff-row">
             {DIFFICULTIES.map((d) => (
               <button
@@ -706,6 +707,7 @@ export default function PenaltyKick() {
           className={`pk__stadium pk__stadium--phase-${phase.toLowerCase()} ${rareEvent ? `pk__stadium--event-${rareEvent.key}` : ''} ${rareEvent?.didImpact ? 'pk__stadium--event-impact' : ''}`}
           ref={sceneRef}
         >
+          <a className="pk__back pk__back--stadium" href="/plug/minigames">돌아가기</a>
           {/* 관중석 및 조명 */}
           <div className="pk__crowd" aria-hidden="true">
             <div className="pk__stadium-light pk__stadium-light--left" />

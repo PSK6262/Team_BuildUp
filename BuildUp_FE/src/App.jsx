@@ -110,7 +110,7 @@ function App() {
 
       {/* 미니게임 */}
       {pathname === '/plug/minigames' && <MiniGames />}
-      {pathname === '/plug/minigames/penaltykick' && <PenaltyKick />}
+      {(pathname === '/plug/minigames/shootout' || pathname === '/plug/minigames/penaltykick') && <PenaltyKick />}
 
       {/* 커뮤니티 */}
       {pathname === '/plug/community' && <Community />}
