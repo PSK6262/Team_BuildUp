@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateUser, logout } from '../store/authSlice.js'
-import { fetchTeams } from '../store/teamSlice.js'
 import { getMyActivities, getMyPosts, getMyComments, getMyLikedPosts, getMyPointHistories } from '../api/userApi.js'
 import '../css/MyPage.css'
 
@@ -39,7 +38,7 @@ function IconSettings({ size = 18, color = 'currentColor', className = '', style
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, ...style }}>
       <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
     </svg>
   )
 }
@@ -111,21 +110,21 @@ function IconX({ size = 18, color = 'currentColor', className = '', style = {} }
   )
 }
 
-// 원본 고해상도 구단 엠블럼 PNG URL 변환 (/badges/50/t11.png -> /badges/t11.png)
-function getOriginalHighResPngUrl(url) {
-  if (!url || typeof url !== 'string') return ''
-  return url.replace('/badges/50/', '/badges/').replace('/50/', '/')
+// 팀 소개 페이지(TeamVisualPanel)와 동일한 고해상도 SVG 엠블럼 URL 생성 (리버풀 t14는 레드 엠블럼 통일을 위해 100px PNG 사용)
+function getEmblemSvgUrl(url) {
+  if (!url || typeof url !== 'string' || url.includes('/t14.')) return ''
+  return url.replace('/50/', '/').replace('.png', '.svg')
 }
 
-function getFallback100PngUrl(url) {
+function getHighResPngUrl(url) {
   if (!url || typeof url !== 'string') return ''
-  return url.replace('/badges/50/', '/badges/100/').replace('/50/', '/100/')
+  return url.replace('/50/', '/100/')
 }
 
 function TeamEmblemImg({ url, alt = '', className = '' }) {
-  const highResUrl = getOriginalHighResPngUrl(url)
-  const fallback100Url = getFallback100PngUrl(url)
-  const initialSrc = highResUrl || url || ''
+  const emblemSvg = getEmblemSvgUrl(url)
+  const emblemPng = getHighResPngUrl(url)
+  const initialSrc = emblemSvg || emblemPng || url || ''
 
   if (!initialSrc) return null
 
@@ -135,10 +134,9 @@ function TeamEmblemImg({ url, alt = '', className = '' }) {
       alt={alt}
       className={className}
       onError={(e) => {
-        const cur = e.currentTarget.src
-        if (fallback100Url && cur !== fallback100Url && !cur.includes('/100/')) {
-          e.currentTarget.src = fallback100Url
-        } else if (url && cur !== url) {
+        if (emblemPng && e.currentTarget.src !== emblemPng) {
+          e.currentTarget.src = emblemPng
+        } else if (url && e.currentTarget.src !== url) {
           e.currentTarget.src = url
         }
       }}
@@ -150,9 +148,9 @@ export default function MyPage() {
   const dispatch = useDispatch()
   const reduxUser = useSelector((state) => state.auth.user)
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn)
-  const teamList = useSelector((state) => state.team.teams || [])
   const currentTheme = useSelector((state) => state.theme?.mode || 'dark')
 
+  const [teamList, setTeamList] = useState([])
   const [profile, setProfile] = useState(null)
   const [nickname, setNickname] = useState('')
   const [email, setEmail] = useState('')
@@ -221,10 +219,15 @@ export default function MyPage() {
       .catch(() => {})
   }, [])
 
-  // 실제 DB 구단 목록 조회 (Redux Thunk)
+  // 실제 DB 구단 목록 직접 조회 (/api/teams)
   useEffect(() => {
-    dispatch(fetchTeams())
-  }, [dispatch])
+    fetch('/api/teams')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setTeamList(data)
+      })
+      .catch(() => {})
+  }, [])
 
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -752,9 +755,18 @@ export default function MyPage() {
     )
   }
 
-  // 선택된 응원 구단 데이터
+  // 선택된 응원 구단 데이터 (DB 조회 데이터 기준)
   const selectedFavoriteTeam = teamList.find((t) => String(t.teamId) === String(favoriteTeamId))
-  const profileFavoriteTeam = teamList.find((t) => String(t.teamId) === String(profile?.favoriteTeamId))
+  const profileFavoriteTeam =
+    teamList.find((t) => String(t.teamId) === String(profile?.favoriteTeamId)) ||
+    (profile?.favoriteTeamId && profile?.favoriteTeamEmblemUrl
+      ? {
+          teamId: profile.favoriteTeamId,
+          teamName: profile.favoriteTeamName,
+          teamNameKor: profile.favoriteTeamNameKor,
+          emblemUrl: profile.favoriteTeamEmblemUrl
+        }
+      : null)
 
   return (
     <div className={`mypage-dashboard-bg ${currentTheme === 'light' ? 'mypage-light-mode' : ''}`}>
