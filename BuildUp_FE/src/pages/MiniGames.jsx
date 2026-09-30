@@ -3,10 +3,10 @@ import '../css/MiniGames.css'
 
 const games = [
   {
-    title: '패널티킥',
+    title: '승부차기',
     description: '승부차기로 AI와 대결! 3골 선취 시 승리',
     icon: '⚽',
-    href: '/plug/minigames/penaltykick',
+    href: '/plug/minigames/shootout',
     available: true,
   },
   {
@@ -32,10 +32,11 @@ export default function MiniGames() {
   return (
     <main className={`minigames-page${isLight ? ' minigames-page--light' : ''}`}>
       <div className="minigames-inner">
-        <div className="minigames__hero">
-          <h1 className="minigames__title">⚽ 미니게임</h1>
+        <header className="minigames__hero">
+          <span className="minigames__eyebrow">MINI GAMES</span>
+          <h1 className="minigames__title">미니게임</h1>
           <p className="minigames__subtitle">EPL 팬이라면 도전해보세요</p>
-        </div>
+        </header>
         <ul className="minigames__grid">
           {games.map((game) => (
             <li key={game.title}>

@@ -25,23 +25,38 @@
 .minigames-inner {
   max-width: 900px;
   margin: 0 auto;
-  padding: 48px 20px 80px;
+  padding: 40px 24px 80px;
+  box-sizing: border-box;
 }
 
-/* ---------- 공통 레이아웃 ---------- */
+/* ---------- 공통 레이아웃 (경기 일정 / 팀 소개 / 어드민 규격 통일) ---------- */
 .minigames__hero {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 40px;
+}
+
+.minigames__eyebrow {
+  display: inline-block;
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
 }
 
 .minigames__title {
-  margin: 0 0 8px;
-  font-size: 2.2rem;
-  font-weight: 800;
+  font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
+  margin: 0 0 10px;
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
 }
 
 .minigames__subtitle {
-  font-size: 1.05rem;
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: 15px;
+  line-height: 1.5;
   margin: 0;
 }
 
@@ -129,12 +144,18 @@
   background: #27062c;
 }
 
+.minigames__eyebrow {
+  color: #00e58a;
+  text-shadow: 0 0 0.8vw rgba(0, 255, 135, 0.55);
+}
+
 .minigames__title {
-  color: #ffffff;
+  color: #f4f1fa;
+  text-shadow: 0 0.4vh 1.6vw rgba(0, 0, 0, 0.45);
 }
 
 .minigames__subtitle {
-  color: #a795b5;
+  color: #b5adc4;
 }
 
 .minigames__card {
@@ -192,8 +213,14 @@
   background: rgba(56, 0, 60, 0.05);
 }
 
-.minigames-page--light .minigames__title {
+.minigames-page--light .minigames__eyebrow {
   color: #38003c;
+  text-shadow: none;
+}
+
+.minigames-page--light .minigames__title {
+  color: #0f172a;
+  text-shadow: none;
 }
 
 .minigames-page--light .minigames__subtitle {

@@ -314,7 +314,7 @@ export default function ChatbotWidget() {
         onPointerUp={onPanelPointerUp}
         onPointerCancel={() => { panelDrag.current = null }}
       >
-        <div><strong>EPL 챗봇</strong><small>{isMyTeamPage
+        <div><span className="chatbot-widget__brand"><span className="chatbot-widget__logo" aria-label="PL:UG"><span className="chatbot-widget__logo-pl">PL</span><span className="chatbot-widget__logo-colon">:</span><span className="chatbot-widget__logo-ug">UG</span></span><span className="chatbot-widget__brand-label">AI ASSISTANT</span></span><strong>EPL 챗봇</strong><small>{isMyTeamPage
           ? '스쿼드 구성과 전술을 물어보세요'
           : isRankingPage ? '리그와 선수 기록을 비교해보세요' : '프리미어리그 질문을 해보세요'}</small></div>
         <button type="button" onClick={() => setOpen(false)} aria-label="챗봇 닫기">×</button>
@@ -331,7 +331,7 @@ export default function ChatbotWidget() {
             onClick={() => setQuestion(suggestion)}
           >{suggestion}</button>)}
         </div>}
-        {loading && <p className="chatbot-widget__pending">답변을 작성하고 있습니다...</p>}
+        {loading && <p className="chatbot-widget__pending" role="status"><span aria-hidden="true">● ● ●</span> 답변을 작성하고 있어요</p>}
         <div ref={bottomRef} />
       </div>
       {error && <p className="chatbot-widget__error" role="alert">{error}</p>}

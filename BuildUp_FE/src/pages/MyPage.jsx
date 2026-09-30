@@ -111,6 +111,41 @@ function IconX({ size = 18, color = 'currentColor', className = '', style = {} }
   )
 }
 
+// 고해상도 구단 엠블럼 URL 변환 (SVG 우선, 리버풀 t14는 공식 풀컬러 100px PNG 사용)
+function getEmblemSvgUrl(url) {
+  if (!url || typeof url !== 'string' || url.includes('/t14.')) return ''
+  return url.replace('/badges/50/', '/badges/').replace('/50/', '/').replace(/\.png$/i, '.svg')
+}
+
+function getHighResPngUrl(url) {
+  if (!url || typeof url !== 'string') return ''
+  return url.replace('/badges/50/', '/badges/100/').replace('/50/', '/100/')
+}
+
+function TeamEmblemImg({ url, alt = '', className = '' }) {
+  const svgUrl = getEmblemSvgUrl(url)
+  const pngUrl = getHighResPngUrl(url)
+  const initialSrc = svgUrl || pngUrl || url || ''
+
+  if (!initialSrc) return null
+
+  return (
+    <img
+      src={initialSrc}
+      alt={alt}
+      className={className}
+      onError={(e) => {
+        const cur = e.currentTarget.src
+        if (pngUrl && cur !== pngUrl && !cur.includes('/100/')) {
+          e.currentTarget.src = pngUrl
+        } else if (url && cur !== url) {
+          e.currentTarget.src = url
+        }
+      }}
+    />
+  )
+}
+
 export default function MyPage() {
   const dispatch = useDispatch()
   const reduxUser = useSelector((state) => state.auth.user)
@@ -152,10 +187,10 @@ export default function MyPage() {
   }, [])
 
   // 승부예측 전적 및 경기 일정 데이터
-  const [predictStats, setPredictStats] = useState({ total: 0, win: 0, rate: '0.0', loaded: false })
+  const [predictStats, setPredictStats] = useState({ win: 0, fail: 0, rate: '0.0', loaded: false })
   const [matches, setMatches] = useState([])
 
-  // 승부예측 전적 조회 (/api/predictions/my)
+  // 승부예측 전적 조회 (/api/predictions/my) - 결과 확정(Y/N)된 경기만으로 성공/실패 및 적중률 계산
   useEffect(() => {
     if (!isLoggedIn) return
     const token = localStorage.getItem('buildup_token')
@@ -166,11 +201,11 @@ export default function MyPage() {
       .then((data) => {
         if (data.status === 'SUCCESS' && Array.isArray(data.items)) {
           const items = data.items
-          const total = items.length
           const win = items.filter((p) => p.isSuccess === 'Y').length
-          const settled = items.filter((p) => p.isSuccess === 'Y' || p.isSuccess === 'N').length
-          const rate = settled > 0 ? ((win / settled) * 100).toFixed(1) : (total > 0 ? '0.0' : '0.0')
-          setPredictStats({ total, win, rate, loaded: true })
+          const fail = items.filter((p) => p.isSuccess === 'N').length
+          const settled = win + fail
+          const rate = settled > 0 ? ((win / settled) * 100).toFixed(1) : '0.0'
+          setPredictStats({ win, fail, rate, loaded: true })
         }
       })
       .catch(() => {})
@@ -289,6 +324,7 @@ export default function MyPage() {
     const isHome = Number(closest.homeTeamId) === favId
     const opponentId = isHome ? Number(closest.awayTeamId) : Number(closest.homeTeamId)
     const opponentTeam = teamList.find((t) => Number(t.teamId) === opponentId)
+    const homeTeam = teamList.find((t) => Number(t.teamId) === Number(closest.homeTeamId))
     const favTeam = teamList.find((t) => Number(t.teamId) === favId)
 
     const opponentName = isHome
@@ -296,9 +332,17 @@ export default function MyPage() {
       : (closest.homeTeamNameKor || opponentTeam?.teamNameKor || closest.homeTeamName || opponentTeam?.teamName || '상대팀')
 
     const favTeamName = favTeam?.teamNameKor || favTeam?.teamName || '응원 구단'
-    const stadium = closest.homeGroundKor || closest.homeGround || (isHome ? '홈 경기장' : '원정 경기장')
+    const stadium =
+      closest.homeGroundKor ||
+      homeTeam?.homeGroundKor ||
+      closest.homeGround ||
+      homeTeam?.homeGround ||
+      (isHome ? '홈 경기장' : '원정 경기장')
 
-    const normalizeEmblem = (url) => (url && url.includes('/badges/50/') ? url.replace('/badges/50/', '/badges/') : url)
+    const favEmblemRaw =
+      favTeam?.emblemUrl || (isHome ? closest.homeEmblemUrl : closest.awayEmblemUrl) || ''
+    const opponentEmblemRaw =
+      opponentTeam?.emblemUrl || (isHome ? closest.awayEmblemUrl : closest.homeEmblemUrl) || ''
 
     const matchDateStr = closest._dateObj
       ? `${closest._dateObj.getMonth() + 1}월 ${closest._dateObj.getDate()}일 (${['일', '월', '화', '수', '목', '금', '토'][closest._dateObj.getDay()]}) ${String(closest._dateObj.getHours()).padStart(2, '0')}:${String(closest._dateObj.getMinutes()).padStart(2, '0')}`
@@ -310,9 +354,9 @@ export default function MyPage() {
       diffDays,
       isHome,
       favTeamName,
-      favTeamEmblem: normalizeEmblem(favTeam?.emblemUrl || (isHome ? closest.homeEmblemUrl : closest.awayEmblemUrl)),
+      favTeamEmblem: favEmblemRaw,
       opponentName,
-      opponentEmblem: normalizeEmblem(closest.awayEmblemUrl || opponentTeam?.emblemUrl || closest.homeEmblemUrl),
+      opponentEmblem: opponentEmblemRaw,
       stadium,
       matchDateStr
     }
@@ -816,8 +860,8 @@ export default function MyPage() {
             <div className="mypage-card-surface mypage-profile-card">
               <div className="mypage-avatar-frame">
                 {profileFavoriteTeam?.emblemUrl ? (
-                  <img
-                    src={profileFavoriteTeam.emblemUrl}
+                  <TeamEmblemImg
+                    url={profileFavoriteTeam.emblemUrl}
                     alt={profileFavoriteTeam.teamNameKor || profileFavoriteTeam.teamName}
                     className="mypage-avatar-img"
                   />
@@ -903,7 +947,7 @@ export default function MyPage() {
               >
                 <span className="mypage-side-btn-label">
                   <IconHeart size={18} />
-                  <span>좋아요한 글</span>
+                  <span>좋아하는 글</span>
                 </span>
                 <span className="mypage-side-badge">{activityCounts.likedPostCount}</span>
               </button>
@@ -974,7 +1018,7 @@ export default function MyPage() {
                 onClick={() => handleTabChange('likes')}
               >
                 <div className="mypage-stat-card-info">
-                  <span className="mypage-stat-card-title">좋아요한 글</span>
+                  <span className="mypage-stat-card-title">좋아하는 글</span>
                   <span className="mypage-stat-card-num">{activityCounts.likedPostCount}</span>
                 </div>
                 <div className="mypage-stat-card-icon">
@@ -1021,30 +1065,30 @@ export default function MyPage() {
               {activeTab === 'profile' && (
                 <div className="mypage-panel-tab-pane">
                   <div className="mypage-panel-header">
-                    <div>
+                    <div className="mypage-panel-header-top">
                       <h2>
                         <IconSettings size={22} color={currentTheme === 'light' ? '#38003c' : '#00ff87'} />
                         프로필 정보 관리
                       </h2>
-                      <p>기본 회원 정보 및 응원하는 구단을 수정할 수 있습니다.</p>
+                      {!isEditing && (
+                        <button
+                          type="button"
+                          className="mypage-action-outline-btn"
+                          onClick={() => {
+                            setIsEditing(true)
+                            setNicknameChecked(true)
+                            setNicknameCheckMsg('')
+                            setEmailVerified(true)
+                            setEmailVerifyMsg('')
+                            setEmailCodeSent(false)
+                            setEmailAuthCode('')
+                          }}
+                        >
+                          프로필 수정하기
+                        </button>
+                      )}
                     </div>
-                    {!isEditing && (
-                      <button
-                        type="button"
-                        className="mypage-action-outline-btn"
-                        onClick={() => {
-                          setIsEditing(true)
-                          setNicknameChecked(true)
-                          setNicknameCheckMsg('')
-                          setEmailVerified(true)
-                          setEmailVerifyMsg('')
-                          setEmailCodeSent(false)
-                          setEmailAuthCode('')
-                        }}
-                      >
-                        프로필 수정하기
-                      </button>
-                    )}
+                    <p>기본 회원 정보 및 응원하는 구단을 수정할 수 있습니다.</p>
                   </div>
 
                   {!isEditing ? (
@@ -1067,8 +1111,8 @@ export default function MyPage() {
                         <div className="mypage-fav-team-display">
                           {profileFavoriteTeam ? (
                             <>
-                              <img
-                                src={profileFavoriteTeam.emblemUrl}
+                              <TeamEmblemImg
+                                url={profileFavoriteTeam.emblemUrl}
                                 alt={profileFavoriteTeam.teamNameKor}
                                 className="mypage-fav-team-emblem-sm"
                               />
@@ -1107,13 +1151,15 @@ export default function MyPage() {
 
                         <div className="mypage-pred-stat-row">
                           <div className="mypage-pred-stat-box">
-                            <span className="mypage-pred-stat-lbl">총 참여 횟수</span>
-                            <strong className="mypage-pred-stat-val">{predictStats.total}회</strong>
-                          </div>
-                          <div className="mypage-pred-stat-box">
                             <span className="mypage-pred-stat-lbl">적중 성공</span>
                             <strong className="mypage-pred-stat-val mypage-pred-stat-win-val">
                               {predictStats.win}회
+                            </strong>
+                          </div>
+                          <div className="mypage-pred-stat-box">
+                            <span className="mypage-pred-stat-lbl">적중 실패</span>
+                            <strong className="mypage-pred-stat-val">
+                              {predictStats.fail}회
                             </strong>
                           </div>
                           <div className="mypage-pred-stat-box mypage-pred-stat-rate-box">
@@ -1148,8 +1194,8 @@ export default function MyPage() {
                             <div className="mypage-next-match-teams">
                               <div className="mypage-match-team-col">
                                 {nextFavoriteMatch.favTeamEmblem ? (
-                                  <img
-                                    src={nextFavoriteMatch.favTeamEmblem}
+                                  <TeamEmblemImg
+                                    url={nextFavoriteMatch.favTeamEmblem}
                                     alt={nextFavoriteMatch.favTeamName}
                                     className="mypage-match-emblem"
                                   />
@@ -1163,8 +1209,8 @@ export default function MyPage() {
 
                               <div className="mypage-match-team-col">
                                 {nextFavoriteMatch.opponentEmblem ? (
-                                  <img
-                                    src={nextFavoriteMatch.opponentEmblem}
+                                  <TeamEmblemImg
+                                    url={nextFavoriteMatch.opponentEmblem}
                                     alt={nextFavoriteMatch.opponentName}
                                     className="mypage-match-emblem"
                                   />
@@ -1330,8 +1376,8 @@ export default function MyPage() {
                               {selectedFavoriteTeam ? (
                                 <>
                                   <div className="custom-team-emblem-badge">
-                                    <img
-                                      src={selectedFavoriteTeam.emblemUrl}
+                                    <TeamEmblemImg
+                                      url={selectedFavoriteTeam.emblemUrl}
                                       alt={selectedFavoriteTeam.teamNameKor}
                                     />
                                   </div>
@@ -1381,8 +1427,8 @@ export default function MyPage() {
                                   >
                                     <div className="custom-team-option-left">
                                       <div className="custom-team-emblem-badge">
-                                        <img
-                                          src={team.emblemUrl}
+                                        <TeamEmblemImg
+                                          url={team.emblemUrl}
                                           alt={team.teamNameKor || team.teamName}
                                         />
                                       </div>
@@ -1571,14 +1617,14 @@ export default function MyPage() {
                 </div>
               )}
 
-              {/* ---------------- 탭 4: 좋아요한 글 ---------------- */}
+              {/* ---------------- 탭 4: 좋아하는 글 ---------------- */}
               {activeTab === 'likes' && (
                 <div className="mypage-panel-tab-pane">
                   <div className="mypage-panel-header">
                     <div>
                       <h2>
                         <IconHeart size={22} color="#ff166b" filled />
-                        좋아요(추천)한 글
+                        좋아하는 글
                       </h2>
                       <p>회원님께서 공감을 누르신 추천 게시글 목록입니다 (총 {likesData.totalCount}건)</p>
                     </div>
