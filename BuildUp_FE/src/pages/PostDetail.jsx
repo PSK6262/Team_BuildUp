@@ -102,6 +102,7 @@ export default function PostDetail({ postId }) {
   const [comments, setComments] = useState([])
   const [commentContent, setCommentContent] = useState('')
   const [replyTarget, setReplyTarget] = useState(null)
+  const [replyContent, setReplyContent] = useState('')
   const [commentLoading, setCommentLoading] = useState(false)
   const [commentsError, setCommentsError] = useState('')
   const [editingCommentId, setEditingCommentId] = useState(null)
@@ -335,18 +336,19 @@ export default function PostDetail({ postId }) {
   }
 
   // 선택한 부모 댓글 번호가 있으면 대댓글로, 없으면 일반 댓글로 등록합니다.
-  const createComment = async (event) => {
+  const createComment = async (event, parentComment = null) => {
     event.preventDefault()
     if (commentRequestRef.current) return
     if (!isLoggedIn) {
       window.location.assign('/plug/login')
       return
     }
-    if (!commentContent.trim()) {
+    const submittedContent = parentComment ? replyContent : commentContent
+    if (!submittedContent.trim()) {
       setCommentsError('댓글 내용을 입력해주세요.')
       return
     }
-    if (commentLength(commentContent.trim()) > COMMENT_MAX_LENGTH) {
+    if (commentLength(submittedContent.trim()) > COMMENT_MAX_LENGTH) {
       setCommentsError(`댓글은 ${COMMENT_MAX_LENGTH}자까지 입력할 수 있습니다.`)
       return
     }
@@ -362,8 +364,8 @@ export default function PostDetail({ postId }) {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          content: commentContent.trim(),
-          pCommentId: replyTarget?.commentId || null,
+          content: submittedContent.trim(),
+          pCommentId: parentComment?.commentId || null,
         }),
       })
       const isJson = response.headers.get('content-type')?.includes('application/json')
@@ -375,8 +377,12 @@ export default function PostDetail({ postId }) {
         throw new Error(result?.message || '댓글 등록에 실패했습니다.')
       }
       setComments((current) => [...current, result.data])
-      setCommentContent('')
-      setReplyTarget(null)
+      if (parentComment) {
+        setReplyContent('')
+        setReplyTarget(null)
+      } else {
+        setCommentContent('')
+      }
     } catch (exception) {
       setCommentsError(exception.message || '댓글 등록에 실패했습니다.')
     } finally {
@@ -650,12 +656,22 @@ export default function PostDetail({ postId }) {
         </div>
       )}
       {!isEditingComment && <div className="community__comment-actions">
-        {canReply && !isCommentBlind && <button type="button" onClick={() => { setReplyTarget(comment); setCommentsError('') }}>답글</button>}
+        {canReply && !isCommentBlind && <button type="button" disabled={commentLoading} aria-expanded={replyTarget?.commentId === comment.commentId} onClick={() => { setReplyTarget(comment); setReplyContent(''); setCommentsError('') }}>답글</button>}
         {isCommentOwner && <>
           <button type="button" onClick={() => startCommentEditing(comment)} disabled={isCommentBusy}>수정</button>
           <button type="button" className="community__comment-delete" onClick={() => deleteComment(comment.commentId)} disabled={isCommentBusy}>삭제</button>
         </>}
       </div>}
+      {canReply && replyTarget?.commentId === comment.commentId && <form className="community__inline-reply community__comment-form" onSubmit={(event) => createComment(event, comment)}>
+        <label htmlFor={`reply-${comment.commentId}`}><strong>{comment.nickname}</strong>님에게 답글</label>
+        <textarea id={`reply-${comment.commentId}`} rows="2" autoFocus value={replyContent} onChange={(event) => setReplyContent(limitComment(event.target.value))} placeholder="이 댓글에 대한 답글을 입력해주세요." disabled={commentLoading} />
+        <div className="community__inline-reply-actions">
+          <span className="community__character-count">{commentLength(replyContent)} / {COMMENT_MAX_LENGTH}</span>
+          <button type="button" disabled={commentLoading} onClick={() => { setReplyTarget(null); setReplyContent('') }}>취소</button>
+          <button type="submit" className="community__submit" disabled={commentLoading}>{commentLoading ? '등록 중...' : '답글 등록'}</button>
+        </div>
+        {commentsError && <p className="community__form-error" role="alert">{commentsError}</p>}
+      </form>}
     </>
   }
 
@@ -857,12 +873,8 @@ export default function PostDetail({ postId }) {
         </div>)}
       </div>
 
-      <form className="community__comment-form" onSubmit={createComment}>
-        {replyTarget && <div className="community__reply-target">
-          <span><strong>{replyTarget.nickname}</strong>님에게 답글 작성</span>
-          <button type="button" onClick={() => setReplyTarget(null)}>답글 취소</button>
-        </div>}
-        <label htmlFor="community-comment">{replyTarget ? '대댓글 내용' : '댓글 내용'}</label>
+      <form className="community__comment-form" onSubmit={(event) => createComment(event)}>
+        <label htmlFor="community-comment">댓글 내용</label>
         <textarea
           id="community-comment"
           rows="4"
@@ -873,7 +885,7 @@ export default function PostDetail({ postId }) {
         />
         <span className="community__character-count">{commentLength(commentContent)} / {COMMENT_MAX_LENGTH}</span>
         <button type="submit" className="community__submit" disabled={commentLoading}>
-          {commentLoading ? '등록 중...' : isLoggedIn ? replyTarget ? '대댓글 등록' : '댓글 등록' : '로그인'}
+          {commentLoading ? '등록 중...' : isLoggedIn ? '댓글 등록' : '로그인'}
         </button>
       </form>
     </section>

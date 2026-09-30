@@ -31,7 +31,7 @@ function IconMoon({ size = 15, color = 'currentColor', className = '' }) {
 const links = [
   ['팀소개', 'teams'],
   ['경기 일정', 'match'],
-  ['커뮤니티', 'community/teams'],
+  ['커뮤니티', 'community'],
   ['나만의 팀', 'myteam'],
   ['랭킹', 'rankpage'],
   ['예측', 'prediction'],

@@ -157,6 +157,10 @@
 .community__attachment-upload > strong { width: 100%; font-size: 13px; }
 .community__attachment-upload input { min-width: 240px; flex: 1; padding: 8px; background: white; }
 .community__attachment-upload span { color: #637083; font-size: 12px; }
+.community__inline-reply { width: 100%; min-width: 0; margin-top: 16px; padding: 16px 0 0; border-top: 1px solid var(--community-line, #dce2ec); }
+.community__inline-reply textarea { width: 100%; min-width: 0; resize: none; }
+.community__inline-reply-actions { display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap; }
+.community__inline-reply-actions .community__character-count { margin-right: auto; }
 .community__detail-actions { display: flex; justify-content: flex-end; gap: 8px; margin: 24px 0; }
 .community__recommendation { display: flex; justify-content: center; padding: 28px 0; }
 .community .community__recommend-button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 12px 22px; border-radius: 999px; }
