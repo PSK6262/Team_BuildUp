@@ -6,15 +6,20 @@
 
 .auth-container {
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
-  padding: 130px 20px 60px;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  min-height: calc(100vh - 84px);
+  padding: 40px 24px 80px;
   box-sizing: border-box;
   font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
   transition: background 0.25s ease, color 0.25s ease;
   position: relative;
-  z-index: 10;
+}
+
+.global-footer {
+  position: relative;
+  z-index: 20;
 }
 
 /* navbar 위의 흰 빈 공간을 배경색으로 채우는 가상 요소 */
@@ -47,6 +52,28 @@
   background: #27062c;
 }
 
+/* ── 배경 장식 EPL 사자 엠블럼 (다크모드 기본: 우측 황금 사자) ── */
+.auth-lion-bg {
+  position: fixed;
+  top: 130px;
+  right: max(-40px, calc(50% - 760px));
+  left: auto;
+  width: 440px;
+  max-width: 32vw;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.16;
+  transform: translateX(-15%);
+  filter: drop-shadow(0 0 35px rgba(245, 158, 11, 0.4));
+  transition: opacity 0.3s ease, right 0.3s ease, left 0.3s ease, transform 0.3s ease, width 0.3s ease;
+}
+
+.auth-lion-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  fill: url(#eplChampionGold);
+}
 
 .auth-card {
   width: 100%;
@@ -71,54 +98,62 @@
   max-width: 520px;
 }
 
-/* 브랜드 미니 배지 */
+/* 브랜드 영문 서브 타이틀 (경기 일정 / 어드민 헤더 규격 통일) */
 .auth-brand-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 12px;
+  display: inline-block;
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-size: 13px;
   font-weight: 800;
-  margin-bottom: 12px;
-  letter-spacing: 0.5px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: transparent;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+  margin-bottom: 8px;
 }
 
 .auth-container.auth-dark-mode .auth-brand-badge,
 [data-theme='dark'] .auth-brand-badge {
-  background: rgba(0, 255, 135, 0.12);
-  border: 1px solid rgba(0, 255, 135, 0.35);
-  color: #00ff87;
+  background: transparent;
+  border: none;
+  color: #00e58a;
+  text-shadow: 0 0 0.8vw rgba(0, 255, 135, 0.55);
 }
 
-/* 헤더 영역 */
+/* 헤더 영역 (경기 일정 / 어드민 헤더 규격 통일) */
 .auth-header {
   text-align: center;
   margin-bottom: 28px;
+  position: relative;
+  z-index: 1;
 }
 
 .auth-header h2 {
-  font-size: 26px;
+  font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: 36px;
   font-weight: 900;
-  margin: 0 0 8px 0;
+  margin: 0 0 10px 0;
   letter-spacing: -0.5px;
 }
 
 .auth-container.auth-dark-mode .auth-header h2,
 [data-theme='dark'] .auth-header h2 {
-  color: #ffffff;
+  color: #f4f1fa;
+  text-shadow: 0 0.4vh 1.6vw rgba(0, 0, 0, 0.45);
 }
 
 .auth-header p {
-  font-size: 14px;
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: 15px;
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.5;
   word-break: keep-all;
 }
 
 .auth-container.auth-dark-mode .auth-header p,
 [data-theme='dark'] .auth-header p {
-  color: #c5b4d1;
+  color: #b5adc4;
 }
 
 /* 폼 컨트롤 */
@@ -334,6 +369,21 @@
   background: #f8fafc;
 }
 
+/* 라이트모드 배경 장식 EPL 사자 엠블럼 (일반모드: 좌측 보라색 사자) */
+.auth-container.auth-light-mode .auth-lion-bg,
+[data-theme='light'] .auth-lion-bg {
+  right: auto;
+  left: max(-40px, calc(50% - 760px));
+  opacity: 0.12;
+  transform: translateX(10%);
+  filter: drop-shadow(0 0 25px rgba(56, 0, 60, 0.22));
+}
+
+.auth-container.auth-light-mode .auth-lion-svg,
+[data-theme='light'] .auth-lion-svg {
+  fill: #38003c;
+}
+
 .auth-container.auth-light-mode .auth-card,
 [data-theme='light'] .auth-card {
   background: #ffffff;
@@ -343,9 +393,10 @@
 
 .auth-container.auth-light-mode .auth-brand-badge,
 [data-theme='light'] .auth-brand-badge {
-  background: #f3e8f8;
-  border: 1px solid #e2d2e4;
+  background: transparent;
+  border: none;
   color: #38003c;
+  text-shadow: none;
 }
 
 .auth-container.auth-light-mode .auth-header h2,
@@ -552,11 +603,75 @@
 }
 
 /* --------------------------------------------------------
-   모바일 & 소형 기기 반응형 최적화 (<= 480px, <= 360px)
+   모바일 & 소형 기기 반응형 최적화
    -------------------------------------------------------- */
+@media (max-width: 1400px) {
+  .auth-lion-bg {
+    opacity: 0.14;
+    width: 360px;
+  }
+  .auth-container.auth-light-mode .auth-lion-bg,
+  [data-theme='light'] .auth-lion-bg {
+    opacity: 0.11;
+  }
+}
+
+@media (max-width: 1100px) {
+  .auth-lion-bg {
+    width: 280px;
+    top: 130px;
+    right: -30px;
+    left: auto;
+    opacity: 0.14;
+  }
+  .auth-container.auth-light-mode .auth-lion-bg,
+  [data-theme='light'] .auth-lion-bg {
+    left: -30px;
+    right: auto;
+    opacity: 0.11;
+  }
+}
+
+@media (max-width: 768px) {
+  .auth-lion-bg {
+    width: 210px;
+    top: 115px;
+    right: -25px;
+    left: auto;
+    opacity: 0.14;
+  }
+  .auth-container.auth-light-mode .auth-lion-bg,
+  [data-theme='light'] .auth-lion-bg {
+    left: -25px;
+    right: auto;
+    opacity: 0.11;
+  }
+}
+
 @media (max-width: 480px) {
   .auth-container {
-    padding: 96px 14px 40px;
+    padding: 24px 14px 48px;
+  }
+
+  .auth-lion-bg {
+    width: 145px;
+    top: 95px;
+    right: -20px;
+    left: auto;
+    opacity: 0.15;
+    filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.4));
+  }
+
+  .auth-container.auth-light-mode .auth-lion-bg,
+  [data-theme='light'] .auth-lion-bg {
+    left: -20px;
+    right: auto;
+    opacity: 0.12;
+    filter: drop-shadow(0 0 16px rgba(56, 0, 60, 0.22));
+  }
+
+  .auth-header h2 {
+    font-size: 28px;
   }
 
   .auth-card {
@@ -580,7 +695,7 @@
 
 @media (max-width: 360px) {
   .auth-container {
-    padding: 76px 8px 28px !important;
+    padding: 20px 8px 36px !important;
   }
 
   .auth-card {
