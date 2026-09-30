@@ -1,4 +1,5 @@
 import { shuffledCopy } from '../utils/shuffle.js';
+import { findOverlappingPitchSlot } from '../utils/pitchCollision.js';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { getAllPremierLeaguePlayers, getInitialTeams, getTeams } from '../api/teamApi.js';
@@ -1308,11 +1309,6 @@ export default function MyTeam() {
       if (data.type === 'ROSTER_PLAYER' && data.player) {
         // 검색 목록에서 필드로 드롭
         assignPlayerToSlot(targetSlotId, data.player);
-      } else if (data.type === 'PITCH_SLOT' && data.slotId !== undefined) {
-        // 필드 슬롯 간 맞바꿈 (Swap)
-        if (data.slotId !== targetSlotId) {
-          swapSlots(data.slotId, targetSlotId);
-        }
       }
     } catch (err) {
       console.error('[MyTeam] 드롭 파싱 오류:', err);
@@ -1392,30 +1388,20 @@ export default function MyTeam() {
         const pitchEl = pitchRef.current;
         let swapTargetSlotId = null;
 
-        // 1. 직접 마우스가 닿은 다른 슬롯 엘리먼트 감지
-        const targetEl = document.elementsFromPoint(e.clientX, e.clientY)
-          .map((el) => el.closest('[data-pitch-slot-id]'))
-          .find((el) => el && el !== e.currentTarget && pitchRef.current?.contains(el));
-
-        if (targetEl) {
-          swapTargetSlotId = Number(targetEl.dataset.pitchSlotId);
-        } else if (pitchEl) {
-          // 2. 슬롯 바로 위가 아니더라도, 드롭한 위치에서 반경 16% 이내 가장 가까운 슬롯과 스왑
-          const rect = pitchEl.getBoundingClientRect();
-          const releaseX = ((e.clientX - rect.left) / rect.width) * 100;
-          const releaseY = ((e.clientY - rect.top) / rect.height) * 100;
-
-          const nearbySlots = slots
-            .filter((s) => s.id !== slotId)
-            .map((s) => ({
-              id: s.id,
-              dist: Math.hypot((s.x ?? 50) - releaseX, (s.y ?? 50) - releaseY),
-            }))
-            .sort((a, b) => a.dist - b.dist);
-
-          if (nearbySlots.length > 0 && nearbySlots[0].dist <= 16) {
-            swapTargetSlotId = nearbySlots[0].id;
-          }
+        // 카드나 포인터가 아닌, 화면에 표시된 원끼리 겹칠 때만 교체한다.
+        const circleSelector = '.slot-player-avatar-box, .slot-empty-circle';
+        const sourceCircle = e.currentTarget.querySelector(circleSelector);
+        if (pitchEl && sourceCircle) {
+          const candidates = Array.from(pitchEl.querySelectorAll('[data-pitch-slot-id]'))
+            .filter((element) => Number(element.dataset.pitchSlotId) !== slotId)
+            .flatMap((element) => {
+              const circle = element.querySelector(circleSelector);
+              return circle ? [{
+                id: Number(element.dataset.pitchSlotId),
+                rect: circle.getBoundingClientRect(),
+              }] : [];
+            });
+          swapTargetSlotId = findOverlappingPitchSlot(sourceCircle.getBoundingClientRect(), candidates);
         }
 
         if (swapTargetSlotId !== null && swapTargetSlotId !== slotId) {
