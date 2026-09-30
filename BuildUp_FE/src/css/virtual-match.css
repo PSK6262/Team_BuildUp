@@ -1,3 +1,63 @@
+.myteam-ai-result {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--match-border);
+  font-size: 14px;
+  line-height: 1.6;
+  letter-spacing: -0.2px;
+  overflow-wrap: anywhere;
+}
+.myteam-ai-result-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+}
+.myteam-ai-result .myteam-ai-result-heading h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: 800;
+}
+.myteam-ai-result .myteam-ai-result-heading p { margin: 6px 0 0; font-size: 13px; }
+.myteam-ai-result-heading > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--match-border);
+  border-radius: 10px;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.myteam-ai-result-heading > a:hover { background: var(--match-surface); }
+.myteam-ai-result .myteam-ai-score { margin: 20px 0 28px; }
+.myteam-ai-result .myteam-ai-score > strong { font-size: 36px; line-height: 1.2; letter-spacing: 1px; }
+.myteam-ai-result .myteam-ai-timeline > h3 { margin: 0 0 14px; font-size: 16px; font-weight: 750; }
+.myteam-ai-result .myteam-ai-event-copy { display: grid; gap: 4px; min-width: 0; }
+.myteam-ai-result .myteam-ai-event-copy > strong { font-size: 14px; line-height: 1.45; font-weight: 700; }
+.myteam-ai-result .myteam-ai-event-team { font-size: 12px; line-height: 1.5; }
+.myteam-ai-result .myteam-ai-event-description { margin: 2px 0 0; font-size: 13px; line-height: 1.7; }
+.myteam-ai-result .myteam-ai-event-select { column-gap: 12px; line-height: 1.5; }
+.myteam-ai-result .myteam-ai-event-minute { padding-top: 2px; font-weight: 600; }
+.myteam-ai-result .myteam-ai-event-score { padding: 3px 7px; font-size: 12px; border-radius: 6px; background: var(--match-surface); }
+.myteam-ai-replay-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.myteam-ai-replay-heading h3 { margin: 0; }
+.myteam-ai-replay-heading > span { font-size: 11px; padding: 3px 8px; border: 1px solid var(--match-border); border-radius: 6px; white-space: nowrap; }
+.myteam-ai-result .myteam-ai-opponent-caption { margin: 4px 0 16px; font-size: 12px; }
+.myteam-ai-current-event { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 12px 0; margin-bottom: 12px; border-block: 1px solid var(--match-border); }
+.myteam-ai-current-event > span { font-size: 12px; color: var(--match-muted); }
+.myteam-ai-current-event > strong { font-size: 14px; }
+.myteam-ai-current-event > b { font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.myteam-ai-result .myteam-ai-movement > p:not(.myteam-ai-opponent-caption) { font-size: 12px; line-height: 1.8; margin: 14px 0 0; }
+.myteam-ai-result .myteam-ai-lineup-column > h3 { margin: 8px 0 14px; font-size: 15px; line-height: 1.5; }
+.myteam-ai-result .myteam-ai-lineups li { padding: 12px 0; gap: 12px; font-size: 13px; line-height: 1.5; }
+.myteam-ai-result .myteam-ai-lineups small { margin-top: 5px; font-size: 11px; line-height: 1.6; }
+.myteam-ai-result .myteam-ai-position { flex: 0 0 32px; text-align: center; font-size: 11px; font-weight: 800; padding: 4px 0; border-radius: 6px; background: var(--match-surface); }
+.myteam-ai-result .myteam-ai-squad-details > summary { font-size: 14px; line-height: 1.5; }
 .myteam-ai-panel {
   --match-surface: #152331;
   --match-border: #334555;
@@ -78,6 +138,10 @@ html[data-theme='light'] .myteam-ai-panel {
 .myteam-ai-squad-details[open] > summary::after { content: '−'; }
 .myteam-ai-squad-details > summary:focus-visible { outline: 2px solid var(--myteam-accent, #00ff87); outline-offset: 4px; }
 @media (max-width: 640px) {
+  .myteam-ai-result { margin-top: 24px; padding-top: 20px; }
+  .myteam-ai-result .myteam-ai-result-heading h2 { font-size: 18px; }
+  .myteam-ai-result .myteam-ai-event-select { grid-template-columns: 28px minmax(0, 1fr) auto; column-gap: 8px; padding: 12px 8px; }
+  .myteam-ai-result .myteam-ai-event-description { font-size: 12px; }
   .myteam-ai-panel .myteam-ai-replay { display: flex; flex-direction: column; gap: 16px; }
   .myteam-ai-panel .myteam-ai-movement { order: -1; width: 100%; box-sizing: border-box; position: static; padding: 12px; }
   .myteam-ai-panel .myteam-ai-events { width: 100%; box-sizing: border-box; max-height: 340px; }

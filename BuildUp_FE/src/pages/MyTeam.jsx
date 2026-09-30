@@ -271,7 +271,7 @@ function AiMatchTimeline({ match }) {
   }, [isSetPiece, isCorner, isPk, isFreeKick, event.side, baseBallPos.x, baseBallPos.y, selectedIndex]);
 
   return (
-    <section aria-label="주요 사건과 AI 포메이션 움직임">
+    <section className="myteam-ai-timeline" aria-label="주요 사건과 AI 포메이션 움직임">
       <h3>주요 사건 타임라인</h3>
       <div className="myteam-ai-replay">
         <ol className="myteam-ai-events" aria-label="경기 주요 사건 시간순 기록">
@@ -281,9 +281,9 @@ function AiMatchTimeline({ match }) {
               className={`myteam-ai-event myteam-ai-event--${item.type}${item.isGoal ? ` myteam-ai-event--goal-${item.side === 0 ? 'home' : 'away'}` : ''}`}>
               <button type="button" className="myteam-ai-event-select" onClick={() => selectEvent(index)} aria-pressed={selectedIndex === index}>
                 <span className="myteam-ai-event-minute">{item.minute}분</span>
-                <span>
+                <span className="myteam-ai-event-copy">
                   <strong>{item.label}</strong>
-                  {item.side !== null && <span className="myteam-ai-event-team"> · {item.side === 0 ? match.homeName : match.opponentName}</span>}
+                  {item.side !== null && <span className="myteam-ai-event-team">{item.side === 0 ? match.homeName : match.opponentName}</span>}
                   <span className="myteam-ai-event-description">{item.description}</span>
                 </span>
                 <span className="myteam-ai-event-score" aria-label={`현재 점수 ${item.score[0]} 대 ${item.score[1]}`}>{item.score.join(' : ')}</span>
@@ -292,8 +292,13 @@ function AiMatchTimeline({ match }) {
           ))}
         </ol>
         <aside className="myteam-ai-movement">
-          <h3>{match.opponentName} · {match.opponent.formation.label} · {phase}</h3>
-          <p aria-live="polite">{event.minute}분 · {event.label} · {event.score.join(' : ')}</p>
+          <div className="myteam-ai-replay-heading">
+            <h3>경기 중계</h3><span>{phase}</span>
+          </div>
+          <p className="myteam-ai-opponent-caption">{match.opponentName} · {match.opponent.formation.label}</p>
+          <div className="myteam-ai-current-event" aria-live="polite">
+            <span>{event.minute}분</span><strong>{event.label}</strong><b>{event.score.join(' : ')}</b>
+          </div>
           <div className="myteam-ai-actions">
             <button type="button" className="myteam-btn myteam-btn-secondary" disabled={selectedIndex === 0} onClick={() => selectEvent(selectedIndex - 1)}>이전</button>
             <button type="button" className="myteam-btn myteam-btn-primary" onClick={() => {
@@ -1723,7 +1728,7 @@ export default function MyTeam() {
         {/* 1. 상단 헤더 & 툴바 */}
         <header className="myteam-header">
           <div className="myteam-title-box">
-            <span className="myteam-title-badge">PL:UG MY TEAM</span>
+            <span className="myteam-title-badge">FORMATION BUILDER</span>
             <h1>
               나만의 팀 & 포메이션 빌더
             </h1>
@@ -1982,7 +1987,10 @@ export default function MyTeam() {
           <MemberRankings type="virtual" refreshKey={aiMatch?.replayId ?? 0} />
           {aiMatch && (
             <div className="myteam-ai-result">
-              <p>{aiMatch.rankingRecorded ? '랭킹에 반영된 경기입니다.' : '비회원 연습 경기 · 랭킹에 반영되지 않습니다.'} <a href="/plug/rankpage?tab=virtual">가상 대결 승리수 랭킹 보기</a></p>
+              <div className="myteam-ai-result-heading">
+                <div><h2>가상 대결 결과</h2><p>{aiMatch.rankingRecorded ? '랭킹에 반영된 경기입니다.' : '비회원 연습 경기 · 랭킹에 반영되지 않습니다.'}</p></div>
+                <a href="/plug/rankpage?tab=virtual">승리수 랭킹 보기 <span aria-hidden="true">↗</span></a>
+              </div>
               <div className="myteam-ai-score" role="status">
                 <span>{aiMatch.homeName}</span>
                 <strong>{aiMatch.score[0]} : {aiMatch.score[1]}</strong>
