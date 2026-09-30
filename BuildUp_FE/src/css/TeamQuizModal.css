@@ -40,7 +40,7 @@
     0 0 50px rgba(170, 75, 195, 0.22),
     inset 0 1px 1px rgba(255, 255, 255, 0.2);
   color: #ffffff;
-  font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   box-sizing: border-box;
   animation: quizCardScaleIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   overflow-x: hidden;

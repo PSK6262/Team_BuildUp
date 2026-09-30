@@ -278,7 +278,7 @@ html[data-theme='dark'] .teams-page-container--rankings :is(button, a, select, [
   min-height: 92vh;
   background-color: #f8fafc;
   padding: 5vh 4% 8vh;
-  font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   color: #0f172a;
   box-sizing: border-box;
 }
@@ -349,7 +349,7 @@ html[data-theme='dark'] .teams-page-container--rankings :is(button, a, select, [
 
 .teams-page-eyebrow {
   display: inline-block;
-  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.75rem, 0.9vw, 1rem);
   font-weight: 800;
   letter-spacing: 0.22vw;
@@ -377,7 +377,7 @@ html[data-theme='dark'] .teams-page-container--rankings :is(button, a, select, [
 }
 
 .teams-page-desc {
-  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.95rem, 1.1vw, 1.2rem);
   color: #64748b;
   margin: 0 auto;
@@ -489,7 +489,7 @@ html[data-theme='dark'] .teams-page-container--rankings :is(button, a, select, [
 }
 
 .team-grid-card__name {
-  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(1.02rem, 1.22vw, 1.35rem);
   font-weight: 800;
   color: #ffffff;
@@ -500,7 +500,7 @@ html[data-theme='dark'] .teams-page-container--rankings :is(button, a, select, [
 }
 
 .team-grid-card__name-en {
-  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.78rem, 0.9vw, 1rem);
   font-weight: 600;
   color: rgba(255, 255, 255, 0.76);
