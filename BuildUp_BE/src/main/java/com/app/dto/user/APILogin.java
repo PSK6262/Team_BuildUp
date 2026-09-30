@@ -5,9 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class APILogin {
-	private String loginId;
-	private String password;
+    private String loginId;
+    private String password;
 }

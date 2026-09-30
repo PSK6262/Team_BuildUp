@@ -2,6 +2,11 @@
     MyTeam.css - 나만의 팀 & 포메이션 빌더 스타일시트
    ========================================================= */
 
+/* Theme the exposed navigation area without changing the page layout. */
+html[data-theme='light'] body:has(.myteam-page) {
+  background: #f8faf9;
+}
+
 .myteam-page {
   min-height: calc(100vh - 84px);
   background: linear-gradient(135deg, #18001d 0%, #250228 35%, #0e1e19 100%);
@@ -19,8 +24,10 @@
 /* 1. 상단 헤더 & 툴바 */
 .myteam-header {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
+  text-align: center;
   flex-wrap: wrap;
   gap: 20px;
   padding-bottom: 24px;
@@ -34,6 +41,8 @@
   font-weight: 900;
   letter-spacing: -0.5px;
   display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
 }
@@ -55,9 +64,15 @@
 
 .myteam-toolbar {
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.myteam-header :is(.myteam-name-input, .myteam-btn, .myteam-squad-counter) {
+  text-align: center;
+  justify-content: center;
 }
 
 .myteam-name-input {
@@ -1912,6 +1927,297 @@
   background: rgba(203, 213, 225, 0.06);
 }
 
+/* Community light palette, scoped to the team builder. */
+html[data-theme='light'] .myteam-page {
+  color-scheme: light;
+  --myteam-accent: #16744b;
+  --myteam-success: #256344;
+  --myteam-home: #1d4ed8;
+  --myteam-danger: #b91c1c;
+  --myteam-danger-muted: #991b1b;
+  --myteam-danger-soft: #991b1b;
+  --myteam-warning: #854d0e;
+  --myteam-info: #1e40af;
+  --myteam-purple: #86198f;
+  background: transparent;
+  color: #253247;
+}
+
+html[data-theme='light'] .myteam-page :is(.myteam-header, .formation-custom-row, .club-card-footer, .myteam-ai-lineups li) {
+  border-color: #d9e1dc;
+}
+
+html[data-theme='light'] .myteam-page :is(.formation-panel, .myteam-pitch-card, .myteam-roster-panel, .myteam-ai-panel, .myteam-opponent-picker) {
+  background: #fff;
+  border-color: #e1e7e4;
+  box-shadow: 0 8px 24px #16744b0d;
+}
+
+html[data-theme='light'] .myteam-page :is(.myteam-title-box p, .pitch-hint, .club-picker-subtitle, .club-card-name-en, .club-banner-name-en, .player-sub-info, .roster-empty-state, .search-icon, .search-clear-btn, .club-enter-arrow, .myteam-opponent-mode small, .myteam-opponent-picker-heading h3 span, .myteam-opponent-check, .myteam-ai-panel p, .myteam-ai-lineups small, .myteam-ai-event-description, .myteam-ai-event-minute, .myteam-ai-event-team) {
+  color: #637083;
+}
+
+html[data-theme='light'] .myteam-page :is(.pitch-formation-display, .club-picker-title, .club-card-name-kor, .club-banner-name-kor, .player-name-kor) {
+  color: #253247;
+}
+
+html[data-theme='light'] .myteam-page :is(.counter-num, .formation-label, .myteam-opponent-selection, .myteam-ai-score strong, .myteam-ai-position, .club-select-card:hover .club-enter-arrow, .myteam-opponent-club[aria-pressed='true'] .myteam-opponent-check) {
+  color: #16744b;
+}
+
+html[data-theme='light'] .myteam-page :is(.myteam-name-input, .stepper-input, .roster-search-input, .team-filter-select, .team-filter-select option) {
+  background: #fff;
+  color: #253247;
+  border-color: #d9e1dc;
+  box-shadow: none;
+}
+
+html[data-theme='light'] .myteam-page input::placeholder {
+  color: #637083;
+}
+
+html[data-theme='light'] .myteam-page :is(.myteam-name-input, .stepper-input, .roster-search-input):focus {
+  background: #fff;
+  border-color: #16744b;
+  box-shadow: 0 0 0 3px #16744b20;
+}
+
+html[data-theme='light'] .myteam-page :is(.myteam-btn-secondary, .myteam-btn-mini, .preset-chip, .stepper-btn, .roster-nav-btn, .btn-back-to-clubs, .pos-tab, .card-action-btn) {
+  background: #f3f6f4;
+  border-color: #d9e1dc;
+  color: #253247;
+}
+
+html[data-theme='light'] .myteam-page :is(.myteam-btn-secondary, .myteam-btn-mini, .preset-chip, .stepper-btn, .roster-nav-btn, .btn-back-to-clubs, .pos-tab, .card-action-btn):hover:not(:disabled) {
+  background: #edf7f1;
+  border-color: #8bc3a3;
+  color: #16744b;
+}
+
+html[data-theme='light'] .myteam-page :is(.myteam-btn-primary, .preset-chip.active, .roster-nav-btn.active, .pos-tab.active) {
+  background: #16744b;
+  border-color: #16744b;
+  color: #fff;
+  box-shadow: 0 4px 12px #16744b20;
+}
+
+html[data-theme='light'] .myteam-page :is(.myteam-btn-primary, .preset-chip.active, .roster-nav-btn.active, .pos-tab.active):hover:not(:disabled) {
+  background: #105a39;
+  color: #fff;
+}
+
+html[data-theme='light'] .myteam-page :is(.myteam-squad-counter, .stepper-item, .roster-view-nav, .myteam-ai-movement) {
+  background: #f3f6f4;
+  border-color: #d9e1dc;
+}
+
+html[data-theme='light'] .myteam-page :is(.club-select-card, .roster-player-card, .myteam-opponent-mode, .myteam-opponent-club) {
+  background: #f8faf9;
+  border-color: #d9e1dc;
+  color: #253247;
+  box-shadow: none;
+}
+
+html[data-theme='light'] .myteam-page :is(.club-select-card, .roster-player-card, .myteam-opponent-mode, .myteam-opponent-club):hover {
+  background: #edf7f1;
+  border-color: #8bc3a3;
+}
+
+html[data-theme='light'] .myteam-page :is(.selected-club-banner, .myteam-opponent-mode[aria-pressed='true'], .myteam-opponent-club[aria-pressed='true']) {
+  background: #edf7f1;
+  border-color: #16744b;
+  box-shadow: 0 0 0 2px #16744b12;
+}
+
+html[data-theme='light'] .myteam-page :is(.myteam-title-badge, .sum-badge.valid, .club-total-badge, .club-player-count-badge, .roster-count, .in-squad-badge) {
+  background: #edf7f1;
+  border-color: #b8d8c5;
+  color: #16744b;
+}
+
+html[data-theme='light'] .myteam-page .stepper-gk-info {
+  background: #fffbeb;
+  border-color: #e5cc84;
+  color: #854d0e;
+}
+
+html[data-theme='light'] .myteam-page .sum-badge.invalid {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+html[data-theme='light'] .myteam-page .roster-player-card.is-assigned {
+  background: #edf1ee;
+}
+
+html[data-theme='light'] .myteam-page .myteam-pitch {
+  color: #fff;
+  border-color: #b8d8c5;
+  box-shadow: inset 0 0 50px #0006, 0 8px 20px #16744b20;
+}
+
+html[data-theme='light'] .myteam-page .myteam-toast {
+  background: #fff;
+  color: #253247;
+  border-color: #16744b;
+  box-shadow: 0 8px 24px #16744b20;
+}
+
+html[data-theme='light'] .myteam-page a { color: #16744b; }
+html[data-theme='light'] .myteam-page :is(button, input, select, a, [tabindex]):focus-visible {
+  outline: 2px solid #16744b;
+  outline-offset: 3px;
+}
+
+html[data-theme='light'] .myteam-page :is(.club-grid-scroll, .roster-list-scroll) {
+  scrollbar-color: #8aa897 #edf1ee;
+}
+html[data-theme='light'] .myteam-page :is(.club-grid-scroll, .roster-list-scroll)::-webkit-scrollbar-track { background: #edf1ee; }
+html[data-theme='light'] .myteam-page :is(.club-grid-scroll, .roster-list-scroll)::-webkit-scrollbar-thumb { background: #8aa897; }
+
+html[data-theme='light'] .myteam-page .myteam-ai-event {
+  --event-color: #526277;
+  border-bottom-color: #d9e1dc;
+}
+html[data-theme='light'] .myteam-page .myteam-ai-event-select[aria-pressed='true'] { background: #edf7f1; }
+html[data-theme='light'] .myteam-page .myteam-ai-event--goal-home { --event-color: #1d4ed8; }
+html[data-theme='light'] .myteam-page .myteam-ai-event--goal-away { --event-color: #b91c1c; }
+html[data-theme='light'] .myteam-page .myteam-ai-event--penalty { --event-color: #7e22ce; }
+html[data-theme='light'] .myteam-page .myteam-ai-event--miss { --event-color: #854d0e; }
+html[data-theme='light'] .myteam-page .myteam-ai-event--offside { --event-color: #9a3412; }
+html[data-theme='light'] .myteam-page .myteam-ai-event--free-kick { --event-color: #0f766e; }
+html[data-theme='light'] .myteam-page .myteam-ai-event--save { --event-color: #3f6212; }
+html[data-theme='light'] .myteam-page .myteam-ai-event--corner { --event-color: #86198f; }
+html[data-theme='light'] .myteam-page .myteam-ai-event--yellow { --event-color: #854d0e; }
+html[data-theme='light'] .myteam-page .myteam-ai-event--red { --event-color: #9d174d; }
+
+/* Virtual-match leaderboard: match the surrounding light-theme cards. */
+html[data-theme='light'] .myteam-page .member-rankings {
+  --ranking-space: var(--mobile-unit, 1px);
+  margin: 24px 0;
+  padding: calc(24 * var(--ranking-space));
+  border: 1px solid #d9e1dc;
+  border-radius: 16px;
+  background: #f8faf9;
+  color: #253247;
+  box-shadow: 0 4px 16px #16744b08;
+}
+
+html[data-theme='light'] .myteam-page .member-rankings h2 {
+  margin: 0 0 10px;
+  padding-left: 12px;
+  border-left: 4px solid #16744b;
+  font-size: calc(20 * var(--ranking-space));
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: -0.4px;
+  overflow-wrap: anywhere;
+}
+
+html[data-theme='light'] .myteam-page .member-rankings > p {
+  margin: 0;
+  font-size: calc(14 * var(--ranking-space));
+  line-height: 1.7;
+  color: #637083;
+}
+
+html[data-theme='light'] .myteam-page .member-ranking-actions {
+  gap: calc(10 * var(--ranking-space));
+  margin: calc(20 * var(--ranking-space)) 0;
+}
+
+html[data-theme='light'] .myteam-page .member-ranking-actions :is(a, button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: calc(10 * var(--ranking-space)) calc(16 * var(--ranking-space));
+  border: 1px solid #d9e1dc;
+  border-radius: 10px;
+  background: #fff;
+  color: #253247;
+  font-family: inherit;
+  font-size: calc(14 * var(--ranking-space));
+  font-weight: 700;
+  line-height: 1.4;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+html[data-theme='light'] .myteam-page .member-ranking-actions a {
+  border-color: #16744b;
+  background: #16744b;
+  color: #fff;
+  box-shadow: 0 4px 12px #16744b20;
+}
+
+html[data-theme='light'] .myteam-page .member-ranking-actions a:hover {
+  border-color: #105a39;
+  background: #105a39;
+}
+
+html[data-theme='light'] .myteam-page .member-ranking-actions button:hover:not(:disabled) {
+  border-color: #8bc3a3;
+  background: #edf7f1;
+  color: #16744b;
+}
+
+html[data-theme='light'] .myteam-page .member-ranking-actions button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+/* Loading, empty and error messages share a deliberate inset surface. */
+html[data-theme='light'] .myteam-page .member-ranking-actions + p {
+  padding: calc(24 * var(--ranking-space)) calc(16 * var(--ranking-space));
+  border: 1px dashed #d9e1dc;
+  border-radius: 12px;
+  background: #fff;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+html[data-theme='light'] .myteam-page .member-ranking-scroll {
+  border: 1px solid #d9e1dc;
+  border-radius: 12px;
+  background: #fff;
+  scrollbar-color: #8aa897 #edf1ee;
+}
+
+html[data-theme='light'] .myteam-page .member-ranking-scroll .standings-table {
+  font-size: calc(13 * var(--ranking-space));
+}
+
+html[data-theme='light'] .myteam-page .member-ranking-scroll thead {
+  background: #edf7f1;
+  color: #16744b;
+}
+
+html[data-theme='light'] .myteam-page .member-ranking-scroll :is(th, td) {
+  padding: 14px 12px;
+  border-bottom-color: #e5ece7;
+}
+
+html[data-theme='light'] .myteam-page .member-ranking-scroll tr > :nth-child(2) {
+  background: #fff;
+}
+
+html[data-theme='light'] .myteam-page .member-ranking-scroll thead tr > :nth-child(2),
+html[data-theme='light'] .myteam-page .member-ranking-scroll .member-ranking-mine > * {
+  background: #edf7f1;
+  color: #16744b;
+}
+
+html[data-theme='light'] .myteam-page .member-ranking-scroll tbody tr:hover > * {
+  background: #f3f6f4;
+}
+
+html[data-theme='light'] .myteam-page .member-ranking-scroll td strong {
+  color: #16744b;
+}
+
 /* 7. 반응형 미디어 쿼리 */
 @media (max-width: 1080px) {
   .myteam-main-layout {
@@ -1934,12 +2240,12 @@
 
   .myteam-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
   }
 
   .myteam-toolbar {
     width: 100%;
-    justify-content: space-between;
+    justify-content: center;
   }
 
   .myteam-pitch {

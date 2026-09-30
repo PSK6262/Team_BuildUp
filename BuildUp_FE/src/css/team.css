@@ -15,7 +15,7 @@ body:has(.team-container) {
   padding: 0;
   margin: 0;
   overflow: hidden;
-  font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   color: #ffffff;
   position: relative;
 }
@@ -137,7 +137,7 @@ body:has(.team-container) {
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border: clamp(0.06rem, 0.09vw, 0.12rem) solid rgba(255, 255, 255, 0.28);
-  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.82rem, 0.95vw, 1.05rem);
   font-weight: 800;
   color: #00FF85;
@@ -146,7 +146,7 @@ body:has(.team-container) {
 }
 
 .team-name {
-  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(1.8rem, 2.8vw, 3rem);
   font-weight: 900;
   color: #ffffff;
@@ -160,7 +160,7 @@ body:has(.team-container) {
 }
 
 .team-subname-en {
-  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-family: var(--font-plug);
   color: #94A3B8;
   font-weight: 600;
   margin-top: 0.4vh;
@@ -269,7 +269,7 @@ body:has(.team-container) {
 }
 
 .team-player-title {
-  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.82rem, 0.95vw, 1rem);
   font-weight: 700;
   color: #ffffff;
@@ -279,7 +279,7 @@ body:has(.team-container) {
 }
 
 .team-player-sub {
-  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.72rem, 0.82vw, 0.88rem);
   color: #94A3B8;
 }
@@ -400,7 +400,7 @@ body:has(.team-container) {
 .team-nav-arrow {
   color: #CBD5E1;
   text-decoration: none;
-  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.78rem, 0.88vw, 0.95rem);
   font-weight: 600;
   display: inline-flex;
@@ -445,7 +445,7 @@ body:has(.team-container) {
 }
 
 .team-stadium-name {
-  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(1.9rem, 2.5vw, 2.7rem);
   font-weight: 900;
   color: #FFFFFF;
@@ -455,7 +455,7 @@ body:has(.team-container) {
 }
 
 .team-stadium-desc {
-  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.92rem, 1.08vw, 1.18rem);
   color: #94A3B8;
   font-weight: 600;
@@ -480,7 +480,7 @@ body:has(.team-container) {
 }
 
 .team-history-title {
-  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(1.35rem, 1.75vw, 1.95rem);
   font-weight: 800;
   color: #FFFFFF;
@@ -489,7 +489,7 @@ body:has(.team-container) {
 }
 
 .team-history-text {
-  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.98rem, 1.15vw, 1.22rem);
   line-height: 2.05;
   color: #CBD5E1;
@@ -520,7 +520,7 @@ body:has(.team-container) {
 }
 
 .team-squad-title {
-  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(1.35rem, 1.75vw, 1.95rem);
   font-weight: 800;
   color: #FFFFFF;
@@ -529,7 +529,7 @@ body:has(.team-container) {
 }
 
 .team-squad-subtitle {
-  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.8rem, 0.92vw, 1rem);
   font-weight: 700;
   color: #00FF85;
@@ -565,7 +565,7 @@ body:has(.team-container) {
 }
 
 .team-manager-name {
-  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(1.1rem, 1.32vw, 1.45rem);
   font-weight: 800;
   color: #FFFFFF;
@@ -574,7 +574,7 @@ body:has(.team-container) {
 }
 
 .team-manager-name-en {
-  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.75rem, 0.85vw, 0.92rem);
   color: #94A3B8;
   font-weight: 600;
@@ -585,7 +585,7 @@ body:has(.team-container) {
 .team-manager-nat-badge {
   display: inline-flex;
   align-items: center;
-  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.72rem, 0.82vw, 0.9rem);
   font-weight: 600;
   color: #CBD5E1;
@@ -672,7 +672,7 @@ body:has(.team-container) {
 }
 
 .team-group-title {
-  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(1rem, 1.18vw, 1.3rem);
   font-weight: 800;
   color: #FFFFFF;
@@ -683,7 +683,7 @@ body:has(.team-container) {
 }
 
 .team-group-code {
-  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.92rem, 1.08vw, 1.2rem);
   font-weight: 800;
   color: #00FF85;
@@ -740,7 +740,7 @@ body:has(.team-container) {
 }
 
 .team-player-pos-badge {
-  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.68rem, 0.75vw, 0.82rem);
   font-weight: 800;
   padding: 0.25vh 0.55vw;
@@ -775,7 +775,7 @@ body:has(.team-container) {
 .team-player-nat-pill {
   display: inline-flex;
   align-items: center;
-  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.68rem, 0.76vw, 0.84rem);
   font-weight: 600;
   color: #CBD5E1;
@@ -804,7 +804,7 @@ body:has(.team-container) {
 }
 
 .team-player-name {
-  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.88rem, 1vw, 1.08rem);
   font-weight: 700;
   color: #FFFFFF;
@@ -814,7 +814,7 @@ body:has(.team-container) {
 }
 
 .team-player-name-en {
-  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.68rem, 0.75vw, 0.82rem);
   color: #94A3B8;
   font-weight: 600;
@@ -1124,7 +1124,7 @@ body:has(.team-container) {
 }
 
 .player-stats-name-kor {
-  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(1.35rem, 1.75vw, 1.95rem);
   font-weight: 900;
   color: #FFFFFF;
@@ -1134,7 +1134,7 @@ body:has(.team-container) {
 }
 
 .player-stats-name-en {
-  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.85rem, 0.98vw, 1.08rem);
   font-weight: 600;
   color: #94A3B8;
@@ -1155,7 +1155,7 @@ body:has(.team-container) {
   justify-content: center;
   padding: 0.4vh 1vw;
   border-radius: 999px;
-  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.74rem, 0.84vw, 0.92rem);
   font-weight: 800;
   letter-spacing: 0.03vw;
@@ -1302,7 +1302,7 @@ body:has(.team-container) {
 }
 
 .player-stat-item .stat-label {
-  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.88rem, 1vw, 1.1rem);
   font-weight: 800;
   color: #CBD5E1;

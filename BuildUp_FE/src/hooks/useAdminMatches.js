@@ -1,4 +1,6 @@
+import { usePendingRequests } from './usePendingRequests.js';
 import { useState, useEffect, useCallback } from 'react';
+import { useDeferredLoad } from './useDeferredLoad.js';
 import { useDispatch } from 'react-redux';
 import { logout } from '../store/authSlice.js';
 import * as adminApi from '../api/adminApi.js';
@@ -19,7 +21,7 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
   const [selectedTeamId, setSelectedTeamId] = useState(57); // 기본 Arsenal
   const [teamPlayers, setTeamPlayers] = useState([]);
   const [mismatchCount, setMismatchCount] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, trackRequest] = usePendingRequests();
 
   // 모달 상태들
   const [noticeModal, setNoticeModal] = useState(null); // { matchId, title, notice }
@@ -27,6 +29,15 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
   const [injuryModal, setInjuryModal] = useState(null); // { playerId, name, isInjured, injuryNote, isSuspended }
   const [eventModal, setEventModal] = useState(null);   // { matchId, match, events, loading, aiAdvice, aiLoading, newEvent }
   const [eventModalPlayers, setEventModalPlayers] = useState([]);
+
+  // initialFilter가 전달되었을 때 상태 반영
+  useEffect(() => {
+    if (initialFilter) {
+      setMatchStatusFilter(initialFilter);
+      setMatchSortOrder(initialFilter === 'MISMATCH' ? 'DESC' : 'AUTO');
+      onClearInitialFilter?.();
+    }
+  }, [initialFilter, onClearInitialFilter]);
 
   // 불일치 경기 카운트 갱신 (배너용)
   const refreshMismatchCount = useCallback(async () => {
@@ -36,14 +47,14 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
       if (json.code === 'SUC_001' && json.data) {
         setMismatchCount(Number(json.data.MISMATCH_MATCHES || 0));
       }
-    } catch (e) {
+    } catch {
       // ignore
     }
   }, []);
 
   // 1. 경기 목록 조회 (overrides를 지원하여 상태 비동기 반영 지연 없이 즉시 조회 가능)
   const fetchMatches = useCallback(async (overrides = {}) => {
-    setLoading(true);
+    trackRequest(true);
     try {
       const statusToUse = overrides.status !== undefined ? overrides.status : matchStatusFilter;
       const sortToUse = overrides.sort !== undefined ? overrides.sort : matchSortOrder;
@@ -87,22 +98,9 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
     } catch (e) {
       console.warn('경기 목록 조회 실패', e);
     } finally {
-      setLoading(false);
+      trackRequest(false);
     }
-  }, [matchStartDate, matchEndDate, matchStatusFilter, matchSortOrder, dispatch, showAlert]);
-
-  // initialFilter가 전달되었을 때 상태 반영 및 즉시 조회 (다시 조회 누를 필요 없이 자동 실행)
-  useEffect(() => {
-    if (initialFilter) {
-      setMatchStatusFilter(initialFilter);
-      const sortVal = initialFilter === 'MISMATCH' ? 'DESC' : 'AUTO';
-      setMatchSortOrder(sortVal);
-      onClearInitialFilter?.();
-      fetchMatches({ status: initialFilter, sort: sortVal });
-    } else {
-      fetchMatches();
-    }
-  }, [initialFilter, onClearInitialFilter]);
+  }, [matchStartDate, matchEndDate, matchStatusFilter, matchSortOrder, dispatch, showAlert, trackRequest]);
 
   // 2. 구단별 선수단 조회
   const fetchTeamPlayers = useCallback(async (teamId) => {
@@ -117,11 +115,12 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
     }
   }, []);
 
-  // 마운트 시 선수단 및 불일치 카운트 로드
-  useEffect(() => {
+  // 마운트 시 데이터 로드
+  useDeferredLoad(useCallback(() => {
+    fetchMatches();
     fetchTeamPlayers(selectedTeamId);
     refreshMismatchCount();
-  }, [fetchTeamPlayers, selectedTeamId, refreshMismatchCount]);
+  }, [fetchMatches, fetchTeamPlayers, selectedTeamId, refreshMismatchCount]));
 
   // 경기 공지사항 저장
   const handleSaveNotice = async () => {
@@ -136,7 +135,7 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
       } else {
         showAlert?.(json.message || '공지 수정 실패', 'error');
       }
-    } catch (e) {
+    } catch {
       showAlert?.('공지사항 수정 요청 중 오류가 발생했습니다.', 'error');
     }
   };
@@ -159,7 +158,7 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
       } else {
         showAlert?.(json.message || '스코어 수정 실패', 'error');
       }
-    } catch (e) {
+    } catch {
       showAlert?.('경기 스코어 수정 중 오류가 발생했습니다.', 'error');
     }
   };
@@ -208,7 +207,7 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
       } : null);
 
       fetchAiAdvice(match.matchId);
-    } catch (e) {
+    } catch {
       showAlert?.('경기 이벤트를 불러오는 중 통신 오류가 발생했습니다.', 'error');
       setEventModal(prev => prev ? { ...prev, loading: false, aiLoading: false } : null);
     }
@@ -231,7 +230,7 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
       } else {
         showAlert?.(json.message || '이벤트 삭제 실패', 'error');
       }
-    } catch (e) {
+    } catch {
       showAlert?.('이벤트 삭제 중 오류가 발생했습니다.', 'error');
     }
   };
@@ -274,7 +273,7 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
       } else {
         showAlert?.(json.message || '이벤트 등록 실패', 'error');
       }
-    } catch (e) {
+    } catch {
       showAlert?.('이벤트 등록 중 오류가 발생했습니다.', 'error');
     }
   };
@@ -306,7 +305,7 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
         showAlert?.(json.message || '다시 불러오기 실패', 'error');
         setEventModal(prev => ({ ...prev, loading: false }));
       }
-    } catch (e) {
+    } catch {
       showAlert?.('외부 API 재동기화 중 오류가 발생했습니다.', 'error');
       setEventModal(prev => ({ ...prev, loading: false }));
     }
@@ -330,7 +329,7 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
           aiLoading: false,
         } : prev);
       }
-    } catch (e) {
+    } catch {
       setEventModal(prev => prev && prev.matchId === matchId ? {
         ...prev,
         aiLoading: false,
@@ -360,7 +359,7 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
       } else {
         showAlert?.(json.message || '부상 정보 저장 실패', 'error');
       }
-    } catch (e) {
+    } catch {
       showAlert?.('부상 정보 저장 중 오류가 발생했습니다.', 'error');
     }
   };

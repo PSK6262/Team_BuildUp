@@ -2,6 +2,7 @@ package com.app.common;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -20,7 +21,7 @@ public class WebConfig implements WebMvcConfigurer {
 	private String allowedOrigins;
 
 	@Override
-	public void addCorsMappings(CorsRegistry registry) {
+	public void addCorsMappings(@NonNull CorsRegistry registry) {
 		// 1단계: 쉼표(,)로 구분된 허용 도메인 문자열을 분리합니다.
 		String[] originArray;
 		if (allowedOrigins != null && !allowedOrigins.trim().isEmpty()) {

@@ -16,56 +16,56 @@ import com.app.service.team.TeamService;
 @Service
 public class TeamServiceImpl implements TeamService {
 
-	@Autowired
-	private TeamDAO teamDAO;
+    @Autowired
+    private TeamDAO teamDAO;
 
-	@Override
-	public List<Players> getPlayersByTeamId(Long teamId) {
-		return teamDAO.findPlayersByTeamId(teamId);
-	}
+    @Override
+    public List<Teams> getAllTeams() {
+        return teamDAO.findAllTeams();
+    }
 
-	@Override
-	public Teams getTeamById(Long teamId) {
-		return teamDAO.findTeamById(teamId);
-	}
+    @Override
+    public Teams getTeamById(Long teamId) {
+        return teamDAO.findTeamById(teamId);
+    }
 
-	@Override
-	public List<Teams> getAllTeams() {
-		return teamDAO.findAllTeams();
-	}
+    @Override
+    public List<Players> getPlayersByTeamId(Long teamId) {
+        return teamDAO.findPlayersByTeamId(teamId);
+    }
 
-	@Override
-	public List<Staffs> getStaffsByTeamId(Long teamId) {
-		return teamDAO.findStaffsByTeamId(teamId);
-	}
+    @Override
+    public List<Staffs> getStaffsByTeamId(Long teamId) {
+        return teamDAO.findStaffsByTeamId(teamId);
+    }
 
-	@Override
-	public TeamStats getTeamStats(Long teamId, Integer season) {
-		return teamDAO.findTeamStats(teamId, season);
-	}
+    @Override
+    public List<TeamStats> getTeamStandings(Integer season) {
+        return teamDAO.findAllTeamStandings(season);
+    }
 
-	@Override
-	public List<TeamStats> getTeamStatsHistory(Long teamId) {
-		return teamDAO.findTeamStatsHistory(teamId);
-	}
+    @Override
+    public TeamStats getTeamStats(Long teamId, Integer season) {
+        return teamDAO.findTeamStats(teamId, season);
+    }
 
-	@Override
-	public List<TeamStats> getTeamStandings(Integer season) {
-		return teamDAO.findAllTeamStandings(season);
-	}
+    @Override
+    public List<TeamStats> getTeamStatsHistory(Long teamId) {
+        return teamDAO.findTeamStatsHistory(teamId);
+    }
 
-	@Override
-	public List<PlayerStats> getTopScorers(Integer limit) {
-		return teamDAO.findTopScorers(limit);
-	}
+    @Override
+    public List<PlayerStats> getTopScorers(Integer limit) {
+        return teamDAO.findTopScorers(limit);
+    }
 
-	@Override
-	public List<PlayerStats> getPlayerRankings(String metric) {
-		return teamDAO.findPlayerRankings(metric);
-	}
+    @Override
+    public List<PlayerStats> getPlayerRankings(String metric) {
+        return teamDAO.findPlayerRankings(metric);
+    }
 
-	@Override
-	public PlayerStats getPlayerStats(Long playerId) {
-		return teamDAO.findPlayerStats(playerId);
-	}
+    @Override
+    public PlayerStats getPlayerStats(Long playerId) {
+        return teamDAO.findPlayerStats(playerId);
+    }
 }

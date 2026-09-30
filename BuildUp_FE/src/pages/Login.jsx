@@ -45,7 +45,7 @@ export default function Login() {
       } else {
         setErrorMsg(data.message || '아이디 또는 비밀번호가 일치하지 않습니다.')
       }
-    } catch (err) {
+    } catch {
       setErrorMsg('서버와 통신할 수 없습니다. 잠시 후 다시 시도해주세요.')
     } finally {
       setLoading(false)

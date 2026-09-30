@@ -410,7 +410,6 @@ export default function MyPage() {
   // 사용자 상세 정보 로드
   useEffect(() => {
     if (!isLoggedIn) {
-      setLoading(false)
       return
     }
 
@@ -442,7 +441,7 @@ export default function MyPage() {
             loadActivities()
           }
         }
-      } catch (err) {
+      } catch {
         if (reduxUser) {
           setProfile(reduxUser)
           setNickname(reduxUser.nickname || '')
@@ -678,7 +677,7 @@ export default function MyPage() {
     }
   }
 
-  if (loading) {
+  if (isLoggedIn && loading) {
     return (
       <div className={`mypage-dashboard-bg ${currentTheme === 'light' ? 'mypage-light-mode' : ''}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <p style={{ color: currentTheme === 'light' ? '#38003c' : '#00ff87', fontSize: '16px', fontWeight: 700 }}>회원 대시보드를 불러오는 중입니다...</p>

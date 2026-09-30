@@ -58,7 +58,7 @@ export function useAdminSync({ showAlert, setSyncStatus }) {
       } else {
         showAlert?.(`${actualLabel} 동기화 실패: ${json.message || '오류가 발생했습니다.'}`, 'error');
       }
-    } catch (e) {
+    } catch {
       showAlert?.(`${label} 동기화 요청 실패: 서버 상태를 확인해주세요.`, 'error');
     } finally {
       setSyncLoading(false);

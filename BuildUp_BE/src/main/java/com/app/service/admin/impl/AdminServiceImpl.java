@@ -481,7 +481,7 @@ public class AdminServiceImpl implements AdminService {
 					map.put("minute", g.getEventTime());
 					String pName = (homePlayers != null) ? homePlayers.stream()
 							.filter(p -> p.getPlayerId().equals(g.getPlayerId()))
-							.map(Players::getName)
+							.map(player -> player.getName())
 							.findFirst()
 							.orElse("Unknown") : "Unknown";
 					map.put("playerName", pName);
@@ -525,7 +525,7 @@ public class AdminServiceImpl implements AdminService {
 					map.put("minute", g.getEventTime());
 					String pName = (awayPlayers != null) ? awayPlayers.stream()
 							.filter(p -> p.getPlayerId().equals(g.getPlayerId()))
-							.map(Players::getName)
+							.map(player -> player.getName())
 							.findFirst()
 							.orElse("Unknown") : "Unknown";
 					map.put("playerName", pName);

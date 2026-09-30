@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAdminCommunity } from '../../../hooks/useAdminCommunity.js';
+import AdminSelect from '../AdminSelect.jsx';
 
 /**
  * [관리자 커뮤니티 블라인드 제재 탭 - BuildUp_FE/src/components/admin/tabs/AdminCommunityTab.jsx]
@@ -91,7 +92,7 @@ export default function AdminCommunityTab({ showAlert }) {
 
           {communitySubTab === 'posts' ? (
             <div className="admin-filters">
-              <select
+              <AdminSelect
                 className="admin-select"
                 value={postStatusFilter}
                 onChange={(e) => {
@@ -105,7 +106,7 @@ export default function AdminCommunityTab({ showAlert }) {
                 <option value="NORMAL">정상</option>
                 <option value="BLIND">블라인드</option>
                 <option value="DELETED">삭제</option>
-              </select>
+              </AdminSelect>
               <input
                 type="text"
                 className="admin-input"
@@ -126,7 +127,7 @@ export default function AdminCommunityTab({ showAlert }) {
             </div>
           ) : (
             <div className="admin-filters">
-              <select
+              <AdminSelect
                 className="admin-select"
                 value={commentStatusFilter}
                 onChange={(e) => {
@@ -140,7 +141,7 @@ export default function AdminCommunityTab({ showAlert }) {
                 <option value="NORMAL">정상</option>
                 <option value="BLIND">블라인드</option>
                 <option value="DELETED">삭제</option>
-              </select>
+              </AdminSelect>
               <input
                 type="text"
                 className="admin-input"
@@ -186,13 +187,13 @@ export default function AdminCommunityTab({ showAlert }) {
                 ) : (
                   posts.slice(0, visiblePosts).map((p) => (
                     <tr key={p.postId}>
-                      <td>{p.postId}</td>
-                      <td>
+                      <td data-label="번호">{p.postId}</td>
+                      <td data-label="분류">
                         <span className="badge badge--gray">
                           {p.teamName || p.categoryType || '자유'}
                         </span>
                       </td>
-                      <td style={{ fontWeight: 600, maxWidth: 300 }}>
+                      <td data-label="제목" style={{ fontWeight: 600, maxWidth: 300 }}>
                         <a
                           href={`/plug/community/posts/${p.postId}`}
                           target="_blank"
@@ -203,9 +204,9 @@ export default function AdminCommunityTab({ showAlert }) {
                           {p.title}
                         </a>
                       </td>
-                      <td>{p.nickname}</td>
-                      <td>{p.likeCount} / {p.viewCount}</td>
-                      <td>
+                      <td data-label="작성자">{p.nickname}</td>
+                      <td data-label="추천 / 조회">{p.likeCount} / {p.viewCount}</td>
+                      <td data-label="상태">
                         {p.isDeleted === 'Y' ? (
                           <span className="badge badge--gray">🗑️ 삭제됨</span>
                         ) : p.isBlind === 'Y' ? (
@@ -214,9 +215,9 @@ export default function AdminCommunityTab({ showAlert }) {
                           <span className="badge badge--green">정상 (N)</span>
                         )}
                       </td>
-                      <td style={{ color: '#64748b', fontSize: 13, whiteSpace: 'nowrap' }}>{p.createdAt}</td>
-                      <td>
-                        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <td data-label="작성일시" style={{ color: '#64748b', fontSize: 13, whiteSpace: 'nowrap' }}>{p.createdAt}</td>
+                      <td data-label="관리 액션">
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                           {p.isDeleted === 'Y' ? (
                             <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500, padding: '4px 6px' }}>
                               삭제됨 (증거보존)
@@ -297,17 +298,17 @@ export default function AdminCommunityTab({ showAlert }) {
                 ) : (
                   comments.slice(0, visibleComments).map((c) => (
                     <tr key={c.commentId}>
-                      <td>{c.commentId}</td>
-                      <td>
+                      <td data-label="댓글ID">{c.commentId}</td>
+                      <td data-label="원글ID">
                         <a href={`/plug/community/posts/${c.postId}`} target="_blank" rel="noreferrer">
                           #{c.postId}
                         </a>
                       </td>
-                      <td style={{ maxWidth: 350, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <td data-label="댓글 본문" style={{ maxWidth: 350, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {c.content}
                       </td>
-                      <td>{c.nickname}</td>
-                      <td>
+                      <td data-label="작성자">{c.nickname}</td>
+                      <td data-label="상태">
                         {c.isDeleted === 'Y' ? (
                           <span className="badge badge--gray">🗑️ 작성자 삭제</span>
                         ) : c.isBlind === 'Y' ? (
@@ -316,8 +317,8 @@ export default function AdminCommunityTab({ showAlert }) {
                           <span className="badge badge--green">정상 (N)</span>
                         )}
                       </td>
-                      <td style={{ color: '#64748b', fontSize: 13, whiteSpace: 'nowrap' }}>{c.createdAt}</td>
-                      <td>
+                      <td data-label="작성일시" style={{ color: '#64748b', fontSize: 13, whiteSpace: 'nowrap' }}>{c.createdAt}</td>
+                      <td data-label="관리 액션">
                         {c.isDeleted === 'Y' ? (
                           <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500, padding: '4px 6px' }}>
                             삭제됨 (증거보존)

@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { usePendingRequests } from './usePendingRequests.js';
+import { useState, useCallback } from 'react';
+import { useDeferredLoad } from './useDeferredLoad.js';
 import { useDispatch } from 'react-redux';
 import { logout } from '../store/authSlice.js';
 import * as adminApi from '../api/adminApi.js';
@@ -14,7 +16,7 @@ export function useAdminUsers({ showAlert }) {
   const [users, setUsers] = useState([]);
   const [userKeyword, setUserKeyword] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, trackRequest] = usePendingRequests();
 
   // 모달 상태
   const [roleModal, setRoleModal] = useState(null);   // { userId, nickname, roleCode }
@@ -22,7 +24,7 @@ export function useAdminUsers({ showAlert }) {
 
   // 1. 회원 목록 조회
   const fetchUsers = useCallback(async (overrideKeyword, overrideRole) => {
-    setLoading(true);
+    trackRequest(true);
     try {
       const keywordToUse = overrideKeyword !== undefined ? overrideKeyword : userKeyword;
       const roleToUse = overrideRole !== undefined ? overrideRole : userRoleFilter;
@@ -51,14 +53,12 @@ export function useAdminUsers({ showAlert }) {
     } catch (e) {
       console.warn('회원 목록 조회 실패', e);
     } finally {
-      setLoading(false);
+      trackRequest(false);
     }
-  }, [userKeyword, userRoleFilter, dispatch, showAlert]);
+  }, [userKeyword, userRoleFilter, dispatch, showAlert, trackRequest]);
 
   // 마운트 시 회원 목록 로드
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  useDeferredLoad(fetchUsers);
 
   // 회원 권한 등급 변경
   const handleSaveRole = async () => {
@@ -73,7 +73,7 @@ export function useAdminUsers({ showAlert }) {
       } else {
         showAlert?.('권한 변경 실패', 'error');
       }
-    } catch (e) {
+    } catch {
       showAlert?.('권한 변경 중 통신 오류가 발생했습니다.', 'error');
     }
   };
@@ -107,7 +107,7 @@ export function useAdminUsers({ showAlert }) {
       } else {
         showAlert?.(json.message || '포인트 조정 실패', 'error');
       }
-    } catch (e) {
+    } catch {
       showAlert?.('포인트 조정 중 통신 오류가 발생했습니다.', 'error');
     }
   };

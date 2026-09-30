@@ -295,7 +295,7 @@ export async function triggerDataSync(endpoint, queryParams = {}) {
   let url = `/api/admin/sync/${endpoint}`;
   if (queryParams && typeof queryParams === 'object') {
     const qs = Object.entries(queryParams)
-      .filter(([_, v]) => v !== undefined && v !== null && v !== '')
+      .filter(([, v]) => v !== undefined && v !== null && v !== '')
       .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
       .join('&');
     if (qs) url += `?${qs}`;

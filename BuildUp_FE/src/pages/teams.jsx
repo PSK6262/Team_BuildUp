@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchTeams } from '../store/teamSlice.js';
-import { getTeams, getInitialTeams } from '../api/teamApi.js';
 import TeamCard from '../components/team/TeamCard.jsx';
 import '../css/teams.css';
+import '../css/rankings.css';
 
 export default function TeamsPage() {
   const dispatch = useDispatch();
@@ -238,67 +238,6 @@ function getTeamNameKor(teamId, teamName) {
   return teamName || '구단명 미등록';
 }
 
-// 프리미어리그 주요 스타 선수 한글명 사전
-const PLAYER_NAMES_KOR = {
-  'Erling Haaland': '엘링 홀란',
-  'Mohamed Salah': '모하메드 살라',
-  'Son Heung-min': '손흥민',
-  'Heung-min Son': '손흥민',
-  'Bukayo Saka': '부카요 사카',
-  'Cole Palmer': '콜 파머',
-  'Kevin De Bruyne': '케빈 더 브라위너',
-  'Bruno Fernandes': '브루노 페르난데스',
-  'Ollie Watkins': '올리 왓킨스',
-  'Alexander Isak': '알렉산데르 이삭',
-  'Phil Foden': '필 포든',
-  'Declan Rice': '데클란 라이스',
-  'Martin Ødegaard': '마르틴 외데고르',
-  'Rodri': '로드리',
-  'Virgil van Dijk': '버질 반 다이크',
-  'Nicolas Jackson': '니콜라 잭슨',
-  'Kai Havertz': '카이 하베르츠',
-  'Dominic Solanke': '도미닉 솔랑케',
-  'Bryan Mbeumo': '브라이언 음뵈모',
-  'Chris Wood': '크리스 우드',
-  'Yoane Wissa': '요안 위사',
-  'Matheus Cunha': '마테우스 쿠냐',
-  'Hwang Hee-chan': '황희찬',
-  'Hee-chan Hwang': '황희찬',
-  'Kaoru Mitoma': '미토마 카오루',
-  'Luis Díaz': '루이스 디아스',
-  'Darwin Núñez': '다르윈 누녜스',
-  'Cody Gakpo': '코디 학포',
-  'Alejandro Garnacho': '알레한드로 가르나초',
-  'Rasmus Højlund': '라스무스 회이룬',
-  'Marcus Rashford': '마커스 래시포드',
-  'Brennan Johnson': '브레넌 존슨',
-  'James Maddison': '제임스 매디슨',
-  'Dejan Kulusevski': '데얀 쿨루셉스키',
-  'Bernardo Silva': '베르나르두 실바',
-  'Ilkay Gündogan': '일카이 귄도안',
-  'Eberechi Eze': '에베레치 에제',
-  'Jean-Philippe Mateta': '장필리프 마테타',
-  'Jarrod Bowen': '재러드 보웬',
-  'Lucas Paquetá': '루카스 파케타',
-  'Liam Delap': '리암 델랍',
-  'Danny Welbeck': '대니 웰백',
-  'Raúl Jiménez': '라울 히메네스',
-  'Alex Iwobi': '알렉스 이워비',
-  'Dwight McNeil': '드와이트 맥닐',
-  'Antoine Semenyo': '앙투안 세메뇨',
-  'Evanilson': '에바니우송',
-  'Justin Kluivert': '저스틴 클라위버르트',
-  'Emile Smith Rowe': '에밀 스미스 로우',
-};
-
-function getPlayerNameKor(name, korName) {
-  if (korName && String(korName).trim()) return korName;
-  if (!name) return '선수명 미등록';
-  const trimmed = String(name).trim();
-  if (PLAYER_NAMES_KOR[trimmed]) return PLAYER_NAMES_KOR[trimmed];
-  return trimmed;
-}
-
 const standingsColumns = [
   [ 'matchesPlayed', '경기' ], [ 'wins', '승' ], [ 'draws', '무' ],
   [ 'losses', '패' ], [ 'goalsFor', '득점' ], [ 'goalsAgainst', '실점' ],
@@ -315,6 +254,12 @@ function isStandingRow(row) {
 
 export function StandingsPage() {
   const tabs = [ ['league', '리그 순위표'], ['goals', '득점랭킹'], ['assists', '도움랭킹'], ['contributions', '공격포인트 순위'] ];
+  const tabDetails = {
+    league: ['TABLE', '승점으로 살펴보는 프리미어리그 구단 순위'],
+    goals: ['GOALS', '골로 경기를 바꾸는 리그의 해결사들'],
+    assists: ['ASSISTS', '동료의 득점을 만드는 최고의 조력자들'],
+    contributions: ['GOALS + ASSISTS', '득점과 도움을 합산한 선수별 공격 기록'],
+  };
   const [ tab, setTab ] = useState(() => {
     const value = new URLSearchParams(window.location.search).get('tab');
     return tabs.some(([ id ]) => id === value) ? value : 'league';
@@ -328,7 +273,7 @@ export function StandingsPage() {
   }
 
   return (
-    <main className="teams-page-container">
+    <main className="teams-page-container teams-page-container--rankings">
       <div className="teams-page-wrapper">
         <header className="teams-page-header">
           <span className="teams-page-eyebrow">PREMIER LEAGUE{tab === 'league' ? ' · 2026/27' : ''}</span>
@@ -347,10 +292,14 @@ export function StandingsPage() {
                 event.preventDefault();
                 changeTab(tabs[next][0]);
                 document.getElementById(`ranking-tab-${tabs[next][0]}`).focus();
-              }}>{label}</button>
+              }}><span className="ranking-tab-kicker" aria-hidden="true">{tabDetails[id][0]}</span><span>{label}</span></button>
           ))}
         </div>
-        <section id="ranking-panel" role="tabpanel" aria-labelledby={`ranking-tab-${tab}`} tabIndex={0}>
+        <section id="ranking-panel" className="ranking-panel" role="tabpanel" aria-labelledby={`ranking-tab-${tab}`} tabIndex={0}>
+        <header className="ranking-panel-heading">
+          <div><h2>{tabs.find(([id]) => id === tab)[1]}</h2><p>{tabDetails[tab][1]}</p></div>
+          <span className="ranking-season-badge">2026 / 27</span>
+        </header>
         {tab === 'league' ? <StandingsTable season={2026} />
           : <PlayerRankings key={tab} metric={tab} label={tabs.find(([ id ]) => id === tab)[1]} />}
         </section>
@@ -403,7 +352,7 @@ function PlayerRankings({ metric, label }) {
         <thead><tr><th scope="col">순위</th><th scope="col">선수명</th><th scope="col">소속 구단</th>
           <th scope="col">득점</th><th scope="col">도움</th><th scope="col">공격포인트</th></tr></thead>
         <tbody>{rows.map((row) => <tr key={row.playerId}>
-          <td><span className="standings-rank">{row.rank}</span></td>
+          <td><span className="standings-rank" data-rank={row.rank}>{row.rank}</span></td>
           <th scope="row"><button type="button" className="ranking-player-link" aria-haspopup="dialog" onClick={() => setSelectedPlayer(row)}>{row.playerNameKor || row.playerName || '선수명 미등록'}</button></th>
           <td><span className="standings-team">{row.emblemUrl && <img src={row.emblemUrl} alt="" width="28" height="28" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} />}{row.teamName || '구단명 미등록'}</span></td>
           {['goals', 'assists', 'contributions'].map((field) => <td key={field} className={metric === field ? 'standings-points' : undefined}>
@@ -494,9 +443,18 @@ function RankingPlayerDetails({ player, onClose }) {
 
   return <dialog ref={dialogRef} className="ranking-player-dialog" aria-labelledby="ranking-player-title"
     onCancel={(event) => { event.preventDefault(); onClose(); }}
-    onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    onClick={(event) => {
+      if (event.target !== event.currentTarget) return;
+      const rect = event.currentTarget.getBoundingClientRect();
+      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) onClose();
+    }}>
+    <div className="ranking-player-toolbar">
+      <span>선수 상세 기록</span>
+      <button type="button" className="ranking-player-close" onClick={onClose} aria-label="선수 상세 닫기" title="닫기" autoFocus>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+      </button>
+    </div>
     <div className="ranking-player-details">
-      <button type="button" className="ranking-player-close" onClick={onClose} aria-label="선수 상세 닫기" autoFocus>닫기 ✕</button>
       <header className="ranking-player-header">
         <div className="ranking-player-photo">
           {photo.status === 'ready' ? <img src={photo.url} alt={`${name} 선수 사진`} onError={() => setPhoto({ status: 'empty', url: '' })} />
@@ -583,12 +541,12 @@ function StandingsTable({ season }) {
             const teamKor = row.teamNameKor || getTeamNameKor(row.teamId, row.teamName);
             return (
               <tr key={row.teamId}>
-                <td><span className="standings-rank">{row.currentRank ?? '—'}</span></td>
+                <td><span className="standings-rank" data-rank={row.currentRank}>{row.currentRank ?? '—'}</span></td>
                 <th scope="row"><a className="standings-team" href={`/plug/team/${row.teamId}`} title={`${teamKor} 상세 정보 보기`}>
                   {row.emblemUrl && <img src={row.emblemUrl} alt="" width="28" height="28" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} />}
                   <span style={{ fontWeight: 700 }}>{teamKor}</span>
                   {row.teamName && teamKor !== row.teamName && (
-                    <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '5px' }}>({row.teamName})</span>
+                    <span style={{ fontSize: '11px', color: 'var(--ranking-muted, #64748b)', marginLeft: '5px' }}>({row.teamName})</span>
                   )}
                 </a></th>
                 {standingsColumns.map(([ field ]) => (
@@ -608,15 +566,16 @@ function StandingsTable({ season }) {
 }
 
 export function MemberRankings({ type, refreshKey = 0 }) {
-  const [result, setResult] = useState({ status: 'loading', rows: [] });
+  const [response, setResult] = useState(null);
   const [attempt, setAttempt] = useState(0);
   const userId = useSelector((state) => state.auth.user?.userId);
   const prediction = type === 'prediction';
+  const requestKey = `${prediction}:${attempt}:${refreshKey}`;
+  const result = response?.key === requestKey ? response : { status: 'loading', rows: [] };
   useEffect(() => {
     const controller = new AbortController();
     let active = true;
     const timer = setTimeout(() => controller.abort(), 15000);
-    setResult({ status: 'loading', rows: [] });
     fetch(prediction ? '/api/predictions/rankings' : '/api/customs/rankings', { signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) throw new Error('조회 실패');
@@ -624,12 +583,12 @@ export function MemberRankings({ type, refreshKey = 0 }) {
         if (!Array.isArray(data.rankings) || !data.rankings.every((row) => row && row.userId != null
           && Number.isInteger(row[prediction ? 'predictWin' : 'wins'])
           && Number.isInteger(row[prediction ? 'predictTotal' : 'totalMatches']))) throw new Error('응답 오류');
-        if (active) setResult({ status: 'ready', rows: data.rankings });
+        if (active) setResult({ key: requestKey, status: 'ready', rows: data.rankings });
       })
-      .catch(() => { if (active) setResult({ status: 'error', rows: [] }); })
+      .catch(() => { if (active) setResult({ key: requestKey, status: 'error', rows: [] }); })
       .finally(() => clearTimeout(timer));
     return () => { active = false; clearTimeout(timer); controller.abort(); };
-  }, [prediction, attempt, refreshKey]);
+  }, [prediction, requestKey]);
   return <section className="member-rankings" aria-label={prediction ? '승부예측 적중 랭킹' : '가상 대결 승리수 랭킹'}>
     <h2>{prediction ? '승부예측 적중' : '나만의 팀 가상 대결 승리수'} TOP 10</h2>
     <p>{prediction ? '정산된 예측의 적중 수 → 적중률 순입니다.' : '로그인 후 진행한 가상 대결의 승리수 → 승률 순입니다. 무승부는 승리에 포함되지 않습니다.'}</p>

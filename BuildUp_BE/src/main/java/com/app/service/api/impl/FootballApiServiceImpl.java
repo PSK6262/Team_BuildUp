@@ -430,7 +430,7 @@ public class FootballApiServiceImpl implements FootballApiService {
             team.setTeamName(name);
             team.setEmblemUrl(crest);
             team.setHomeGround("홈 경기장");
-            team.setFoundedYear(1900L);
+            team.setFoundedYear("1900");
             team.setHistory(null);
 
             teamDAO.mergeTeam(team);
@@ -452,7 +452,7 @@ public class FootballApiServiceImpl implements FootballApiService {
         String emblemUrl = teamNode.hasNonNull("crest") ? teamNode.get("crest").asText() : null;
         emblemUrl = resolveOfficialEmblemUrl(teamId, emblemUrl);
         String venue = teamNode.path("venue").asText("홈 경기장");
-        Long founded = teamNode.hasNonNull("founded") ? teamNode.get("founded").asLong() : 1900L;
+        String founded = teamNode.hasNonNull("founded") ? teamNode.get("founded").asText() : "1900";
 
         // 1. 구단 정보 저장 (선수 외래키 보장을 위해 구단 선저장)
         // API에서 구단 역사/소개(HISTORY) 요약 정보는 제공되지 않으므로 null 저장

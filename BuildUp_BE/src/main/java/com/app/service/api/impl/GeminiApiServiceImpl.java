@@ -1,10 +1,5 @@
 package com.app.service.api.impl;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -32,7 +27,6 @@ import com.app.dto.team.PlayerStats;
 import com.app.dto.team.Staffs;
 import com.app.dto.team.Teams;
 import com.app.service.api.GeminiApiService;
-import com.app.util.ApiBridgeUtil;
 import com.app.service.custom.CustomService;
 import com.app.service.prediction.PredictionService;
 import com.app.util.api.GeminiApiClient;
@@ -69,17 +63,6 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	private static final Pattern PERSON_LIMIT_PATTERN = Pattern.compile("(?<!\\d)(\\d{1,2})\\s*명(?!\\d)");
 	private static final Pattern RANK_END_PATTERN = Pattern.compile("(?<!\\d)(\\d{1,2})\\s*위까지(?!\\d)");
 
-	// 사용자 API 키로 100% 검증 완료된 최신 공식 Gemini 모델
-	private static final String[] CANDIDATE_MODELS = {
-		"gemini-flash-lite-latest",
-		"gemini-3.1-flash-lite",
-		"gemini-flash-latest"
-	};
-
-	// 연결 성공이 확인된 모델을 캐싱하여 재사용
-	private volatile String verifiedModel = null;
-	private volatile String verifiedSearchModel = null;
-
 	private record GeminiCallResult(String text, List<String> sources) {}
 
 	@Value("${gemini.api.key}")
@@ -107,13 +90,9 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	@Autowired
 	private AdminDAO adminDAO;
 
-	private final HttpClient httpClient;
 	private final ObjectMapper objectMapper;
 
 	public GeminiApiServiceImpl() {
-		this.httpClient = HttpClient.newBuilder()
-				.connectTimeout(Duration.ofSeconds(15))
-				.build();
 		this.objectMapper = new ObjectMapper();
 	}
 
@@ -2062,27 +2041,6 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	private GeminiCallResult callGeminiWithSearch(String promptText) throws Exception {
 		var result = geminiApiClient.callGeminiWithSearch(promptText);
 		return new GeminiCallResult(result.text(), result.sources());
-	}
-
-	private List<String> extractGroundingSources(JsonNode candidate) {
-		List<String> sources = new ArrayList<>();
-		for (JsonNode chunk : candidate.path("groundingMetadata").path("groundingChunks")) {
-			JsonNode web = chunk.path("web");
-			String uri = web.path("uri").asText("");
-			if (uri.isBlank()) continue;
-			boolean alreadyExists = false;
-			for (String source : sources) {
-				if (source.endsWith(uri)) {
-					alreadyExists = true;
-					break;
-				}
-			}
-			if (alreadyExists) continue;
-			String title = web.path("title").asText("검색 결과");
-			sources.add(title + " · " + uri);
-			if (sources.size() == 3) break;
-		}
-		return sources;
 	}
 
 	/**

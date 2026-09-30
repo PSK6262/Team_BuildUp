@@ -17,7 +17,12 @@ public class Posts {
     private String isDeleted;          // 작성자 삭제 여부 (Y/N)
     private Long categoryId;           // [FK] 카테고리 식별자
     private String boardType;          // 등록 요청 게시판 종류 (free, team, showcase)
+
+
+    private Long commentCount;         // 조인용: 삭제되지 않은 댓글과 대댓글 수
+
     private Long showcaseImageId;      // 조인용: 자동 생성된 스쿼드 이미지 번호=
+
 
     private LocalDateTime createdAt;   // 작성 일시
     private LocalDateTime updatedAt;   // 수정 일시
@@ -40,9 +45,6 @@ public class Posts {
 
     // 조인용 (Teams): 구단 이름
     private String teamName;
-
-    // 조인용: 댓글 수
-    private Long commentCount;
 
     // 조인용 (PostLikes): 추천 일시
     private String likedAt;

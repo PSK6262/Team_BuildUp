@@ -1,6 +1,7 @@
 package com.app.util;
 
 import javax.mail.internet.MimeMessage;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,10 +28,10 @@ public class SendMail {
 			MimeMessage message = mailSender.createMimeMessage();
 			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-			helper.setFrom(fromEmail, "PL:UG");
-			helper.setTo(toEmail);
-			helper.setSubject(title);
-			helper.setText(content, true);
+			helper.setFrom(Objects.requireNonNull(fromEmail), "PL:UG");
+			helper.setTo(Objects.requireNonNull(toEmail));
+			helper.setSubject(Objects.requireNonNull(title));
+			helper.setText(Objects.requireNonNull(content), true);
 
 			mailSender.send(message);
 			log.info("[SendMail] 메일 발송 성공 -> {}", toEmail);

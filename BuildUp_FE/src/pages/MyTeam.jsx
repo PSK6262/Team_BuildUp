@@ -1,3 +1,5 @@
+import { shuffledCopy } from '../utils/shuffle.js';
+import { findOverlappingPitchSlot } from '../utils/pitchCollision.js';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { getAllPremierLeaguePlayers, getInitialTeams, getTeams } from '../api/teamApi.js';
@@ -298,7 +300,7 @@ function AiMatchTimeline({ match }) {
             }}>{playing ? '일시정지' : '움직임 재생'}</button>
             <button type="button" className="myteam-btn myteam-btn-secondary" disabled={selectedIndex >= match.events.length - 1} onClick={() => selectEvent(selectedIndex + 1)}>다음</button>
           </div>
-          <p>{isSecondHalf ? '후반' : '전반'} · <span style={{ color: '#60a5fa' }}>● {match.homeName} {homeLineup.length}명 · {isSecondHalf ? '↑' : '↓'} 공격</span>{' / '}<span style={{ color: '#f87171' }}>● {match.opponentName} {lineup.length}명 · {isSecondHalf ? '↓' : '↑'} 공격</span></p>
+          <p>{isSecondHalf ? '후반' : '전반'} · <span style={{ color: 'var(--myteam-home, #60a5fa)' }}>● {match.homeName} {homeLineup.length}명 · {isSecondHalf ? '↑' : '↓'} 공격</span>{' / '}<span style={{ color: 'var(--myteam-danger, #f87171)' }}>● {match.opponentName} {lineup.length}명 · {isSecondHalf ? '↓' : '↑'} 공격</span></p>
           <svg className="myteam-ai-mini-pitch" viewBox="0 0 360 440" role="img" aria-label={`양 팀 선수 배치: ${match.homeName} ${homeLineup.length}명, ${match.opponentName} ${lineup.length}명`}>
             <rect x="10" y="10" width="340" height="420" rx="8" fill="#123e30" stroke="#a7c9ba" />
             <path d="M10 220H350 M100 10V70H260V10 M100 430V370H260V430" fill="none" stroke="#a7c9ba" />
@@ -904,13 +906,12 @@ export default function MyTeam() {
   // 로그인 사용자는 DB 저장 스쿼드 복원, 비회원은 기존 로컬 초안 복원
   useEffect(() => {
     let isMounted = true;
-    accountVersionRef.current++;
+    const accountVersion = ++accountVersionRef.current;
     matchRequestRef.current?.abort();
     matchRequestRef.current = null;
-    setMatching(false);
-
     async function loadData() {
       try {
+        setMatching(false);
         setLoading(true);
         setSquadLoadError('');
         setTeamName('나만의 드림 스쿼드');
@@ -1041,7 +1042,7 @@ export default function MyTeam() {
 
     return () => {
       isMounted = false;
-      accountVersionRef.current++;
+      accountVersionRef.current = accountVersion + 1;
       matchRequestRef.current?.abort();
       matchRequestRef.current = null;
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -1308,11 +1309,6 @@ export default function MyTeam() {
       if (data.type === 'ROSTER_PLAYER' && data.player) {
         // 검색 목록에서 필드로 드롭
         assignPlayerToSlot(targetSlotId, data.player);
-      } else if (data.type === 'PITCH_SLOT' && data.slotId !== undefined) {
-        // 필드 슬롯 간 맞바꿈 (Swap)
-        if (data.slotId !== targetSlotId) {
-          swapSlots(data.slotId, targetSlotId);
-        }
       }
     } catch (err) {
       console.error('[MyTeam] 드롭 파싱 오류:', err);
@@ -1344,7 +1340,7 @@ export default function MyTeam() {
 
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
-    } catch (err) {}
+    } catch {}
   };
 
   const handleSlotPointerMove = (slotId, e) => {
@@ -1392,30 +1388,20 @@ export default function MyTeam() {
         const pitchEl = pitchRef.current;
         let swapTargetSlotId = null;
 
-        // 1. 직접 마우스가 닿은 다른 슬롯 엘리먼트 감지
-        const targetEl = document.elementsFromPoint(e.clientX, e.clientY)
-          .map((el) => el.closest('[data-pitch-slot-id]'))
-          .find((el) => el && el !== e.currentTarget && pitchRef.current?.contains(el));
-
-        if (targetEl) {
-          swapTargetSlotId = Number(targetEl.dataset.pitchSlotId);
-        } else if (pitchEl) {
-          // 2. 슬롯 바로 위가 아니더라도, 드롭한 위치에서 반경 16% 이내 가장 가까운 슬롯과 스왑
-          const rect = pitchEl.getBoundingClientRect();
-          const releaseX = ((e.clientX - rect.left) / rect.width) * 100;
-          const releaseY = ((e.clientY - rect.top) / rect.height) * 100;
-
-          const nearbySlots = slots
-            .filter((s) => s.id !== slotId)
-            .map((s) => ({
-              id: s.id,
-              dist: Math.hypot((s.x ?? 50) - releaseX, (s.y ?? 50) - releaseY),
-            }))
-            .sort((a, b) => a.dist - b.dist);
-
-          if (nearbySlots.length > 0 && nearbySlots[0].dist <= 16) {
-            swapTargetSlotId = nearbySlots[0].id;
-          }
+        // 카드나 포인터가 아닌, 화면에 표시된 원끼리 겹칠 때만 교체한다.
+        const circleSelector = '.slot-player-avatar-box, .slot-empty-circle';
+        const sourceCircle = e.currentTarget.querySelector(circleSelector);
+        if (pitchEl && sourceCircle) {
+          const candidates = Array.from(pitchEl.querySelectorAll('[data-pitch-slot-id]'))
+            .filter((element) => Number(element.dataset.pitchSlotId) !== slotId)
+            .flatMap((element) => {
+              const circle = element.querySelector(circleSelector);
+              return circle ? [{
+                id: Number(element.dataset.pitchSlotId),
+                rect: circle.getBoundingClientRect(),
+              }] : [];
+            });
+          swapTargetSlotId = findOverlappingPitchSlot(sourceCircle.getBoundingClientRect(), candidates);
         }
 
         if (swapTargetSlotId !== null && swapTargetSlotId !== slotId) {
@@ -1429,7 +1415,7 @@ export default function MyTeam() {
     setActiveDragSlotId(null);
     try {
       e.currentTarget.releasePointerCapture(e.pointerId);
-    } catch (err) {}
+    } catch {}
   };
 
   // 피치 잔디 공간에 선수 드롭 시: 마우스 놓은 위치에서 가장 가까운 슬롯에 배치
@@ -1529,11 +1515,7 @@ export default function MyTeam() {
     }
 
     // 매번 다양하고 재미있는 라인업을 위해 무작위 셔플
-    const shuffled = [...availablePlayers];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
+    const shuffled = shuffledCopy(availablePlayers);
 
     const currentIds = new Set(slots.filter((slot) => slot.player).map((slot) => String(slot.player.playerId)));
     const candidates = [
@@ -1723,12 +1705,6 @@ export default function MyTeam() {
     setMatching(false);
     setAiMatch(null);
   };
-
-  // 슬롯들을 포메이션 행(FW, MF, DF, GK)으로 분류
-  const fwSlots = slots.filter((s) => s.pos === 'FW');
-  const mfSlots = slots.filter((s) => s.pos === 'MF');
-  const dfSlots = slots.filter((s) => s.pos === 'DF');
-  const gkSlots = slots.filter((s) => s.pos === 'GK');
 
   return (
     <div className="myteam-page">
@@ -2015,73 +1991,73 @@ export default function MyTeam() {
                       <div className="myteam-ai-lineup-effects">
                       {penalty.isPerfectSynergy ? (
                         <div style={{ marginBottom: '10px', background: 'rgba(0, 255, 135, 0.12)', border: '1px solid #00ff87', borderRadius: '8px', padding: '8px 12px' }}>
-                          <p style={{ color: '#00ff87', fontWeight: 'bold', margin: '0 0 4px 0' }}>
+                          <p style={{ color: 'var(--myteam-accent, #00ff87)', fontWeight: 'bold', margin: '0 0 4px 0' }}>
                             🔥 [완벽한 팀 시너지 버프] 11명 전원 포지션 일치!
                           </p>
-                          <p style={{ color: '#a7f3d0', fontSize: '11px', margin: '0 0 6px 0' }}>
+                          <p style={{ color: 'var(--myteam-success, #a7f3d0)', fontSize: '11px', margin: '0 0 6px 0' }}>
                             모든 선수가 최적의 역할을 수행하여 팀 전체 스탯이 대폭 강화됩니다.
                           </p>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '11px' }}>
-                            <span style={{ background: 'rgba(0, 255, 135, 0.22)', border: '1px solid #00ff87', color: '#00ff87', padding: '2px 6px', borderRadius: '4px' }}>
+                            <span style={{ background: 'rgba(0, 255, 135, 0.22)', border: '1px solid #00ff87', color: 'var(--myteam-accent, #00ff87)', padding: '2px 6px', borderRadius: '4px' }}>
                               ⚽ 골 결정력 +20%
                             </span>
-                            <span style={{ background: 'rgba(0, 255, 135, 0.22)', border: '1px solid #00ff87', color: '#00ff87', padding: '2px 6px', borderRadius: '4px' }}>
+                            <span style={{ background: 'rgba(0, 255, 135, 0.22)', border: '1px solid #00ff87', color: 'var(--myteam-accent, #00ff87)', padding: '2px 6px', borderRadius: '4px' }}>
                               🎯 패스 성공률 +20%
                             </span>
-                            <span style={{ background: 'rgba(0, 255, 135, 0.22)', border: '1px solid #00ff87', color: '#00ff87', padding: '2px 6px', borderRadius: '4px' }}>
+                            <span style={{ background: 'rgba(0, 255, 135, 0.22)', border: '1px solid #00ff87', color: 'var(--myteam-accent, #00ff87)', padding: '2px 6px', borderRadius: '4px' }}>
                               🛡️ 수비 효율 +25%
                             </span>
-                            <span style={{ background: 'rgba(0, 255, 135, 0.22)', border: '1px solid #00ff87', color: '#00ff87', padding: '2px 6px', borderRadius: '4px' }}>
+                            <span style={{ background: 'rgba(0, 255, 135, 0.22)', border: '1px solid #00ff87', color: 'var(--myteam-accent, #00ff87)', padding: '2px 6px', borderRadius: '4px' }}>
                               🧤 선방 확률 +15%
                             </span>
                           </div>
                         </div>
                       ) : penalty.mismatchCount === 0 ? null : penalty.isAllMismatch ? (
                         <div style={{ marginBottom: '10px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', borderRadius: '8px', padding: '8px 12px' }}>
-                          <p style={{ color: '#f87171', fontWeight: 'bold', margin: '0 0 4px 0' }}>
+                          <p style={{ color: 'var(--myteam-danger, #f87171)', fontWeight: 'bold', margin: '0 0 4px 0' }}>
                             🚨 [극심한 전술 붕괴 디버프] 11명 전원 포지션 불일치!
                           </p>
-                          <p style={{ color: '#fca5a5', fontSize: '11px', margin: '0 0 6px 0' }}>
+                          <p style={{ color: 'var(--myteam-danger-muted, #fca5a5)', fontSize: '11px', margin: '0 0 6px 0' }}>
                             전원 부적응으로 팀 조직력이 완전히 와해되어 모든 스탯이 추가 -25% 급감합니다.
                           </p>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '11px' }}>
-                            <span style={{ background: 'rgba(239, 68, 68, 0.25)', border: '1px solid #ef4444', color: '#fecaca', padding: '2px 6px', borderRadius: '4px' }}>
+                            <span style={{ background: 'rgba(239, 68, 68, 0.25)', border: '1px solid #ef4444', color: 'var(--myteam-danger-soft, #fecaca)', padding: '2px 6px', borderRadius: '4px' }}>
                               ⚽ 골 확률 {penalty.fwPenaltyPercent}% 감소
                             </span>
-                            <span style={{ background: 'rgba(239, 68, 68, 0.25)', border: '1px solid #ef4444', color: '#fecaca', padding: '2px 6px', borderRadius: '4px' }}>
+                            <span style={{ background: 'rgba(239, 68, 68, 0.25)', border: '1px solid #ef4444', color: 'var(--myteam-danger-soft, #fecaca)', padding: '2px 6px', borderRadius: '4px' }}>
                               🎯 패스 확률 {penalty.mfPenaltyPercent}% 감소
                             </span>
-                            <span style={{ background: 'rgba(239, 68, 68, 0.25)', border: '1px solid #ef4444', color: '#fecaca', padding: '2px 6px', borderRadius: '4px' }}>
+                            <span style={{ background: 'rgba(239, 68, 68, 0.25)', border: '1px solid #ef4444', color: 'var(--myteam-danger-soft, #fecaca)', padding: '2px 6px', borderRadius: '4px' }}>
                               🛡️ 수비 효율 {penalty.dfPenaltyPercent}% 감소
                             </span>
-                            <span style={{ background: 'rgba(239, 68, 68, 0.25)', border: '1px solid #ef4444', color: '#fecaca', padding: '2px 6px', borderRadius: '4px' }}>
+                            <span style={{ background: 'rgba(239, 68, 68, 0.25)', border: '1px solid #ef4444', color: 'var(--myteam-danger-soft, #fecaca)', padding: '2px 6px', borderRadius: '4px' }}>
                               🧤 선방 확률 {penalty.gkPenaltyPercent}% 감소
                             </span>
                           </div>
                         </div>
                       ) : (
                         <div style={{ marginBottom: '10px' }}>
-                          <p style={{ color: '#f87171', fontWeight: 'bold', margin: '4px 0' }}>
+                          <p style={{ color: 'var(--myteam-danger, #f87171)', fontWeight: 'bold', margin: '4px 0' }}>
                             ⚠️ 포지션 불일치 {penalty.mismatchCount}명 패널티 적용 중
                           </p>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '11px', marginTop: '4px' }}>
                             {penalty.fwMismatchCount > 0 && (
-                              <span style={{ background: 'rgba(239, 68, 68, 0.18)', border: '1px solid #ef4444', color: '#fca5a5', padding: '2px 6px', borderRadius: '4px' }}>
+                              <span style={{ background: 'rgba(239, 68, 68, 0.18)', border: '1px solid #ef4444', color: 'var(--myteam-danger-muted, #fca5a5)', padding: '2px 6px', borderRadius: '4px' }}>
                                 ⚽ FW 불일치 {penalty.fwMismatchCount}명: 골 확률 {penalty.fwPenaltyPercent}% 감소
                               </span>
                             )}
                             {penalty.mfMismatchCount > 0 && (
-                              <span style={{ background: 'rgba(234, 179, 8, 0.18)', border: '1px solid #eab308', color: '#fde047', padding: '2px 6px', borderRadius: '4px' }}>
+                              <span style={{ background: 'rgba(234, 179, 8, 0.18)', border: '1px solid #eab308', color: 'var(--myteam-warning, #fde047)', padding: '2px 6px', borderRadius: '4px' }}>
                                 🎯 MF 불일치 {penalty.mfMismatchCount}명: 패스 확률 {penalty.mfPenaltyPercent}% 감소
                               </span>
                             )}
                             {penalty.dfMismatchCount > 0 && (
-                              <span style={{ background: 'rgba(59, 130, 246, 0.18)', border: '1px solid #3b82f6', color: '#93c5fd', padding: '2px 6px', borderRadius: '4px' }}>
+                              <span style={{ background: 'rgba(59, 130, 246, 0.18)', border: '1px solid #3b82f6', color: 'var(--myteam-info, #93c5fd)', padding: '2px 6px', borderRadius: '4px' }}>
                                 🛡️ DF 불일치 {penalty.dfMismatchCount}명: 수비 효율 {penalty.dfPenaltyPercent}% 감소
                               </span>
                             )}
                             {penalty.gkMismatchCount > 0 && (
-                              <span style={{ background: 'rgba(217, 70, 239, 0.18)', border: '1px solid #d946ef', color: '#f0abfc', padding: '2px 6px', borderRadius: '4px' }}>
+                              <span style={{ background: 'rgba(217, 70, 239, 0.18)', border: '1px solid #d946ef', color: 'var(--myteam-purple, #f0abfc)', padding: '2px 6px', borderRadius: '4px' }}>
                                 🧤 GK 불일치: 선방 확률 {penalty.gkPenaltyPercent}% 감소
                               </span>
                             )}
@@ -2105,7 +2081,7 @@ export default function MyTeam() {
                                 {player.nameKor || player.name}
                                 <small>
                                   {player.teamNameKor || player.teamName} · 원래 포지션 {player.mainPosition}
-                                  {isMismatch && <span style={{ color: '#f87171', fontWeight: 'bold' }}>{penaltyLabel}</span>}
+                                  {isMismatch && <span style={{ color: 'var(--myteam-danger, #f87171)', fontWeight: 'bold' }}>{penaltyLabel}</span>}
                                 </small>
                               </span>
                             </li>
@@ -2128,7 +2104,7 @@ export default function MyTeam() {
             <div className="pitch-header-info">
               <div className="pitch-formation-display">
                 <span>📍 현재 포메이션:</span>
-                <span style={{ color: '#00ff87' }}>{formation.presetLabel || `${formation.df}-${formation.mf}-${formation.fw}`}</span>
+                <span style={{ color: 'var(--myteam-accent, #00ff87)' }}>{formation.presetLabel || `${formation.df}-${formation.mf}-${formation.fw}`}</span>
                 <button
                   type="button"
                   className="myteam-btn-mini"
@@ -2140,7 +2116,7 @@ export default function MyTeam() {
               </div>
               <div className="pitch-hint">
                 {selectedSlotId !== null ? (
-                  <span style={{ color: '#00ff87', fontWeight: 700 }}>
+                  <span style={{ color: 'var(--myteam-accent, #00ff87)', fontWeight: 700 }}>
                     👉 우측 목록에서 배치할 선수를 클릭하세요!
                   </span>
                 ) : (

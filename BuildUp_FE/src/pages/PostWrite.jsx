@@ -28,16 +28,32 @@ export default function PostWrite() {
   const initialBoard = ['team', 'showcase'].includes(requestedBoard) ? requestedBoard : 'free'
   const requestedCustomTeamId = new URLSearchParams(window.location.search).get('customTeamId')
   const [board, setBoard] = useState(initialBoard)
-  const [categoryId, setCategoryId] = useState('')
+  const [selectedCategoryId, setCategoryId] = useState('')
+  const categoryId = selectedCategoryId || String(categories.find((category) => !isNewsCategory(category))?.categoryId ?? '')
   const [teamId, setTeamId] = useState('')
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
+  const [showcaseDraft] = useState(() => {
+    if (initialBoard !== 'showcase') return null
+    try {
+      const draft = JSON.parse(sessionStorage.getItem(SHOWCASE_DRAFT_KEY))
+      return draft && (!requestedCustomTeamId || Number(draft.customTeamId) === Number(requestedCustomTeamId)) ? draft : null
+    } catch { return null }
+  })
+  const [title, setTitle] = useState(() => {
+    if (!showcaseDraft) return ''
+    const name = showcaseDraft.teamName || '나만의 팀'
+    return limitTitle(name + (name.trim().endsWith('스쿼드') ? '를 소개합니다' : ' 스쿼드를 소개합니다'))
+  })
+  const [content, setContent] = useState(() => {
+    if (!showcaseDraft) return ''
+    const lineup = Array.isArray(showcaseDraft.players) ? showcaseDraft.players.map((player) => player.position + ' · ' + player.name).join('\n') : ''
+    return limitContent('포메이션: ' + (showcaseDraft.formation || '미지정') + '\n\n' + lineup + '\n\n선수 배치 이유와 전술을 소개해주세요.')
+  })
   const [imageAttachments, setImageAttachments] = useState([])
   const [fileAttachments, setFileAttachments] = useState([])
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
+  const [submitError, setError] = useState('')
+  const error = submitError || categoriesError || teamsError
   const [customTeam, setCustomTeam] = useState(null)
-  const [showcaseDraft, setShowcaseDraft] = useState(null)
   const submitRequestRef = useRef(false)
   const attachments = [...imageAttachments, ...fileAttachments]
 
@@ -48,19 +64,6 @@ export default function PostWrite() {
     dispatch(fetchTeams())
     dispatch(fetchCategories())
   }, [dispatch])
-
-  useEffect(() => {
-    if (categories.length > 0 && !categoryId) {
-      const firstWritableCategory = categories.find((category) => !isNewsCategory(category))
-      setCategoryId(firstWritableCategory ? String(firstWritableCategory.categoryId) : '')
-    }
-  }, [categories, categoryId])
-
-  useEffect(() => {
-    if (teamsError || categoriesError) {
-      setError(categoriesError || teamsError || '글쓰기 정보를 불러오지 못했습니다.')
-    }
-  }, [teamsError, categoriesError])
 
   // 자랑글 작성 시 로그인 사용자가 저장한 나만의 팀을 불러옵니다.
   useEffect(() => {
@@ -87,24 +90,6 @@ export default function PostWrite() {
     loadCustomTeam()
     return () => { active = false }
   }, [board, isLoggedIn, requestedCustomTeamId])
-
-  // 나만의 팀 화면에서 전달한 제목과 선수 명단을 초깃값으로 채웁니다.
-  useEffect(() => {
-    if (initialBoard !== 'showcase') return
-    try {
-      const draft = JSON.parse(sessionStorage.getItem(SHOWCASE_DRAFT_KEY))
-      if (!draft || (requestedCustomTeamId && Number(draft.customTeamId) !== Number(requestedCustomTeamId))) return
-      setShowcaseDraft(draft)
-      const draftTeamName = draft.teamName || '나만의 팀'
-      setTitle(limitTitle(draftTeamName.trim().endsWith('스쿼드')
-        ? `${draftTeamName}를 소개합니다`
-        : `${draftTeamName} 스쿼드를 소개합니다`))
-      const lineup = Array.isArray(draft.players) ? draft.players.map((player) => `${player.position} · ${player.name}`).join('\n') : ''
-      setContent(limitContent(`포메이션: ${draft.formation || '미지정'}\n\n${lineup}\n\n선수 배치 이유와 전술을 소개해주세요.`))
-    } catch {
-      // 전달된 임시 글 정보가 없으면 빈 작성 화면을 표시합니다.
-    }
-  }, [initialBoard, requestedCustomTeamId])
 
   // 이미지와 일반 첨부파일을 각각 검사하여 선택 목록에 저장합니다.
   const selectAttachments = (event, type) => {
@@ -216,18 +201,22 @@ export default function PostWrite() {
       }
 
       if (attachments.length > 0) {
-        const formData = new FormData()
-        attachments.forEach((file) => formData.append('files', file))
-        const uploadResponse = await fetch(`/api/communities/${createdPostId}/attachments`, {
-          method: 'POST',
-          headers: uploadHeaders,
-          body: formData,
-        })
-        const isJson = uploadResponse.headers.get('content-type')?.includes('application/json')
-        const uploadResult = isJson ? await uploadResponse.json() : null
-        if (!uploadResponse.ok) {
+        // 게시글 저장 후 업로드 실패는 글 재등록 대신 상세 화면에서 복구합니다.
+        try {
+          const formData = new FormData()
+          attachments.forEach((file) => formData.append('files', file))
+          const uploadResponse = await fetch(`/api/communities/${createdPostId}/attachments`, {
+            method: 'POST',
+            headers: uploadHeaders,
+            body: formData,
+          })
+          const isJson = uploadResponse.headers.get('content-type')?.includes('application/json')
+          const uploadResult = isJson ? await uploadResponse.json() : null
+          if (!uploadResponse.ok) {
+            throw new Error(uploadResult?.message || '첨부파일 업로드에 실패했습니다.')
+          }
+        } catch {
           attachmentFailed = true
-          window.alert(uploadResult?.message || '게시글은 등록되었지만 첨부파일 업로드에 실패했습니다. 상세 화면에서 다시 등록해주세요.')
         }
       }
 
@@ -347,7 +336,10 @@ export default function PostWrite() {
     <aside className="community__write-ad" aria-label="광고 영역">
       <span className="community__ad-label">광고 · ADVERTISEMENT</span>
       <div className="community__vertical-ad">
-        <img src="/je.png" width="300" height="600" alt="제때약 — 내 약을 제때, 더 안전하게. 복약 일정부터 AI 상담까지." />
+        <picture>
+          <source media="(max-width: 1000px)" srcSet="/je-mobile.png" width="2172" height="724" />
+          <img src="/je.png" width="300" height="600" alt="제때약 — 내 약을 제때, 더 안전하게." />
+        </picture>
       </div>
     </aside>
     </div>

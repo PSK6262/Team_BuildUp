@@ -4,9 +4,7 @@ import { updateUser } from '../../store/authSlice.js';
 import { communityTeams } from '../../data/communityTeams.js';
 import {
   BASE_QUESTIONS,
-  QUIZ_QUESTIONS,
   CLUBS_DATA,
-  evaluateBaseAnswers,
   calculateQuizResultWithSkip,
   findDifferentiatingTieBreakers,
   filterCandidatesByTieBreaker,
@@ -14,6 +12,7 @@ import {
 } from '../../data/quizData.js';
 import { getTeams, getTeamById } from '../../api/teamApi.js';
 import '../../css/TeamQuizModal.css';
+const EMPTY_TEAMS = [];
 
 // 고해상도 엠블럼 URL 처리 함수 (50px -> 100px 변환 지원)
 function getHighResEmblemUrl(url) {
@@ -21,7 +20,7 @@ function getHighResEmblemUrl(url) {
   return url.replace('/50/', '/100/');
 }
 
-export default function TeamQuizModal({ isOpen, onClose, teams = [] }) {
+export default function TeamQuizModal({ isOpen, onClose, teams = EMPTY_TEAMS }) {
   const dispatch = useDispatch();
   const isLoggedIn = useSelector((state) => state.auth?.isLoggedIn);
   const currentUser = useSelector((state) => state.auth?.user);
@@ -50,22 +49,26 @@ export default function TeamQuizModal({ isOpen, onClose, teams = [] }) {
   const [favoriteFeedback, setFavoriteFeedback] = useState(null);
 
   // 5. DB TEAMS 테이블 연동 상태
-  const [dbTeams, setDbTeams] = useState(teams || []);
-  const [liveEmblemUrl, setLiveEmblemUrl] = useState('');
+  const [fetchedTeams, setDbTeams] = useState([]);
+  const dbTeams = Array.isArray(teams) && teams.length > 0 ? teams : fetchedTeams;
+  const [emblemResult, setEmblemResult] = useState(null);
+  const resultTeamId = matchResult?.bestClub?.teamId;
+  const liveEmblemUrl = emblemResult && emblemResult.teamId === resultTeamId
+    ? emblemResult.url : getDbEmblemUrl(resultTeamId, dbTeams);
 
   const bannerTimerRef = useRef(null);
 
   // teams prop 변경 반영 또는 비어있을 시 DB teams fetch
   useEffect(() => {
-    if (Array.isArray(teams) && teams.length > 0) {
-      setDbTeams(teams);
-    } else {
+    let active = true;
+    if (!Array.isArray(teams) || teams.length === 0) {
       getTeams().then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
+        if (active && Array.isArray(data) && data.length > 0) {
           setDbTeams(data);
         }
       });
     }
+    return () => { active = false; };
   }, [teams]);
 
   // 모달 열릴 때 body 스크롤 차단
@@ -83,29 +86,25 @@ export default function TeamQuizModal({ isOpen, onClose, teams = [] }) {
   // 결과 구단이 결정되었을 때, DB TEAMS 테이블의 단건 API(GET /api/teams/{teamId})로 최신 EMBLEM_URL 조회
   useEffect(() => {
     if (!matchResult?.bestClub?.teamId) {
-      setLiveEmblemUrl('');
       return;
     }
 
     const teamId = matchResult.bestClub.teamId;
 
-    // 1차: props 또는 캐시된 dbTeams에서 조회
-    const initialEmblem = getDbEmblemUrl(teamId, dbTeams);
-    if (initialEmblem) {
-      setLiveEmblemUrl(initialEmblem);
-    }
+    let active = true;
 
     // 2차: DB TEAMS 테이블 단건 조회 API를 통해 최신 EMBLEM_URL 동기화
     getTeamById(teamId)
       .then((dbTeamData) => {
-        if (dbTeamData?.emblemUrl) {
-          setLiveEmblemUrl(dbTeamData.emblemUrl);
+        if (active && dbTeamData?.emblemUrl) {
+          setEmblemResult({ teamId, url: dbTeamData.emblemUrl });
         }
       })
       .catch((err) => {
         console.warn('[TeamQuizModal] DB TEAMS 단건 조회 알림:', err.message);
       });
-  }, [matchResult?.bestClub?.teamId, dbTeams]);
+    return () => { active = false; };
+  }, [matchResult?.bestClub?.teamId]);
 
   // 모달 열릴 때 로그인된 회원의 최신 정보(애정 구단 ID 포함) 동기화
   useEffect(() => {
@@ -141,7 +140,7 @@ export default function TeamQuizModal({ isOpen, onClose, teams = [] }) {
     setIsAllSkipped(false);
     setIsCompleted(false);
     setMatchResult(null);
-    setLiveEmblemUrl('');
+    setEmblemResult(null);
     setFavoriteFeedback(null);
     setIsSettingFavorite(false);
     currentQuizResultRef.current = null;

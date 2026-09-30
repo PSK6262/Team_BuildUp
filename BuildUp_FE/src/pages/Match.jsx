@@ -3,10 +3,12 @@ import teamDbFallback from '../data/teamDbFallback.json'
 import { getTeams } from '../api/teamApi.js'
 import FcManagerModeModal from '../components/match/FcManagerModeModal.jsx'
 import '../css/match.css'
+import { MatchClubPicker, MatchRoundPicker } from '../components/match/MatchFilters.jsx'
 
 const teamsData = teamDbFallback.teams
 const SEASONS = [2024, 2025, 2026]
 const MATCH_PAGE_SIZE = 10
+const EMPTY_MATCHES = []
 const seasonLabel = (season) => `${String(season).slice(-2)}-${String(season + 1).slice(-2)}`
 
 // 프리미어리그 시즌 월 목록 (8월 ~ 5월 + 전체)
@@ -25,7 +27,7 @@ const MONTH_TABS = [
 ]
 
 // 프리미어리그 38개 라운드 목록 (1R ~ 38R)
-const ROUND_LIST = Array.from({ length: 38 }, (_, i) => i + 1)
+
 
 // 기본 한글 구단명 매핑 사전
 const TEAM_NAMES_KOR = {
@@ -116,6 +118,7 @@ export default function Match() {
   const teamRanks = rankResult.season === selectedSeason ? rankResult.ranks : new Map()
   const [ dbError, setDbError ] = useState('')
   const [ loading, setLoading ] = useState(false)
+  const [ syncing, setSyncing ] = useState(false)
   const [ reload, setReload ] = useState(0)
   const [ activeMatchForModal, setActiveMatchForModal ] = useState(null)
 
@@ -513,6 +516,7 @@ export default function Match() {
               type="button"
               className={`match-season-tab ${selectedSeason === season ? 'is-active' : ''}`}
               aria-pressed={selectedSeason === season}
+              disabled={season === 2024 || season === 2025}
               onClick={() => setSelectedSeason(season)}
             >
               {seasonLabel(season)} 시즌
@@ -523,9 +527,9 @@ export default function Match() {
         {/* DB 연결 상태 안내 배너 (연결 지연 시 안내) */}
         {dbError && (
           <div style={{
-            background: '#fffbeb',
-            border: '1px solid #fef08a',
-            color: '#854d0e',
+            background: 'var(--match-warning-bg)',
+            border: '1px solid var(--match-warning-line)',
+            color: 'var(--match-warning-text)',
             padding: '14px 18px',
             borderRadius: '12px',
             marginBottom: '20px',
@@ -544,7 +548,7 @@ export default function Match() {
                 background: 'none',
                 border: 'none',
                 fontSize: '16px',
-                color: '#854d0e',
+                color: 'var(--match-warning-text)',
                 cursor: 'pointer',
                 fontWeight: 'bold'
               }}
@@ -553,7 +557,7 @@ export default function Match() {
               ✕
             </button>
             <strong>⚠️ {dbError}</strong><br />
-            <span style={{ fontSize: '13px', color: '#a16207' }}>
+            <span style={{ fontSize: '13px', color: 'var(--match-warning-muted)' }}>
               {seasonLabel(selectedSeason)} 시즌 경기 데이터를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.
             </span>
             <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -605,44 +609,7 @@ export default function Match() {
         </div>
 
         {/* 구단(팀) 선택 필터 바 - DB 구단 및 실시간 순위 함께 표기 */}
-        <div className="team-filter-bar">
-          <span className="team-filter-label">구단 선택:</span>
-          <div className="team-filter-select-wrapper">
-            {selectedTeam?.emblemUrl && (
-              <img
-                src={selectedTeam.emblemUrl}
-                alt={selectedTeam.teamNameKor || selectedTeam.teamName}
-                className="team-filter-emblem"
-              />
-            )}
-            <select
-              className="team-filter-select"
-              value={selectedTeamId}
-              onChange={(e) => setSelectedTeamId(e.target.value)}
-              aria-label="구단 선택"
-            >
-              <option value="ALL">전체 구단</option>
-              {dbTeams.map((team) => {
-                return (
-                  <option key={team.teamId} value={team.teamId}>
-                    {team.teamNameKor} ({team.teamName})
-                  </option>
-                )
-              })}
-            </select>
-            <span className="team-filter-arrow">▼</span>
-          </div>
-
-          {selectedTeamId !== 'ALL' && (
-            <button
-              type="button"
-              className="team-filter-reset-btn"
-              onClick={() => setSelectedTeamId('ALL')}
-            >
-              ✕ 전체 보기
-            </button>
-          )}
-        </div>
+        <MatchClubPicker teams={dbTeams} value={selectedTeamId} onChange={setSelectedTeamId} />
 
         {/* 1. 월별 필터 탭 바 (MONTH 모드일 때 노출) */}
         {filterMode === 'MONTH' && (
@@ -668,30 +635,7 @@ export default function Match() {
 
         {/* 2. 라운드별 필터 UI (ROUND 모드일 때 노출) */}
         {filterMode === 'ROUND' && (
-          <section className="round-filter-container" aria-label="라운드별 일정 필터">
-            <div className="round-filter-nav">
-              <button
-                type="button"
-                className={`round-filter-btn ${selectedRound === 'ALL' ? 'active' : ''}`}
-                onClick={() => setSelectedRound('ALL')}
-              >
-                전체
-              </button>
-              {ROUND_LIST.map((r) => {
-                const isActive = Number(selectedRound) === r
-                return (
-                  <button
-                    key={r}
-                    type="button"
-                    className={`round-filter-btn ${isActive ? 'active' : ''}`}
-                    onClick={() => setSelectedRound(r)}
-                  >
-                    {r}R
-                  </button>
-                )
-              })}
-            </div>
-          </section>
+          <MatchRoundPicker value={selectedRound} onChange={setSelectedRound} />
         )}
 
         {/* 경기 카운트 및 새로고침 상태바 */}
@@ -718,7 +662,7 @@ export default function Match() {
               <span> ({selectedRound} 라운드)</span>
             )}
             {selectedTeam && (
-              <span style={{ color: '#38003c', fontWeight: 800 }}>
+              <span style={{ color: 'var(--match-accent-text)', fontWeight: 800 }}>
                 {' '}
                 · {selectedTeam.teamNameKor} ({selectedTeam.teamName})
               </span>
@@ -774,8 +718,9 @@ export default function Match() {
               const isFinished =
                 status === 'FINISHED' ||
                 status === 'AWARDED' ||
-                (homeScore !== null && awayScore !== null)
+                (homeScore != null && awayScore != null)
               const isLive = status === 'LIVE' || status === 'IN_PLAY'
+              const canOpenMatch = isFinished || isLive
 
               const outcome = getMatchOutcome(match)
               const isHomeWinner = isFinished && outcome === 'HOME_WIN'
@@ -786,7 +731,17 @@ export default function Match() {
                 <article
                   key={match.matchId}
                   id={`match-card-${match.matchId}`}
-                  tabIndex={isFocusedMatch ? -1 : undefined}
+                  role={canOpenMatch ? 'button' : undefined}
+                  tabIndex={canOpenMatch ? 0 : isFocusedMatch ? -1 : undefined}
+                  aria-haspopup={canOpenMatch ? 'dialog' : undefined}
+                  aria-label={canOpenMatch ? `${dateStr} ${homeTeam.teamNameKor} 대 ${awayTeam.teamNameKor} 경기 중계 열기` : undefined}
+                  onClick={canOpenMatch ? () => setActiveMatchForModal(match) : undefined}
+                  onKeyDown={canOpenMatch ? (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      setActiveMatchForModal(match)
+                    }
+                  } : undefined}
                   className={`match-card ${isFocusedMatch ? 'match-card--focused' : ''}`}
                 >
                   {/* 일시 및 라운드 태그 */}
@@ -866,21 +821,11 @@ export default function Match() {
                     </div>
                   </div>
 
-                  {/* 홈 경기장 안내 및 감독모드 텍스트 중계 버튼 (종료된 경기 및 진행 중 LIVE 경기에만 노출) */}
+                  {/* 홈 경기장 안내 */}
                   <div className="match-card__ground">
                     <span className="match-ground-pill">
                       📍 {match.displayHomeGround || match.homeGroundKor || homeTeam.homeGroundKor || getStadiumNameKor(match.homeGround || homeTeam.homeGround, match.homeTeamId)}
                     </span>
-                    {(isFinished || isLive) && (
-                      <button
-                        type="button"
-                        className="match-manager-mode-btn"
-                        onClick={() => setActiveMatchForModal(match)}
-                        title="FC 온라인 감독모드 스타일 2D 피치 & 문자 중계 열기"
-                      >
-                        🎮 감독모드 중계
-                      </button>
-                    )}
                   </div>
                 </article>
               )

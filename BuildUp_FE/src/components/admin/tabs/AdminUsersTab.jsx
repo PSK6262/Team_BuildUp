@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAdminUsers } from '../../../hooks/useAdminUsers.js';
+import AdminSelect from '../AdminSelect.jsx';
 
 /**
  * [관리자 회원 & 포인트 관리 탭 - BuildUp_FE/src/components/admin/tabs/AdminUsersTab.jsx]
@@ -31,7 +32,7 @@ export default function AdminUsersTab({ showAlert }) {
         <div className="admin-section__header">
           <h2 className="admin-section__title">전체 회원 및 권한/포인트 관리</h2>
           <div className="admin-filters">
-            <select
+            <AdminSelect
               className="admin-select"
               value={userRoleFilter}
               onChange={(e) => {
@@ -44,7 +45,7 @@ export default function AdminUsersTab({ showAlert }) {
               <option value="1">일반회원</option>
               <option value="9">관리자</option>
               <option value="7">탈퇴회원</option>
-            </select>
+            </AdminSelect>
             <input
               type="text"
               className="admin-input"
@@ -83,11 +84,11 @@ export default function AdminUsersTab({ showAlert }) {
                   const isAdminRole = Number(u.roleCode) === 9;
                   return (
                     <tr key={u.userId} style={isWithdrawn ? { opacity: 0.65, background: '#f8fafc' } : {}}>
-                      <td>{u.userId}</td>
-                      <td><strong>{u.loginId}</strong></td>
-                      <td>{u.nickname}</td>
-                      <td style={{ color: '#64748b' }}>{u.email}</td>
-                      <td>
+                      <td data-label="회원ID">{u.userId}</td>
+                      <td data-label="로그인 아이디"><strong>{u.loginId}</strong></td>
+                      <td data-label="닉네임">{u.nickname}</td>
+                      <td data-label="이메일" style={{ color: '#64748b' }}>{u.email}</td>
+                      <td data-label="권한 등급">
                         {isAdminRole ? (
                           <span className="badge badge--purple">관리자</span>
                         ) : isWithdrawn ? (
@@ -96,17 +97,17 @@ export default function AdminUsersTab({ showAlert }) {
                           <span className="badge badge--green">일반회원</span>
                         )}
                       </td>
-                      <td style={{ fontWeight: 700, color: isWithdrawn ? '#94a3b8' : '#16744b' }}>
+                      <td data-label="보유 포인트" style={{ fontWeight: 700, color: isWithdrawn ? '#94a3b8' : '#16744b' }}>
                         {u.point !== null ? u.point.toLocaleString() : 0} P
                       </td>
-                      <td style={{ color: '#64748b', fontSize: 13 }}>{u.createdAt}</td>
-                      <td>
+                      <td data-label="가입일시" style={{ color: '#64748b', fontSize: 13 }}>{u.createdAt}</td>
+                      <td data-label="관리 액션">
                         {isWithdrawn ? (
                           <span style={{ fontSize: 12, color: '#94a3b8', padding: '6px 8px' }}>
                             탈퇴 계정 (수정 불가)
                           </span>
                         ) : (
-                          <div style={{ display: 'flex', gap: 6 }}>
+                          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                             <button
                               type="button"
                               className="btn-action btn-action--outline"
@@ -171,7 +172,7 @@ export default function AdminUsersTab({ showAlert }) {
               </p>
               <div className="admin-form-group">
                 <label>권한 등급 선택</label>
-                <select
+                <AdminSelect
                   className="admin-select"
                   style={{ width: '100%' }}
                   value={roleModal.roleCode}
@@ -179,7 +180,7 @@ export default function AdminUsersTab({ showAlert }) {
                 >
                   <option value="1">일반회원</option>
                   <option value="9">관리자</option>
-                </select>
+                </AdminSelect>
               </div>
             </div>
             <div className="admin-modal__footer">

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAdminMatches } from '../../../hooks/useAdminMatches.js';
 import { communityTeams, getTeamFullNameKor } from '../../../data/communityTeams.js';
+import AdminSelect from '../AdminSelect.jsx';
 
 /**
  * [관리자 경기 & 부상 관리 탭 - BuildUp_FE/src/components/admin/tabs/AdminMatchesTab.jsx]
@@ -77,7 +78,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                 title="조회 종료일 (To)"
               />
             </div>
-            <select
+            <AdminSelect
               className="admin-select"
               value={matchStatusFilter}
               onChange={(e) => {
@@ -90,8 +91,8 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
               <option value="LIVE">진행중 (LIVE)</option>
               <option value="CANCELLED_OR_POSTPONED">취소 및 연기됨</option>
               <option value="MISMATCH">⚠️ 스코어-이벤트 불일치 경기</option>
-            </select>
-            <select
+            </AdminSelect>
+            <AdminSelect
               className="admin-select"
               value={matchSortOrder}
               onChange={(e) => {
@@ -103,7 +104,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
               <option value="AUTO">자동 정렬 (상태 기준)</option>
               <option value="ASC">오름차순 (ASC ⏶)</option>
               <option value="DESC">내림차순 (DESC ⏷)</option>
-            </select>
+            </AdminSelect>
             <button
               type="button"
               className="btn-action btn-action--primary"
@@ -180,8 +181,8 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
 
                   return (
                     <tr key={m.matchId} style={isMismatch ? { background: '#fff5f5' } : {}}>
-                      <td style={{ whiteSpace: 'nowrap' }}>{m.matchDate}</td>
-                      <td>
+                      <td data-label="경기일시" style={{ whiteSpace: 'nowrap' }}>{m.matchDate}</td>
+                      <td data-label="매치업">
                         <div className="match-team-cell">
                           {m.homeEmblemUrl && <img src={m.homeEmblemUrl} alt="" className="match-emblem" />}
                           <span className="match-team-name" title={getTeamFullNameKor(m.homeTeamId, m.homeTeamNameKor || m.homeTeamName)}>
@@ -194,7 +195,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                           </span>
                         </div>
                       </td>
-                      <td style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
+                      <td data-label="스코어" style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
                         <div>
                           {m.homeScore !== null && m.awayScore !== null
                             ? `${m.homeScore} : ${m.awayScore}`
@@ -212,7 +213,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                           </div>
                         )}
                       </td>
-                      <td>
+                      <td data-label="상태">
                         <span className={`badge ${
                           m.status === 'FINISHED' ? 'badge--gray' :
                           m.status === 'LIVE' ? 'badge--red' : 'badge--green'
@@ -220,14 +221,14 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                           {m.status}
                         </span>
                       </td>
-                      <td>
+                      <td data-label="공지사항">
                         {m.notice ? (
                           <span className="match-notice-text" title={m.notice}>📢 {m.notice}</span>
                         ) : (
                           <span style={{ color: '#94a3b8', fontSize: 13 }}>공지 없음</span>
                         )}
                       </td>
-                      <td>
+                      <td data-label="관리 액션">
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                           <button
                             type="button"
@@ -292,7 +293,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
         <div className="admin-section__header">
           <h2 className="admin-section__title">구단별 선수단 부상 및 출장정지 관리</h2>
           <div className="admin-filters">
-            <select
+            <AdminSelect
               className="admin-select"
               value={selectedTeamId}
               onChange={(e) => {
@@ -307,7 +308,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                   {t.fullNameKor || t.name}
                 </option>
               ))}
-            </select>
+            </AdminSelect>
           </div>
         </div>
 
@@ -332,29 +333,29 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
               ) : (
                 teamPlayers.slice(0, visibleTeamPlayers).map((p) => (
                   <tr key={p.playerId}>
-                    <td><strong>{p.playerName}</strong></td>
-                    <td>{p.playerNameKor || '-'}</td>
-                    <td>
+                    <td data-label="선수명"><strong>{p.playerName}</strong></td>
+                    <td data-label="한글명">{p.playerNameKor || '-'}</td>
+                    <td data-label="포지션">
                       <span className="badge badge--blue">{p.detailPosition || p.mainPosition}</span>
                     </td>
-                    <td>
+                    <td data-label="부상 여부">
                       {p.isInjured === 'Y' ? (
                         <span className="badge badge--red">부상중 (Y)</span>
                       ) : (
                         <span className="badge badge--green">정상 (N)</span>
                       )}
                     </td>
-                    <td>
+                    <td data-label="출장 정지">
                       {p.isSuspended === 'Y' ? (
                         <span className="badge badge--purple">정지 (Y)</span>
                       ) : (
                         <span style={{ color: '#94a3b8' }}>N</span>
                       )}
                     </td>
-                    <td style={{ maxWidth: 300, color: '#d97706' }}>
+                    <td data-label="결장 사유 메모" style={{ maxWidth: 300, color: '#d97706' }}>
                       {p.injuryNote || '-'}
                     </td>
-                    <td>
+                    <td data-label="수정">
                       <button
                         type="button"
                         className="btn-action btn-action--outline"
@@ -459,7 +460,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
               </div>
               <div className="admin-form-group">
                 <label>경기 진행 상태</label>
-                <select
+                <AdminSelect
                   className="admin-select"
                   style={{ width: '100%' }}
                   value={scoreModal.status}
@@ -470,7 +471,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                   <option value="FINISHED">FINISHED (경기 종료)</option>
                   <option value="POSTPONED">POSTPONED (연기)</option>
                   <option value="CANCELLED">CANCELLED (취소)</option>
-                </select>
+                </AdminSelect>
               </div>
             </div>
             <div className="admin-modal__footer">
@@ -756,12 +757,15 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                     <span>➕</span> 이벤트 수동 직접 추가 <span style={{ fontSize: 11, fontWeight: 400, color: '#64748b' }}>(누락된 골/카드 등록)</span>
                   </h4>
                 </div>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: '85px minmax(160px, 1.8fr) minmax(135px, 1.2fr) minmax(160px, 1.8fr) auto',
-                  gap: 10,
-                  alignItems: 'end',
-                }}>
+                <div
+                  className="admin-event-add-grid"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '85px minmax(160px, 1.8fr) minmax(135px, 1.2fr) minmax(160px, 1.8fr) auto',
+                    gap: 10,
+                    alignItems: 'end',
+                  }}
+                >
                   <div>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
                       시간(분)
@@ -784,7 +788,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
                       소속 구단
                     </label>
-                    <select
+                    <AdminSelect
                       className="admin-select"
                       style={{ width: '100%', height: 38, boxSizing: 'border-box' }}
                       value={eventModal.newEvent.teamId}
@@ -799,13 +803,13 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                       <option value={eventModal.match?.awayTeamId}>
                         [원정] {getTeamFullNameKor(eventModal.match?.awayTeamId, eventModal.match?.awayTeamNameKor || eventModal.match?.awayTeamName)}
                       </option>
-                    </select>
+                    </AdminSelect>
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
                       이벤트 유형
                     </label>
-                    <select
+                    <AdminSelect
                       className="admin-select"
                       style={{ width: '100%', height: 38, boxSizing: 'border-box' }}
                       value={eventModal.newEvent.eventType}
@@ -821,13 +825,13 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                       <option value="5">🟨🟥 경고누적 (5)</option>
                       <option value="6">🟥 퇴장 (6)</option>
                       <option value="8">❌ PK 실축 (8)</option>
-                    </select>
+                    </AdminSelect>
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
                       선수 선택
                     </label>
-                    <select
+                    <AdminSelect
                       className="admin-select"
                       style={{ width: '100%', height: 38, boxSizing: 'border-box' }}
                       value={eventModal.newEvent.playerId}
@@ -845,7 +849,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                           </option>
                         ))
                       }
-                    </select>
+                    </AdminSelect>
                   </div>
                   <div>
                     <button
@@ -885,7 +889,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
                 <div className="admin-form-group">
                   <label>부상 여부 (IS_INJURED)</label>
-                  <select
+                  <AdminSelect
                     className="admin-select"
                     style={{ width: '100%' }}
                     value={injuryModal.isInjured}
@@ -893,11 +897,11 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                   >
                     <option value="N">정상 (N)</option>
                     <option value="Y">부상중 (Y)</option>
-                  </select>
+                  </AdminSelect>
                 </div>
                 <div className="admin-form-group">
                   <label>출장 정지 (IS_SUSPENDED)</label>
-                  <select
+                  <AdminSelect
                     className="admin-select"
                     style={{ width: '100%' }}
                     value={injuryModal.isSuspended}
@@ -905,7 +909,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                   >
                     <option value="N">정상 출전 가능 (N)</option>
                     <option value="Y">출장 정지 징계 (Y)</option>
-                  </select>
+                  </AdminSelect>
                 </div>
               </div>
               <div className="admin-form-group">
