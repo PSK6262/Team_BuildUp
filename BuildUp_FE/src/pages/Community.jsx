@@ -191,13 +191,13 @@ export default function Community({ selectedTeam = null }) {
   const pageCount = Math.max(1, totalPages)
 
   return (
-    <main className="community community--board">
-      <CommunityNavigation section={selectedTeam ? 'teams' : 'main'} teamName={selectedTeamName} />
+    <main className="community community--board community--landing">
       <header className="community__board-heading">
       <p className="community__eyebrow">PLUGIN COMMUNITY</p>
       <h1>{selectedTeam ? `${selectedTeamName} 게시판` : '커뮤니티'}</h1>
       <p className="community__intro">응원하는 팀 이야기부터 소소한 일상까지, 함께 나눠요.</p>
       </header>
+      <CommunityNavigation section={selectedTeam ? 'teams' : 'main'} teamName={selectedTeamName} />
       <section className="community__controls" aria-label="게시글 검색과 필터">
       <form className="community__search community__main-search" role="search" onSubmit={(event) => {
         event.preventDefault(); setKeyword(input.trim()); setPage(1)
