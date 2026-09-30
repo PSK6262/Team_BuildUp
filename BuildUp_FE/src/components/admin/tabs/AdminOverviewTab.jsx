@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAdminOverview } from '../../../hooks/useAdminOverview.js';
 import { getTeamFullNameKor } from '../../../data/communityTeams.js';
+import AdminSelect from '../AdminSelect.jsx';
 
 /**
  * [관리자 대시보드 개요 탭 - BuildUp_FE/src/components/admin/tabs/AdminOverviewTab.jsx]
@@ -156,7 +157,7 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
           </div>
           <div className="admin-filters">
             {/* 1. 구단별 검색 */}
-            <select
+            <AdminSelect
               className="admin-select"
               value={injuredTeamFilter}
               onChange={(e) => {
@@ -169,10 +170,10 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
               {uniqueInjuredTeams.map((team) => (
                 <option key={team} value={team}>{team}</option>
               ))}
-            </select>
+            </AdminSelect>
 
             {/* 2. 포지션별 검색 */}
-            <select
+            <AdminSelect
               className="admin-select"
               value={injuredPosFilter}
               onChange={(e) => {
@@ -186,10 +187,10 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
               <option value="MF">미드필더 (MF)</option>
               <option value="DF">수비수 (DF)</option>
               <option value="GK">골키퍼 (GK)</option>
-            </select>
+            </AdminSelect>
 
             {/* 3. 상태별 검색 */}
-            <select
+            <AdminSelect
               className="admin-select"
               value={injuredStatusFilter}
               onChange={(e) => {
@@ -202,7 +203,7 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
               <option value="INJURED">부상중</option>
               <option value="SUSPENDED">출장정지</option>
               <option value="BOTH">부상 & 정지</option>
-            </select>
+            </AdminSelect>
 
             {/* 4. 선수명별 검색 */}
             <input
@@ -256,15 +257,15 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
               ) : (
                 filteredInjured.slice(0, visibleInjured).map((item) => (
                   <tr key={item.playerId}>
-                    <td><strong>{getTeamFullNameKor(item.teamId, item.teamNameKor || item.teamName)}</strong></td>
-                    <td>{item.playerNameKor || item.playerName}</td>
-                    <td>{item.detailPosition || item.mainPosition}</td>
-                    <td>
+                    <td data-label="구단"><strong>{getTeamFullNameKor(item.teamId, item.teamNameKor || item.teamName)}</strong></td>
+                    <td data-label="선수명">{item.playerNameKor || item.playerName}</td>
+                    <td data-label="포지션">{item.detailPosition || item.mainPosition}</td>
+                    <td data-label="상태">
                       {item.isInjured === 'Y' && <span className="badge badge--red">부상</span>}
                       {item.isSuspended === 'Y' && <span className="badge badge--purple" style={{ marginLeft: 4 }}>출장정지</span>}
                     </td>
-                    <td>{item.injuryNote || '-'}</td>
-                    <td>
+                    <td data-label="부상/결장 메모">{item.injuryNote || '-'}</td>
+                    <td data-label="관리">
                       <button
                         type="button"
                         className="btn-action btn-action--outline"
@@ -311,7 +312,7 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
           </div>
           <div className="admin-filters">
             {/* 1. 처리 주체 분류 필터 */}
-            <select
+            <AdminSelect
               className="admin-select"
               value={auditAdminFilter}
               onChange={(e) => {
@@ -323,7 +324,7 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
               <option value="">전체 처리자</option>
               <option value="ADMIN">관리자 직권</option>
               <option value="SYSTEM">시스템 (승부예측)</option>
-            </select>
+            </AdminSelect>
 
             {/* 2. 회원 닉네임/ID 검색 */}
             <input
@@ -390,14 +391,14 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
               ) : (
                 filteredPoints.slice(0, visiblePoints).map((item) => (
                   <tr key={item.pointHistoryId}>
-                    <td>{item.pointHistoryId}</td>
-                    <td><strong>{item.userId}</strong></td>
-                    <td>{item.nickname || <span style={{ color: '#94a3b8' }}>-</span>}</td>
-                    <td style={{ fontWeight: 700, color: item.amount > 0 ? '#16744b' : '#dc2626' }}>
+                    <td data-label="번호">{item.pointHistoryId}</td>
+                    <td data-label="회원 ID"><strong>{item.userId}</strong></td>
+                    <td data-label="회원 닉네임">{item.nickname || <span style={{ color: '#94a3b8' }}>-</span>}</td>
+                    <td data-label="변동 포인트" style={{ fontWeight: 700, color: item.amount > 0 ? '#16744b' : '#dc2626' }}>
                       {item.amount > 0 ? `+${item.amount.toLocaleString()}` : `${item.amount.toLocaleString()}`} P
                     </td>
-                    <td>{item.balanceAfter != null ? item.balanceAfter.toLocaleString() : '-'} P</td>
-                    <td>
+                    <td data-label="변동 후 잔액">{item.balanceAfter != null ? item.balanceAfter.toLocaleString() : '-'} P</td>
+                    <td data-label="사유 내용">
                       {(() => {
                         const desc = item.description || '';
                         const match = desc.match(/^(\[[^\]]+\])\s*(.*)$/);
@@ -425,7 +426,7 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
                         );
                       })()}
                     </td>
-                    <td style={{ color: '#64748b', fontSize: 13, whiteSpace: 'nowrap' }}>{item.createdAt}</td>
+                    <td data-label="발생 일시" style={{ color: '#64748b', fontSize: 13, whiteSpace: 'nowrap' }}>{item.createdAt}</td>
                   </tr>
                 ))
               )}
@@ -460,7 +461,7 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
                 <div className="admin-form-group">
                   <label>부상 여부 (IS_INJURED)</label>
-                  <select
+                  <AdminSelect
                     className="admin-select"
                     style={{ width: '100%' }}
                     value={injuryModal.isInjured}
@@ -468,11 +469,11 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
                   >
                     <option value="N">정상 (N)</option>
                     <option value="Y">부상중 (Y)</option>
-                  </select>
+                  </AdminSelect>
                 </div>
                 <div className="admin-form-group">
                   <label>출장 정지 (IS_SUSPENDED)</label>
-                  <select
+                  <AdminSelect
                     className="admin-select"
                     style={{ width: '100%' }}
                     value={injuryModal.isSuspended}
@@ -480,7 +481,7 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
                   >
                     <option value="N">정상 출전 가능 (N)</option>
                     <option value="Y">출장 정지 징계 (Y)</option>
-                  </select>
+                  </AdminSelect>
                 </div>
               </div>
               <div className="admin-form-group">

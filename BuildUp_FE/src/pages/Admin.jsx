@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import AdminOverviewTab from '../components/admin/tabs/AdminOverviewTab.jsx';
 import AdminMatchesTab from '../components/admin/tabs/AdminMatchesTab.jsx';
@@ -23,6 +23,48 @@ export default function Admin() {
 
   // 현재 활성 탭 ('overview' | 'matches' | 'community' | 'users' | 'sync')
   const [activeTab, setActiveTab] = useState('overview');
+
+  // 상단 탭 네비게이션 마우스 드래그 & 터치 스와이프 제어
+  const tabsRef = useRef(null);
+  const dragStateRef = useRef({ isDown: false, startX: 0, scrollLeft: 0, moved: false });
+
+  const handleTabsMouseDown = (e) => {
+    const el = tabsRef.current;
+    if (!el) return;
+    dragStateRef.current = {
+      isDown: true,
+      startX: e.pageX - el.offsetLeft,
+      scrollLeft: el.scrollLeft,
+      moved: false,
+    };
+  };
+
+  const handleTabsMouseMove = (e) => {
+    const state = dragStateRef.current;
+    const el = tabsRef.current;
+    if (!state.isDown || !el) return;
+    const x = e.pageX - el.offsetLeft;
+    const walk = x - state.startX;
+    if (Math.abs(walk) > 4) {
+      state.moved = true;
+      el.scrollLeft = state.scrollLeft - walk;
+    }
+  };
+
+  const handleTabsMouseUpOrLeave = () => {
+    dragStateRef.current.isDown = false;
+  };
+
+  const handleSelectTab = (tabKey, e) => {
+    if (dragStateRef.current.moved) {
+      dragStateRef.current.moved = false;
+      return;
+    }
+    setActiveTab(tabKey);
+    if (e?.currentTarget?.scrollIntoView) {
+      e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  };
 
   // 대시보드에서 특정 조건(예: 불일치 경기)을 클릭하여 경기 탭 진입 시 전달할 초기 필터
   const [matchInitialFilter, setMatchInitialFilter] = useState(null);
@@ -104,40 +146,47 @@ export default function Admin() {
         </div>
       )}
 
-      {/* 4. 5대 핵심 도메인 탭 메뉴 */}
-      <nav className="admin-tabs">
+      {/* 4. 5대 핵심 도메인 탭 메뉴 (터치 & 마우스 드래그 스와이프 지원) */}
+      <nav
+        ref={tabsRef}
+        className="admin-tabs"
+        onMouseDown={handleTabsMouseDown}
+        onMouseMove={handleTabsMouseMove}
+        onMouseUp={handleTabsMouseUpOrLeave}
+        onMouseLeave={handleTabsMouseUpOrLeave}
+      >
         <button
           type="button"
           className={`admin-tab ${activeTab === 'overview' ? 'is-active' : ''}`}
-          onClick={() => setActiveTab('overview')}
+          onClick={(e) => handleSelectTab('overview', e)}
         >
           대시보드 요약
         </button>
         <button
           type="button"
           className={`admin-tab ${activeTab === 'matches' ? 'is-active' : ''}`}
-          onClick={() => setActiveTab('matches')}
+          onClick={(e) => handleSelectTab('matches', e)}
         >
           경기 & 부상 공지 관리
         </button>
         <button
           type="button"
           className={`admin-tab ${activeTab === 'community' ? 'is-active' : ''}`}
-          onClick={() => setActiveTab('community')}
+          onClick={(e) => handleSelectTab('community', e)}
         >
           커뮤니티 블라인드 제재
         </button>
         <button
           type="button"
           className={`admin-tab ${activeTab === 'users' ? 'is-active' : ''}`}
-          onClick={() => setActiveTab('users')}
+          onClick={(e) => handleSelectTab('users', e)}
         >
           회원 & 포인트 관리
         </button>
         <button
           type="button"
           className={`admin-tab ${activeTab === 'sync' ? 'is-active' : ''}`}
-          onClick={() => setActiveTab('sync')}
+          onClick={(e) => handleSelectTab('sync', e)}
         >
           데이터 수동 동기화
         </button>

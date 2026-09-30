@@ -97,6 +97,7 @@ export default function AllUseNav() {
     <a
       key={path}
       href={`/plug/${path}`}
+      className={path === 'admin' ? 'user-nav__link--admin' : undefined}
       aria-current={
         pathname === `/plug/${path}`
           ? 'page'

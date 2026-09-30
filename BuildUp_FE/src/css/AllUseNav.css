@@ -104,10 +104,23 @@
   text-shadow: 0 0 16px rgba(0, 255, 135, 0.8);
 }
 
+/* 관리(admin) 메뉴: 기본은 일반 메뉴와 동일하게 흰색, hover 또는 활성(클릭) 시에만 PL:UG의 ':' 색상(#ff166b) 적용 */
+.user-nav__links a.user-nav__link--admin:hover,
+.user-nav__links a.user-nav__link--admin[aria-current='page'],
+.user-nav__links a.user-nav__link--admin[aria-current='location'],
+.user-nav__links a.user-nav__link--admin.is-active {
+  color: #ff166b;
+  text-shadow: 0 0 16px rgba(255, 22, 107, 0.85);
+}
+
 .user-nav :focus-visible {
   outline: 2px solid #00ff87;
   outline-offset: 4px;
   border-radius: 4px;
+}
+
+.user-nav__links a.user-nav__link--admin:focus-visible {
+  outline-color: #ff166b;
 }
 
 /* --------------------------------------------------------
@@ -526,28 +539,25 @@ body.mainpage-intro-active .chatbot-widget__panel {
     flex-shrink: 0;
   }
 
-  .user-nav__mobile-item--admin {
-    background: rgba(216, 134, 237, 0.06);
-    border-color: rgba(216, 134, 237, 0.2);
-  }
-
   .user-nav__mobile-item--admin:hover,
   .user-nav__mobile-item--admin:active {
-    background: rgba(216, 134, 237, 0.16);
-    border-color: rgba(216, 134, 237, 0.6);
-    color: #e9a9ff;
+    background: rgba(255, 22, 107, 0.18);
+    border-color: rgba(255, 22, 107, 0.65);
+    color: #ff166b;
+    text-shadow: 0 0 12px rgba(255, 22, 107, 0.7);
   }
 
   .user-nav__mobile-item--admin.is-active {
-    background: rgba(216, 134, 237, 0.2);
-    border-color: #d886ed;
-    color: #e9a9ff;
-    box-shadow: inset 0 0 10px rgba(216, 134, 237, 0.3);
+    background: rgba(255, 22, 107, 0.22);
+    border-color: #ff166b;
+    color: #ff166b;
+    text-shadow: 0 0 12px rgba(255, 22, 107, 0.75);
+    box-shadow: inset 0 0 10px rgba(255, 22, 107, 0.3);
   }
 
   .user-nav__mobile-item--admin .user-nav__mobile-item-dot {
-    background: #d886ed;
-    box-shadow: 0 0 8px #d886ed;
+    background: #ff166b;
+    box-shadow: 0 0 8px #ff166b;
   }
 }
 
