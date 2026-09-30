@@ -6,10 +6,10 @@
 /* 1. 최상위 관리자 컨테이너 (Navbar 상단 뚫림 방지 ::before 가상요소 확장) */
 .admin-container {
   position: relative;
-  min-height: calc(100vh - 120px);
+  min-height: calc(100vh - 84px);
   max-width: 1400px;
   margin: 0 auto;
-  padding: 32px 24px 80px;
+  padding: 40px 24px 80px;
   font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
   box-sizing: border-box;
   transition: background-color 0.3s ease, color 0.3s ease;
@@ -124,17 +124,13 @@
 }
 
 /* --------------------------------------------------------
-   관리자 헤더 (중앙 정렬 레이아웃)
+   관리자 헤더 (경기 일정 페이지와 시작 위치 100% 동일화)
    -------------------------------------------------------- */
 .admin-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
   padding-bottom: 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
 }
 
 .admin-light-mode .admin-header {
@@ -142,68 +138,66 @@
 }
 
 .admin-header__badge-wrap {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 0;
+  margin: 0;
 }
 
 .admin-badge {
   display: inline-block;
   font-family: var(--font-en, 'Montserrat', sans-serif);
-  font-size: clamp(0.75rem, 0.9vw, 1rem);
+  font-size: 13px;
   font-weight: 800;
-  letter-spacing: 0.22vw;
+  letter-spacing: 2px;
   text-transform: uppercase;
   background: transparent;
   padding: 0;
   border-radius: 0;
   box-shadow: none;
-  margin-bottom: 2px;
+  margin-bottom: 8px;
 }
 
 .admin-dark-mode .admin-badge {
-  color: #00ff87;
+  color: #00e58a;
   text-shadow: 0 0 0.8vw rgba(0, 255, 135, 0.55);
 }
 
 .admin-light-mode .admin-badge {
-  color: #705584;
+  color: #38003c;
   text-shadow: none;
 }
 
 .admin-header__title {
   font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
-  font-size: clamp(1.9rem, 2.8vw, 3.2rem);
+  font-size: 36px;
   font-weight: 900;
-  margin: 0 0 4px;
-  letter-spacing: -0.05vw;
+  margin: 0 0 10px;
+  letter-spacing: -0.5px;
 }
 
 .admin-dark-mode .admin-header__title {
-  color: #ffffff;
+  color: #f4f1fa;
   background: none;
-  -webkit-text-fill-color: #ffffff;
+  -webkit-text-fill-color: #f4f1fa;
   text-shadow: 0 0.4vh 1.6vw rgba(0, 0, 0, 0.45);
 }
 
 .admin-light-mode .admin-header__title {
-  color: #260E36;
+  color: #0f172a;
   text-shadow: none;
 }
 
 .admin-header__desc {
   font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
-  font-size: clamp(0.95rem, 1.1vw, 1.2rem);
+  font-size: 15px;
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .admin-dark-mode .admin-header__desc {
-  color: rgba(255, 255, 255, 0.82);
+  color: #b5adc4;
 }
 
 .admin-light-mode .admin-header__desc {
-  color: #705584;
+  color: #64748b;
 }
 
 .admin-header__user {
@@ -214,7 +208,7 @@
   font-size: 13.5px;
   padding: 6px 18px;
   border-radius: 999px;
-  margin-top: 6px;
+  margin-top: 14px;
 }
 
 .admin-dark-mode .admin-header__user {
