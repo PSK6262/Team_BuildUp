@@ -1,0 +1,122 @@
+/* 425px mobile design. One unit scales continuously down to 330px.
+   Scoped selectors keep desktop layouts and other pages unchanged. */
+@media (max-width: 600px) {
+  body :is(.match-page-container, .teams-page-container--rankings, .myteam-page) {
+    --mobile-unit: min(1px, calc(100vw / 425));
+    padding: calc(24 * var(--mobile-unit)) calc(16 * var(--mobile-unit)) calc(64 * var(--mobile-unit));
+    font-size: calc(14 * var(--mobile-unit));
+  }
+
+  :is(.match-page-container, .teams-page-container--rankings, .myteam-page),
+  :is(.match-page-container, .teams-page-container--rankings, .myteam-page) * {
+    box-sizing: border-box;
+  }
+
+  body :is(.match-page-wrapper, .teams-page-container--rankings .teams-page-wrapper, .myteam-container) {
+    width: 100%;
+    max-width: 393px;
+    min-width: 0;
+    margin-inline: auto;
+  }
+
+  :is(.match-page-header, .teams-page-container--rankings .teams-page-header, .myteam-header) {
+    margin-bottom: calc(24 * var(--mobile-unit));
+  }
+
+  :is(.match-page-title, .teams-page-container--rankings .teams-page-title, .myteam-title-box h1) {
+    font-size: calc(28 * var(--mobile-unit));
+  }
+
+  :is(.match-page-desc, .teams-page-container--rankings .teams-page-desc, .myteam-title-box p) {
+    width: 100%;
+    max-width: none;
+    font-size: calc(14 * var(--mobile-unit));
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  /* Schedule: fixed three-column matchup with equal-width team areas. */
+  .match-page-container .match-season-tabs { flex-wrap: nowrap; gap: calc(6 * var(--mobile-unit)); }
+  .match-page-container .match-season-tab { flex: 1; min-width: 0; padding: calc(12 * var(--mobile-unit)) calc(6 * var(--mobile-unit)); font-size: calc(13 * var(--mobile-unit)); }
+  .match-page-container .filter-mode-btn { padding: calc(12 * var(--mobile-unit)) calc(20 * var(--mobile-unit)); font-size: calc(14 * var(--mobile-unit)); }
+  .match-page-container .team-filter-bar { flex-wrap: wrap; gap: calc(8 * var(--mobile-unit)); }
+  .match-page-container .team-filter-label { font-size: calc(13 * var(--mobile-unit)); }
+  .match-page-container .team-filter-select-wrapper { flex: 1; min-width: 0; }
+  .match-page-container .team-filter-select { width: 100%; min-width: 0; font-size: calc(13 * var(--mobile-unit)); }
+  .match-page-container :is(.month-filter-nav, .round-filter-nav) { width: 100%; gap: calc(4 * var(--mobile-unit)); padding: calc(8 * var(--mobile-unit)); }
+  .match-page-container :is(.month-filter-btn, .round-filter-btn) { flex-shrink: 0; padding: calc(10 * var(--mobile-unit)) calc(14 * var(--mobile-unit)); font-size: calc(14 * var(--mobile-unit)); }
+  .match-page-container .match-status-bar { gap: calc(12 * var(--mobile-unit)); align-items: flex-start; }
+  .match-page-container .match-count { flex: 1; text-align: right; font-size: calc(13 * var(--mobile-unit)); overflow-wrap: anywhere; }
+  .match-page-container .team-filter-reset-btn { flex-shrink: 0; font-size: calc(12 * var(--mobile-unit)); }
+  .match-page-container .match-card { grid-template-columns: minmax(0, 1fr); padding: calc(16 * var(--mobile-unit)); gap: calc(16 * var(--mobile-unit)); }
+  .match-page-container .match-card__datetime { flex-direction: row; justify-content: center; flex-wrap: wrap; gap: calc(8 * var(--mobile-unit)); }
+  .match-page-container .match-card__date { font-size: calc(14 * var(--mobile-unit)); }
+  .match-page-container :is(.match-card__time, .match-card__round-tag) { font-size: calc(12 * var(--mobile-unit)); }
+  .match-page-container .match-card__versus { display: grid; grid-template-columns: minmax(0, 1fr) calc(76 * var(--mobile-unit)) minmax(0, 1fr); gap: calc(8 * var(--mobile-unit)); align-items: start; }
+  .match-page-container .match-team { min-width: 0; gap: calc(8 * var(--mobile-unit)); }
+  .match-page-container .match-team__info { align-items: center; text-align: center; width: 100%; }
+  .match-page-container .match-team__name-kor { justify-content: center; flex-wrap: wrap; gap: calc(3 * var(--mobile-unit)); font-size: calc(14 * var(--mobile-unit)); overflow-wrap: anywhere; }
+  .match-page-container .match-team__name-eng { font-size: calc(11 * var(--mobile-unit)); overflow-wrap: anywhere; }
+  .match-page-container .match-team__emblem-wrap { width: calc(44 * var(--mobile-unit)); height: calc(44 * var(--mobile-unit)); }
+  .match-page-container :is(.match-team-rank-badge, .match-win-badge, .match-badge) { font-size: calc(10 * var(--mobile-unit)); margin: 0; }
+  .match-page-container .match-score-box { min-width: 0; width: 100%; align-self: center; }
+  .match-page-container .match-score { font-size: calc(24 * var(--mobile-unit)); }
+  .match-page-container .match-score--vs { font-size: calc(13 * var(--mobile-unit)); }
+  .match-page-container .match-card__ground { align-items: center; }
+  .match-page-container :is(.match-ground-pill, .match-manager-mode-btn) { font-size: calc(12 * var(--mobile-unit)); }
+
+  /* Rankings: preserve every statistics column within the mobile width. */
+  .teams-page-container--rankings .ranking-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(6 * var(--mobile-unit)); margin-bottom: calc(24 * var(--mobile-unit)); }
+  .teams-page-container--rankings .ranking-tabs button { min-width: 0; padding: calc(14 * var(--mobile-unit)) calc(8 * var(--mobile-unit)); font-size: calc(14 * var(--mobile-unit)); }
+  .teams-page-container--rankings .standings-table { min-width: 0; width: 100%; table-layout: fixed; font-size: calc(11 * var(--mobile-unit)); }
+  .teams-page-container--rankings .standings-table :is(th, td) { padding: calc(12 * var(--mobile-unit)) calc(2 * var(--mobile-unit)); white-space: normal; overflow-wrap: anywhere; }
+  .teams-page-container--rankings .standings-table tr > :first-child { width: 8%; }
+  .teams-page-container--rankings .standings-table tr > :nth-child(2) { width: 29%; position: static; box-shadow: none; }
+  .teams-page-container--rankings .standings-team { flex-wrap: wrap; justify-content: center; gap: calc(4 * var(--mobile-unit)); text-align: center; }
+  .teams-page-container--rankings .standings-team img { width: calc(24 * var(--mobile-unit)); height: calc(24 * var(--mobile-unit)); }
+  .teams-page-container--rankings .standings-team span { width: 100%; }
+  .teams-page-container--rankings .standings-team span + span { display: none; }
+  .teams-page-container--rankings .standings-rank { width: calc(24 * var(--mobile-unit)); height: calc(28 * var(--mobile-unit)); }
+  .teams-page-container--rankings .standings-table caption { padding: calc(14 * var(--mobile-unit)); font-size: calc(13 * var(--mobile-unit)); }
+  .teams-page-container--rankings :is(.standings-summary, .standings-note) { font-size: calc(12 * var(--mobile-unit)); gap: calc(8 * var(--mobile-unit)); }
+  .teams-page-container--rankings .standings-toolbar { flex-wrap: wrap; }
+  .teams-page-container--rankings .member-rankings { min-width: 0; padding: calc(12 * var(--mobile-unit)); }
+  .teams-page-container--rankings .ranking-player-details { padding: calc(16 * var(--mobile-unit)); }
+
+  /* Team builder: keep the pitch and its player slots in the same proportions. */
+  .myteam-page .myteam-toolbar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(8 * var(--mobile-unit)); }
+  .myteam-page .myteam-toolbar > * { min-width: 0; width: 100%; }
+  .myteam-page .myteam-name-input { grid-column: 1 / -1; }
+  .myteam-page :is(.myteam-btn, .myteam-squad-counter) { padding: calc(12 * var(--mobile-unit)) calc(8 * var(--mobile-unit)); font-size: calc(13 * var(--mobile-unit)); }
+  .myteam-page :is(.formation-panel, .myteam-pitch-card, .myteam-roster-panel, .myteam-ai-panel) { min-width: 0; padding: calc(14 * var(--mobile-unit)); border-radius: calc(16 * var(--mobile-unit)); }
+  .myteam-page .myteam-main-layout { grid-template-columns: minmax(0, 1fr); gap: calc(20 * var(--mobile-unit)); }
+  .myteam-page .myteam-roster-panel { height: auto; }
+  .myteam-page .formation-presets-row { align-items: flex-start; flex-direction: column; }
+  .myteam-page .preset-chip-group { display: grid; width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: calc(6 * var(--mobile-unit)); }
+  .myteam-page .preset-chip { padding: calc(10 * var(--mobile-unit)) calc(6 * var(--mobile-unit)); font-size: calc(13 * var(--mobile-unit)); }
+  .myteam-page .custom-steppers { flex-wrap: wrap; gap: calc(6 * var(--mobile-unit)); }
+  .myteam-page .pitch-header-info { flex-direction: column; gap: calc(8 * var(--mobile-unit)); text-align: center; }
+  .myteam-page .pitch-hint { font-size: calc(12 * var(--mobile-unit)); }
+  .myteam-page .myteam-pitch { min-height: 0; max-height: none; aspect-ratio: 0.72; padding: calc(14 * var(--mobile-unit)) calc(6 * var(--mobile-unit)); }
+  .myteam-page .pitch-row { flex-wrap: nowrap; gap: calc(2 * var(--mobile-unit)); }
+  .myteam-page .pitch-slot { min-width: 0; flex: 0 1 calc(60 * var(--mobile-unit)); }
+  .myteam-page .slot-empty-circle { width: calc(42 * var(--mobile-unit)); height: calc(42 * var(--mobile-unit)); }
+  .myteam-page .slot-filled-card { min-width: 0; width: 100%; max-width: calc(60 * var(--mobile-unit)); padding: calc(2 * var(--mobile-unit)); }
+  .myteam-page .slot-player-avatar-box { width: calc(32 * var(--mobile-unit)); height: calc(32 * var(--mobile-unit)); }
+  .myteam-page :is(.slot-player-name, .slot-player-team) { max-width: 100%; font-size: calc(10 * var(--mobile-unit)); }
+  .myteam-page .slot-pos-badge { font-size: calc(10 * var(--mobile-unit)); }
+  .myteam-page .slot-plus-icon { font-size: calc(18 * var(--mobile-unit)); }
+  .myteam-page .pitch-center-circle { width: 30%; height: auto; aspect-ratio: 1; }
+  .myteam-page :is(.pitch-box-top, .pitch-box-bottom) { width: 60%; height: 16%; }
+  .myteam-page .pitch-box-bottom-small { width: 30%; height: 7%; }
+  .myteam-page .roster-nav-btn { padding: calc(12 * var(--mobile-unit)) calc(6 * var(--mobile-unit)); font-size: calc(13 * var(--mobile-unit)); gap: calc(4 * var(--mobile-unit)); }
+  .myteam-page .club-select-card { padding: calc(12 * var(--mobile-unit)); }
+  .myteam-page .club-card-name-kor { font-size: calc(14 * var(--mobile-unit)); }
+  .myteam-page .club-card-name-en { font-size: calc(11 * var(--mobile-unit)); }
+  .myteam-page .roster-player-card { padding: calc(10 * var(--mobile-unit)); gap: calc(6 * var(--mobile-unit)); }
+  .myteam-page .position-filter-tabs { flex-wrap: wrap; }
+  .myteam-page .myteam-ai-lineups { column-gap: calc(10 * var(--mobile-unit)); font-size: calc(12 * var(--mobile-unit)); }
+  .myteam-page .myteam-toast { max-width: calc(100vw - 32px); white-space: normal; text-align: center; }
+  .myteam-page .member-rankings { min-width: 0; padding: calc(12 * var(--mobile-unit)); }
+  .myteam-page .member-ranking-scroll { max-width: 100%; }
+}
