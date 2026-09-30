@@ -170,8 +170,12 @@ public class AdminController {
 		Long awayScore = body.get("awayScore") != null ? Long.valueOf(body.get("awayScore").toString()) : null;
 		String status = (String) body.get("status");
 
-		boolean success = adminService.updateMatchScore(matchId, homeScore, awayScore, status);
-		return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
+		try {
+			boolean success = adminService.updateMatchScore(matchId, homeScore, awayScore, status);
+			return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
+		} catch (IllegalStateException | IllegalArgumentException e) {
+			return ApiResponse.error(ResultCode.FAIL, e.getMessage());
+		}
 	}
 
 	// 4-1. 경기 타임라인 이벤트 목록 조회
@@ -424,8 +428,12 @@ public class AdminController {
 				: "[관리자 직권] ";
 		String finalDescription = adminPrefix + (description != null && !description.trim().isEmpty() ? description.trim() : "포인트 직권 조정");
 
-		boolean success = adminService.adjustUserPoints(userId, amount, finalDescription);
-		return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
+		try {
+			boolean success = adminService.adjustUserPoints(userId, amount, finalDescription);
+			return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
+		} catch (IllegalStateException | IllegalArgumentException e) {
+			return ApiResponse.error(ResultCode.FAIL, e.getMessage());
+		}
 	}
 
 	// 16. 최근 포인트 변동 이력 조회
@@ -620,6 +628,61 @@ public class AdminController {
 		} catch (Exception e) {
 			log.error("[AdminController] 불일치 경기 재동기화 실패: {}", e.getMessage(), e);
 			return ApiResponse.error(ResultCode.FAIL, "불일치 경기 재동기화 중 오류가 발생했습니다: " + e.getMessage());
+		}
+	}
+
+	// 24. [승부예측 테스트용] 더미 경기 10개 생성 (현재시간 + N분 뒤 시작)
+	@PostMapping("/matches/dummy")
+	public ApiResponse<Map<String, Object>> createDummyMatches(
+			@RequestBody(required = false) Map<String, Object> body,
+			HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		int minutes = 3;
+		if (body != null && body.get("minutesAfterNow") != null) {
+			try {
+				minutes = Integer.parseInt(body.get("minutesAfterNow").toString());
+			} catch (NumberFormatException ignored) {
+				minutes = 3;
+			}
+		}
+		try {
+			Map<String, Object> result = adminService.createDummyMatches(minutes);
+			return ApiResponse.success(result);
+		} catch (Exception e) {
+			log.error("[AdminController] 더미 경기 생성 실패: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "더미 경기 생성 중 오류가 발생했습니다: " + e.getMessage());
+		}
+	}
+
+	// 25. [승부예측 테스트용] 더미 경기 일괄 즉시 종료 및 포인트 정산
+	@PostMapping("/matches/dummy/settle")
+	public ApiResponse<Map<String, Object>> settleDummyMatches(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		try {
+			Map<String, Object> result = adminService.settleDummyMatches(false);
+			return ApiResponse.success(result);
+		} catch (Exception e) {
+			log.error("[AdminController] 더미 경기 정산 실패: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "더미 경기 정산 중 오류가 발생했습니다: " + e.getMessage());
+		}
+	}
+
+	// 26. [승부예측 테스트용] 더미 경기 및 파생 결과(포인트/전적/이력/투표) 일괄 원상복구 삭제
+	@DeleteMapping("/matches/dummy")
+	public ApiResponse<Map<String, Object>> cleanupDummyMatches(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		try {
+			Map<String, Object> result = adminService.cleanupDummyMatches();
+			return ApiResponse.success(result);
+		} catch (Exception e) {
+			log.error("[AdminController] 더미 경기 원상복구 삭제 실패: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "더미 경기 삭제 중 오류가 발생했습니다: " + e.getMessage());
 		}
 	}
 }

@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.app.dto.match.Matches;
+import com.app.service.admin.AdminService;
 import com.app.service.api.BigBallsApiService;
 import com.app.service.api.FootballApiService;
 import com.app.service.match.MatchService;
@@ -35,6 +36,19 @@ public class MatchScheduler {
 	@Autowired
 	private BigBallsApiService bigBallsApiService;
 
+	@Autowired
+	private AdminService adminService;
+
+	// [작업 0] 테스트용 더미 경기(999901~999910) 시작 시간 도래 시 자동 종료 및 포인트 정산 (20초 주기)
+	@Scheduled(fixedDelay = 20000)
+	public void autoSettleDummyMatches() {
+		try {
+			adminService.settleDummyMatches(true);
+		} catch (Exception e) {
+			// 무시
+		}
+	}
+
      //  [작업 1] 실시간 경기 스코어 및 타임라인 이벤트 동기화
      //  주기: 매 2분마다 실행 (0 */2 * * * *)
      //  기준: 오늘 날짜에 진행 중이거나 열릴 예정인 경기가 있을 때만 외부 API 호출
@@ -52,9 +66,12 @@ public class MatchScheduler {
             return;
         }
 
-        // 2단계: 아직 종료되지 않은 경기(SCHEDULED 또는 LIVE)가 있는지 확인
+        // 2단계: 아직 종료되지 않은 실제 경기(SCHEDULED 또는 LIVE, 더미 경기 제외)가 있는지 확인
         boolean hasActiveMatch = false;
         for (Matches m : todayMatches) {
+            if (m.getMatchId() != null && m.getMatchId() >= 999901L && m.getMatchId() <= 999910L) {
+                continue;
+            }
             String status = m.getStatus();
             if ("SCHEDULED".equals(status) || "LIVE".equals(status)) {
                 hasActiveMatch = true;

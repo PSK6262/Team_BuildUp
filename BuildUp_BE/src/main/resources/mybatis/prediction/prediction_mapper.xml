@@ -225,4 +225,11 @@
 		FETCH FIRST 10 ROWS ONLY
 	</select>
 
+	<!-- 현재 테스트용 임시(더미) 경기(999901~999910) 존재 개수 조회 -->
+	<select id="countDummyMatches" resultType="int">
+		SELECT COUNT(*)
+		FROM MATCHES
+		WHERE MATCH_ID BETWEEN 999901 AND 999910
+	</select>
+
 </mapper>

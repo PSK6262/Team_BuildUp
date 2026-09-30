@@ -28,6 +28,14 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
     fetchMatches,
     fetchTeamPlayers,
 
+    // 더미 경기 테스트 제어
+    dummyMinutes,
+    setDummyMinutes,
+    dummyActionLoading,
+    handleCreateDummyMatches,
+    handleSettleDummyMatches,
+    handleCleanupDummyMatches,
+
     // 모달들
     noticeModal,
     setNoticeModal,
@@ -96,12 +104,13 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
               className="admin-select"
               value={matchSortOrder}
               onChange={(e) => {
-                setMatchSortOrder(e.target.value);
+                const nextSort = e.target.value;
+                setMatchSortOrder(nextSort);
                 setVisibleMatches(10);
+                fetchMatches({ sort: nextSort });
               }}
               title="정렬 기준"
             >
-              <option value="AUTO">자동 정렬 (상태 기준)</option>
               <option value="ASC">오름차순 (ASC ⏶)</option>
               <option value="DESC">내림차순 (DESC ⏷)</option>
             </AdminSelect>
@@ -114,6 +123,72 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
               }}
             >
               조회
+            </button>
+          </div>
+        </div>
+
+        {/* 🧪 승부예측 테스트용 더미 경기 (999901~999910) 컨트롤 바 */}
+        <div
+          style={{
+            background: '#f8fafc',
+            border: '1px solid #cbd5e1',
+            borderRadius: 10,
+            padding: '12px 16px',
+            marginBottom: 16,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 12,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <span style={{ fontWeight: 700, fontSize: 13, color: '#334155' }}>
+              🧪 승부예측 테스트용 더미 경기 (10건)
+            </span>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#475569' }}>
+              <span>현재시간 +</span>
+              <input
+                type="number"
+                min="1"
+                max="1440"
+                className="admin-input"
+                style={{ width: 68, padding: '5px 8px', textAlign: 'center', fontWeight: 700 }}
+                value={dummyMinutes}
+                onChange={(e) => setDummyMinutes(e.target.value)}
+                disabled={dummyActionLoading}
+              />
+              <span>분 뒤 시작</span>
+            </label>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn-action btn-action--primary"
+              onClick={handleCreateDummyMatches}
+              disabled={dummyActionLoading}
+              title="현재시간 + 설정한 분 뒤에 시작하는 더미 경기 10개(999901~999910)를 생성합니다"
+            >
+              + 더미 경기 10개 추가
+            </button>
+            <button
+              type="button"
+              className="btn-action btn-action--warning"
+              onClick={handleSettleDummyMatches}
+              disabled={dummyActionLoading}
+              title="기다리지 않고 즉시 더미 경기 10개를 종료(FINISHED)하고 승부예측 포인트를 정산합니다"
+            >
+              ⚡ 즉시 종료 &amp; 포인트 정산
+            </button>
+            <button
+              type="button"
+              className="btn-action btn-action--danger"
+              onClick={handleCleanupDummyMatches}
+              disabled={dummyActionLoading}
+              title="더미 경기 10개와 지급된 포인트, 포인트 내역, 예측 전적, 투표 기록을 모두 삭제하고 원상복구합니다"
+            >
+              🗑️ 더미 경기 &amp; 결과 일괄 삭제
             </button>
           </div>
         </div>

@@ -321,3 +321,40 @@ export async function triggerAiModeration(limit = 30) {
   });
   return res;
 }
+
+/**
+ * 24. 승부예측 테스트용 더미 경기 10개 생성 (POST /api/admin/matches/dummy)
+ */
+export async function createDummyMatches(minutesAfterNow = 3) {
+  const res = await fetch('/api/admin/matches/dummy', {
+    method: 'POST',
+    headers: getAdminAuthHeaders(),
+    credentials: 'include',
+    body: JSON.stringify({ minutesAfterNow: Number(minutesAfterNow) || 3 }),
+  });
+  return res;
+}
+
+/**
+ * 25. 승부예측 테스트용 더미 경기 일괄 즉시 종료 및 포인트 정산 (POST /api/admin/matches/dummy/settle)
+ */
+export async function settleDummyMatches() {
+  const res = await fetch('/api/admin/matches/dummy/settle', {
+    method: 'POST',
+    headers: getAdminAuthHeaders(),
+    credentials: 'include',
+  });
+  return res;
+}
+
+/**
+ * 26. 승부예측 테스트용 더미 경기 및 결과(포인트/전적/이력/투표) 일괄 원상복구 삭제 (DELETE /api/admin/matches/dummy)
+ */
+export async function cleanupDummyMatches() {
+  const res = await fetch('/api/admin/matches/dummy', {
+    method: 'DELETE',
+    headers: getAdminAuthHeaders(),
+    credentials: 'include',
+  });
+  return res;
+}

@@ -41,4 +41,14 @@ public interface AdminDAO {
 	int updateUserPoint(Long userId, Long amount);
 	int insertPointHistory(PointHistory pointHistory);
 	List<PointHistory> selectRecentPointHistories();
+
+	// 테스트용 더미 경기 (999901~999910) 관리
+	List<Matches> selectDummyMatches();
+	int insertDummyMatch(Matches match);
+	int rollbackDummyUserPoints();
+	int rollbackDummyUserPredicts();
+	int deleteDummyPointHistories();
+	int deleteDummyPredictions();
+	int deleteDummyMatchEvents();
+	int deleteDummyMatches();
 }

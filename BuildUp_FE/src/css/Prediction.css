@@ -1524,4 +1524,793 @@
   }
 }
 
+/* ========================================================
+   ±3일 기간 탐색 네비게이션 & 종료 경기 적중/미적중/왕관(👑) 스타일
+   ======================================================== */
+
+/* 1. ±3일 기간 네비게이션 바 (다크모드 기본) */
+.prediction-period-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 18px;
+}
+
+.prediction-period-btn {
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #f8fafc;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.prediction-period-btn:hover {
+  background: rgba(0, 255, 135, 0.16);
+  border-color: #00ff87;
+  color: #00ff87;
+}
+
+.prediction-period-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.prediction-period-range {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.2px;
+}
+
+.prediction-period-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.prediction-period-chip {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #cbd5e1;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-family: inherit;
+}
+
+.prediction-period-chip:hover {
+  border-color: rgba(0, 255, 135, 0.5);
+  color: #ffffff;
+}
+
+.prediction-period-chip.is-active {
+  background: rgba(0, 255, 135, 0.18);
+  border-color: #00ff87;
+  color: #00ff87;
+}
+
+/* 2. 종료된 경기 버튼 & 왕관(👑) 표시 (다크모드 기본) */
+.prediction-crown {
+  display: inline-block;
+  margin-right: 3px;
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.6));
+}
+
+/* 맞춘 경기: disabled 상태여도 원래 선택된 색상과 광채를 100% 선명하게 유지 */
+.prediction-vote-btn.is-selected.is-correct-hit,
+.prediction-vote-btn.is-selected.is-correct-hit:disabled {
+  opacity: 1 !important;
+  background: rgba(0, 255, 135, 0.22);
+  border: 1.5px solid #00ff87;
+  color: #00ff87;
+  box-shadow: 0 0 16px rgba(0, 255, 135, 0.35);
+}
+
+/* 틀린 경기: 내가 선택한 버튼을 차분하고 조금 disabled된 느낌으로 전환 */
+.prediction-vote-btn.is-selected.is-wrong-hit,
+.prediction-vote-btn.is-selected.is-wrong-hit:disabled {
+  opacity: 0.62 !important;
+  background: rgba(148, 163, 184, 0.1);
+  border: 1.5px dashed rgba(248, 113, 113, 0.55);
+  color: #94a3b8;
+  box-shadow: none;
+}
+
+.prediction-vote-btn.is-selected.is-wrong-hit .prediction-vote-btn__point {
+  color: #94a3b8 !important;
+}
+
+/* 내가 선택하지 않았지만 실제 승리한 결과 버튼 (왕관 표시가 잘 보이도록 가독성 유지) */
+.prediction-vote-btn.is-actual-winner:not(.is-selected),
+.prediction-vote-btn.is-actual-winner:not(.is-selected):disabled {
+  opacity: 0.9 !important;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.55);
+  color: #fde68a;
+}
+
+/* 종료된 경기의 미선택·비승리 버튼 */
+.prediction-vote-btn.is-finished-dim,
+.prediction-vote-btn.is-finished-dim:disabled {
+  opacity: 0.38;
+}
+
+/* 카드 테두리 미세 강조 (적중/미적중) */
+.prediction-card.is-card-hit {
+  border-color: rgba(0, 255, 135, 0.42);
+}
+
+.prediction-card.is-card-miss {
+  border-color: rgba(239, 68, 68, 0.28);
+}
+
+/* 3. 라이트모드 대응 */
+.prediction-page-container.is-light .prediction-period-nav,
+[data-theme='light'] .prediction-period-nav {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.prediction-page-container.is-light .prediction-period-btn,
+[data-theme='light'] .prediction-period-btn {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+}
+
+.prediction-page-container.is-light .prediction-period-btn:hover,
+[data-theme='light'] .prediction-period-btn:hover {
+  background: #f3e8f8;
+  border-color: #38003c;
+  color: #38003c;
+}
+
+.prediction-page-container.is-light .prediction-period-range,
+[data-theme='light'] .prediction-period-range {
+  color: #0f172a;
+}
+
+.prediction-page-container.is-light .prediction-period-chip,
+[data-theme='light'] .prediction-period-chip {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+}
+
+.prediction-page-container.is-light .prediction-period-chip.is-active,
+[data-theme='light'] .prediction-period-chip.is-active {
+  background: #38003c;
+  border-color: #38003c;
+  color: #ffffff;
+}
+
+/* 라이트모드: 맞춘 경기 색상 유지 */
+.prediction-page-container.is-light .prediction-vote-btn.is-selected.is-correct-hit,
+.prediction-page-container.is-light .prediction-vote-btn.is-selected.is-correct-hit:disabled,
+[data-theme='light'] .prediction-vote-btn.is-selected.is-correct-hit,
+[data-theme='light'] .prediction-vote-btn.is-selected.is-correct-hit:disabled {
+  opacity: 1 !important;
+  background: #f3e8f8;
+  border: 2px solid #38003c;
+  color: #38003c;
+  box-shadow: 0 0 12px rgba(56, 0, 60, 0.22);
+}
+
+/* 라이트모드: 틀린 경기 disabled 느낌 */
+.prediction-page-container.is-light .prediction-vote-btn.is-selected.is-wrong-hit,
+.prediction-page-container.is-light .prediction-vote-btn.is-selected.is-wrong-hit:disabled,
+[data-theme='light'] .prediction-vote-btn.is-selected.is-wrong-hit,
+[data-theme='light'] .prediction-vote-btn.is-selected.is-wrong-hit:disabled {
+  opacity: 0.65 !important;
+  background: #f1f5f9;
+  border: 1.5px dashed #ef4444;
+  color: #64748b;
+  box-shadow: none;
+}
+
+.prediction-page-container.is-light .prediction-vote-btn.is-selected.is-wrong-hit .prediction-vote-btn__point,
+[data-theme='light'] .prediction-vote-btn.is-selected.is-wrong-hit .prediction-vote-btn__point {
+  color: #94a3b8 !important;
+}
+
+/* 라이트모드: 미선택 실제 승리 버튼 (👑 왕관 강조) */
+.prediction-page-container.is-light .prediction-vote-btn.is-actual-winner:not(.is-selected),
+.prediction-page-container.is-light .prediction-vote-btn.is-actual-winner:not(.is-selected):disabled,
+[data-theme='light'] .prediction-vote-btn.is-actual-winner:not(.is-selected),
+[data-theme='light'] .prediction-vote-btn.is-actual-winner:not(.is-selected):disabled {
+  opacity: 0.92 !important;
+  background: #fffbeb;
+  border: 1.5px solid #f59e0b;
+  color: #92400e;
+}
+
+.prediction-page-container.is-light .prediction-card.is-card-hit,
+[data-theme='light'] .prediction-card.is-card-hit {
+  border-color: #10b981;
+}
+
+.prediction-page-container.is-light .prediction-card.is-card-miss,
+[data-theme='light'] .prediction-card.is-card-miss {
+  border-color: #fca5a5;
+}
+
+@media (max-width: 600px) {
+  .prediction-period-nav {
+    padding: 10px 10px;
+    gap: 6px;
+  }
+
+  .prediction-period-btn {
+    padding: 6px 10px;
+    font-size: 0.76rem;
+  }
+
+  .prediction-period-range {
+    font-size: 0.8rem;
+  }
+}
+
+/* ========================================================
+   임시 경기 안내 배너 & 커스텀 모달 Alert (예측 변경 / 포인트 보호 해결)
+   ======================================================== */
+
+/* 1. 상단 임시 경기 활성화 배너 */
+.prediction-dummy-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  margin-bottom: 20px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(217, 119, 6, 0.08));
+  border: 1px solid rgba(245, 158, 11, 0.42);
+  color: #fde68a;
+  font-size: 0.86rem;
+}
+
+.prediction-dummy-banner__text {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  line-height: 1.45;
+}
+
+.prediction-dummy-banner__text strong {
+  color: #fbbf24;
+  font-weight: 800;
+}
+
+.prediction-dummy-banner__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 8px #f59e0b;
+  flex-shrink: 0;
+}
+
+.prediction-dummy-banner__btn {
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.22);
+  border: 1px solid rgba(245, 158, 11, 0.6);
+  color: #fffbeb;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.prediction-dummy-banner__btn:hover {
+  background: #f59e0b;
+  color: #1b0222;
+}
+
+/* 2. 커스텀 모달 백드롭 & 컨테이너 */
+.prediction-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(9, 2, 14, 0.76);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: predictionModalFadeIn 0.18s ease-out;
+}
+
+@keyframes predictionModalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes predictionModalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.prediction-modal {
+  width: 100%;
+  max-width: 440px;
+  border-radius: 22px;
+  padding: 28px 24px 24px;
+  background: linear-gradient(165deg, #2a0634 0%, #16011c 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 30px rgba(0, 255, 135, 0.12);
+  color: #f8fafc;
+  text-align: center;
+  animation: predictionModalSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.prediction-modal.is-dummy-lock {
+  border-color: rgba(245, 158, 11, 0.55);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 32px rgba(245, 158, 11, 0.18);
+}
+
+.prediction-modal__top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.prediction-modal__icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.65rem;
+  background: rgba(0, 255, 135, 0.14);
+  border: 1.5px solid rgba(0, 255, 135, 0.45);
+  box-shadow: 0 0 20px rgba(0, 255, 135, 0.25);
+  margin-bottom: 2px;
+}
+
+.prediction-modal__icon.is-vote-change {
+  background: rgba(56, 189, 248, 0.16);
+  border-color: rgba(56, 189, 248, 0.55);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.28);
+}
+
+.prediction-modal__icon.is-dummy-lock {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: rgba(245, 158, 11, 0.6);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+}
+
+.prediction-modal__icon.is-error {
+  background: rgba(244, 63, 94, 0.16);
+  border-color: rgba(244, 63, 94, 0.55);
+  box-shadow: 0 0 18px rgba(244, 63, 94, 0.25);
+}
+
+.prediction-modal__badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  background: rgba(0, 255, 135, 0.14);
+  color: #00ff87;
+  border: 1px solid rgba(0, 255, 135, 0.35);
+}
+
+.prediction-modal__badge.is-vote-change {
+  background: rgba(56, 189, 248, 0.16);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.prediction-modal__badge.is-dummy-lock {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.prediction-modal__badge.is-error {
+  background: rgba(244, 63, 94, 0.18);
+  color: #fda4af;
+  border-color: rgba(244, 63, 94, 0.4);
+}
+
+.prediction-modal__title {
+  margin: 2px 0 0;
+  font-size: 1.22rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+}
+
+/* 3. 예측 참여/변경 요약 박스 */
+.prediction-modal__summary {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 16px 14px;
+  margin-bottom: 20px;
+}
+
+.prediction-modal__matchup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.prediction-modal__team {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.prediction-modal__team img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.prediction-modal__vs {
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: #00ff87;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(0, 255, 135, 0.1);
+}
+
+.prediction-modal__change-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.prediction-modal__choice-chip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 8px;
+  border-radius: 12px;
+}
+
+.prediction-modal__choice-chip.is-prev {
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px dashed rgba(148, 163, 184, 0.3);
+  color: #94a3b8;
+}
+
+.prediction-modal__choice-chip.is-prev strong {
+  font-size: 0.9rem;
+  text-decoration: line-through;
+}
+
+.prediction-modal__choice-chip.is-new {
+  background: rgba(0, 255, 135, 0.14);
+  border: 1.5px solid rgba(0, 255, 135, 0.5);
+  color: #00ff87;
+  box-shadow: 0 0 14px rgba(0, 255, 135, 0.15);
+}
+
+.prediction-modal__choice-chip.is-new strong {
+  font-size: 0.98rem;
+  font-weight: 800;
+}
+
+.prediction-modal__choice-caption {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.prediction-modal__change-arrow {
+  font-size: 1.1rem;
+  color: #38bdf8;
+  font-weight: 900;
+}
+
+.prediction-modal__reward {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  font-size: 0.82rem;
+  color: #cbd5e1;
+}
+
+.prediction-modal__reward strong {
+  color: #00ff87;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.prediction-modal__reward strong.is-underdog {
+  color: #fbbf24;
+}
+
+/* 4. 임시 경기 포인트 변동 제한 안내 박스 */
+.prediction-modal__lock-box {
+  text-align: left;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.prediction-modal__lock-target {
+  font-size: 0.83rem;
+  color: #fde68a;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px dashed rgba(245, 158, 11, 0.25);
+}
+
+.prediction-modal__desc {
+  margin: 0 0 14px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #cbd5e1;
+}
+
+.prediction-modal__lock-box .prediction-modal__desc {
+  margin-bottom: 12px;
+}
+
+.prediction-modal__lock-guide {
+  background: rgba(245, 158, 11, 0.09);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  color: #fef3c7;
+}
+
+.prediction-modal__lock-guide span {
+  display: block;
+  font-weight: 800;
+  color: #fbbf24;
+  margin-bottom: 6px;
+}
+
+.prediction-modal__lock-guide ul {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.5;
+}
+
+/* 5. 모달 버튼 그룹 */
+.prediction-modal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prediction-modal__btn {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-family: inherit;
+  border: none;
+}
+
+.prediction-modal__btn.is-primary {
+  background: #00ff87;
+  color: #1b0222;
+  box-shadow: 0 4px 14px rgba(0, 255, 135, 0.28);
+}
+
+.prediction-modal__btn.is-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 255, 135, 0.4);
+}
+
+.prediction-modal__btn.is-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #f8fafc;
+}
+
+.prediction-modal__btn.is-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.prediction-modal__btn.is-danger {
+  background: rgba(244, 63, 94, 0.18);
+  border: 1px solid rgba(244, 63, 94, 0.5);
+  color: #fecdd3;
+}
+
+.prediction-modal__btn.is-danger:hover:not(:disabled) {
+  background: #e11d48;
+  color: #ffffff;
+}
+
+.prediction-modal__btn.is-ghost {
+  background: transparent;
+  color: #94a3b8;
+  padding: 8px 14px;
+  font-size: 0.84rem;
+}
+
+.prediction-modal__btn.is-ghost:hover:not(:disabled) {
+  color: #f8fafc;
+}
+
+/* 6. 라이트모드 모달 & 배너 대응 */
+.prediction-page-container.is-light .prediction-dummy-banner,
+[data-theme='light'] .prediction-dummy-banner {
+  background: #fffbeb;
+  border: 1px solid #f59e0b;
+  color: #92400e;
+}
+
+.prediction-page-container.is-light .prediction-dummy-banner__text strong,
+[data-theme='light'] .prediction-dummy-banner__text strong {
+  color: #b45309;
+}
+
+.prediction-page-container.is-light .prediction-dummy-banner__btn,
+[data-theme='light'] .prediction-dummy-banner__btn {
+  background: #f59e0b;
+  border-color: #d97706;
+  color: #ffffff;
+}
+
+.prediction-page-container.is-light .prediction-modal,
+[data-theme='light'] .prediction-modal {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+  color: #0f172a;
+}
+
+.prediction-page-container.is-light .prediction-modal__title,
+[data-theme='light'] .prediction-modal__title {
+  color: #0f172a;
+}
+
+.prediction-page-container.is-light .prediction-modal__summary,
+[data-theme='light'] .prediction-modal__summary {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.prediction-page-container.is-light .prediction-modal__matchup,
+[data-theme='light'] .prediction-modal__matchup {
+  border-bottom: 1px dashed #cbd5e1;
+}
+
+.prediction-page-container.is-light .prediction-modal__team,
+[data-theme='light'] .prediction-modal__team {
+  color: #0f172a;
+}
+
+.prediction-page-container.is-light .prediction-modal__vs,
+[data-theme='light'] .prediction-modal__vs {
+  background: #f3e8f8;
+  color: #38003c;
+}
+
+.prediction-page-container.is-light .prediction-modal__choice-chip.is-new,
+[data-theme='light'] .prediction-modal__choice-chip.is-new {
+  background: #f3e8f8;
+  border-color: #38003c;
+  color: #38003c;
+  box-shadow: none;
+}
+
+.prediction-page-container.is-light .prediction-modal__reward,
+[data-theme='light'] .prediction-modal__reward {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.prediction-page-container.is-light .prediction-modal__reward strong,
+[data-theme='light'] .prediction-modal__reward strong {
+  color: #008a55;
+}
+
+.prediction-page-container.is-light .prediction-modal__lock-box,
+[data-theme='light'] .prediction-modal__lock-box {
+  background: #fffbeb;
+  border-color: #fcd34d;
+}
+
+.prediction-page-container.is-light .prediction-modal__lock-target,
+[data-theme='light'] .prediction-modal__lock-target {
+  color: #92400e;
+  border-bottom-color: #fde68a;
+}
+
+.prediction-page-container.is-light .prediction-modal__desc,
+[data-theme='light'] .prediction-modal__desc {
+  color: #475569;
+}
+
+.prediction-page-container.is-light .prediction-modal__lock-guide,
+[data-theme='light'] .prediction-modal__lock-guide {
+  background: #fef3c7;
+  color: #78350f;
+}
+
+.prediction-page-container.is-light .prediction-modal__lock-guide span,
+[data-theme='light'] .prediction-modal__lock-guide span {
+  color: #b45309;
+}
+
+.prediction-page-container.is-light .prediction-modal__btn.is-primary,
+[data-theme='light'] .prediction-modal__btn.is-primary {
+  background: #38003c;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(56, 0, 60, 0.25);
+}
+
+.prediction-page-container.is-light .prediction-modal__btn.is-secondary,
+[data-theme='light'] .prediction-modal__btn.is-secondary {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
+
+.prediction-page-container.is-light .prediction-modal__btn.is-danger,
+[data-theme='light'] .prediction-modal__btn.is-danger {
+  background: #fff1f2;
+  border-color: #fda4af;
+  color: #e11d48;
+}
+
+
+
 

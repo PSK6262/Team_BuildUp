@@ -38,4 +38,6 @@ public interface PredictionDAO {
 	int mergeUserPredicts(Map<String, Object> params);
 
 	List<UserPredicts> selectTopPredictors();
+
+	int countDummyMatches();
 }

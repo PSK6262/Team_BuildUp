@@ -91,4 +91,10 @@ public class PredictionDAOImpl implements PredictionDAO {
 	public List<UserPredicts> selectTopPredictors() {
 		return sqlSession.selectList(NAMESPACE + "selectTopPredictors");
 	}
+
+	@Override
+	public int countDummyMatches() {
+		Integer cnt = sqlSession.selectOne(NAMESPACE + "countDummyMatches");
+		return cnt != null ? cnt : 0;
+	}
 }

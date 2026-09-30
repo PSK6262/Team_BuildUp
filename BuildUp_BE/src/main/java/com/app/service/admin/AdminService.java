@@ -68,4 +68,9 @@ public interface AdminService {
 	int syncTeamsAndPlayers();
 	int resyncMismatchedEvents();
 	Map<String, Object> forceAiAlignMatchEventsByDateRange(String fromDateStr, String toDateStr);
+
+	// 승부예측 테스트용 더미 경기 (999901~999910) 생성 / 종료·정산 / 일괄 원상복구 삭제
+	Map<String, Object> createDummyMatches(int minutesAfterNow);
+	Map<String, Object> settleDummyMatches(boolean onlyExpired);
+	Map<String, Object> cleanupDummyMatches();
 }

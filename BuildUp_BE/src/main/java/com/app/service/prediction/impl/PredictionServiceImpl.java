@@ -103,6 +103,10 @@ public class PredictionServiceImpl implements PredictionService {
 		return response;
 	}
 
+	private boolean isDummyMatchId(Long matchId) {
+		return matchId != null && matchId >= 999901L && matchId <= 999910L;
+	}
+
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public Map<String, Object> betPrediction(Long userId, Long matchId, String predictResult) {
@@ -117,6 +121,11 @@ public class PredictionServiceImpl implements PredictionService {
 				&& !CommonCode.PREDICT_DRAW.equals(predictResult) 
 				&& !CommonCode.PREDICT_AWAY.equals(predictResult)) {
 			throw new IllegalArgumentException(MSG_INVALID_PREDICT_RESULT);
+		}
+
+		// 1-1. 임시(더미) 경기가 존재하는 동안에는 임시 경기 외 일반 경기 승부예측 차단 (포인트 오염 방지)
+		if (!isDummyMatchId(matchId) && predictionDAO.countDummyMatches() > 0) {
+			throw new IllegalStateException("현재 테스트용 임시(더미) 경기가 진행 중입니다. 포인트 정합성 오류를 방지하기 위해 임시 경기가 존재하는 동안에는 임시 경기 승부예측 이외의 모든 포인트 변동 및 일반 경기 예측이 금지됩니다.");
 		}
 
 		// 2. 경기 시작 여부 및 상태 검증
@@ -220,6 +229,12 @@ public class PredictionServiceImpl implements PredictionService {
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public Map<String, Object> settleMatchPredictions(Long matchId) {
+		if (!isDummyMatchId(matchId) && predictionDAO.countDummyMatches() > 0) {
+			return Map.of(
+				"status", STATUS_SKIPPED,
+				"message", "임시(더미) 경기가 존재하는 동안에는 임시 경기 외 일반 경기의 포인트 정산이 금지됩니다."
+			);
+		}
 		Matches match = predictionDAO.selectMatchForOdds(matchId);
 		if (match == null) {
 			throw new IllegalArgumentException(MSG_MATCH_NOT_FOUND + " (matchId: " + matchId + ")");

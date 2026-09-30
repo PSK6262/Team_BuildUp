@@ -30,6 +30,7 @@ import com.app.service.admin.AdminService;
 import com.app.service.api.BigBallsApiService;
 import com.app.service.api.FootballApiService;
 import com.app.service.api.GeminiApiService;
+import com.app.service.prediction.PredictionService;
 
 @Service
 public class AdminServiceImpl implements AdminService {
@@ -53,6 +54,9 @@ public class AdminServiceImpl implements AdminService {
 
 	@Autowired
 	private GeminiApiService geminiApiService;
+
+	@Autowired
+	private PredictionService predictionService;
 
 	@Override
 	public Map<String, Object> getAdminSummary() {
@@ -81,13 +85,30 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
+	@Transactional
 	public boolean updateMatchScore(Long matchId, Long homeScore, Long awayScore, String status) {
+		boolean isDummy = matchId != null && matchId >= 999901L && matchId <= 999910L;
+		if (!isDummy && "FINISHED".equalsIgnoreCase(status)) {
+			List<Matches> dummyMatches = adminDAO.selectDummyMatches();
+			if (dummyMatches != null && !dummyMatches.isEmpty()) {
+				throw new IllegalStateException("현재 테스트용 임시(더미) 경기가 존재합니다. 임시 경기가 존재하는 동안에는 임시 경기 승부예측 이외의 모든 포인트 변동(일반 경기 정산)이 금지됩니다.");
+			}
+		}
+
 		Matches match = new Matches();
 		match.setMatchId(matchId);
 		match.setHomeScore(homeScore);
 		match.setAwayScore(awayScore);
 		match.setStatus(status);
-		return adminDAO.updateMatchScore(match) > 0;
+		boolean updated = adminDAO.updateMatchScore(match) > 0;
+		if (updated && "FINISHED".equalsIgnoreCase(status) && homeScore != null && awayScore != null) {
+			try {
+				predictionService.settleMatchPredictions(matchId);
+			} catch (Exception e) {
+				log.warn("[AdminService] 스코어 수정 후 승부예측 자동 정산 중 예외: matchId={}, msg={}", matchId, e.getMessage());
+			}
+		}
+		return updated;
 	}
 
 	@Override
@@ -291,6 +312,12 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	@Transactional
 	public boolean adjustUserPoints(Long userId, Long amount, String description) {
+		List<Matches> dummyMatches = adminDAO.selectDummyMatches();
+		if (dummyMatches != null && !dummyMatches.isEmpty()) {
+			log.warn("[포인트 조정 차단] 임시(더미) 경기 {}건 존재 중 -> 수동 포인트 변동 금지", dummyMatches.size());
+			throw new IllegalStateException("현재 테스트용 임시(더미) 경기가 존재합니다. 포인트 오류 방지를 위해 임시 경기가 존재하는 동안에는 임시 경기 승부예측 이외의 모든 포인트 변동이 금지됩니다.");
+		}
+
 		if (amount != null && Math.abs(amount) > 10000) {
 			log.warn("[포인트 조정 차단] 1회 조정 한도 초과 (요청: {}P, 최대: ±10,000P)", amount);
 			throw new IllegalArgumentException("한 번에 변경할 수 있는 포인트는 최대 ±10,000P 입니다.");
@@ -568,5 +595,148 @@ public class AdminServiceImpl implements AdminService {
 		result.put("fixedMatches", fixedMatches);
 		result.put("deletedEvents", deletedEvents);
 		return result;
+	}
+
+	// =========================================================================
+	// [승부예측 테스트용 더미 경기 (999901~999910) 생성 / 종료·정산 / 일괄 원상복구]
+	// =========================================================================
+
+	private static final long[][] DUMMY_TEAM_PAIRS = {
+		{ 57L, 61L },   // 아스널 vs 첼시
+		{ 64L, 65L },   // 리버풀 vs 맨시티
+		{ 66L, 73L },   // 맨유 vs 토트넘
+		{ 67L, 58L },   // 뉴캐슬 vs 아스톤 빌라
+		{ 397L, 354L }, // 브라이튼 vs 크리스탈 팰리스
+		{ 62L, 351L },  // 에버튼 vs 노팅엄 포레스트
+		{ 402L, 63L },  // 브렌트포드 vs 풀럼
+		{ 1044L, 71L }, // 본머스 vs 선덜랜드
+		{ 341L, 346L }, // 리즈 vs 왓포드(또는 DB 구단)
+		{ 322L, 332L }  // 헐 시티 vs 버밍엄(또는 DB 구단)
+	};
+
+	private static final long[][] DUMMY_DEFAULT_SCORES = {
+		{ 2L, 1L }, // HOME 승
+		{ 1L, 1L }, // DRAW 무
+		{ 0L, 2L }, // AWAY 승
+		{ 3L, 1L }, // HOME 승
+		{ 2L, 2L }, // DRAW 무
+		{ 1L, 3L }, // AWAY 승
+		{ 1L, 0L }, // HOME 승
+		{ 0L, 0L }, // DRAW 무
+		{ 1L, 2L }, // AWAY 승
+		{ 2L, 0L }  // HOME 승
+	};
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public Map<String, Object> createDummyMatches(int minutesAfterNow) {
+		// 기존 더미 경기가 남아있다면 포인트/전적까지 먼저 안전하게 초기화
+		cleanupDummyMatches();
+
+		int safeMinutes = Math.max(1, Math.min(minutesAfterNow, 1440));
+		LocalDateTime targetStart = LocalDateTime.now().plusMinutes(safeMinutes).withSecond(0).withNano(0);
+
+		List<Teams> dbTeams = teamDAO.findAllTeams();
+		int createdCount = 0;
+
+		for (int i = 0; i < 10; i++) {
+			long matchId = 999901L + i;
+			long homeTeamId = DUMMY_TEAM_PAIRS[i][0];
+			long awayTeamId = DUMMY_TEAM_PAIRS[i][1];
+
+			// DB에 실제 존재하는 구단 목록이 20개 이상이면 DB 구단 ID를 우선 매핑 (FK 무결성 보장)
+			if (dbTeams != null && dbTeams.size() >= (i * 2 + 2)) {
+				homeTeamId = dbTeams.get(i * 2).getTeamId();
+				awayTeamId = dbTeams.get(i * 2 + 1).getTeamId();
+			}
+
+			Matches dummy = new Matches();
+			dummy.setMatchId(matchId);
+			dummy.setHomeTeamId(homeTeamId);
+			dummy.setAwayTeamId(awayTeamId);
+			dummy.setMatchDate(targetStart);
+			dummy.setStatus("SCHEDULED");
+			dummy.setNotice("🧪 [테스트 더미 경기 #" + (i + 1) + "] " + safeMinutes + "분 뒤 시작 (테스트 후 삭제 버튼으로 원상복구 가능)");
+
+			createdCount += adminDAO.insertDummyMatch(dummy);
+		}
+
+		Map<String, Object> res = new HashMap<>();
+		res.put("createdCount", createdCount);
+		res.put("minutesAfterNow", safeMinutes);
+		res.put("startTime", targetStart.toString().replace("T", " "));
+		return res;
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public Map<String, Object> settleDummyMatches(boolean onlyExpired) {
+		List<Matches> dummyList = adminDAO.selectDummyMatches();
+		if (dummyList == null || dummyList.isEmpty()) {
+			return Map.of(
+				"settledMatches", 0,
+				"message", "현재 생성된 테스트 더미 경기가 없습니다."
+			);
+		}
+
+		LocalDateTime now = LocalDateTime.now();
+		int finishedCount = 0;
+		int settledMatchCount = 0;
+
+		for (int i = 0; i < dummyList.size(); i++) {
+			Matches m = dummyList.get(i);
+			if (onlyExpired && m.getRawMatchDate() != null && m.getRawMatchDate().isAfter(now)) {
+				continue;
+			}
+
+			int idx = (int) Math.max(0, Math.min(9, m.getMatchId() - 999901L));
+			Long homeScore = m.getHomeScore() != null ? m.getHomeScore() : DUMMY_DEFAULT_SCORES[idx][0];
+			Long awayScore = m.getAwayScore() != null ? m.getAwayScore() : DUMMY_DEFAULT_SCORES[idx][1];
+
+			if (!"FINISHED".equalsIgnoreCase(m.getStatus()) || m.getHomeScore() == null || m.getAwayScore() == null) {
+				Matches updateObj = new Matches();
+				updateObj.setMatchId(m.getMatchId());
+				updateObj.setHomeScore(homeScore);
+				updateObj.setAwayScore(awayScore);
+				updateObj.setStatus("FINISHED");
+				adminDAO.updateMatchScore(updateObj);
+				finishedCount++;
+			}
+
+			try {
+				Map<String, Object> settleRes = predictionService.settleMatchPredictions(m.getMatchId());
+				if ("SUCCESS".equals(settleRes.get("status"))) {
+					settledMatchCount++;
+				}
+			} catch (Exception e) {
+				log.warn("[AdminService] 더미 경기 정산 중 예외: matchId={}, msg={}", m.getMatchId(), e.getMessage());
+			}
+		}
+
+		Map<String, Object> res = new HashMap<>();
+		res.put("finishedCount", finishedCount);
+		res.put("settledMatchCount", settledMatchCount);
+		res.put("totalDummyMatches", dummyList.size());
+		return res;
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public Map<String, Object> cleanupDummyMatches() {
+		int rolledBackUsers = adminDAO.rollbackDummyUserPoints();
+		int rolledBackPredicts = adminDAO.rollbackDummyUserPredicts();
+		int deletedPointHistories = adminDAO.deleteDummyPointHistories();
+		int deletedPredictions = adminDAO.deleteDummyPredictions();
+		int deletedEvents = adminDAO.deleteDummyMatchEvents();
+		int deletedMatches = adminDAO.deleteDummyMatches();
+
+		Map<String, Object> res = new HashMap<>();
+		res.put("rolledBackUsers", rolledBackUsers);
+		res.put("rolledBackPredicts", rolledBackPredicts);
+		res.put("deletedPointHistories", deletedPointHistories);
+		res.put("deletedPredictions", deletedPredictions);
+		res.put("deletedEvents", deletedEvents);
+		res.put("deletedMatches", deletedMatches);
+		return res;
 	}
 }

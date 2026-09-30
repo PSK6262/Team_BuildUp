@@ -17,7 +17,7 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
   const [matchStartDate, setMatchStartDate] = useState('');
   const [matchEndDate, setMatchEndDate] = useState('');
   const [matchStatusFilter, setMatchStatusFilter] = useState(initialFilter || '');
-  const [matchSortOrder, setMatchSortOrder] = useState(initialFilter === 'MISMATCH' ? 'DESC' : 'AUTO');
+  const [matchSortOrder, setMatchSortOrder] = useState('ASC');
   const [selectedTeamId, setSelectedTeamId] = useState(57); // 기본 Arsenal
   const [teamPlayers, setTeamPlayers] = useState([]);
   const [mismatchCount, setMismatchCount] = useState(0);
@@ -34,7 +34,7 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
   useEffect(() => {
     if (initialFilter) {
       setMatchStatusFilter(initialFilter);
-      setMatchSortOrder(initialFilter === 'MISMATCH' ? 'DESC' : 'AUTO');
+      setMatchSortOrder('ASC');
       onClearInitialFilter?.();
     }
   }, [initialFilter, onClearInitialFilter]);
@@ -61,16 +61,7 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
       const startDateToUse = overrides.startDate !== undefined ? overrides.startDate : matchStartDate;
       const endDateToUse = overrides.endDate !== undefined ? overrides.endDate : matchEndDate;
 
-      let finalSort = sortToUse;
-      if (!sortToUse || sortToUse === 'AUTO') {
-        if (statusToUse === 'SCHEDULED' || statusToUse === 'TIMED') {
-          finalSort = 'ASC';
-        } else if (statusToUse === 'FINISHED' || statusToUse === 'MISMATCH') {
-          finalSort = 'DESC';
-        } else {
-          finalSort = '';
-        }
-      }
+      const finalSort = sortToUse === 'DESC' ? 'DESC' : 'ASC';
 
       const res = await adminApi.getAdminMatches({
         startDate: startDateToUse,
@@ -364,6 +355,86 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
     }
   };
 
+  // =========================================================================
+  // [승부예측 테스트용 더미 경기 (999901~999910) 생성 / 정산 / 일괄 원상복구 삭제]
+  // =========================================================================
+  const [dummyMinutes, setDummyMinutes] = useState(3);
+  const [dummyActionLoading, setDummyActionLoading] = useState(false);
+
+  const handleCreateDummyMatches = async () => {
+    const mins = Math.max(1, Math.min(1440, Number(dummyMinutes) || 3));
+    if (!window.confirm(`현재 시간으로부터 ${mins}분 뒤에 시작하는 테스트용 더미 경기 10개(ID: 999901~999910)를 생성하시겠습니까?\n(기존 더미 경기가 있다면 초기화 후 새로 생성됩니다.)`)) {
+      return;
+    }
+    setDummyActionLoading(true);
+    try {
+      const res = await adminApi.createDummyMatches(mins);
+      const json = await res.json();
+      if (json.code === 'SUC_001') {
+        const d = json.data || {};
+        showAlert?.(`테스트 더미 경기 ${d.createdCount ?? 10}개가 생성되었습니다! (시작 시각: ${d.startTime || `${mins}분 뒤`})`);
+        fetchMatches();
+      } else {
+        showAlert?.(json.message || '더미 경기 생성 실패', 'error');
+      }
+    } catch {
+      showAlert?.('더미 경기 생성 요청 중 오류가 발생했습니다.', 'error');
+    } finally {
+      setDummyActionLoading(false);
+    }
+  };
+
+  const handleSettleDummyMatches = async () => {
+    if (!window.confirm('현재 등록된 더미 경기 10개를 즉시 종료(FINISHED) 처리하고 승부예측 포인트 및 전적 정산을 실행하시겠습니까?')) {
+      return;
+    }
+    setDummyActionLoading(true);
+    try {
+      const res = await adminApi.settleDummyMatches();
+      const json = await res.json();
+      if (json.code === 'SUC_001') {
+        const d = json.data || {};
+        if (d.message) {
+          showAlert?.(d.message, 'error');
+        } else {
+          showAlert?.(`더미 경기 종료(${d.finishedCount ?? 0}건) 및 승부예측 포인트 정산(${d.settledMatchCount ?? 0}경기)이 완료되었습니다.`);
+        }
+        fetchMatches();
+      } else {
+        showAlert?.(json.message || '더미 경기 정산 실패', 'error');
+      }
+    } catch {
+      showAlert?.('더미 경기 정산 요청 중 오류가 발생했습니다.', 'error');
+    } finally {
+      setDummyActionLoading(false);
+    }
+  };
+
+  const handleCleanupDummyMatches = async () => {
+    if (!window.confirm('테스트 더미 경기(999901~999910)와 그로 인해 지급된 포인트, 포인트 이력, 예측 전적, 투표 내역을 모두 삭제하고 DB를 테스트 전 상태로 원상복구하시겠습니까?')) {
+      return;
+    }
+    setDummyActionLoading(true);
+    try {
+      const res = await adminApi.cleanupDummyMatches();
+      const json = await res.json();
+      if (json.code === 'SUC_001') {
+        const d = json.data || {};
+        showAlert?.(
+          `더미 경기 ${d.deletedMatches ?? 0}건 삭제 완료! (투표 ${d.deletedPredictions ?? 0}건, 포인트 이력 ${d.deletedPointHistories ?? 0}건, 회원 포인트/전적 원상복구 완료)`
+        );
+        fetchMatches();
+        refreshMismatchCount();
+      } else {
+        showAlert?.(json.message || '더미 경기 초기화 실패', 'error');
+      }
+    } catch {
+      showAlert?.('더미 경기 초기화 요청 중 오류가 발생했습니다.', 'error');
+    } finally {
+      setDummyActionLoading(false);
+    }
+  };
+
   return {
     matches,
     matchStartDate,
@@ -381,6 +452,14 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
     loading,
     fetchMatches,
     fetchTeamPlayers,
+
+    // 더미 경기 테스트 제어
+    dummyMinutes,
+    setDummyMinutes,
+    dummyActionLoading,
+    handleCreateDummyMatches,
+    handleSettleDummyMatches,
+    handleCleanupDummyMatches,
 
     // 모달들
     noticeModal,

@@ -21,6 +21,8 @@ export function useAdminUsers({ showAlert }) {
   // 모달 상태
   const [roleModal, setRoleModal] = useState(null);   // { userId, nickname, roleCode }
   const [pointModal, setPointModal] = useState(null); // { userId, nickname, amount, description }
+  const [dummyLockModal, setDummyLockModal] = useState(null); // { message }
+  const [resolvingDummy, setResolvingDummy] = useState(false);
 
   // 1. 회원 목록 조회
   const fetchUsers = useCallback(async (overrideKeyword, overrideRole) => {
@@ -104,11 +106,35 @@ export function useAdminUsers({ showAlert }) {
         showAlert?.('포인트가 정상적으로 지급/차감되었습니다.');
         setPointModal(null);
         fetchUsers();
+      } else if (json.message && (json.message.includes('임시') || json.message.includes('더미'))) {
+        setDummyLockModal({
+          message: json.message,
+        });
       } else {
         showAlert?.(json.message || '포인트 조정 실패', 'error');
       }
     } catch {
       showAlert?.('포인트 조정 중 통신 오류가 발생했습니다.', 'error');
+    }
+  };
+
+  // 모달에서 임시 경기 일괄 삭제 후 즉시 포인트 조정 재시도
+  const handleResolveDummyAndSavePoints = async () => {
+    try {
+      setResolvingDummy(true);
+      const cleanRes = await adminApi.cleanupDummyMatches();
+      const cleanJson = await cleanRes.json();
+      if (cleanJson.code === 'SUC_001') {
+        setDummyLockModal(null);
+        showAlert?.('임시(더미) 경기 및 관련 포인트가 원상복구 정리되었습니다. 포인트 조정을 진행합니다.');
+        await handleSavePoints();
+      } else {
+        showAlert?.(cleanJson.message || '임시 경기 정리 실패', 'error');
+      }
+    } catch {
+      showAlert?.('임시 경기 정리 중 오류가 발생했습니다.', 'error');
+    } finally {
+      setResolvingDummy(false);
     }
   };
 
@@ -123,8 +149,12 @@ export function useAdminUsers({ showAlert }) {
     setRoleModal,
     pointModal,
     setPointModal,
+    dummyLockModal,
+    setDummyLockModal,
+    resolvingDummy,
     fetchUsers,
     handleSaveRole,
     handleSavePoints,
+    handleResolveDummyAndSavePoints,
   };
 }

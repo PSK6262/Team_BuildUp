@@ -137,4 +137,44 @@ public class AdminDAOImpl implements AdminDAO {
 	public List<PointHistory> selectRecentPointHistories() {
 		return sqlSession.selectList("AdminMapper.selectRecentPointHistories");
 	}
+
+	@Override
+	public List<Matches> selectDummyMatches() {
+		return sqlSession.selectList("AdminMapper.selectDummyMatches");
+	}
+
+	@Override
+	public int insertDummyMatch(Matches match) {
+		return sqlSession.insert("AdminMapper.insertDummyMatch", match);
+	}
+
+	@Override
+	public int rollbackDummyUserPoints() {
+		return sqlSession.update("AdminMapper.rollbackDummyUserPoints");
+	}
+
+	@Override
+	public int rollbackDummyUserPredicts() {
+		return sqlSession.update("AdminMapper.rollbackDummyUserPredicts");
+	}
+
+	@Override
+	public int deleteDummyPointHistories() {
+		return sqlSession.delete("AdminMapper.deleteDummyPointHistories");
+	}
+
+	@Override
+	public int deleteDummyPredictions() {
+		return sqlSession.delete("AdminMapper.deleteDummyPredictions");
+	}
+
+	@Override
+	public int deleteDummyMatchEvents() {
+		return sqlSession.delete("AdminMapper.deleteDummyMatchEvents");
+	}
+
+	@Override
+	public int deleteDummyMatches() {
+		return sqlSession.delete("AdminMapper.deleteDummyMatches");
+	}
 }

@@ -19,9 +19,13 @@ export default function AdminUsersTab({ showAlert }) {
     setRoleModal,
     pointModal,
     setPointModal,
+    dummyLockModal,
+    setDummyLockModal,
+    resolvingDummy,
     fetchUsers,
     handleSaveRole,
     handleSavePoints,
+    handleResolveDummyAndSavePoints,
   } = useAdminUsers({ showAlert });
 
   const [visibleUsers, setVisibleUsers] = useState(10);
@@ -241,6 +245,58 @@ export default function AdminUsersTab({ showAlert }) {
               </button>
               <button type="button" className="btn-action btn-action--primary" onClick={handleSavePoints}>
                 적용하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. 임시 경기 존재 시 포인트 변동 차단 및 원클릭 해결 모달 */}
+      {dummyLockModal && (
+        <div className="admin-modal-backdrop" onClick={() => setDummyLockModal(null)}>
+          <div className="admin-modal" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal__header">
+              <h3>🔒 포인트 변동 제한 안내 (임시 경기 진행 중)</h3>
+              <button type="button" className="admin-modal__close" onClick={() => setDummyLockModal(null)}>×</button>
+            </div>
+            <div className="admin-modal__body">
+              <div
+                style={{
+                  background: '#fff1f2',
+                  border: '1px solid #fecdd3',
+                  borderRadius: 10,
+                  padding: '14px 16px',
+                  color: '#9f1239',
+                  fontSize: 13.5,
+                  lineHeight: 1.6,
+                  marginBottom: 14,
+                }}
+              >
+                <strong>⚠️ 임시(더미) 경기가 존재하는 동안에는 다른 포인트 변동이 금지됩니다.</strong>
+                <p style={{ margin: '8px 0 0 0', color: '#be123c' }}>
+                  {dummyLockModal.message}
+                </p>
+              </div>
+              <p style={{ margin: 0, fontSize: 13, color: '#475569', lineHeight: 1.5 }}>
+                아래 <strong>[임시 경기 일괄 삭제 후 포인트 적용]</strong> 버튼을 누르면 테스트용 더미 경기와 관련 결과를 안전하게 초기화한 뒤 요청하신 포인트 조정을 즉시 완료합니다.
+              </p>
+            </div>
+            <div className="admin-modal__footer">
+              <button
+                type="button"
+                className="btn-action btn-action--outline"
+                onClick={() => setDummyLockModal(null)}
+                disabled={resolvingDummy}
+              >
+                닫기
+              </button>
+              <button
+                type="button"
+                className="btn-action btn-action--danger"
+                onClick={handleResolveDummyAndSavePoints}
+                disabled={resolvingDummy}
+              >
+                {resolvingDummy ? '정리 중...' : '🗑️ 임시 경기 일괄 삭제 후 포인트 적용'}
               </button>
             </div>
           </div>

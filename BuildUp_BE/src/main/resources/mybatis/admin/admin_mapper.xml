@@ -119,20 +119,11 @@
 			</if>
 		</where>
 		<choose>
-			<when test="sortOrder == 'ASC'">
-				ORDER BY m.MATCH_DATE ASC
-			</when>
 			<when test="sortOrder == 'DESC'">
-				ORDER BY m.MATCH_DATE DESC
-			</when>
-			<when test="status == 'SCHEDULED' or status == 'TIMED'">
-				ORDER BY m.MATCH_DATE ASC
-			</when>
-			<when test="status == 'FINISHED' or status == 'MISMATCH'">
-				ORDER BY m.MATCH_DATE DESC
+				ORDER BY CASE WHEN m.MATCH_ID BETWEEN 999901 AND 999910 THEN 0 ELSE 1 END ASC, m.MATCH_DATE DESC
 			</when>
 			<otherwise>
-				ORDER BY m.MATCH_DATE DESC
+				ORDER BY CASE WHEN m.MATCH_ID BETWEEN 999901 AND 999910 THEN 0 ELSE 1 END ASC, m.MATCH_DATE ASC
 			</otherwise>
 		</choose>
 	</select>
@@ -462,5 +453,126 @@
 			#{assistPlayerId, jdbcType=NUMERIC}
 		)
 	</insert>
+
+	<!-- ========================================================== -->
+	<!-- [테스트용 더미 경기 (999901~999910) 생성/정산/원상복구 쿼리] -->
+	<!-- ========================================================== -->
+
+	<!-- 현재 등록된 더미 경기 목록 조회 -->
+	<select id="selectDummyMatches" resultType="Matches">
+		SELECT
+			MATCH_ID,
+			MATCH_DATE,
+			HOME_TEAM_ID,
+			AWAY_TEAM_ID,
+			HOME_SCORE,
+			AWAY_SCORE,
+			STATUS,
+			NOTICE,
+			ENDED_AT
+		FROM MATCHES
+		WHERE MATCH_ID BETWEEN 999901 AND 999910
+		ORDER BY MATCH_ID ASC
+	</select>
+
+	<!-- 테스트용 더미 경기 단건 생성 -->
+	<insert id="insertDummyMatch" parameterType="Matches">
+		INSERT INTO MATCHES (
+			MATCH_ID,
+			MATCH_DATE,
+			HOME_TEAM_ID,
+			AWAY_TEAM_ID,
+			HOME_SCORE,
+			AWAY_SCORE,
+			STATUS,
+			NOTICE,
+			ENDED_AT
+		) VALUES (
+			#{matchId},
+			#{rawMatchDate, jdbcType=TIMESTAMP},
+			#{homeTeamId},
+			#{awayTeamId},
+			NULL,
+			NULL,
+			#{status},
+			#{notice, jdbcType=CLOB},
+			NULL
+		)
+	</insert>
+
+	<!-- 1. 더미 경기 정산으로 지급된 회원 포인트 원상복구 (USERS.POINT 차감) -->
+	<update id="rollbackDummyUserPoints">
+		UPDATE USERS u
+		SET u.POINT = GREATEST(0, u.POINT - NVL((
+			SELECT SUM(ph.AMOUNT)
+			FROM POINT_HISTORY ph
+			JOIN PREDICTIONS p ON ph.PREDICTION_ID = p.PREDICTION_ID
+			WHERE p.MATCH_ID BETWEEN 999901 AND 999910
+			  AND ph.USER_ID = u.USER_ID
+		), 0)),
+		    u.UPDATED_AT = SYSTIMESTAMP
+		WHERE EXISTS (
+			SELECT 1
+			FROM POINT_HISTORY ph
+			JOIN PREDICTIONS p ON ph.PREDICTION_ID = p.PREDICTION_ID
+			WHERE p.MATCH_ID BETWEEN 999901 AND 999910
+			  AND ph.USER_ID = u.USER_ID
+		)
+	</update>
+
+	<!-- 2. 더미 경기 정산으로 누적된 회원 승부예측 전적 원상복구 (USER_PREDICTS 차감) -->
+	<update id="rollbackDummyUserPredicts">
+		UPDATE USER_PREDICTS up
+		SET up.PREDICT_TOTAL = GREATEST(0, up.PREDICT_TOTAL - NVL((
+				SELECT COUNT(*)
+				FROM PREDICTIONS p
+				WHERE p.MATCH_ID BETWEEN 999901 AND 999910
+				  AND p.USER_ID = up.USER_ID
+				  AND p.IS_SUCCESS IN ('Y', 'N')
+			), 0)),
+			up.PREDICT_WIN = GREATEST(0, up.PREDICT_WIN - NVL((
+				SELECT COUNT(*)
+				FROM PREDICTIONS p
+				WHERE p.MATCH_ID BETWEEN 999901 AND 999910
+				  AND p.USER_ID = up.USER_ID
+				  AND p.IS_SUCCESS = 'Y'
+			), 0)),
+			up.UPDATED_AT = SYSTIMESTAMP
+		WHERE EXISTS (
+			SELECT 1
+			FROM PREDICTIONS p
+			WHERE p.MATCH_ID BETWEEN 999901 AND 999910
+			  AND p.USER_ID = up.USER_ID
+			  AND p.IS_SUCCESS IN ('Y', 'N')
+		)
+	</update>
+
+	<!-- 3. 더미 경기 관련 포인트 변동 이력 삭제 -->
+	<delete id="deleteDummyPointHistories">
+		DELETE FROM POINT_HISTORY
+		WHERE PREDICTION_ID IN (
+			SELECT PREDICTION_ID
+			FROM PREDICTIONS
+			WHERE MATCH_ID BETWEEN 999901 AND 999910
+		)
+	</delete>
+
+	<!-- 4. 더미 경기 관련 승부예측 투표 내역 삭제 -->
+	<delete id="deleteDummyPredictions">
+		DELETE FROM PREDICTIONS
+		WHERE MATCH_ID BETWEEN 999901 AND 999910
+	</delete>
+
+	<!-- 5. 더미 경기 관련 타임라인 이벤트 삭제 -->
+	<delete id="deleteDummyMatchEvents">
+		DELETE FROM MATCH_EVENTS
+		WHERE MATCH_ID BETWEEN 999901 AND 999910
+	</delete>
+
+	<!-- 6. 더미 경기 본체 삭제 -->
+	<delete id="deleteDummyMatches">
+		DELETE FROM MATCHES
+		WHERE MATCH_ID BETWEEN 999901 AND 999910
+	</delete>
 
 </mapper>
