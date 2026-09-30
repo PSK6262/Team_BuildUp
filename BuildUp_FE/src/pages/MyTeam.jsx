@@ -1723,9 +1723,9 @@ export default function MyTeam() {
         {/* 1. 상단 헤더 & 툴바 */}
         <header className="myteam-header">
           <div className="myteam-title-box">
+            <span className="myteam-title-badge">PL:UG MY TEAM</span>
             <h1>
               나만의 팀 & 포메이션 빌더
-              <span className="myteam-title-badge">PL:UG MY TEAM</span>
             </h1>
             <p>포메이션을 자유롭게 설정하고, 원하는 프리미어리그 선수들을 필드에 드래그하거나 클릭하여 배치하세요.</p>
           </div>

@@ -2250,7 +2250,7 @@ html[data-theme='light'] .myteam-page .member-ranking-scroll tr > :nth-child(2) 
 }
 
 html[data-theme='light'] .myteam-page .member-ranking-scroll thead tr > :nth-child(2),
-html[data-theme='light'] .myteam-page .member-ranking-scroll .member-ranking-mine > * {
+html[data-theme='light'] .myteam-page .member-ranking-scroll tr.member-ranking-mine > * {
   background: #edf7f1;
   color: #16744b;
 }
