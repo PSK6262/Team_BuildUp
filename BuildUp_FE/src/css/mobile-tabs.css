@@ -96,6 +96,8 @@
   .myteam-page .preset-chip { padding: calc(10 * var(--mobile-unit)) calc(6 * var(--mobile-unit)); font-size: calc(13 * var(--mobile-unit)); }
   .myteam-page .custom-steppers { flex-wrap: wrap; gap: calc(6 * var(--mobile-unit)); }
   .myteam-page .pitch-header-info { flex-direction: column; gap: calc(8 * var(--mobile-unit)); text-align: center; }
+  .myteam-page .pitch-formation-display { font-size: calc(14 * var(--mobile-unit)); gap: calc(6 * var(--mobile-unit)); }
+  .myteam-page .pitch-formation-display .myteam-btn-mini { margin-left: 0; padding: calc(6 * var(--mobile-unit)); gap: calc(3 * var(--mobile-unit)); font-size: calc(11 * var(--mobile-unit)); }
   .myteam-page .pitch-hint { font-size: calc(12 * var(--mobile-unit)); }
   .myteam-page .myteam-pitch { min-height: 0; max-height: none; aspect-ratio: 0.72; padding: calc(14 * var(--mobile-unit)) calc(6 * var(--mobile-unit)); }
   .myteam-page .pitch-row { flex-wrap: nowrap; gap: calc(2 * var(--mobile-unit)); }

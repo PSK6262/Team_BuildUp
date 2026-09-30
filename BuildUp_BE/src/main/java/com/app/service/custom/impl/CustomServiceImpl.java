@@ -302,6 +302,9 @@ public class CustomServiceImpl implements CustomService {
         Set<Long> players = new HashSet<>();
         int df = 0, mf = 0, fw = 0, gk = 0;
         for (CustomSquads squad : team.getSquads()) {
+            if (squad != null && ((squad.getX() != null && (!Double.isFinite(squad.getX()) || squad.getX() < 0 || squad.getX() > 100))
+                    || (squad.getY() != null && (!Double.isFinite(squad.getY()) || squad.getY() < 0 || squad.getY() > 100))))
+                throw new IllegalArgumentException("선수 위치는 경기장 범위(0~100) 안에 있어야 합니다.");
             if (squad == null || squad.getPositionNo() == null || squad.getPositionNo() < 1 || squad.getPositionNo() > 11
                     || !positions.add(squad.getPositionNo())) throw new IllegalArgumentException("슬롯 번호는 중복 없이 1~11이어야 합니다.");
             String pos = squad.getPosition();
@@ -333,7 +336,6 @@ public class CustomServiceImpl implements CustomService {
             customDAO.deleteSquads(team.getCustomTeamId());
         }
         for (CustomSquads squad : team.getSquads()) {
-            if (squad.getPlayerId() == null) continue;
             squad.setCustomTeamId(team.getCustomTeamId());
             if (customDAO.insertSquad(squad) != 1) throw new IllegalArgumentException("DB에 등록되지 않은 선수가 포함되어 있습니다.");
         }

@@ -11,4 +11,6 @@ public class CustomSquads {
     private String playerName;         // PLAYERS JOIN으로 조회한 선수 이름
     private String position;           // 요청의 배치 포지션 (FW, MF, DF, GK)
     private String mainPosition;       // 조회 시 선수의 원래 포지션
+    private Double x;                 // 피치 너비 기준 위치 (%)
+    private Double y;                 // 피치 높이 기준 위치 (%)
 }

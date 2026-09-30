@@ -1,0 +1,22 @@
+-- Run once before deploying the coordinate-aware backend. Existing squads remain intact.
+DECLARE
+    column_count NUMBER;
+    player_nullable VARCHAR2(1);
+BEGIN
+    SELECT COUNT(*) INTO column_count FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME = 'CUSTOM_SQUADS' AND COLUMN_NAME = 'PITCH_X';
+    IF column_count = 0 THEN
+        EXECUTE IMMEDIATE 'ALTER TABLE CUSTOM_SQUADS ADD (PITCH_X NUMBER(6,3))';
+    END IF;
+    SELECT COUNT(*) INTO column_count FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME = 'CUSTOM_SQUADS' AND COLUMN_NAME = 'PITCH_Y';
+    IF column_count = 0 THEN
+        EXECUTE IMMEDIATE 'ALTER TABLE CUSTOM_SQUADS ADD (PITCH_Y NUMBER(6,3))';
+    END IF;
+    SELECT NULLABLE INTO player_nullable FROM USER_TAB_COLUMNS
+    WHERE TABLE_NAME = 'CUSTOM_SQUADS' AND COLUMN_NAME = 'PLAYER_ID';
+    IF player_nullable = 'N' THEN
+        EXECUTE IMMEDIATE 'ALTER TABLE CUSTOM_SQUADS MODIFY (PLAYER_ID NULL)';
+    END IF;
+END;
+/

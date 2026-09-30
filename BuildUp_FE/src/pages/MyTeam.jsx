@@ -969,13 +969,16 @@ export default function MyTeam() {
 
             const restoredSlots = buildInitialSlots(df, mf, fw, [], presetLabel).map((slot) => {
               const entry = savedTeam.squads.find((s) => Number(s.positionNo) === slot.id + 1);
-              const player = entry ? (playersData || []).find((p) => Number(p.playerId) === Number(entry.playerId)) || {
+              const player = entry?.playerId != null ? (playersData || []).find((p) => Number(p.playerId) === Number(entry.playerId)) || {
                 playerId: entry.playerId,
                 name: entry.playerName,
                 nameKor: entry.playerName,
                 mainPosition: entry.mainPosition,
               } : null;
-              return { ...slot, player };
+              return { ...slot, player,
+                x: Number.isFinite(entry?.x) ? entry.x : slot.x,
+                y: Number.isFinite(entry?.y) ? entry.y : slot.y,
+              };
             });
             setTeamName(savedTeam.teamName);
             setFormation({ df, mf, fw, presetLabel });
@@ -1559,6 +1562,8 @@ export default function MyTeam() {
         positionNo: slot.id + 1,
         position: slot.pos,
         playerId: slot.player?.playerId ?? null,
+        x: slot.x,
+        y: slot.y,
       })),
     };
     const accountVersion = accountVersionRef.current;
@@ -1609,6 +1614,8 @@ export default function MyTeam() {
         positionNo: slot.id + 1,
         position: slot.pos,
         playerId: slot.player.playerId,
+        x: slot.x,
+        y: slot.y,
       })),
     };
     savePendingRef.current = true;
@@ -1674,7 +1681,7 @@ export default function MyTeam() {
           teamName: teamName.trim() || '나만의 드림 스쿼드',
           presetLabel: formation.presetLabel,
           opponentTeamId: club?.teamId ?? null,
-          squads: slots.map((slot) => ({ positionNo: slot.id + 1, position: slot.pos, playerId: slot.player.playerId })),
+          squads: slots.map((slot) => ({ positionNo: slot.id + 1, position: slot.pos, playerId: slot.player.playerId, x: slot.x, y: slot.y })),
         }),
       });
       const result = await response.json().catch(() => null);

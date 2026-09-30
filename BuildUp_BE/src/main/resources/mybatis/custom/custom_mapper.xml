@@ -25,9 +25,11 @@
 			S.PLAYER_ID,
 			NVL(P.NAME_KOR, P.NAME) AS PLAYER_NAME,
 			S.POSITION_NO,
+			S.PITCH_X AS X,
+			S.PITCH_Y AS Y,
 			P.MAIN_POSITION
 		FROM CUSTOM_SQUADS S
-		JOIN PLAYERS P ON P.PLAYER_ID = S.PLAYER_ID
+		LEFT JOIN PLAYERS P ON P.PLAYER_ID = S.PLAYER_ID
 		WHERE S.CUSTOM_TEAM_ID = #{customTeamId}
 		ORDER BY S.POSITION_NO
 	</select>
@@ -49,12 +51,15 @@
 	</delete>
 
 	<insert id="insertSquad" parameterType="CustomSquads">
-		INSERT INTO CUSTOM_SQUADS (CUSTOM_TEAM_ID, PLAYER_ID, POSITION_NO)
+		INSERT INTO CUSTOM_SQUADS (CUSTOM_TEAM_ID, PLAYER_ID, POSITION_NO, PITCH_X, PITCH_Y)
 		SELECT #{customTeamId},
-			PLAYER_ID,
-			#{positionNo}
-		FROM PLAYERS
-		WHERE PLAYER_ID = #{playerId}
+			#{playerId,jdbcType=NUMERIC},
+			#{positionNo},
+			#{x,jdbcType=NUMERIC},
+			#{y,jdbcType=NUMERIC}
+		FROM DUAL
+		WHERE #{playerId,jdbcType=NUMERIC} IS NULL
+			OR EXISTS (SELECT 1 FROM PLAYERS WHERE PLAYER_ID = #{playerId,jdbcType=NUMERIC})
 	</insert>
 
 	<insert id="insertAiMatch" parameterType="AiMatches">
