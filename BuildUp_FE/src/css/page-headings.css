@@ -33,7 +33,14 @@ html[data-theme] :is(.match-page-eyebrow, .teams-page-container--rankings .teams
   background: transparent;
 }
 
-html[data-theme='light'] .myteam-title-box .myteam-title-badge { color: #38003c; }
+html[data-theme='light'] .myteam-page .myteam-title-box .myteam-title-badge,
+html[data-theme='light'] .teams-page-container--rankings .teams-page-header .teams-page-eyebrow {
+  color: #38003c;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  text-shadow: none;
+}
 html[data-theme='dark'] .myteam-title-box .myteam-title-badge { color: #00e58a; }
 
 @media (max-width: 600px) {
