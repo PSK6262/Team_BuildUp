@@ -116,6 +116,39 @@ html[data-theme='light'] .myteam-ai-panel {
 .myteam-ai-movement h3 { margin-top: 0; line-height: 1.5; font-size: 15px; }
 .myteam-ai-movement .myteam-ai-actions { display: flex; gap: 8px; }
 .myteam-ai-movement .myteam-ai-actions > button { flex: 1; min-width: 0; padding: 10px 6px; font-size: 12px; }
+.myteam-ai-panel .myteam-opponent-section { text-align: left; }
+.myteam-ai-panel .myteam-opponent-section > h2 { margin: 0 0 16px; line-height: 1.4; }
+.myteam-ai-panel .myteam-opponent-mode { text-align: left; align-items: center; }
+.myteam-ai-panel .myteam-opponent-mode > span:first-child { flex: 0 0 32px; text-align: center; }
+.myteam-ai-panel .myteam-opponent-mode strong { line-height: 1.4; }
+.myteam-ai-panel .myteam-opponent-mode small { line-height: 1.6; margin-top: 5px; }
+.myteam-ai-panel .myteam-opponent-picker-heading h3 { line-height: 1.5; }
+.myteam-ai-result .myteam-ai-movement .myteam-ai-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 1fr;
+  gap: 10px;
+  padding: 10px 0;
+}
+.myteam-ai-result .myteam-ai-movement .myteam-ai-actions > button {
+  justify-content: center;
+  min-height: 40px;
+  margin: 0;
+  border-radius: 9px;
+}
+html[data-theme] .myteam-ai-result .myteam-ai-movement .myteam-ai-step {
+  border: 1px solid var(--match-border);
+  background: var(--match-surface);
+  color: inherit;
+  box-shadow: none;
+  gap: 8px;
+}
+.myteam-ai-step > span { font-size: 21px; line-height: 1; }
+html[data-theme] .myteam-ai-result .myteam-ai-step:hover:not(:disabled) {
+  border-color: var(--match-muted);
+  background: color-mix(in srgb, var(--match-muted) 12%, var(--match-surface));
+}
+.myteam-ai-panel .myteam-ai-events { overscroll-behavior-y: contain; }
+.myteam-ai-panel .myteam-ai-event:last-child { margin-bottom: 0; }
 .myteam-ai-squad-details {
   margin-top: 24px;
   border: 1px solid var(--match-border);
