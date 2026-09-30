@@ -57,22 +57,25 @@
   position: relative;
   background: linear-gradient(90deg, #1b0a2a 0%, #111a36 50%, #0d1b2a 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 18px 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  padding: 54px 28px 20px;
+  flex-shrink: 0;
 }
 
 .fcm-header__brand {
+  position: absolute;
+  top: 14px;
+  left: 20px;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  max-width: calc(100% - 80px);
 }
 
 .fcm-badge-tag {
   background: linear-gradient(135deg, #00ff85 0%, #059669 100%);
   color: #042f1a;
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 900;
   letter-spacing: 1px;
   padding: 3px 8px;
@@ -81,13 +84,16 @@
 }
 
 .fcm-header__title {
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 700;
   color: #94a3b8;
   letter-spacing: 0.5px;
 }
 
 .fcm-header__close {
+  position: absolute;
+  top: 14px;
+  right: 20px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #cbd5e1;
@@ -111,14 +117,18 @@
 
 /* 스코어보드 중앙부 */
 .fcm-scoreboard {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(100px, 160px) minmax(0, 1fr);
   align-items: center;
   justify-content: center;
-  gap: 32px;
-  flex: 1;
+  gap: 24px;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .fcm-score-team {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -136,6 +146,8 @@
 }
 
 .fcm-team-meta {
+  min-width: 0;
+  overflow-wrap: anywhere;
   display: flex;
   flex-direction: column;
 }
@@ -573,14 +585,25 @@
   gap: 14px;
 }
 
-.fcm-feed-list::-webkit-scrollbar {
-  width: 6px;
+/* Compact inset scrollbars for the pitch, commentary and filter areas. */
+.fcm-modal-container :is(.fcm-pitch-section, .fcm-feed-list, .fcm-filter-bar, .fcm-body) {
+  scrollbar-width: thin;
+  scrollbar-color: #465774 transparent;
+  overscroll-behavior: contain;
 }
-
-.fcm-feed-list::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
+.fcm-modal-container :is(.fcm-pitch-section, .fcm-feed-list) {
+  scrollbar-gutter: stable;
 }
+.fcm-modal-container ::-webkit-scrollbar { width: 8px; height: 8px; }
+.fcm-modal-container ::-webkit-scrollbar-track { background: transparent; margin-block: 14px; }
+.fcm-modal-container ::-webkit-scrollbar-thumb {
+  background: #465774;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+.fcm-modal-container ::-webkit-scrollbar-thumb:hover { background-color: #00b881; }
+.fcm-modal-container ::-webkit-scrollbar-corner { background: transparent; }
 
 /* 개별 타임라인 아이템 */
 .fcm-feed-item {
@@ -789,5 +812,20 @@
   .fcm-score-digits {
     font-size: 24px;
   }
+}
+
+@media (max-width: 600px) {
+  .fcm-modal-overlay { padding: 10px; }
+  .fcm-header { padding: 64px 12px 16px; }
+  .fcm-header__brand { top: 12px; left: 14px; }
+  .fcm-header__close { top: 12px; right: 14px; }
+  .fcm-scoreboard { grid-template-columns: minmax(0, 1fr) 84px minmax(0, 1fr); gap: 8px; }
+  .fcm-score-team { gap: 8px; text-align: center; }
+  .fcm-score-team--home { flex-direction: column-reverse; }
+  .fcm-score-team--away { flex-direction: column; }
+  .fcm-team-meta__kor { font-size: 13px; }
+  .fcm-team-meta__eng { font-size: 10px; }
+  .fcm-emblem-wrap { box-sizing: border-box; width: 40px; height: 40px; }
+  .fcm-stadium-info { font-size: 10px; text-align: center; overflow-wrap: anywhere; }
 }
 

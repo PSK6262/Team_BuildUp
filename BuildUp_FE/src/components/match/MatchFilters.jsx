@@ -66,18 +66,15 @@ export function MatchClubPicker({ teams, value, onChange }) {
 export function MatchRoundPicker({ value, onChange }) {
   const [start, setStart] = useState(() => value === 'ALL' ? 0 : Math.min(33, Math.floor((Number(value) - 1) / 5) * 5))
   return <section className="match-round-picker" aria-label="라운드별 일정 필터">
-    <div className="match-round-heading">
-      <button type="button" className="match-round-all" aria-pressed={value === 'ALL'} onClick={() => onChange('ALL')}>전체 라운드</button>
-      <span>{value === 'ALL' ? '전체 선택' : `${value}R 선택`}</span>
-    </div>
-    <div className="match-round-controls">
-      <button type="button" className="match-round-arrow" aria-label="이전 5개 라운드" disabled={start === 0} onClick={() => setStart(current => Math.max(0, current - 5))}>‹</button>
+    <div className="month-filter-nav match-round-controls">
+      <button type="button" className={`month-filter-btn match-round-all ${value === 'ALL' ? 'active' : ''}`} aria-label="전체 라운드" aria-pressed={value === 'ALL'} onClick={() => onChange('ALL')}>전체</button>
+      <button type="button" className="month-filter-btn match-round-arrow" aria-label="이전 5개 라운드" disabled={start === 0} onClick={() => setStart(current => Math.max(0, current - 5))}>‹</button>
       <div className="match-round-window" role="group" aria-label={`${start + 1}부터 ${start + 5}라운드`}>
         <div className="match-round-track" style={{ transform: `translateX(calc(${start} * (100% + var(--round-gap)) / -5))` }}>
           {Array.from({ length: 38 }, (_, index) => index + 1).map(round => {
             const visible = round > start && round <= start + 5
             return <button type="button" key={round}
-              className="match-round-choice" aria-pressed={Number(value) === round}
+              className={`month-filter-btn match-round-choice ${Number(value) === round ? 'active' : ''}`} aria-pressed={Number(value) === round}
               aria-hidden={!visible} tabIndex={visible ? 0 : -1}
               onPointerDown={event => {
                 // Select before the moving button leaves the pointer on release.
@@ -90,7 +87,7 @@ export function MatchRoundPicker({ value, onChange }) {
           })}
         </div>
       </div>
-      <button type="button" className="match-round-arrow" aria-label="다음 5개 라운드" disabled={start === 33} onClick={() => setStart(current => Math.min(33, current + 5))}>›</button>
+      <button type="button" className="month-filter-btn match-round-arrow" aria-label="다음 5개 라운드" disabled={start === 33} onClick={() => setStart(current => Math.min(33, current + 5))}>›</button>
     </div>
     <p className="match-round-range" aria-live="polite">{start + 1}–{start + 5} / 38 라운드</p>
   </section>
