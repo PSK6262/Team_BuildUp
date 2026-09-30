@@ -7,6 +7,12 @@ html[data-theme='light'] body:has(.myteam-page) {
   background: #f8faf9;
 }
 
+/* Cover the exposed margins around the floating header, including mobile overscroll. */
+html[data-theme='dark']:has(.myteam-page),
+html[data-theme='dark'] body:has(.myteam-page) {
+  background: #18001d;
+}
+
 .myteam-page {
   min-height: calc(100vh - 84px);
   background: linear-gradient(135deg, #18001d 0%, #250228 35%, #0e1e19 100%);

@@ -118,18 +118,24 @@ function AiMatchTimeline({ match }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const activeEventRef = useRef(null);
+  const eventsRef = useRef(null);
 
   useEffect(() => {
-    if (!playing || selectedIndex < 6 || selectedIndex >= match.events.length - 6) return;
     const frame = requestAnimationFrame(() => {
-      activeEventRef.current?.scrollIntoView({
+      const list = eventsRef.current;
+      const active = activeEventRef.current;
+      if (!list || !active) return;
+      const last = selectedIndex === match.events.length - 1;
+      const itemTop = active.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop;
+      const top = last ? list.scrollHeight - list.clientHeight
+        : selectedIndex === 0 ? 0 : itemTop - (list.clientHeight - active.offsetHeight) / 2;
+      list.scrollTo({
+        top: Math.max(0, top),
         behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
-        block: 'center',
-        inline: 'nearest',
       });
     });
     return () => cancelAnimationFrame(frame);
-  }, [selectedIndex, playing, match.events.length]);
+  }, [selectedIndex, match.events.length]);
 
   useEffect(() => {
     if (!playing) return;
@@ -274,7 +280,7 @@ function AiMatchTimeline({ match }) {
     <section className="myteam-ai-timeline" aria-label="주요 사건과 AI 포메이션 움직임">
       <h3>주요 사건 타임라인</h3>
       <div className="myteam-ai-replay">
-        <ol className="myteam-ai-events" aria-label="경기 주요 사건 시간순 기록">
+        <ol ref={eventsRef} className="myteam-ai-events" aria-label="경기 주요 사건 시간순 기록">
           {match.events.map((item, index) => (
             <li key={index} ref={selectedIndex === index ? activeEventRef : null}
               aria-current={selectedIndex === index ? 'step' : undefined}
@@ -300,12 +306,12 @@ function AiMatchTimeline({ match }) {
             <span>{event.minute}분</span><strong>{event.label}</strong><b>{event.score.join(' : ')}</b>
           </div>
           <div className="myteam-ai-actions">
-            <button type="button" className="myteam-btn myteam-btn-secondary" disabled={selectedIndex === 0} onClick={() => selectEvent(selectedIndex - 1)}>이전</button>
+            <button type="button" className="myteam-btn myteam-btn-secondary myteam-ai-step" disabled={selectedIndex === 0} onClick={() => selectEvent(selectedIndex - 1)}><span aria-hidden="true">‹</span> 이전</button>
             <button type="button" className="myteam-btn myteam-btn-primary" onClick={() => {
               if (!playing && selectedIndex >= match.events.length - 1) setSelectedIndex(0);
               setPlaying(!playing);
             }}>{playing ? '일시정지' : '움직임 재생'}</button>
-            <button type="button" className="myteam-btn myteam-btn-secondary" disabled={selectedIndex >= match.events.length - 1} onClick={() => selectEvent(selectedIndex + 1)}>다음</button>
+            <button type="button" className="myteam-btn myteam-btn-secondary myteam-ai-step" disabled={selectedIndex >= match.events.length - 1} onClick={() => selectEvent(selectedIndex + 1)}>다음 <span aria-hidden="true">›</span></button>
           </div>
           <p>{isSecondHalf ? '후반' : '전반'} · <span style={{ color: 'var(--myteam-home, #60a5fa)' }}>● {match.homeName} {homeLineup.length}명 · {isSecondHalf ? '↓' : '↑'} 공격</span>{' / '}<span style={{ color: 'var(--myteam-danger, #f87171)' }}>● {match.opponentName} {lineup.length}명 · {isSecondHalf ? '↑' : '↓'} 공격</span></p>
           <svg className="myteam-ai-mini-pitch" viewBox="0 0 360 440" role="img" aria-label={`양 팀 선수 배치: ${match.homeName} ${homeLineup.length}명, ${match.opponentName} ${lineup.length}명`}>
@@ -538,7 +544,6 @@ function AiMatchTimeline({ match }) {
               </text>
             </g>
           </svg>
-          <p>재생하면 선수 이동·대각선 침투 및 <strong>공의 위치(⚽)와 코너킥 키커(🚩)</strong>가 사건에 맞춰 생동감 있게 움직입니다.</p>
         </aside>
       </div>
     </section>
