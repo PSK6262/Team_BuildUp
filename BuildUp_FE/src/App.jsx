@@ -83,7 +83,13 @@ function App() {
   return (
     <>
       <AllUseNav />
-      <Suspense fallback={<p role="status">페이지를 불러오는 중입니다...</p>}>
+      <Suspense
+        fallback={
+          <div className="app-loading-fallback" role="status" aria-label="로딩 중">
+            <div className="app-loading-spinner" />
+          </div>
+        }
+      >
       {/* 메인 및 구단 소개 */}
       {isMainPage && <MainPage />}
       {isTeamsPage && <TeamsPage />}
