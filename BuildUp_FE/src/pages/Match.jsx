@@ -777,8 +777,9 @@ export default function Match() {
               const isFinished =
                 status === 'FINISHED' ||
                 status === 'AWARDED' ||
-                (homeScore !== null && awayScore !== null)
+                (homeScore != null && awayScore != null)
               const isLive = status === 'LIVE' || status === 'IN_PLAY'
+              const canOpenMatch = isFinished || isLive
 
               const outcome = getMatchOutcome(match)
               const isHomeWinner = isFinished && outcome === 'HOME_WIN'
@@ -789,7 +790,17 @@ export default function Match() {
                 <article
                   key={match.matchId}
                   id={`match-card-${match.matchId}`}
-                  tabIndex={isFocusedMatch ? -1 : undefined}
+                  role={canOpenMatch ? 'button' : undefined}
+                  tabIndex={canOpenMatch ? 0 : isFocusedMatch ? -1 : undefined}
+                  aria-haspopup={canOpenMatch ? 'dialog' : undefined}
+                  aria-label={canOpenMatch ? `${dateStr} ${homeTeam.teamNameKor} 대 ${awayTeam.teamNameKor} 경기 중계 열기` : undefined}
+                  onClick={canOpenMatch ? () => setActiveMatchForModal(match) : undefined}
+                  onKeyDown={canOpenMatch ? (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      setActiveMatchForModal(match)
+                    }
+                  } : undefined}
                   className={`match-card ${isFocusedMatch ? 'match-card--focused' : ''}`}
                 >
                   {/* 일시 및 라운드 태그 */}
@@ -869,21 +880,11 @@ export default function Match() {
                     </div>
                   </div>
 
-                  {/* 홈 경기장 안내 및 감독모드 텍스트 중계 버튼 (종료된 경기 및 진행 중 LIVE 경기에만 노출) */}
+                  {/* 홈 경기장 안내 */}
                   <div className="match-card__ground">
                     <span className="match-ground-pill">
                       📍 {match.displayHomeGround || match.homeGroundKor || homeTeam.homeGroundKor || getStadiumNameKor(match.homeGround || homeTeam.homeGround, match.homeTeamId)}
                     </span>
-                    {(isFinished || isLive) && (
-                      <button
-                        type="button"
-                        className="match-manager-mode-btn"
-                        onClick={() => setActiveMatchForModal(match)}
-                        title="FC 온라인 감독모드 스타일 2D 피치 & 문자 중계 열기"
-                      >
-                        🎮 감독모드 중계
-                      </button>
-                    )}
                   </div>
                 </article>
               )
