@@ -241,7 +241,7 @@ function getTeamNameKor(teamId, teamName) {
 const standingsColumns = [
   [ 'matchesPlayed', '경기' ], [ 'wins', '승' ], [ 'draws', '무' ],
   [ 'losses', '패' ], [ 'goalsFor', '득점' ], [ 'goalsAgainst', '실점' ],
-  [ 'goalDiff', '득실차' ], [ 'points', '승점' ],
+  [ 'goalDiff', '득실차' ], [ 'cleanSheets', '클린시트' ], [ 'points', '승점' ],
 ];
 
 function isStandingRow(row) {
@@ -253,12 +253,19 @@ function isStandingRow(row) {
 }
 
 export function StandingsPage() {
-  const tabs = [ ['league', '리그 순위표'], ['goals', '득점랭킹'], ['assists', '도움랭킹'], ['contributions', '공격포인트 순위'] ];
+  const tabs = [
+    ['league', '리그 순위표'],
+    ['goals', '득점랭킹'],
+    ['assists', '도움랭킹'],
+    ['contributions', '공격포인트 순위'],
+    ['cleanSheets', '클린시트 랭킹'],
+  ];
   const tabDetails = {
     league: ['TABLE', '승점으로 살펴보는 프리미어리그 구단 순위'],
     goals: ['GOALS', '골로 경기를 바꾸는 리그의 해결사들'],
     assists: ['ASSISTS', '동료의 득점을 만드는 최고의 조력자들'],
     contributions: ['GOALS + ASSISTS', '득점과 도움을 합산한 선수별 공격 기록'],
+    cleanSheets: ['CLEAN SHEETS', '골문을 굳건히 지키는 무실점 수문장들의 기록'],
   };
   const [ tab, setTab ] = useState(() => {
     const value = new URLSearchParams(window.location.search).get('tab');
@@ -278,7 +285,7 @@ export function StandingsPage() {
         <header className="teams-page-header">
           <span className="teams-page-eyebrow">PREMIER LEAGUE</span>
           <h1 className="teams-page-title">리그 & 선수 랭킹</h1>
-          <p className="teams-page-desc">구단 순위부터 득점, 도움, 공격포인트까지 한눈에 확인하세요.</p>
+          <p className="teams-page-desc">구단 순위부터 득점, 도움, 공격포인트, 클린시트까지 한눈에 확인하세요.</p>
         </header>
         <div className="ranking-tabs" role="tablist" aria-label="랭킹 종류">
           {tabs.map(([ id, label ], index) => (
@@ -322,7 +329,7 @@ function PlayerRankings({ metric, label }) {
         if (!response.ok) throw new Error('선수 순위 조회 실패');
         const rows = await response.json();
         if (!Array.isArray(rows) || rows.some((row) => !row || !Number.isInteger(row.playerId)
-          || ['goals', 'assists'].some((field) => row[field] != null && (!Number.isInteger(row[field]) || row[field] < 0)))) {
+          || ['goals', 'assists', 'cleanSheets'].some((field) => row[field] != null && (!Number.isInteger(row[field]) || row[field] < 0)))) {
           throw new Error('잘못된 선수 기록');
         }
         if (!controller.signal.aborted) setResult({ status: 'success', rows });
@@ -345,19 +352,32 @@ function PlayerRankings({ metric, label }) {
     ...row, rank: sorted.findIndex((other) => score(other) === score(row)) + 1,
   }));
   return <>
-    <p className="standings-note">현재 저장된 선수 기록 기준 · 공격포인트 = 득점 + 도움 · 동일 기록은 공동 순위로 표시합니다.</p>
+    <p className="standings-note">
+      {metric === 'cleanSheets'
+        ? '현재 저장된 선수 기록 기준 · 클린시트 = 무실점 경기 횟수 · 동일 기록은 공동 순위로 표시합니다.'
+        : '현재 저장된 선수 기록 기준 · 공격포인트 = 득점 + 도움 · 동일 기록은 공동 순위로 표시합니다.'}
+    </p>
     <div className="standings-scroll" role="region" aria-label={`${label} 순위표, 가로 스크롤 가능`} tabIndex={0}>
       <table className="standings-table player-rankings-table">
         <caption>{label} 상위 {rows.length}명</caption>
         <thead><tr><th scope="col">순위</th><th scope="col">선수명</th><th scope="col">소속 구단</th>
-          <th scope="col">득점</th><th scope="col">도움</th><th scope="col">공격포인트</th></tr></thead>
+          {metric === 'cleanSheets'
+            ? <><th scope="col">포지션</th><th scope="col">클린시트</th></>
+            : <><th scope="col">득점</th><th scope="col">도움</th><th scope="col">공격포인트</th></>}</tr></thead>
         <tbody>{rows.map((row) => <tr key={row.playerId}>
           <td><span className="standings-rank" data-rank={row.rank}>{row.rank}</span></td>
           <th scope="row"><button type="button" className="ranking-player-link" aria-haspopup="dialog" onClick={() => setSelectedPlayer(row)}>{row.playerNameKor || row.playerName || '선수명 미등록'}</button></th>
-          <td><span className="standings-team">{row.emblemUrl && <img src={row.emblemUrl} alt="" width="28" height="28" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} />}{row.teamName || '구단명 미등록'}</span></td>
-          {['goals', 'assists', 'contributions'].map((field) => <td key={field} className={metric === field ? 'standings-points' : undefined}>
-            {field === 'contributions' ? (row.goals ?? 0) + (row.assists ?? 0) : row[field] ?? '—'}
-          </td>)}
+          <td><span className="standings-team">{row.emblemUrl && <img src={row.emblemUrl} alt="" width="28" height="28" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} />}{row.teamNameKor || getTeamNameKor(row.teamId, row.teamName)}</span></td>
+          {metric === 'cleanSheets' ? (
+            <>
+              <td>{row.detailPosition || row.mainPosition || 'GK'}</td>
+              <td className="standings-points">{row.cleanSheets ?? 0}</td>
+            </>
+          ) : (
+            ['goals', 'assists', 'contributions'].map((field) => <td key={field} className={metric === field ? 'standings-points' : undefined}>
+              {field === 'contributions' ? (row.goals ?? 0) + (row.assists ?? 0) : row[field] ?? '—'}
+            </td>)
+          )}
         </tr>)}</tbody>
       </table>
     </div>
@@ -460,8 +480,8 @@ function RankingPlayerDetails({ player, onClose }) {
           {photo.status === 'ready' ? <img src={photo.url} alt={`${name} 선수 사진`} onError={() => setPhoto({ status: 'empty', url: '' })} />
             : <span>{photo.status === 'loading' ? '사진 불러오는 중…' : '등록된 선수 사진이 없습니다.'}</span>}
         </div>
-        <div><p>26-27 시즌</p><h2 id="ranking-player-title">{name}</h2><p>{player.teamName}</p>
-          <p>득점 {player.goals ?? '—'} · 도움 {player.assists ?? '—'}</p>
+        <div><p>26-27 시즌</p><h2 id="ranking-player-title">{name}</h2><p>{player.teamNameKor || player.teamName}</p>
+          <p>득점 {player.goals ?? '—'} · 도움 {player.assists ?? '—'}{(player.mainPosition === 'GK' || (player.cleanSheets ?? 0) > 0) ? ` · 클린시트 ${player.cleanSheets ?? 0}` : ''}</p>
           {photo.status === 'ready' && <a href="https://www.thesportsdb.com/" target="_blank" rel="noreferrer">사진: TheSportsDB</a>}
         </div>
       </header>

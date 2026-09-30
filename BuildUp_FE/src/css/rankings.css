@@ -35,13 +35,13 @@ html[data-theme] .teams-page-container--rankings .teams-page-eyebrow {
 html[data-theme] .teams-page-container--rankings .teams-page-title { color: var(--ranking-text); }
 html[data-theme] .teams-page-container--rankings .teams-page-desc { color: var(--ranking-muted); }
 html[data-theme] .teams-page-container--rankings .ranking-tabs {
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px;
   padding: 6px; border: 1px solid var(--ranking-line); border-radius: 18px;
   background: var(--ranking-soft); margin-bottom: 24px;
 }
 html[data-theme] .teams-page-container--rankings .ranking-tabs button {
   display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
-  min-width: 0; padding: 18px 20px; border-radius: 12px; color: var(--ranking-muted);
+  min-width: 0; padding: 16px 18px; border-radius: 12px; color: var(--ranking-muted);
   transition: background-color .15s ease, color .15s ease;
 }
 html[data-theme] .teams-page-container--rankings .ranking-tab-kicker { font-size: 10px; letter-spacing: 1.2px; font-weight: 800; }

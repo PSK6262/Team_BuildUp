@@ -711,7 +711,7 @@ html[data-theme='dark'] .teams-page-container--rankings :is(button, a, select, [
 .member-ranking-scroll { overflow-x: auto; }
 .member-ranking-scroll table { min-width: 580px; width: 100%; }
 .member-ranking-mine { background: #d9fbe8; color: #123e30; }
-.ranking-tabs { flex-wrap: wrap; }
+.ranking-tabs { flex-wrap: nowrap; }
 .ranking-player-link {
   border: 0;
   padding: 0;
