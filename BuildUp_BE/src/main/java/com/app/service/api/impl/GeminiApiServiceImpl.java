@@ -438,7 +438,23 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 					+ "팀이나 선수를 비교할 때는 요청한 항목만 같은 기준으로 비교하고, DB에 없는 과거 시즌 변화나 순위 상승·하락을 추측하지 마세요. "
 					+ "답변은 가능하면 '현재 기록', '차이 또는 비교', '해석' 순서로 간결하게 작성하고 여러 항목은 줄바꿈 목록으로 표시하세요. "
 				: "";
+		// 주장 정보는 선수 명단이나 모델의 과거 지식만으로 확인할 수 없습니다.
+		boolean captainQuestion = Pattern.compile("주장|captain", Pattern.CASE_INSENSITIVE)
+				.matcher(trimmedQuestion + " " + previousUserQuestion(conversationContext)).find();
+		String captainInstruction = captainQuestion
+				? "주장·부주장은 반드시 구단 또는 리그 공식 발표를 검색해서 확인하세요. "
+					+ "시점을 명시하지 않은 질문은 아래 기준일 현재를 뜻합니다. 과거 주장 임명 기사를 현재 정보로 사용하지 마세요. "
+					+ "발표 날짜와 이후 이적·주장 교체 여부를 확인하고, 정식 주장과 특정 경기의 임시 주장을 구분하세요. "
+					+ "답변에 확인한 자료의 날짜를 밝혀주세요. 최신 근거가 불충분하면 현재 주장을 확인하지 못했다고 답하세요. "
+				: "";
 		String prompt = "당신은 잉글랜드 프리미어리그(EPL) 안내 챗봇입니다. "
+				+ "답변의 기본 기준일(한국 시간)은 2026년 8월 21일입니다. "
+				+ "질문에 날짜나 시즌이 없으면 해당 기준일까지 확인된 가장 최신 자료와 결과로 답하세요. "
+				+ "사용자가 이전 날짜, 연도, 시즌 또는 기간을 지정하면 기본 기준일보다 사용자가 지정한 시점을 우선하세요. "
+				+ "과거 질문은 그 시점의 소속, 주장, 경기 결과와 기록을 확인하고 현재 정보로 대체하지 마세요. "
+				+ "자료 발표일과 실제 사건 날짜를 구분하고, 답변 대상 시점 이후의 변경 사항을 그 시점의 사실로 사용하지 마세요. "
+				+ "답변에는 적용한 기준 날짜 또는 시즌을 명시하고, 근거가 부족하면 추측하지 마세요. "
+				+ captainInstruction
 				+ "EPL 관련 질문에 한국어로 답하세요. 아래 DB 정보를 사실의 기준으로 사용하세요. "
 				+ myTeamInstruction
 				+ rankingInstruction
@@ -456,12 +472,18 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 			try {
 				groundedResult = callGeminiWithSearch(prompt);
 			} catch (Exception searchException) {
+				if (captainQuestion) {
+					return "현재 검색에 연결하지 못해 주장 정보를 확인할 수 없습니다. 잠시 후 다시 질문해주세요.";
+				}
 				log.warn("[Gemini chat] Google 검색 연동 실패, 일반 답변으로 재시도: {}",
 						searchException.getClass().getSimpleName());
 				String fallbackPrompt = prompt
 						+ "\n현재 Google 검색 도구를 사용할 수 없습니다. 검색했다고 표현하지 말고, "
 						+ "확실한 일반 정보만 답하며 최신 정보는 확인이 필요하다고 명시하세요.";
 				groundedResult = new GeminiCallResult(callGemini(fallbackPrompt), List.of());
+			}
+			if (captainQuestion && groundedResult.sources().isEmpty()) {
+				return "주장 정보를 확인할 검색 출처를 확보하지 못했습니다. 과거 정보를 현재 주장으로 안내하지 않도록 답변을 보류합니다.";
 			}
 			JsonNode result = objectMapper.readTree(groundedResult.text());
 			String answer = result.path("answer").asText("").trim();

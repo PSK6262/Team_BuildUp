@@ -249,12 +249,12 @@ export default function PostWrite() {
     <div className="community__write-column">
     {error && <p className="community__form-error" role="alert">{error}</p>}
     <form className="community__write-form" onSubmit={handleSubmit}>
-      <fieldset disabled={loading || submitting}>
+      {initialBoard === 'showcase' ? <p className="community__notice">게시판 · <strong>나만의 팀 자랑</strong><br />공유한 스쿼드는 자랑 게시판에 등록됩니다.</p> : <fieldset disabled={loading || submitting}>
         <legend>게시판 선택</legend>
         <label><input type="radio" name="board" value="free" checked={board === 'free'} onChange={() => { setBoard('free'); setTeamId('') }} /> 자유게시판</label>
         <label><input type="radio" name="board" value="team" checked={board === 'team'} onChange={() => setBoard('team')} /> 팀별 게시판</label>
         <label><input type="radio" name="board" value="showcase" checked={board === 'showcase'} onChange={() => { setBoard('showcase'); setTeamId('') }} /> 나만의 팀 자랑</label>
-      </fieldset>
+      </fieldset>}
 
       {board === 'showcase' && <section className="community__shared-team" aria-label="공유할 나만의 팀">
         <div>
@@ -265,14 +265,14 @@ export default function PostWrite() {
         {showcaseDraft?.imageDataUrl && <img src={showcaseDraft.imageDataUrl} alt={`${showcaseDraft.teamName || '나만의 팀'} 포메이션 미리보기`} />}
       </section>}
 
-      <label>카테고리
+      {board !== 'showcase' && <label>카테고리
         <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)} disabled={loading || submitting || categories.length === 0}>
           {categories.length === 0 && <option value="">등록된 카테고리가 없습니다.</option>}
           {categories.map((category) => <option key={category.categoryId} value={category.categoryId} disabled={isNewsCategory(category)}>
             {category.categoryType}{isNewsCategory(category) ? ' (작성 준비 중)' : ''}
           </option>)}
         </select>
-      </label>
+      </label>}
 
       {board === 'team' && <label>구단
         <select value={teamId} onChange={(event) => setTeamId(event.target.value)} disabled={loading || submitting}>
