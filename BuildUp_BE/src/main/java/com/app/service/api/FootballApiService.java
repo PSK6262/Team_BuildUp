@@ -25,4 +25,6 @@ public interface FootballApiService {
 	public int syncRecentThreeSeasonsStandings();
 
 	public int syncPremierLeagueScorers(Integer limit);
+
+	public int syncPremierLeagueCleanSheets(Integer season);
 }

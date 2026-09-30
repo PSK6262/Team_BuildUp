@@ -350,6 +350,23 @@ public class TeamController {
 		));
 	}
 
+	// 3-5-1. 프리미어리그 구단 및 골키퍼 클린시트(무실점) 통계 일괄 동기화
+	@PostMapping("/sync-clean-sheets")
+	public ResponseEntity<Map<String, Object>> syncCleanSheets(
+			@RequestParam(value = "season", required = false, defaultValue = "2026") Integer season,
+			HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return forbiddenResponse();
+		}
+		int count = footballApiService.syncPremierLeagueCleanSheets(season);
+		return ResponseEntity.ok(Map.of(
+			"status", "SUCCESS",
+			"season", season,
+			"updatedCount", count,
+			"message", "프리미어리그 구단 및 골키퍼 클린시트 기록(" + count + "건)이 성공적으로 DB에 동기화되었습니다."
+		));
+	}
+
 	// 3-6. 프리미어리그 득점 랭킹 조회 (기본: 상위 20명)
 	// 예: GET /api/teams/top-scorers?limit=20
 	@GetMapping("/top-scorers")
@@ -360,7 +377,7 @@ public class TeamController {
 	@GetMapping("/player-rankings")
 	public List<PlayerStats> getPlayerRankings(
 			@RequestParam(value = "metric", defaultValue = "goals") String metric) {
-		if (!java.util.Set.of("goals", "assists", "contributions").contains(metric)) {
+		if (!java.util.Set.of("goals", "assists", "contributions", "cleanSheets").contains(metric)) {
 			throw new org.springframework.web.server.ResponseStatusException(
 					org.springframework.http.HttpStatus.BAD_REQUEST, "지원하지 않는 순위 기준입니다.");
 		}

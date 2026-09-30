@@ -29,17 +29,21 @@ public interface TeamDAO {
 	List<Staffs> findStaffsByTeamId(Long teamId);
 	void ensureStaffRoleExists(Long staffRoleId, String roleName);
 	void mergeTeamStats(TeamStats stats);
+	void syncTeamCleanSheetsBySeason(Integer season);
 	TeamStats findTeamStats(Long teamId, Integer season);
 	List<TeamStats> findTeamStatsHistory(Long teamId);
 	List<TeamStats> findAllTeamStandings(Integer season);
 	void mergePlayerGoalsAndAssists(Long playerId, Long goals, Long assists);
+	void mergePlayerCleanSheets(Long playerId, Long cleanSheets);
 	List<PlayerStats> findTopScorers(Integer limit);
 	List<PlayerStats> findPlayerRankings(String metric);
 	List<PlayerStats> findTopAssists(Integer limit);
 	List<PlayerStats> findTopAttackPoints(Integer limit);
+	List<PlayerStats> findTopCleanSheets(Integer limit);
 	List<PlayerStats> findTopMomPlayers(Integer limit);
 	List<PlayerStats> findTopYellowCards(Integer limit);
 	List<PlayerStats> findTopRedCards(Integer limit);
 	List<PlayerStats> findUnavailablePlayers();
 	PlayerStats findPlayerStats(Long playerId);
+	void ensureCleanSheetsSchema();
 }

@@ -120,6 +120,11 @@ public class TeamDAOImpl implements TeamDAO {
 	}
 
 	@Override
+	public void syncTeamCleanSheetsBySeason(Integer season) {
+		sqlSession.update("TeamMapper.syncTeamCleanSheetsBySeason", season != null ? season : 2026);
+	}
+
+	@Override
 	public TeamStats findTeamStats(Long teamId, Integer season) {
 		java.util.Map<String, Object> params = new java.util.HashMap<>();
 		params.put("teamId", teamId);
@@ -147,6 +152,14 @@ public class TeamDAOImpl implements TeamDAO {
 	}
 
 	@Override
+	public void mergePlayerCleanSheets(Long playerId, Long cleanSheets) {
+		java.util.Map<String, Object> params = new java.util.HashMap<>();
+		params.put("playerId", playerId);
+		params.put("cleanSheets", cleanSheets);
+		sqlSession.insert("TeamMapper.mergePlayerCleanSheets", params);
+	}
+
+	@Override
 	public List<PlayerStats> findTopScorers(Integer limit) {
 		return sqlSession.selectList("TeamMapper.selectTopScorers", Map.of("limit", limit == null ? 20 : limit, "metric", "goals"));
 	}
@@ -164,6 +177,11 @@ public class TeamDAOImpl implements TeamDAO {
 	@Override
 	public List<PlayerStats> findTopAttackPoints(Integer limit) {
 		return sqlSession.selectList("TeamMapper.selectTopAttackPoints", limit);
+	}
+
+	@Override
+	public List<PlayerStats> findTopCleanSheets(Integer limit) {
+		return sqlSession.selectList("TeamMapper.selectTopCleanSheets", limit);
 	}
 
 	@Override
@@ -189,5 +207,24 @@ public class TeamDAOImpl implements TeamDAO {
 	@Override
 	public PlayerStats findPlayerStats(Long playerId) {
 		return sqlSession.selectOne("TeamMapper.selectPlayerStatsByPlayerId", playerId);
+	}
+
+	@Override
+	public void ensureCleanSheetsSchema() {
+		try {
+			Integer teamStatsCol = sqlSession.selectOne("TeamMapper.countUserTabColumn",
+					Map.of("tableName", "TEAM_STATS", "columnName", "CLEAN_SHEETS"));
+			if (teamStatsCol == null || teamStatsCol == 0) {
+				sqlSession.update("TeamMapper.alterTeamStatsAddCleanSheets");
+			}
+		} catch (Exception ignored) {}
+
+		try {
+			Integer playerStatsCol = sqlSession.selectOne("TeamMapper.countUserTabColumn",
+					Map.of("tableName", "PLAYER_STATS", "columnName", "CLEAN_SHEETS"));
+			if (playerStatsCol == null || playerStatsCol == 0) {
+				sqlSession.update("TeamMapper.alterPlayerStatsAddCleanSheets");
+			}
+		} catch (Exception ignored) {}
 	}
 }

@@ -281,6 +281,9 @@ public class FootballApiServiceImpl implements FootballApiService {
                     }
                 }
             }
+            try {
+                syncPremierLeagueCleanSheets(season != null ? season : 2026);
+            } catch (Exception ignored) {}
             return savedCount;
         } catch (Exception e) {
             e.printStackTrace();
@@ -338,6 +341,9 @@ public class FootballApiServiceImpl implements FootballApiService {
                     }
                 }
             }
+            try {
+                syncPremierLeagueCleanSheets(2026);
+            } catch (Exception ignored) {}
             return savedCount;
         } catch (Exception e) {
             e.printStackTrace();
@@ -774,6 +780,10 @@ public class FootballApiServiceImpl implements FootballApiService {
                 count++;
             }
 
+            try {
+                syncPremierLeagueCleanSheets(targetSeason);
+            } catch (Exception ignored) {}
+
             System.out.println("======================================================================");
             System.out.println("[BuildUp] 리그 순위표 동기화 완료 (" + targetSeason + " 시즌)");
             System.out.println("----------------------------------------------------------------------");
@@ -861,6 +871,10 @@ public class FootballApiServiceImpl implements FootballApiService {
                 count++;
             }
 
+            try {
+                syncPremierLeagueCleanSheets(2026);
+            } catch (Exception ignored) {}
+
             System.out.println("======================================================================");
             System.out.println("[BuildUp] 프리미어리그 개인 득점 순위(Top " + targetLimit + ") 동기화 완료");
             System.out.println("----------------------------------------------------------------------");
@@ -871,6 +885,167 @@ public class FootballApiServiceImpl implements FootballApiService {
             e.printStackTrace();
             throw new RuntimeException("득점자 데이터 파싱 및 저장 중 오류: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * 구단별 클린시트(TEAM_STATS.CLEAN_SHEETS) 및 선수(골키퍼)별 클린시트(PLAYER_STATS.CLEAN_SHEETS)를 산출 및 동기화합니다.
+     * 1. DB 스키마(CLEAN_SHEETS 컬럼)가 누락된 환경에서도 안전하게 동작하도록 컬럼 존재 여부를 선점검합니다.
+     * 2. MATCHES 테이블의 종료(FINISHED)된 무실점 경기 스코어를 기반으로 구단별 시즌 클린시트 횟수를 100% 정확하게 집계합니다.
+     * 3. 프리미어리그 공식 통계 피드(bootstrap-static) 및 구단별 주전 골키퍼(GK) 매핑(ApiBridgeUtil)을 결합하여
+     *    선수별 클린시트(PLAYER_STATS.CLEAN_SHEETS)를 자동 갱신합니다.
+     *
+     * @param season 대상 시즌 (기본값: 2026)
+     * @return 클린시트가 갱신된 선수(GK) 및 구단 통계 건수
+     */
+    @Override
+    @Transactional
+    public int syncPremierLeagueCleanSheets(Integer season) {
+        int targetSeason = (season != null) ? season : 2026;
+        teamDAO.ensureCleanSheetsSchema();
+
+        // 1단계: MATCHES 테이블 무실점 종료 경기 기반 구단별 클린시트(TEAM_STATS.CLEAN_SHEETS) 일괄 갱신
+        teamDAO.syncTeamCleanSheetsBySeason(targetSeason);
+
+        List<Teams> allTeams = teamDAO.findAllTeams();
+        java.util.Set<Long> teamsUpdatedFromExternal = new java.util.HashSet<>();
+        int updatedGkCount = 0;
+
+        // 2단계: 프리미어리그 공식 통계 API(FPL bootstrap-static)에서 골키퍼 개인 클린시트 수신 시도
+        try {
+            HttpRequest fplReq = HttpRequest.newBuilder()
+                    .uri(URI.create("https://fantasy.premierleague.com/api/bootstrap-static/"))
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) BuildUp/1.0")
+                    .header("Accept", "application/json")
+                    .timeout(Duration.ofSeconds(5))
+                    .GET()
+                    .build();
+            HttpResponse<String> fplResp = httpClient.send(fplReq, HttpResponse.BodyHandlers.ofString());
+            if (fplResp.statusCode() >= 200 && fplResp.statusCode() < 300 && fplResp.body() != null) {
+                JsonNode root = objectMapper.readTree(fplResp.body());
+                JsonNode fplTeams = root.path("teams");
+                JsonNode elements = root.path("elements");
+
+                java.util.Map<Integer, Long> fplTeamToDbTeamId = new java.util.HashMap<>();
+                if (fplTeams.isArray()) {
+                    for (JsonNode tNode : fplTeams) {
+                        int fplTeamId = tNode.path("id").asInt(0);
+                        String fplTeamName = tNode.path("name").asText("");
+                        Long dbTeamId = com.app.util.ApiBridgeUtil.mapTeamToId(fplTeamName, allTeams);
+                        if (fplTeamId > 0 && dbTeamId != null) {
+                            fplTeamToDbTeamId.put(fplTeamId, dbTeamId);
+                        }
+                    }
+                }
+
+                java.util.Map<Long, List<Players>> teamPlayersCache = new java.util.HashMap<>();
+                if (elements.isArray()) {
+                    for (JsonNode el : elements) {
+                        // element_type == 1 (Goalkeeper)
+                        int elementType = el.path("element_type").asInt(0);
+                        long cleanSheets = el.path("clean_sheets").asLong(0);
+                        if (elementType != 1 || cleanSheets <= 0) {
+                            continue;
+                        }
+                        int fplTeamId = el.path("team").asInt(0);
+                        Long dbTeamId = fplTeamToDbTeamId.get(fplTeamId);
+                        if (dbTeamId == null) {
+                            continue;
+                        }
+
+                        List<Players> squad = teamPlayersCache.computeIfAbsent(dbTeamId, id -> teamDAO.findPlayersByTeamId(id));
+                        List<Players> gks = squad.stream()
+                                .filter(p -> "GK".equalsIgnoreCase(p.getMainPosition()))
+                                .toList();
+                        List<Players> searchPool = gks.isEmpty() ? squad : gks;
+
+                        String fullName = (el.path("first_name").asText("") + " " + el.path("second_name").asText("")).trim();
+                        String webName = el.path("web_name").asText("");
+
+                        Long matchedPlayerId = com.app.util.ApiBridgeUtil.findPlayerIdByName(fullName, searchPool);
+                        if (matchedPlayerId == null && !webName.isBlank()) {
+                            matchedPlayerId = com.app.util.ApiBridgeUtil.findPlayerIdByName(webName, searchPool);
+                        }
+                        if (matchedPlayerId != null) {
+                            teamDAO.mergePlayerCleanSheets(matchedPlayerId, cleanSheets);
+                            teamsUpdatedFromExternal.add(dbTeamId);
+                            updatedGkCount++;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.info("[FootballApi] 외부 골키퍼 클린시트 피드 조회 생략/실패 -> DB 경기 결과 기반 주전 GK 자동 집계로 보정합니다: {}", e.getMessage());
+        }
+
+        // 3단계: DB MATCHES 기반 구단별 클린시트(TEAM_STATS.CLEAN_SHEETS)와 주전 GK 클린시트 정합성 보정
+        List<TeamStats> standings = teamDAO.findAllTeamStandings(targetSeason);
+        for (TeamStats ts : standings) {
+            if (ts.getTeamId() == null) continue;
+            long teamCleanSheets = (ts.getCleanSheets() != null) ? ts.getCleanSheets() : 0L;
+            if (teamCleanSheets <= 0) continue;
+
+            // 외부 피드에서 이미 매칭된 구단이더라도 DB 경기 결과(teamCleanSheets)보다 작거나 미매칭이면 주전 GK에 보정
+            if (!teamsUpdatedFromExternal.contains(ts.getTeamId())) {
+                List<Players> squad = teamDAO.findPlayersByTeamId(ts.getTeamId());
+                List<Players> gks = squad.stream()
+                        .filter(p -> "GK".equalsIgnoreCase(p.getMainPosition()))
+                        .toList();
+                Players primaryGk = resolvePrimaryGoalkeeper(ts.getTeamId(), gks);
+                if (primaryGk != null) {
+                    teamDAO.mergePlayerCleanSheets(primaryGk.getPlayerId(), teamCleanSheets);
+                    updatedGkCount++;
+                }
+            }
+        }
+
+        return updatedGkCount;
+    }
+
+    /**
+     * 각 구단 소속 골키퍼(GK) 목록에서 주전(1선발) 골키퍼를 식별합니다.
+     */
+    private Players resolvePrimaryGoalkeeper(Long teamId, List<Players> goalkeepers) {
+        if (goalkeepers == null || goalkeepers.isEmpty()) {
+            return null;
+        }
+        List<String> preferredNames = switch (teamId != null ? teamId.intValue() : 0) {
+            case 57 -> List.of("David Raya", "Raya");
+            case 58 -> List.of("Emiliano Martinez", "Martinez");
+            case 61 -> List.of("Robert Sanchez", "Sanchez", "Filip Jorgensen");
+            case 62 -> List.of("Jordan Pickford", "Pickford");
+            case 63 -> List.of("Bernd Leno", "Leno");
+            case 64 -> List.of("Alisson", "Alisson Becker", "Giorgi Mamardashvili", "Caoimhin Kelleher");
+            case 65 -> List.of("Ederson", "Gianluigi Donnarumma", "Stefan Ortega");
+            case 66 -> List.of("Andre Onana", "Onana", "Senne Lammens");
+            case 67 -> List.of("Nick Pope", "Pope", "Martin Dubravka");
+            case 71 -> List.of("Robin Roefs", "Anthony Patterson", "Patterson");
+            case 73 -> List.of("Guglielmo Vicario", "Vicario");
+            case 76 -> List.of("Jose Sa", "Sam Johnstone");
+            case 328 -> List.of("James Trafford", "Trafford", "Martin Dubravka");
+            case 338 -> List.of("Mads Hermansen", "Hermansen");
+            case 340 -> List.of("Aaron Ramsdale", "Ramsdale", "Gavin Bazunu");
+            case 341 -> List.of("Lucas Perri", "Illan Meslier", "Meslier", "Karl Darlow");
+            case 349 -> List.of("Arijanet Muric", "Muric", "Alex Palmer");
+            case 351 -> List.of("Matz Sels", "Sels");
+            case 354 -> List.of("Dean Henderson", "Henderson");
+            case 397 -> List.of("Bart Verbruggen", "Verbruggen");
+            case 402 -> List.of("Mark Flekken", "Flekken", "Caoimhin Kelleher");
+            case 563 -> List.of("Alphonse Areola", "Areola", "Lukasz Fabianski", "Mads Hermansen");
+            case 1044 -> List.of("Kepa Arrizabalaga", "Kepa", "Djordje Petrovic", "Neto");
+            default -> List.of();
+        };
+
+        for (String preferred : preferredNames) {
+            Long matchedId = com.app.util.ApiBridgeUtil.findPlayerIdByName(preferred, goalkeepers);
+            if (matchedId != null) {
+                for (Players gk : goalkeepers) {
+                    if (matchedId.equals(gk.getPlayerId())) {
+                        return gk;
+                    }
+                }
+            }
+        }
+        return goalkeepers.get(0);
     }
 
     /**

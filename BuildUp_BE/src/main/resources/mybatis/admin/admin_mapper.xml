@@ -165,6 +165,7 @@
 			t.EMBLEM_URL,
 			NVL(ps.GOALS, 0) AS GOALS,
 			NVL(ps.ASSISTS, 0) AS ASSISTS,
+			NVL(ps.CLEAN_SHEETS, 0) AS CLEAN_SHEETS,
 			NVL(ps.MOM_COUNT, 0) AS MOM_COUNT,
 			NVL(ps.YELLOW_CARDS, 0) AS YELLOW_CARDS,
 			NVL(ps.RED_CARDS, 0) AS RED_CARDS,
@@ -201,6 +202,7 @@
 				PLAYER_ID,
 				GOALS,
 				ASSISTS,
+				CLEAN_SHEETS,
 				MOM_COUNT,
 				YELLOW_CARDS,
 				RED_CARDS,
@@ -209,6 +211,7 @@
 				INJURY_NOTE
 			) VALUES (
 				#{playerId},
+				0,
 				0,
 				0,
 				0,

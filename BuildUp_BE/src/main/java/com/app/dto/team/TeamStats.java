@@ -18,6 +18,7 @@ public class TeamStats {
 	private Long goalsFor;     // 득점수
 	private Long goalsAgainst; // 실점수
 	private Long goalDiff;     // 득실차
+	private Long cleanSheets;  // 무실점 경기(클린시트) 횟수
 	private Long yellowCards;  // 경고수
 	private Long redCards;     // 퇴장수
 	private LocalDateTime updatedAt;

@@ -68,8 +68,8 @@
 		USING (SELECT #{playerId} AS PLAYER_ID FROM DUAL) s
 		ON (ps.PLAYER_ID = s.PLAYER_ID)
 		WHEN NOT MATCHED THEN
-			INSERT (PLAYER_ID, GOALS, ASSISTS, YELLOW_CARDS, RED_CARDS, IS_INJURED, IS_SUSPENDED)
-			VALUES (#{playerId}, 0, 0, 0, 0, 'N', 'N')
+			INSERT (PLAYER_ID, GOALS, ASSISTS, CLEAN_SHEETS, YELLOW_CARDS, RED_CARDS, IS_INJURED, IS_SUSPENDED)
+			VALUES (#{playerId}, 0, 0, 0, 0, 0, 'N', 'N')
 	</insert>
 
 	<!-- 선수 득점 및 도움 통계 업데이트 (MERGE) -->
@@ -82,8 +82,21 @@
 				ps.GOALS = #{goals},
 				ps.ASSISTS = NVL(#{assists, jdbcType=NUMERIC}, ps.ASSISTS)
 		WHEN NOT MATCHED THEN
-			INSERT (PLAYER_ID, GOALS, ASSISTS, YELLOW_CARDS, RED_CARDS, IS_INJURED, IS_SUSPENDED)
-			VALUES (#{playerId}, #{goals}, NVL(#{assists, jdbcType=NUMERIC}, 0), 0, 0, 'N', 'N')
+			INSERT (PLAYER_ID, GOALS, ASSISTS, CLEAN_SHEETS, YELLOW_CARDS, RED_CARDS, IS_INJURED, IS_SUSPENDED)
+			VALUES (#{playerId}, #{goals}, NVL(#{assists, jdbcType=NUMERIC}, 0), 0, 0, 0, 'N', 'N')
+	</insert>
+
+	<!-- 선수(골키퍼 등) 클린시트 통계 업데이트 (MERGE) -->
+	<insert id="mergePlayerCleanSheets" parameterType="map">
+		MERGE INTO PLAYER_STATS ps
+		USING (SELECT #{playerId} AS PLAYER_ID FROM DUAL) s
+		ON (ps.PLAYER_ID = s.PLAYER_ID)
+		WHEN MATCHED THEN
+			UPDATE SET 
+				ps.CLEAN_SHEETS = #{cleanSheets}
+		WHEN NOT MATCHED THEN
+			INSERT (PLAYER_ID, GOALS, ASSISTS, CLEAN_SHEETS, YELLOW_CARDS, RED_CARDS, IS_INJURED, IS_SUSPENDED)
+			VALUES (#{playerId}, 0, 0, #{cleanSheets}, 0, 0, 'N', 'N')
 	</insert>
 
 	<!-- 특정 구단 소속 선수 목록 조회 -->
@@ -315,11 +328,12 @@
 				ts.GOALS_FOR = #{goalsFor},
 				ts.GOALS_AGAINST = #{goalsAgainst},
 				ts.GOAL_DIFF = #{goalDiff},
+				ts.CLEAN_SHEETS = NVL(#{cleanSheets, jdbcType=NUMERIC}, ts.CLEAN_SHEETS),
 				ts.UPDATED_AT = SYSTIMESTAMP
 		WHEN NOT MATCHED THEN
 			INSERT (
 				TEAM_ID, SEASON, CURRENT_RANK, MATCHES_PLAYED, WINS, DRAWS, LOSSES, 
-				POINTS, GOALS_FOR, GOALS_AGAINST, GOAL_DIFF, YELLOW_CARDS, RED_CARDS, UPDATED_AT
+				POINTS, GOALS_FOR, GOALS_AGAINST, GOAL_DIFF, CLEAN_SHEETS, YELLOW_CARDS, RED_CARDS, UPDATED_AT
 			)
 			VALUES (
 				#{teamId},
@@ -333,11 +347,45 @@
 				#{goalsFor},
 				#{goalsAgainst},
 				#{goalDiff},
+				NVL(#{cleanSheets, jdbcType=NUMERIC}, 0),
 				NVL(#{yellowCards, jdbcType=NUMERIC}, 0),
 				NVL(#{redCards, jdbcType=NUMERIC}, 0),
 				SYSTIMESTAMP
 			)
 	</insert>
+
+	<!-- 종료된 경기(MATCHES) 스코어를 기반으로 구단별 시즌 클린시트(무실점 경기) 횟수 일괄 산출 및 갱신 -->
+	<update id="syncTeamCleanSheetsBySeason" parameterType="Integer">
+		UPDATE TEAM_STATS ts
+		SET ts.CLEAN_SHEETS = (
+			CASE
+				WHEN (
+					SELECT COUNT(*) FROM MATCHES m0
+					WHERE m0.STATUS = 'FINISHED'
+					  AND m0.MATCH_ID NOT BETWEEN 999901 AND 999910
+					  AND m0.MATCH_DATE &gt;= TO_TIMESTAMP(TO_CHAR(ts.SEASON) || '-07-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+					  AND m0.MATCH_DATE &lt; TO_TIMESTAMP(TO_CHAR(ts.SEASON + 1) || '-07-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+				) &gt; 0 THEN (
+					SELECT COUNT(*) FROM MATCHES m
+					WHERE m.STATUS = 'FINISHED'
+					  AND m.MATCH_ID NOT BETWEEN 999901 AND 999910
+					  AND m.MATCH_DATE &gt;= TO_TIMESTAMP(TO_CHAR(ts.SEASON) || '-07-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+					  AND m.MATCH_DATE &lt; TO_TIMESTAMP(TO_CHAR(ts.SEASON + 1) || '-07-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+					  AND ((m.HOME_TEAM_ID = ts.TEAM_ID AND m.AWAY_SCORE = 0)
+					       OR (m.AWAY_TEAM_ID = ts.TEAM_ID AND m.HOME_SCORE = 0))
+				)
+				WHEN ts.SEASON = 2026 THEN (
+					SELECT COUNT(*) FROM MATCHES m
+					WHERE m.STATUS = 'FINISHED'
+					  AND m.MATCH_ID NOT BETWEEN 999901 AND 999910
+					  AND ((m.HOME_TEAM_ID = ts.TEAM_ID AND m.AWAY_SCORE = 0)
+					       OR (m.AWAY_TEAM_ID = ts.TEAM_ID AND m.HOME_SCORE = 0))
+				)
+				ELSE NVL(ts.CLEAN_SHEETS, 0)
+			END
+		)
+		WHERE ts.SEASON = NVL(#{season, jdbcType=NUMERIC}, 2026)
+	</update>
 
 	<!-- 특정 구단의 특정 시즌 성적 단건 조회 (시즌 미지정 시 최신 시즌) -->
 	<select id="selectTeamStatsByTeamAndSeason" parameterType="map" resultType="TeamStats">
@@ -353,6 +401,34 @@
 			ts.GOALS_FOR,
 			ts.GOALS_AGAINST,
 			ts.GOAL_DIFF,
+			GREATEST(
+				NVL(ts.CLEAN_SHEETS, 0),
+				CASE
+					WHEN (
+						SELECT COUNT(*) FROM MATCHES m0
+						WHERE m0.STATUS = 'FINISHED'
+						  AND m0.MATCH_ID NOT BETWEEN 999901 AND 999910
+						  AND m0.MATCH_DATE &gt;= TO_TIMESTAMP(TO_CHAR(ts.SEASON) || '-07-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+						  AND m0.MATCH_DATE &lt; TO_TIMESTAMP(TO_CHAR(ts.SEASON + 1) || '-07-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+					) &gt; 0 THEN (
+						SELECT COUNT(*) FROM MATCHES m
+						WHERE m.STATUS = 'FINISHED'
+						  AND m.MATCH_ID NOT BETWEEN 999901 AND 999910
+						  AND m.MATCH_DATE &gt;= TO_TIMESTAMP(TO_CHAR(ts.SEASON) || '-07-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+						  AND m.MATCH_DATE &lt; TO_TIMESTAMP(TO_CHAR(ts.SEASON + 1) || '-07-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+						  AND ((m.HOME_TEAM_ID = ts.TEAM_ID AND m.AWAY_SCORE = 0)
+						       OR (m.AWAY_TEAM_ID = ts.TEAM_ID AND m.HOME_SCORE = 0))
+					)
+					WHEN ts.SEASON = 2026 THEN (
+						SELECT COUNT(*) FROM MATCHES m
+						WHERE m.STATUS = 'FINISHED'
+						  AND m.MATCH_ID NOT BETWEEN 999901 AND 999910
+						  AND ((m.HOME_TEAM_ID = ts.TEAM_ID AND m.AWAY_SCORE = 0)
+						       OR (m.AWAY_TEAM_ID = ts.TEAM_ID AND m.HOME_SCORE = 0))
+					)
+					ELSE 0
+				END
+			) AS CLEAN_SHEETS,
 			ts.YELLOW_CARDS,
 			ts.RED_CARDS,
 			ts.UPDATED_AT,
@@ -382,6 +458,7 @@
 			ts.GOALS_FOR,
 			ts.GOALS_AGAINST,
 			ts.GOAL_DIFF,
+			NVL(ts.CLEAN_SHEETS, 0) AS CLEAN_SHEETS,
 			ts.YELLOW_CARDS,
 			ts.RED_CARDS,
 			ts.UPDATED_AT,
@@ -407,6 +484,34 @@
 			ts.GOALS_FOR,
 			ts.GOALS_AGAINST,
 			ts.GOAL_DIFF,
+			GREATEST(
+				NVL(ts.CLEAN_SHEETS, 0),
+				CASE
+					WHEN (
+						SELECT COUNT(*) FROM MATCHES m0
+						WHERE m0.STATUS = 'FINISHED'
+						  AND m0.MATCH_ID NOT BETWEEN 999901 AND 999910
+						  AND m0.MATCH_DATE &gt;= TO_TIMESTAMP(TO_CHAR(ts.SEASON) || '-07-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+						  AND m0.MATCH_DATE &lt; TO_TIMESTAMP(TO_CHAR(ts.SEASON + 1) || '-07-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+					) &gt; 0 THEN (
+						SELECT COUNT(*) FROM MATCHES m
+						WHERE m.STATUS = 'FINISHED'
+						  AND m.MATCH_ID NOT BETWEEN 999901 AND 999910
+						  AND m.MATCH_DATE &gt;= TO_TIMESTAMP(TO_CHAR(ts.SEASON) || '-07-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+						  AND m.MATCH_DATE &lt; TO_TIMESTAMP(TO_CHAR(ts.SEASON + 1) || '-07-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+						  AND ((m.HOME_TEAM_ID = ts.TEAM_ID AND m.AWAY_SCORE = 0)
+						       OR (m.AWAY_TEAM_ID = ts.TEAM_ID AND m.HOME_SCORE = 0))
+					)
+					WHEN ts.SEASON = 2026 THEN (
+						SELECT COUNT(*) FROM MATCHES m
+						WHERE m.STATUS = 'FINISHED'
+						  AND m.MATCH_ID NOT BETWEEN 999901 AND 999910
+						  AND ((m.HOME_TEAM_ID = ts.TEAM_ID AND m.AWAY_SCORE = 0)
+						       OR (m.AWAY_TEAM_ID = ts.TEAM_ID AND m.HOME_SCORE = 0))
+					)
+					ELSE 0
+				END
+			) AS CLEAN_SHEETS,
 			ts.YELLOW_CARDS,
 			ts.RED_CARDS,
 			ts.UPDATED_AT,
@@ -419,7 +524,7 @@
 		ORDER BY ts.CURRENT_RANK ASC NULLS LAST, ts.POINTS DESC, ts.GOAL_DIFF DESC, ts.GOALS_FOR DESC
 	</select>
 
-	<!-- 프리미어리그 득점 랭킹 조회 (득점 내림차순, 기본 상위 20명) -->
+	<!-- 프리미어리그 득점/도움/공격포인트/클린시트 랭킹 조회 (기본 상위 20명) -->
 	<select id="selectTopScorers" parameterType="map" resultType="PlayerStats">
 		SELECT 
 			ps.PLAYER_ID,
@@ -427,6 +532,7 @@
 			p.NAME_KOR AS PLAYER_NAME_KOR,
 			p.NAME_KOR AS PLAYERS_KOR,
 			p.MAIN_POSITION,
+			p.DETAIL_POSITION,
 			p.NATIONALITY,
 			p.NATIONALITY_KOR,
 			t.TEAM_ID,
@@ -435,6 +541,7 @@
 			t.EMBLEM_URL,
 			ps.GOALS,
 			ps.ASSISTS,
+			NVL(ps.CLEAN_SHEETS, 0) AS CLEAN_SHEETS,
 			ps.YELLOW_CARDS,
 			ps.RED_CARDS,
 			ps.IS_INJURED,
@@ -444,18 +551,44 @@
 		JOIN TEAMS t ON p.TEAM_ID = t.TEAM_ID
 		<choose>
 			<when test="metric == 'assists'">
-				WHERE ps.ASSISTS > 0
+				WHERE ps.ASSISTS &gt; 0
 				ORDER BY ps.ASSISTS DESC, p.NAME ASC, ps.PLAYER_ID ASC
 			</when>
 			<when test="metric == 'contributions'">
-				WHERE NVL(ps.GOALS, 0) + NVL(ps.ASSISTS, 0) > 0
+				WHERE NVL(ps.GOALS, 0) + NVL(ps.ASSISTS, 0) &gt; 0
 				ORDER BY (NVL(ps.GOALS, 0) + NVL(ps.ASSISTS, 0)) DESC, p.NAME ASC, ps.PLAYER_ID ASC
 			</when>
+			<when test="metric == 'cleanSheets'">
+				WHERE NVL(ps.CLEAN_SHEETS, 0) &gt; 0
+				ORDER BY ps.CLEAN_SHEETS DESC, p.NAME ASC, ps.PLAYER_ID ASC
+			</when>
 			<otherwise>
-				WHERE ps.GOALS > 0
+				WHERE ps.GOALS &gt; 0
 				ORDER BY ps.GOALS DESC, ps.ASSISTS DESC, p.NAME ASC
 			</otherwise>
 		</choose>
+		FETCH FIRST NVL(#{limit, jdbcType=NUMERIC}, 20) ROWS ONLY
+	</select>
+
+	<!-- 프리미어리그 클린시트(무실점) 상위 선수 조회 -->
+	<select id="selectTopCleanSheets" parameterType="Integer" resultType="PlayerStats">
+		SELECT
+			ps.PLAYER_ID,
+			p.NAME AS PLAYER_NAME,
+			p.NAME_KOR AS PLAYER_NAME_KOR,
+			p.MAIN_POSITION,
+			t.TEAM_ID,
+			t.TEAM_NAME,
+			t.TEAM_NAME_KOR,
+			t.EMBLEM_URL,
+			ps.GOALS,
+			ps.ASSISTS,
+			NVL(ps.CLEAN_SHEETS, 0) AS CLEAN_SHEETS
+		FROM PLAYER_STATS ps
+		JOIN PLAYERS p ON ps.PLAYER_ID = p.PLAYER_ID
+		JOIN TEAMS t ON p.TEAM_ID = t.TEAM_ID
+		WHERE NVL(ps.CLEAN_SHEETS, 0) &gt; 0
+		ORDER BY ps.CLEAN_SHEETS DESC, p.NAME ASC
 		FETCH FIRST NVL(#{limit, jdbcType=NUMERIC}, 20) ROWS ONLY
 	</select>
 
@@ -469,7 +602,8 @@
 			t.TEAM_NAME,
 			t.TEAM_NAME_KOR,
 			ps.GOALS,
-			ps.ASSISTS
+			ps.ASSISTS,
+			NVL(ps.CLEAN_SHEETS, 0) AS CLEAN_SHEETS
 		FROM PLAYER_STATS ps
 		JOIN PLAYERS p ON ps.PLAYER_ID = p.PLAYER_ID
 		JOIN TEAMS t ON p.TEAM_ID = t.TEAM_ID
@@ -488,7 +622,8 @@
 			t.TEAM_NAME,
 			t.TEAM_NAME_KOR,
 			ps.GOALS,
-			ps.ASSISTS
+			ps.ASSISTS,
+			NVL(ps.CLEAN_SHEETS, 0) AS CLEAN_SHEETS
 		FROM PLAYER_STATS ps
 		JOIN PLAYERS p ON ps.PLAYER_ID = p.PLAYER_ID
 		JOIN TEAMS t ON p.TEAM_ID = t.TEAM_ID
@@ -555,6 +690,7 @@
 			p.NAME_KOR AS PLAYER_NAME_KOR,
 			p.NAME_KOR AS PLAYERS_KOR,
 			p.MAIN_POSITION,
+			p.DETAIL_POSITION,
 			p.NATIONALITY,
 			p.NATIONALITY_KOR,
 			t.TEAM_ID,
@@ -563,6 +699,7 @@
 			t.EMBLEM_URL,
 			ps.GOALS,
 			ps.ASSISTS,
+			NVL(ps.CLEAN_SHEETS, 0) AS CLEAN_SHEETS,
 			ps.YELLOW_CARDS,
 			ps.RED_CARDS,
 			ps.IS_INJURED,
@@ -573,5 +710,23 @@
 		JOIN TEAMS t ON p.TEAM_ID = t.TEAM_ID
 		WHERE ps.PLAYER_ID = #{playerId}
 	</select>
+
+	<!-- [자동 마이그레이션 방어] USER_TAB_COLUMNS 컬럼 존재 여부 조회 -->
+	<select id="countUserTabColumn" parameterType="map" resultType="int">
+		SELECT COUNT(*)
+		FROM USER_TAB_COLUMNS
+		WHERE TABLE_NAME = UPPER(#{tableName})
+		  AND COLUMN_NAME = UPPER(#{columnName})
+	</select>
+
+	<!-- [자동 마이그레이션 방어] TEAM_STATS.CLEAN_SHEETS 컬럼 동적 추가 -->
+	<update id="alterTeamStatsAddCleanSheets">
+		ALTER TABLE TEAM_STATS ADD (CLEAN_SHEETS NUMBER DEFAULT 0 NOT NULL)
+	</update>
+
+	<!-- [자동 마이그레이션 방어] PLAYER_STATS.CLEAN_SHEETS 컬럼 동적 추가 -->
+	<update id="alterPlayerStatsAddCleanSheets">
+		ALTER TABLE PLAYER_STATS ADD (CLEAN_SHEETS NUMBER DEFAULT 0 NOT NULL)
+	</update>
 
 </mapper>
