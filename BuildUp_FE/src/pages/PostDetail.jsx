@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchTeams, fetchCategories } from '../store/teamSlice.js'
 import { communityTeams } from '../data/communityTeams.js'
@@ -95,6 +95,9 @@ export default function PostDetail({ postId }) {
   const [actionLoading, setActionLoading] = useState(false)
   const [actionError, setActionError] = useState('')
   const [liked, setLiked] = useState(false)
+  const [likeStatusUserId, setLikeStatusUserId] = useState(null)
+  const likeRequestRef = useRef(false)
+  const commentRequestRef = useRef(false)
   const [likeLoading, setLikeLoading] = useState(false)
   const [comments, setComments] = useState([])
   const [commentContent, setCommentContent] = useState('')
@@ -141,6 +144,7 @@ export default function PostDetail({ postId }) {
 
   // 게시글에 등록된 이미지와 일반 첨부파일을 조회합니다.
   useEffect(() => {
+    let active = true
     const fetchAttachments = async () => {
       try {
         const response = await fetch(`/api/communities/${encodeURIComponent(postId)}/attachments`)
@@ -149,16 +153,20 @@ export default function PostDetail({ postId }) {
         if (!response.ok || !Array.isArray(result?.data)) {
           throw new Error(result?.message || '첨부파일을 불러오지 못했습니다.')
         }
-        setAttachments(result.data)
+        if (active) setAttachments(result.data)
       } catch (exception) {
-        setAttachmentError(exception.message || '첨부파일을 불러오지 못했습니다.')
+        if (active) setAttachmentError(exception.message || '첨부파일을 불러오지 못했습니다.')
       }
     }
     fetchAttachments()
+    return () => { active = false }
   }, [postId])
 
   // 로그인한 사용자가 이 게시글을 추천했는지 확인합니다.
   useEffect(() => {
+    let active = true
+    setLiked(false)
+    setLikeStatusUserId(null)
     if (!isLoggedIn) return
 
     const fetchLikeStatus = async () => {
@@ -168,16 +176,24 @@ export default function PostDetail({ postId }) {
         const response = await fetch(`/api/communities/${encodeURIComponent(postId)}/likes/me`, { headers })
         const isJson = response.headers.get('content-type')?.includes('application/json')
         const result = isJson ? await response.json() : null
-        if (response.ok && result) setLiked(Boolean(result.data))
+        if (!response.ok || typeof result?.data !== 'boolean') {
+          throw new Error('추천 여부를 확인하지 못했습니다. 새로고침 후 다시 시도해주세요.')
+        }
+        if (active) {
+          setLiked(result.data)
+          setLikeStatusUserId(user?.userId)
+        }
       } catch {
-        // 추천 여부 조회가 실패해도 게시글 상세 화면은 계속 표시합니다.
+        if (active) setActionError('추천 여부를 확인하지 못했습니다. 새로고침 후 다시 시도해주세요.')
       }
     }
     fetchLikeStatus()
-  }, [isLoggedIn, postId])
+    return () => { active = false }
+  }, [isLoggedIn, postId, user?.userId])
 
   // 게시글의 일반 댓글과 대댓글을 함께 조회합니다.
   useEffect(() => {
+    let active = true
     const fetchComments = async () => {
       try {
         const response = await fetch(`/api/communities/${encodeURIComponent(postId)}/comments`)
@@ -186,12 +202,13 @@ export default function PostDetail({ postId }) {
         if (!response.ok || !Array.isArray(result?.data)) {
           throw new Error(result?.message || '댓글을 불러오지 못했습니다.')
         }
-        setComments(result.data)
+        if (active) setComments(result.data)
       } catch (exception) {
-        setCommentsError(exception.message || '댓글을 불러오지 못했습니다.')
+        if (active) setCommentsError(exception.message || '댓글을 불러오지 못했습니다.')
       }
     }
     fetchComments()
+    return () => { active = false }
   }, [postId])
 
   const startEditing = async () => {
@@ -282,11 +299,14 @@ export default function PostDetail({ postId }) {
 
   // 로그인 상태에 따라 게시글 추천을 등록하거나 취소합니다.
   const toggleLike = async () => {
+    if (likeRequestRef.current) return
     if (!isLoggedIn) {
       window.location.assign('/plug/login')
       return
     }
 
+    if (likeStatusUserId == null || likeStatusUserId !== user?.userId) return
+    likeRequestRef.current = true
     setActionError('')
     setLikeLoading(true)
     try {
@@ -309,6 +329,7 @@ export default function PostDetail({ postId }) {
     } catch (exception) {
       setActionError(exception.message || '추천 처리에 실패했습니다.')
     } finally {
+      likeRequestRef.current = false
       setLikeLoading(false)
     }
   }
@@ -316,6 +337,7 @@ export default function PostDetail({ postId }) {
   // 선택한 부모 댓글 번호가 있으면 대댓글로, 없으면 일반 댓글로 등록합니다.
   const createComment = async (event) => {
     event.preventDefault()
+    if (commentRequestRef.current) return
     if (!isLoggedIn) {
       window.location.assign('/plug/login')
       return
@@ -330,6 +352,7 @@ export default function PostDetail({ postId }) {
     }
 
     setCommentsError('')
+    commentRequestRef.current = true
     setCommentLoading(true)
     try {
       const token = localStorage.getItem('buildup_token')
@@ -357,6 +380,7 @@ export default function PostDetail({ postId }) {
     } catch (exception) {
       setCommentsError(exception.message || '댓글 등록에 실패했습니다.')
     } finally {
+      commentRequestRef.current = false
       setCommentLoading(false)
     }
   }
@@ -555,7 +579,7 @@ export default function PostDetail({ postId }) {
   const fileAttachments = attachments.filter((attachment) => !attachment.image)
   const featuredSquadImage = imageAttachments.find((attachment) => attachment.showcaseImage)
   const isTeamPost = post.teamId != null
-  const isShowcasePost = Boolean(featuredSquadImage)
+  const isShowcasePost = post.showcaseImageId != null || Boolean(featuredSquadImage)
   const isOwner = isLoggedIn && Number(user?.userId) === Number(post.userId)
   const activeReplies = comments.filter((comment) =>
     getParentCommentId(comment) != null && comment.isDeleted !== 'Y')
@@ -785,19 +809,25 @@ export default function PostDetail({ postId }) {
         </div>
       )}
       {renderAttachments(false)}
+      <div className="community__recommendation">
+        <button
+          type="button"
+          className={`community__like community__recommend-button${liked ? ' community__like--active' : ''}`}
+          onClick={toggleLike}
+          disabled={likeLoading || (isLoggedIn && (likeStatusUserId == null || likeStatusUserId !== user?.userId))}
+          aria-pressed={liked}
+          aria-label={`${liked ? '추천 취소' : isLoggedIn ? '추천하기' : '로그인 후 추천하기'}, 추천 ${post.likeCount || 0}개`}
+          aria-busy={likeLoading}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10H3v11h4V10Zm0 0 5-7c.6-.8 2-.4 2 1v5h5a2 2 0 0 1 2 2.4l-1.5 8A2 2 0 0 1 17.5 21H7" /></svg>
+          <span>{likeLoading ? '처리 중' : liked ? '추천 완료' : '추천'}</span>
+          <strong>{post.likeCount || 0}</strong>
+        </button>
+      </div>
     </article>}
 
     <div className="community__detail-actions">
       <a className="community__main-link" href={backTo}>목록으로 돌아가기</a>
-      <button
-        type="button"
-        className={liked ? 'community__like community__like--active' : 'community__like'}
-        onClick={toggleLike}
-        disabled={likeLoading}
-        aria-pressed={liked}
-      >
-        {likeLoading ? '처리 중...' : liked ? '추천 취소' : isLoggedIn ? '추천' : '로그인 후 추천'}
-      </button>
       {isOwner && !editing && <>
         <button type="button" onClick={startEditing} disabled={actionLoading}>수정</button>
         <button type="button" className="community__danger" onClick={deletePost} disabled={actionLoading}>삭제</button>
@@ -852,7 +882,10 @@ export default function PostDetail({ postId }) {
       <div className="community__reading-ad-sticky">
       <span className="community__ad-label">광고 · ADVERTISEMENT</span>
       <div className="community__vertical-ad">
-        <img src="/je.png" width="300" height="600" loading="lazy" alt="제때약 — 내 약을 제때, 더 안전하게. 복약 일정부터 AI 상담까지." />
+        <picture>
+          <source media="(max-width: 1000px)" srcSet="/je-mobile.png" width="2172" height="724" />
+          <img src="/je.png" width="300" height="600" loading="lazy" alt="제때약 — 내 약을 제때, 더 안전하게." />
+        </picture>
       </div>
       </div>
     </aside>
@@ -879,7 +912,7 @@ export default function PostDetail({ postId }) {
         <button type="submit">검색</button>
         {moreKeyword && <button type="button" onClick={() => { setMoreInput(''); setMoreKeyword('') }}>초기화</button>}
       </form>
-      {moreKeyword && <p className="community__more-hint">“{moreKeyword}” 검색 결과 중 최신 글을 최대 5개 표시합니다.</p>}
+      {moreKeyword && <p className="community__more-hint">“{moreKeyword}” 검색 결과를 최신순으로 표시합니다.</p>}
     </section>
     </div>
   </main>

@@ -113,6 +113,7 @@ export default function PenaltyKick() {
   const timerRef    = useRef(null)
   const aiAimRef    = useRef(null)
   const aiResolvedRef = useRef(false)
+  const aiDeadlineRef = useRef(0)
   const diffRef     = useRef(DIFFICULTIES[1])
   const scoreRef    = useRef({ p: 0, ai: 0 })
   const rareEventRef = useRef(null)
@@ -495,6 +496,7 @@ export default function PenaltyKick() {
     const aim = { x: rnd(15, 85), y: rnd(18, 78) }
     aiAimRef.current = aim
     aiResolvedRef.current = false
+    aiDeadlineRef.current = performance.now() + (diffRef.current?.hintMs ?? 2000)
     setDot(aim)
     setPhase(P.AI_HINT)
 
@@ -519,13 +521,21 @@ export default function PenaltyKick() {
     const aim = aiAimRef.current
     if (!aim) return
 
+    // 타이머 실행이 늦어져도 실제 제한 시간을 넘긴 클릭은 선방으로 인정하지 않습니다.
+    if (performance.now() >= aiDeadlineRef.current) {
+      const lateDive = { x: aim.x < 50 ? 92 : 8, y: Math.min(88, aim.y + 14) }
+      resolveAiKick(lateDive, aim, null, false, 'timeout')
+      return
+    }
+
     const dx = Math.abs(click.x - aim.x)
     const dy = Math.abs(click.y - aim.y)
     const saveX = diffRef.current.saveX
     const saveY = diffRef.current.saveY
     const isInsideSaveArea = ((dx / saveX) ** 2) + ((dy / saveY) ** 2) <= 1
     const saved = isInsideSaveArea
-    let keeperTarget = click
+    // 성공한 선방은 공의 충돌 위치까지 손을 뻗도록 표시합니다.
+    let keeperTarget = saved ? { ...aim } : click
 
     if (!saved) {
       const xRatio = dx / saveX
