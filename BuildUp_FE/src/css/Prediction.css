@@ -9,9 +9,9 @@
   min-height: calc(100vh - 64px);
   background: linear-gradient(135deg, #1b0222 0%, #26022c 50%, #35063d 100%);
   color: #ffffff;
-  padding: 40px 20px 80px;
+  padding: 40px 24px 80px;
   box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+  font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
   position: relative;
   transition: background 0.25s ease, color 0.25s ease;
 }
@@ -58,7 +58,7 @@
   z-index: 1;
 }
 
-/* ── 상단 헤더 영역 ── */
+/* ── 상단 헤더 영역 (경기 일정 / 팀 소개 / 어드민 규격 통일) ── */
 .prediction-header {
   text-align: center;
   margin-bottom: 36px;
@@ -66,33 +66,38 @@
 
 .prediction-header__eyebrow {
   display: inline-block;
-  font-size: 0.82rem;
+  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 2px;
-  color: #00ff87;
+  color: #00e58a;
+  text-shadow: 0 0 0.8vw rgba(0, 255, 135, 0.55);
   text-transform: uppercase;
-  background: rgba(0, 255, 135, 0.1);
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: 1px solid rgba(0, 255, 135, 0.3);
-  margin-bottom: 12px;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  border: none;
+  margin-bottom: 8px;
 }
 
 .prediction-header__title {
-  font-size: 2.4rem;
+  font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: 36px;
   font-weight: 900;
   margin: 0 0 10px;
   letter-spacing: -0.5px;
-  background: linear-gradient(180deg, #ffffff 0%, #e2d9e6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #f4f1fa;
+  background: none;
+  -webkit-text-fill-color: #f4f1fa;
+  text-shadow: 0 0.4vh 1.6vw rgba(0, 0, 0, 0.45);
 }
 
 .prediction-header__desc {
-  font-size: 1rem;
-  color: #cbbad1;
+  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-size: 15px;
+  color: #b5adc4;
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .prediction-header__desc-main {
@@ -108,34 +113,33 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .prediction-chip {
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #00ff87;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: #b5adc4;
   letter-spacing: -0.2px;
 }
 
-.prediction-chip--draw {
-  color: #60efff;
+.prediction-chip strong {
+  font-weight: 800;
+  color: #00ff87;
+  margin-left: 2px;
 }
 
-.prediction-chip--underdog {
+.prediction-chip--underdog strong {
   color: #f59e0b;
-  border-color: rgba(245, 158, 11, 0.3);
-  background: rgba(245, 158, 11, 0.1);
 }
 
 .prediction-chip-sep {
-  color: rgba(255, 255, 255, 0.2);
-  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.22);
+  font-size: 12px;
 }
 
 /* ── 모바일 전용 슬라이더 기본 스타일 (기본 숨김) ── */
@@ -551,7 +555,7 @@
   padding: 22px;
 }
 
-/* ── 사이드바 광고 카드 (다크모드 기본) ── */
+/* ── 사이드바 광고 카드 (다크모드 기본 & 랭킹 수에 따른 자동 높이 조절) ── */
 .prediction-ad-card {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(12px);
@@ -566,6 +570,11 @@
   text-align: center;
   position: relative;
   overflow: hidden;
+  transition: padding 0.25s ease;
+}
+
+.prediction-ad-card.is-compact {
+  padding: 16px 18px 18px;
 }
 
 .prediction-ad-badge {
@@ -579,20 +588,25 @@
   margin-bottom: 16px;
 }
 
+.prediction-ad-card.is-compact .prediction-ad-badge {
+  margin-bottom: 10px;
+}
+
 .prediction-ad-box {
   width: 100%;
   position: relative;
-  min-height: 320px;
+  min-height: max(150px, calc(320px - (var(--ranking-count, 0) * 34px)));
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 12px;
   overflow: hidden;
+  transition: min-height 0.25s ease;
 }
 
 .prediction-ad-ins {
   width: 100%;
-  min-height: 320px;
+  min-height: max(150px, calc(320px - (var(--ranking-count, 0) * 34px)));
   position: relative;
   z-index: 2;
 }
@@ -613,6 +627,11 @@
   z-index: 1;
 }
 
+.prediction-ad-card.is-compact .prediction-ad-placeholder {
+  gap: 4px;
+  padding: 14px 12px;
+}
+
 .prediction-ad-placeholder:hover {
   background: rgba(0, 255, 135, 0.05);
   border-color: rgba(0, 255, 135, 0.3);
@@ -623,10 +642,19 @@
   margin-bottom: 6px;
 }
 
+.prediction-ad-card.is-compact .prediction-ad-icon {
+  font-size: 1.75rem;
+  margin-bottom: 2px;
+}
+
 .prediction-ad-title {
   font-size: 1.05rem;
   font-weight: 800;
   color: #ffffff;
+}
+
+.prediction-ad-card.is-compact .prediction-ad-title {
+  font-size: 0.95rem;
 }
 
 .prediction-ad-desc {
@@ -634,6 +662,11 @@
   color: #baa8c2;
   margin: 0;
   line-height: 1.5;
+}
+
+.prediction-ad-card.is-compact .prediction-ad-desc {
+  font-size: 0.78rem;
+  line-height: 1.4;
 }
 
 .prediction-ad-cta {
@@ -649,6 +682,12 @@
   border: 1px solid rgba(0, 255, 135, 0.35);
   color: #00ff87;
   transition: all 0.2s ease;
+}
+
+.prediction-ad-card.is-compact .prediction-ad-cta {
+  margin-top: 8px;
+  padding: 6px 14px;
+  font-size: 0.76rem;
 }
 
 .prediction-ad-placeholder:hover .prediction-ad-cta {
@@ -807,9 +846,10 @@
 /* 헤더 영역 */
 .prediction-page-container.is-light .prediction-header__eyebrow,
 [data-theme='light'] .prediction-header__eyebrow {
-  background: #f3e8f8;
-  border-color: #e2d2e4;
+  background: transparent;
+  border: none;
   color: #38003c;
+  text-shadow: none;
 }
 
 .prediction-page-container.is-light .prediction-header__title,
@@ -817,12 +857,12 @@
   background: none;
   -webkit-text-fill-color: #0f172a;
   color: #0f172a;
+  text-shadow: none;
 }
 
 .prediction-page-container.is-light .prediction-header__desc,
 [data-theme='light'] .prediction-header__desc {
-  color: #334155;
-  font-weight: 500;
+  color: #64748b;
 }
 
 .prediction-page-container.is-light .prediction-header__desc strong,
@@ -830,26 +870,22 @@
   color: #38003c;
 }
 
-/* 라이트모드 헤더 칩 (포인트 뱃지) */
+/* 라이트모드 헤더 칩 (포인트 안내) */
 .prediction-page-container.is-light .prediction-chip,
 [data-theme='light'] .prediction-chip {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #15803d;
+  background: transparent;
+  border: none;
+  color: #64748b;
 }
 
-.prediction-page-container.is-light .prediction-chip--draw,
-[data-theme='light'] .prediction-chip--draw {
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
-  color: #0369a1;
+.prediction-page-container.is-light .prediction-chip strong,
+[data-theme='light'] .prediction-chip strong {
+  color: #008a55;
 }
 
-.prediction-page-container.is-light .prediction-chip--underdog,
-[data-theme='light'] .prediction-chip--underdog {
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  color: #b45309;
+.prediction-page-container.is-light .prediction-chip--underdog strong,
+[data-theme='light'] .prediction-chip--underdog strong {
+  color: #d97706;
 }
 
 .prediction-page-container.is-light .prediction-chip-sep,
@@ -1319,17 +1355,17 @@
   }
 
   .prediction-header__chips {
-    gap: 6px;
-    margin-top: 10px;
+    gap: 8px;
+    margin-top: 6px;
   }
 
   .prediction-chip {
-    font-size: 11px;
-    padding: 3px 8px;
+    font-size: 12px;
+    padding: 0;
   }
 
   .prediction-chip-sep {
-    display: none;
+    font-size: 11px;
   }
 
   .prediction-tabs {

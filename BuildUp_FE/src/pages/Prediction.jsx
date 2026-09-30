@@ -239,11 +239,11 @@ export default function Prediction() {
               내가 응원하는 애정팀을 선택하고<span className="prediction-desc-br"> </span>승부예측 랭킹 1위에 도전하세요!
             </span>
             <span className="prediction-header__chips">
-              <span className="prediction-chip prediction-chip--win">[승리 +100P]</span>
+              <span className="prediction-chip">승리 <strong>+100P</strong></span>
               <span className="prediction-chip-sep">|</span>
-              <span className="prediction-chip prediction-chip--draw">[무승부 +150P]</span>
+              <span className="prediction-chip">무승부 <strong>+150P</strong></span>
               <span className="prediction-chip-sep">|</span>
-              <span className="prediction-chip prediction-chip--underdog">[언더독 승리 +250P 🔥]</span>
+              <span className="prediction-chip prediction-chip--underdog">언더독 승리 <strong>+250P</strong></span>
             </span>
           </p>
         </header>
@@ -706,7 +706,10 @@ export default function Prediction() {
               </div>
 
               {/* 랭킹 하단 스폰서 광고 카드 */}
-              <div className="prediction-ad-card">
+              <div
+                className={`prediction-ad-card ${rankings.length > 0 ? 'is-compact' : ''}`}
+                style={{ '--ranking-count': Math.min(rankings.length, 5) }}
+              >
                 <div className="prediction-ad-badge">ADVERTISEMENT</div>
                 <div className="prediction-ad-box">
                   {/* 실제 구글 애드센스 광고 단위 */}
