@@ -1,26 +1,63 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { VERIFIED_ANTHEM_URLS } from '../../api/teamApi.js';
 
 // 유튜브 URL에서 임베드용 영상 ID 추출 함수
-function getYouTubeEmbedUrl(url) {
+function getYouTubeVideoId(url) {
   if (!url) return null;
   const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-  return match ? `https://www.youtube.com/embed/${match[1]}` : null;
+  return match ? match[1] : null;
 }
 
-export default function TeamAudioPlayer({ anthemUrl, teamName }) {
+export default function TeamAudioPlayer({ teamId, anthemUrl, teamName }) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   const iframeRef = useRef(null);
-  const embedUrl = getYouTubeEmbedUrl(anthemUrl);
+
+  const resolvedUrl = VERIFIED_ANTHEM_URLS[Number(teamId)] || anthemUrl;
+  const videoId = getYouTubeVideoId(resolvedUrl);
+  const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+
+  // 구단 이동 시 오디오 재생 상태 초기화
+  useEffect(() => {
+    setIsPlaying(false);
+    setHasStarted(false);
+  }, [teamId, videoId]);
+
+  const sendCommand = (func, args = []) => {
+    const win = iframeRef.current?.contentWindow;
+    if (!win) return;
+    win.postMessage(JSON.stringify({ event: 'command', func, args }), '*');
+  };
+
+  const handleIframeLoad = () => {
+    const win = iframeRef.current?.contentWindow;
+    if (!win) return;
+    win.postMessage(JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }), '*');
+    sendCommand('unMute', []);
+    sendCommand('setVolume', [100]);
+    if (isPlaying) {
+      sendCommand('playVideo', []);
+    }
+  };
 
   const handleTogglePlay = () => {
-    if (!iframeRef.current || !embedUrl) return;
+    if (!embedUrl) return;
 
-    const command = isPlaying ? 'pauseVideo' : 'playVideo';
-    iframeRef.current.contentWindow.postMessage(
-      JSON.stringify({ event: 'command', func: command, args: '' }),
-      '*'
-    );
-    setIsPlaying(!isPlaying);
+    if (!hasStarted) {
+      setHasStarted(true);
+      setIsPlaying(true);
+      return;
+    }
+
+    if (isPlaying) {
+      sendCommand('pauseVideo', []);
+      setIsPlaying(false);
+    } else {
+      sendCommand('unMute', []);
+      sendCommand('setVolume', [100]);
+      sendCommand('playVideo', []);
+      setIsPlaying(true);
+    }
   };
 
   return (
@@ -62,17 +99,20 @@ export default function TeamAudioPlayer({ anthemUrl, teamName }) {
         </div>
       </div>
 
-      {/* 백그라운드 오디오 재생용 숨김 iframe */}
-      {embedUrl && (
+      {/* 백그라운드 오디오 재생용 숨김 iframe (첫 재생 클릭 시 마운트 및 자동재생) */}
+      {embedUrl && hasStarted && (
         <iframe
+          key={`${teamId || ''}-${videoId}`}
           ref={iframeRef}
-          src={`${embedUrl}?enablejsapi=1`}
+          src={`${embedUrl}?autoplay=1&enablejsapi=1&playsinline=1&rel=0&loop=1&playlist=${videoId}`}
           title={`${teamName} 응원가 재생기`}
           className="team-hidden-audio-frame"
           allow="autoplay; encrypted-media"
+          onLoad={handleIframeLoad}
         />
       )}
     </div>
   );
 }
+
 

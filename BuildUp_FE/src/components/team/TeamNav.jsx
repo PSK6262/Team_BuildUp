@@ -3,8 +3,8 @@ import React from 'react';
 export default function TeamNav({ prevTeam, nextTeam }) {
   return (
     <div className="team-right-nav">
-      <a href="/plug/mainpage" className="team-back-link">
-        ← 메인페이지로 돌아가기
+      <a href="/plug/teams" className="team-back-link">
+        ← 팀 소개 페이지로 돌아가기
       </a>
       <div className="team-quick-nav">
         <a

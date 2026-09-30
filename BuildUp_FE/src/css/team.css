@@ -326,12 +326,15 @@ body:has(.team-container) {
 }
 
 .team-hidden-audio-frame {
-  position: absolute;
-  width: 0.1vw;
-  height: 0.1vh;
-  opacity: 0;
+  position: fixed;
+  left: -9999px;
+  bottom: 0;
+  width: 240px;
+  height: 200px;
+  opacity: 0.01;
   pointer-events: none;
   border: none;
+  z-index: -1;
 }
 
 /* --------------------------------------------------------
