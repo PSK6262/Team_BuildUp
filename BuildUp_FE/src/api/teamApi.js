@@ -17,6 +17,30 @@ export function isExcludedTeam(t) {
   return EXCLUDED_KEYWORDS.some((kw) => nameKor.includes(kw) || nameEn.includes(kw.toLowerCase()));
 }
 
+// 20개 프리미어리그 구단 공식 응원가 검증된 유튜브 URL 매핑 (DB 내 유효하지 않은 링크 보정)
+export const VERIFIED_ANTHEM_URLS = {
+  57: 'https://www.youtube.com/watch?v=N8_m1XqypSQ',   // Arsenal FC
+  58: 'https://www.youtube.com/watch?v=CxomHtwvG6I',   // Aston Villa FC
+  61: 'https://www.youtube.com/watch?v=uchOo5HU95s',   // Chelsea FC
+  62: 'https://www.youtube.com/watch?v=zEoifRY8ViU',   // Everton FC
+  63: 'https://www.youtube.com/watch?v=N5a_RmmCDtg',   // Fulham FC
+  64: 'https://www.youtube.com/watch?v=EEFf5H4wuRc',   // Liverpool FC
+  65: 'https://www.youtube.com/watch?v=oJF6EUf9J_k',   // Manchester City FC
+  66: 'https://www.youtube.com/watch?v=9XGMpo4Sk2k',   // Manchester United FC
+  67: 'https://www.youtube.com/watch?v=WOTBR-AU82s',   // Newcastle United FC
+  71: 'https://www.youtube.com/watch?v=2XUzrNlion0',   // Sunderland AFC
+  73: 'https://www.youtube.com/watch?v=dGl4JmAoSdg',   // Tottenham Hotspur FC
+  322: 'https://www.youtube.com/watch?v=UWV3zuslDLI',  // Hull City AFC
+  341: 'https://www.youtube.com/watch?v=E1NXh1JRZik',  // Leeds United FC
+  349: 'https://www.youtube.com/watch?v=_xB5n798sVQ',  // Ipswich Town FC
+  351: 'https://www.youtube.com/watch?v=2iOskofJfGg',  // Nottingham Forest FC
+  354: 'https://www.youtube.com/watch?v=gXd6aSM-R20',  // Crystal Palace FC
+  397: 'https://www.youtube.com/watch?v=rRpkuAG98KA',  // Brighton & Hove Albion FC
+  402: 'https://www.youtube.com/watch?v=Omee74eSev0',  // Brentford FC
+  1044: 'https://www.youtube.com/watch?v=fQJ0ZHbY0xc', // AFC Bournemouth
+  1076: 'https://www.youtube.com/watch?v=ilIxNt__DFc', // Coventry City FC
+};
+
 // 창단연도 순수 연도(4자리 숫자) 정제 함수
 function normalizeTeam(t) {
   if (!t) return null;
@@ -25,10 +49,11 @@ function normalizeTeam(t) {
     const match = year.match(/\d{4}/);
     year = match ? parseInt(match[0], 10) : 1900;
   }
+  const numId = Number(t.teamId);
   return {
     ...t,
     foundedYear: year,
-    anthemUrl: t.anthemUrl || t.anithemUrl,
+    anthemUrl: VERIFIED_ANTHEM_URLS[numId] || t.anthemUrl || t.anithemUrl,
   };
 }
 
