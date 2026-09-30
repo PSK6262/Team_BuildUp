@@ -1206,6 +1206,13 @@ html[data-theme='dark'] .community .community__showcase-more { border-color: #72
   box-shadow: none;
   backdrop-filter: none;
 }
+/* 목록 화면은 경기 일정과 같은 상단 여백을 두고 제목 아래에 이동 경로를 배치합니다. */
+.community.community--landing { padding-top: 40px; }
+.community--landing :is(.community__team-heading, .community__board-heading) { display: block; text-align: center; margin: 0 0 28px; }
+.community--landing :is(.community__team-heading, .community__board-heading) .community__eyebrow { display: inline-block; font-size: 13px; margin: 0 0 8px; }
+.community--landing :is(.community__team-heading, .community__board-heading) h1 { font-size: clamp(28px, 4vw, 36px); font-weight: 900; letter-spacing: -.5px; margin: 0 0 10px; }
+.community--landing :is(.community__team-heading, .community__board-heading) .community__intro { font-size: 15px; margin: 0 auto; }
+.community.community--landing > .community__navigation { border-top: 1px solid var(--community-line); border-bottom: 0; padding: 18px 0 0; }
 .community .community__navigation-actions { width: auto; gap: 18px; }
 .community .community__navigation-actions .community__main-link {
   padding: 6px 0;
