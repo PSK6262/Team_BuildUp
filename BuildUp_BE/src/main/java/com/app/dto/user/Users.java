@@ -31,5 +31,10 @@ public class Users {
     
     // 조인용 (USER_ROLES)
     private String roleName;
+
+    // 조인용 (TEAMS)
+    private String favoriteTeamName;
+    private String favoriteTeamNameKor;
+    private String favoriteTeamEmblemUrl;
 }
 
