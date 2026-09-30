@@ -146,10 +146,10 @@
    ======================================================== */
 
 .teams-page-container {
-  min-height: 92vh;
+  min-height: calc(100vh - 84px);
   background-color: #f8fafc;
-  padding: 5vh 4% 8vh;
-  font-family: var(--font-plug, 'Barlow Semi Condensed Numeric', 'Montserrat', 'Pretendard Variable', 'Pretendard', sans-serif);
+  padding: 40px 24px 80px;
+  font-family: var(--font-plug);
   color: #0f172a;
   box-sizing: border-box;
 }
@@ -159,7 +159,7 @@
   width: 100%;
   min-height: 100vh;
   background-color: #240428;
-  padding: 13vh 4% 9vh;
+  padding: 140px 4% 80px;
   color: #ffffff;
   overflow: hidden;
 }
@@ -215,18 +215,18 @@
    -------------------------------------------------------- */
 .teams-page-header {
   text-align: center;
-  margin-bottom: 5vh;
+  margin-bottom: 28px;
 }
 
 .teams-page-eyebrow {
   display: inline-block;
-  font-family: var(--font-en, 'Montserrat', sans-serif);
-  font-size: clamp(0.75rem, 0.9vw, 1rem);
+  font-family: var(--font-plug);
+  font-size: 13px;
   font-weight: 800;
-  letter-spacing: 0.22vw;
+  letter-spacing: 2px;
   color: #38003c;
   text-transform: uppercase;
-  margin-bottom: 1.2vh;
+  margin-bottom: 8px;
 }
 
 .teams-page-container--teams .teams-page-eyebrow {
@@ -235,11 +235,11 @@
 }
 
 .teams-page-title {
-  font-size: clamp(1.9rem, 2.8vw, 3.2rem);
+  font-size: 36px;
   font-weight: 900;
   color: #0f172a;
-  margin: 0 0 1.4vh;
-  letter-spacing: -0.05vw;
+  margin: 0 0 10px;
+  letter-spacing: -0.5px;
 }
 
 .teams-page-container--teams .teams-page-title {
@@ -248,8 +248,8 @@
 }
 
 .teams-page-desc {
-  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
-  font-size: clamp(0.95rem, 1.1vw, 1.2rem);
+  font-family: var(--font-plug);
+  font-size: 15px;
   color: #64748b;
   margin: 0 auto;
   width: 90%;
@@ -360,7 +360,7 @@
 }
 
 .team-grid-card__name {
-  font-family: var(--font-kr, 'Pretendard Variable', 'Pretendard', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(1.02rem, 1.22vw, 1.35rem);
   font-weight: 800;
   color: #ffffff;
@@ -371,7 +371,7 @@
 }
 
 .team-grid-card__name-en {
-  font-family: var(--font-en, 'Montserrat', sans-serif);
+  font-family: var(--font-plug);
   font-size: clamp(0.78rem, 0.9vw, 1rem);
   font-weight: 600;
   color: rgba(255, 255, 255, 0.76);
@@ -413,13 +413,19 @@
   }
 }
 
+@media (max-width: 64rem) {
+  .teams-page-container--teams {
+    padding: 130px 4% 80px;
+  }
+}
+
 @media (max-width: 53.75rem) {
   .teams-page-container {
-    padding: 3.5vh 4% 6vh;
+    padding: 40px 4% 60px;
   }
 
   .teams-page-container--teams {
-    padding: 11vh 4% 7vh;
+    padding: 130px 4% 70px;
   }
 
   .teams-page-wrapper {
@@ -455,7 +461,7 @@
 @media (max-width: 425px) {
   .teams-page-container--teams {
     min-width: 320px;
-    padding: 78px 3.5vw 10vw;
+    padding: 98px 3.5vw 10vw;
   }
 
   .teams-page-wrapper {
@@ -464,26 +470,26 @@
   }
 
   .teams-page-header {
-    margin-bottom: 5.5vw;
+    margin-bottom: 5.65vw;
   }
 
   .teams-page-eyebrow {
-    font-size: 2.7vw;
-    letter-spacing: 0.35vw;
-    margin-bottom: 1.4vw;
+    font-size: 3.05vw;
+    letter-spacing: 0.47vw;
+    margin-bottom: 1.88vw;
   }
 
   .teams-page-title {
-    font-size: 6.2vw;
-    margin: 0 0 2vw;
-    letter-spacing: -0.1vw;
+    font-size: 6.58vw;
+    margin: 0 0 2.35vw;
+    letter-spacing: -0.12vw;
   }
 
   .teams-page-desc {
     width: 90vw;
     max-width: 90vw;
-    font-size: 3.1vw;
-    line-height: 1.5;
+    font-size: 3.29vw;
+    line-height: 1.6;
     word-break: keep-all;
   }
 
