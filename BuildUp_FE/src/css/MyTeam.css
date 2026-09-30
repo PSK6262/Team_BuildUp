@@ -2165,8 +2165,10 @@ html[data-theme='light'] .myteam-page .member-ranking-actions :is(a, button) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
+  height: 44px;
   min-height: 44px;
-  padding: calc(10 * var(--ranking-space)) calc(16 * var(--ranking-space));
+  padding: 0 calc(16 * var(--ranking-space));
   border: 1px solid #d9e1dc;
   border-radius: 10px;
   background: #fff;
