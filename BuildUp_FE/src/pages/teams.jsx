@@ -276,7 +276,7 @@ export function StandingsPage() {
     <main className="teams-page-container teams-page-container--rankings">
       <div className="teams-page-wrapper">
         <header className="teams-page-header">
-          <span className="teams-page-eyebrow">PREMIER LEAGUE{tab === 'league' ? ' · 2026/27' : ''}</span>
+          <span className="teams-page-eyebrow">PREMIER LEAGUE</span>
           <h1 className="teams-page-title">리그 & 선수 랭킹</h1>
           <p className="teams-page-desc">구단 순위부터 득점, 도움, 공격포인트까지 한눈에 확인하세요.</p>
         </header>
