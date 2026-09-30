@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchTeams } from '../store/teamSlice.js';
 import TeamCard from '../components/team/TeamCard.jsx';
 import '../css/teams.css';
+import '../css/rankings.css';
 
 export default function TeamsPage() {
   const dispatch = useDispatch();
@@ -253,6 +254,12 @@ function isStandingRow(row) {
 
 export function StandingsPage() {
   const tabs = [ ['league', '리그 순위표'], ['goals', '득점랭킹'], ['assists', '도움랭킹'], ['contributions', '공격포인트 순위'] ];
+  const tabDetails = {
+    league: ['TABLE', '승점으로 살펴보는 프리미어리그 구단 순위'],
+    goals: ['GOALS', '골로 경기를 바꾸는 리그의 해결사들'],
+    assists: ['ASSISTS', '동료의 득점을 만드는 최고의 조력자들'],
+    contributions: ['GOALS + ASSISTS', '득점과 도움을 합산한 선수별 공격 기록'],
+  };
   const [ tab, setTab ] = useState(() => {
     const value = new URLSearchParams(window.location.search).get('tab');
     return tabs.some(([ id ]) => id === value) ? value : 'league';
@@ -285,10 +292,14 @@ export function StandingsPage() {
                 event.preventDefault();
                 changeTab(tabs[next][0]);
                 document.getElementById(`ranking-tab-${tabs[next][0]}`).focus();
-              }}>{label}</button>
+              }}><span className="ranking-tab-kicker" aria-hidden="true">{tabDetails[id][0]}</span><span>{label}</span></button>
           ))}
         </div>
-        <section id="ranking-panel" role="tabpanel" aria-labelledby={`ranking-tab-${tab}`} tabIndex={0}>
+        <section id="ranking-panel" className="ranking-panel" role="tabpanel" aria-labelledby={`ranking-tab-${tab}`} tabIndex={0}>
+        <header className="ranking-panel-heading">
+          <div><h2>{tabs.find(([id]) => id === tab)[1]}</h2><p>{tabDetails[tab][1]}</p></div>
+          <span className="ranking-season-badge">2026 / 27</span>
+        </header>
         {tab === 'league' ? <StandingsTable season={2026} />
           : <PlayerRankings key={tab} metric={tab} label={tabs.find(([ id ]) => id === tab)[1]} />}
         </section>
@@ -341,7 +352,7 @@ function PlayerRankings({ metric, label }) {
         <thead><tr><th scope="col">순위</th><th scope="col">선수명</th><th scope="col">소속 구단</th>
           <th scope="col">득점</th><th scope="col">도움</th><th scope="col">공격포인트</th></tr></thead>
         <tbody>{rows.map((row) => <tr key={row.playerId}>
-          <td><span className="standings-rank">{row.rank}</span></td>
+          <td><span className="standings-rank" data-rank={row.rank}>{row.rank}</span></td>
           <th scope="row"><button type="button" className="ranking-player-link" aria-haspopup="dialog" onClick={() => setSelectedPlayer(row)}>{row.playerNameKor || row.playerName || '선수명 미등록'}</button></th>
           <td><span className="standings-team">{row.emblemUrl && <img src={row.emblemUrl} alt="" width="28" height="28" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} />}{row.teamName || '구단명 미등록'}</span></td>
           {['goals', 'assists', 'contributions'].map((field) => <td key={field} className={metric === field ? 'standings-points' : undefined}>
@@ -432,9 +443,18 @@ function RankingPlayerDetails({ player, onClose }) {
 
   return <dialog ref={dialogRef} className="ranking-player-dialog" aria-labelledby="ranking-player-title"
     onCancel={(event) => { event.preventDefault(); onClose(); }}
-    onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    onClick={(event) => {
+      if (event.target !== event.currentTarget) return;
+      const rect = event.currentTarget.getBoundingClientRect();
+      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) onClose();
+    }}>
+    <div className="ranking-player-toolbar">
+      <span>선수 상세 기록</span>
+      <button type="button" className="ranking-player-close" onClick={onClose} aria-label="선수 상세 닫기" title="닫기" autoFocus>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+      </button>
+    </div>
     <div className="ranking-player-details">
-      <button type="button" className="ranking-player-close" onClick={onClose} aria-label="선수 상세 닫기" autoFocus>닫기 ✕</button>
       <header className="ranking-player-header">
         <div className="ranking-player-photo">
           {photo.status === 'ready' ? <img src={photo.url} alt={`${name} 선수 사진`} onError={() => setPhoto({ status: 'empty', url: '' })} />
@@ -521,7 +541,7 @@ function StandingsTable({ season }) {
             const teamKor = row.teamNameKor || getTeamNameKor(row.teamId, row.teamName);
             return (
               <tr key={row.teamId}>
-                <td><span className="standings-rank">{row.currentRank ?? '—'}</span></td>
+                <td><span className="standings-rank" data-rank={row.currentRank}>{row.currentRank ?? '—'}</span></td>
                 <th scope="row"><a className="standings-team" href={`/plug/team/${row.teamId}`} title={`${teamKor} 상세 정보 보기`}>
                   {row.emblemUrl && <img src={row.emblemUrl} alt="" width="28" height="28" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} />}
                   <span style={{ fontWeight: 700 }}>{teamKor}</span>
