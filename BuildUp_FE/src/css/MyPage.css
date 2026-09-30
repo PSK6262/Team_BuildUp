@@ -164,8 +164,8 @@
 }
 
 .mypage-avatar-frame {
-  width: 88px;
-  height: 88px;
+  width: 98px;
+  height: 98px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #220329 0%, #100114 100%);
   border: 2px solid rgba(0, 255, 135, 0.32);
@@ -179,8 +179,8 @@
 }
 
 .mypage-avatar-img {
-  width: 72%;
-  height: 72%;
+  width: 78%;
+  height: 78%;
   object-fit: contain;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
 }
@@ -658,8 +658,8 @@
 }
 
 .mypage-fav-team-emblem-sm {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
 }
 
@@ -826,8 +826,8 @@
 }
 
 .mypage-match-emblem {
-  width: 42px;
-  height: 42px;
+  width: 54px;
+  height: 54px;
   object-fit: contain;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
 }

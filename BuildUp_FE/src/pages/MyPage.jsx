@@ -111,21 +111,21 @@ function IconX({ size = 18, color = 'currentColor', className = '', style = {} }
   )
 }
 
-// 고해상도 구단 엠블럼 URL 변환 (SVG 우선, 리버풀 t14는 공식 풀컬러 100px PNG 사용)
-function getEmblemSvgUrl(url) {
-  if (!url || typeof url !== 'string' || url.includes('/t14.')) return ''
-  return url.replace('/badges/50/', '/badges/').replace('/50/', '/').replace(/\.png$/i, '.svg')
+// 원본 고해상도 구단 엠블럼 PNG URL 변환 (/badges/50/t11.png -> /badges/t11.png)
+function getOriginalHighResPngUrl(url) {
+  if (!url || typeof url !== 'string') return ''
+  return url.replace('/badges/50/', '/badges/').replace('/50/', '/')
 }
 
-function getHighResPngUrl(url) {
+function getFallback100PngUrl(url) {
   if (!url || typeof url !== 'string') return ''
   return url.replace('/badges/50/', '/badges/100/').replace('/50/', '/100/')
 }
 
 function TeamEmblemImg({ url, alt = '', className = '' }) {
-  const svgUrl = getEmblemSvgUrl(url)
-  const pngUrl = getHighResPngUrl(url)
-  const initialSrc = svgUrl || pngUrl || url || ''
+  const highResUrl = getOriginalHighResPngUrl(url)
+  const fallback100Url = getFallback100PngUrl(url)
+  const initialSrc = highResUrl || url || ''
 
   if (!initialSrc) return null
 
@@ -136,8 +136,8 @@ function TeamEmblemImg({ url, alt = '', className = '' }) {
       className={className}
       onError={(e) => {
         const cur = e.currentTarget.src
-        if (pngUrl && cur !== pngUrl && !cur.includes('/100/')) {
-          e.currentTarget.src = pngUrl
+        if (fallback100Url && cur !== fallback100Url && !cur.includes('/100/')) {
+          e.currentTarget.src = fallback100Url
         } else if (url && cur !== url) {
           e.currentTarget.src = url
         }
