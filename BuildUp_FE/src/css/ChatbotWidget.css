@@ -94,3 +94,21 @@ html[data-theme='dark'] .chatbot-widget__error { background: #40212f; color: #ff
   .chatbot-widget__message { max-width: 94%; padding: 10px 12px; }
   .chatbot-widget__message--list { max-width: 100%; }
 }
+
+/* 모바일은 저장된 드래그 위치 대신 화면 우측 하단에 고정합니다. */
+@media (max-width: 680px) {
+  .chatbot-widget__launcher {
+    right: max(16px, env(safe-area-inset-right));
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .chatbot-widget__panel {
+    right: max(12px, env(safe-area-inset-right));
+    bottom: calc(84px + env(safe-area-inset-bottom));
+    width: min(360px, calc(100vw - 24px - env(safe-area-inset-right)));
+    height: min(480px, calc(100dvh - 100px - env(safe-area-inset-bottom)));
+  }
+  .chatbot-widget__header, .chatbot-widget__header:active { cursor: default; touch-action: auto; }
+  .chatbot-widget__launcher:active { cursor: pointer; }
+}

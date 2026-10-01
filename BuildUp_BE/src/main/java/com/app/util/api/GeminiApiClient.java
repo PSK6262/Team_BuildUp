@@ -97,7 +97,9 @@ public class GeminiApiClient {
 
 			Map<String, Object> requestBody = new HashMap<>();
 			requestBody.put("contents", contents);
-			requestBody.put("generationConfig", genConfig);
+			// 검색 도구와 JSON 강제 출력의 조합을 지원하지 않는 모델도 사용할 수 있게 합니다.
+			// 검색 응답의 JSON 형식은 각 호출 프롬프트에서 요청합니다.
+			if (!googleSearch) requestBody.put("generationConfig", genConfig);
 			if (googleSearch) {
 				requestBody.put("tools", List.of(Map.of("google_search", Map.of())));
 			}
@@ -137,6 +139,10 @@ public class GeminiApiClient {
 								for (JsonNode part : candidate.path("content").path("parts")) {
 									String text = part.path("text").asText("");
 									if (!text.isBlank()) {
+										if (googleSearch) {
+											text = text.trim().replaceFirst("^```(?:json)?\\s*", "")
+													.replaceFirst("\\s*```$", "").trim();
+										}
 										return new GeminiCallResult(text, extractGroundingSources(candidate));
 									}
 								}
