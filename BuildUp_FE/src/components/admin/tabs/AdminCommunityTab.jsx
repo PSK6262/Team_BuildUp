@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAdminCommunity } from '../../../hooks/useAdminCommunity.js';
 import AdminSelect from '../AdminSelect.jsx';
+import { useCommunityConfirm } from '../../CommunityConfirm.jsx';
 
 /**
  * [관리자 커뮤니티 블라인드 제재 탭 - BuildUp_FE/src/components/admin/tabs/AdminCommunityTab.jsx]
@@ -8,6 +9,7 @@ import AdminSelect from '../AdminSelect.jsx';
  * 커뮤니티 게시글 및 댓글의 모더레이션(블라인드 제재, 강제 삭제, 원문 열람)을 전담하는 컴포넌트입니다.
  */
 export default function AdminCommunityTab({ showAlert }) {
+  const { confirm, confirmation } = useCommunityConfirm();
   const {
     communitySubTab,
     setCommunitySubTab,
@@ -31,13 +33,14 @@ export default function AdminCommunityTab({ showAlert }) {
     handleToggleCommentBlind,
     moderationLoading,
     handleRunAiModeration,
-  } = useAdminCommunity({ showAlert });
+  } = useAdminCommunity({ showAlert, confirm });
 
   const [visiblePosts, setVisiblePosts] = useState(10);
   const [visibleComments, setVisibleComments] = useState(10);
 
   return (
     <div>
+      {confirmation}
       {/* AI 모더레이션 연동 안내 배너 */}
       <div className="ai-moderation-banner">
         <div className="ai-moderation-banner__text">

@@ -10,7 +10,7 @@ import * as adminApi from '../api/adminApi.js';
  * 
  * 커뮤니티 게시글/댓글 목록 조회, 검색/필터링, 블라인드 제재, 강제 삭제 및 본문 상세 확인 모달 로직을 전담합니다.
  */
-export function useAdminCommunity({ showAlert }) {
+export function useAdminCommunity({ showAlert, confirm }) {
   const dispatch = useDispatch();
 
   const [communitySubTab, setCommunitySubTab] = useState('posts'); // 'posts' | 'comments'
@@ -133,7 +133,7 @@ export function useAdminCommunity({ showAlert }) {
 
   // 게시글 강제 삭제
   const handleDeletePost = async (postId, title) => {
-    if (!window.confirm(`'${title}' 게시글을 삭제하시겠습니까?`)) return;
+    if (!await confirm(`'${title}' 게시글을 삭제하시겠습니까?`, '게시글 삭제')) return;
     try {
       const res = await adminApi.deleteAdminPost(postId);
       const json = await res.json();

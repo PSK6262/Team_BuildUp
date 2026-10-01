@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fetchTeams, fetchCategories } from '../store/teamSlice.js'
 import { communityTeams } from '../data/communityTeams.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
+import { useCommunityConfirm } from '../components/CommunityConfirm.jsx'
 import '../css/Community.css'
 
 // StrictMode가 개발 환경에서 같은 상세 조회를 두 번 실행해도 서버 요청은 한 번만 보냅니다.
@@ -46,6 +47,7 @@ function requestPost(postId) {
 }
 
 export default function PostDetail({ postId }) {
+  const { confirm, confirmation } = useCommunityConfirm()
   const dispatch = useDispatch()
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn)
   const user = useSelector((state) => state.auth.user)
@@ -277,7 +279,7 @@ export default function PostDetail({ postId }) {
   }
 
   const deletePost = async () => {
-    if (!window.confirm('게시글을 삭제하시겠습니까?')) return
+    if (!await confirm('게시글을 삭제하시겠습니까?', '게시글 삭제')) return
     setActionError('')
     setActionLoading(true)
     try {
@@ -439,7 +441,7 @@ export default function PostDetail({ postId }) {
 
   // 로그인한 작성자의 댓글을 삭제 상태로 변경하고 화면 목록을 갱신합니다.
   const deleteComment = async (commentId) => {
-    if (!window.confirm('댓글을 삭제하시겠습니까?')) return
+    if (!await confirm('댓글을 삭제하시겠습니까?', '댓글 삭제')) return
     setCommentsError('')
     setCommentActionId(commentId)
     try {
@@ -548,7 +550,7 @@ export default function PostDetail({ postId }) {
     const confirmMessage = selectedAttachment?.showcaseImage
       ? '대표 스쿼드 이미지를 삭제하면 자랑 게시판과 인기글에서 제외되고 자유 게시글로 변경됩니다. 삭제하시겠습니까?'
       : '첨부파일을 삭제하시겠습니까?'
-    if (!window.confirm(confirmMessage)) return
+    if (!await confirm(confirmMessage, '첨부파일 삭제')) return
     setAttachmentLoading(true)
     setAttachmentError('')
     try {
@@ -730,6 +732,7 @@ export default function PostDetail({ postId }) {
   }
 
   return <main className="community">
+    {confirmation}
     <CommunityNavigation section={isShowcasePost ? 'showcase' : isTeamPost ? 'teams' : 'free'} teamName={post.teamName || ''} />
     <div className="community__reading-layout">
     <div className="community__reading-content">

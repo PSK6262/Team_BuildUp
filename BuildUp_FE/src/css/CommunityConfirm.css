@@ -1,0 +1,36 @@
+.community-confirm { box-sizing: border-box; width: min(420px, calc(100% - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; margin: auto; padding: 28px; border: 1px solid #e2e8f0; border-radius: 18px; background: #fff; color: #172033; box-shadow: 0 24px 80px #10051e40; font-family: var(--font-plug, sans-serif); }
+.community-confirm::backdrop { background: #10051e99; backdrop-filter: blur(3px); }
+.community-confirm__icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: #fff0f4; color: #bd2352; }
+.community-confirm h2 { margin: 18px 0 10px; font-size: 20px; font-weight: 700; }
+.community-confirm p { margin: 0; color: #64748b; font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; white-space: pre-wrap; }
+.community-confirm__actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 26px; }
+.community-confirm button { min-width: 88px; min-height: 44px; border: 1px solid #dce2ec; border-radius: 10px; background: #f5f6fa; color: #172033; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.community-confirm button:hover { filter: brightness(.94); }
+.community-confirm button:focus-visible { outline: 2px solid #9b63c1; outline-offset: 3px; }
+.community-confirm .community-confirm__delete { background: #ad204a; border-color: #ad204a; color: #fff; }
+html[data-theme='dark'] .community-confirm { background: #21172c; color: #f4f1fa; border-color: #493654; }
+html[data-theme='dark'] .community-confirm p { color: #c3b8ce; }
+html[data-theme='dark'] .community-confirm__icon { background: #472137; color: #ff8faf; }
+html[data-theme='dark'] .community-confirm button:not(.community-confirm__delete) { background: #30243b; color: #f4f1fa; border-color: #564361; }
+@media(max-width: 380px) { .community-confirm { padding: 22px; } .community-confirm__actions button { flex: 1; min-width: 0; } }
+
+/* 승부예측 모달의 중앙 정렬과 카드·버튼 형태에 맞춥니다. */
+.community-confirm { width: min(440px, calc(100% - 32px)); padding: 28px 24px 24px; border-radius: 22px; text-align: center; box-shadow: 0 24px 60px rgba(15,23,42,.22); }
+.community-confirm[open] { animation: communityConfirmEnter .22s cubic-bezier(.16,1,.3,1); }
+.community-confirm__icon { width: 54px; height: 54px; margin: 0 auto 10px; border-radius: 50%; border: 1.5px solid rgba(244,63,94,.45); box-shadow: 0 0 18px rgba(244,63,94,.15); }
+.community-confirm__badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .8px; background: #fff1f2; border: 1px solid #fda4af; color: #be123c; }
+.community-confirm h2 { margin: 10px 0 18px; font-size: 1.22rem; font-weight: 800; letter-spacing: -.3px; }
+.community-confirm p { padding: 16px 14px; border: 1px solid #e2e8f0; border-radius: 16px; background: #f8fafc; }
+.community-confirm__actions { flex-direction: column; gap: 8px; margin-top: 20px; }
+.community-confirm button { width: 100%; padding: 12px 16px; border-radius: 12px; font-size: .9rem; font-weight: 800; background: #f1f5f9; border-color: #cbd5e1; }
+.community-confirm .community-confirm__delete { background: #fff1f2; border-color: #fda4af; color: #e11d48; }
+.community-confirm .community-confirm__delete:hover { background: #e11d48; color: #fff; filter: none; }
+html[data-theme='dark'] .community-confirm { background: linear-gradient(165deg,#2a0634 0%,#16011c 100%); border: 1.5px solid rgba(255,255,255,.14); box-shadow: 0 24px 60px rgba(0,0,0,.65),0 0 30px rgba(0,255,135,.12); }
+html[data-theme='dark'] .community-confirm p { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.1); }
+html[data-theme='dark'] .community-confirm__icon { background: rgba(244,63,94,.16); border-color: rgba(244,63,94,.55); box-shadow: 0 0 18px rgba(244,63,94,.25); }
+html[data-theme='dark'] .community-confirm__badge { background: rgba(244,63,94,.18); color: #fda4af; border-color: rgba(244,63,94,.4); }
+html[data-theme='dark'] .community-confirm .community-confirm__delete { background: rgba(244,63,94,.18); border-color: rgba(244,63,94,.5); color: #fecdd3; }
+html[data-theme='dark'] .community-confirm .community-confirm__delete:hover { background: #e11d48; color: #fff; }
+@keyframes communityConfirmEnter { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media(prefers-reduced-motion: reduce) { .community-confirm[open] { animation: none; } }
+@media(max-width: 380px) { .community-confirm { padding: 24px 18px 18px; } }

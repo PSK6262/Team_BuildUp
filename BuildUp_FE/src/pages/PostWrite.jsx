@@ -251,9 +251,9 @@ export default function PostWrite() {
     <form className="community__write-form" onSubmit={handleSubmit}>
       {initialBoard === 'showcase' ? <p className="community__notice">게시판 · <strong>나만의 팀 자랑</strong><br />공유한 스쿼드는 자랑 게시판에 등록됩니다.</p> : <fieldset disabled={loading || submitting}>
         <legend>게시판 선택</legend>
-        <label><input type="radio" name="board" value="free" checked={board === 'free'} onChange={() => { setBoard('free'); setTeamId('') }} /> 자유게시판</label>
-        <label><input type="radio" name="board" value="team" checked={board === 'team'} onChange={() => setBoard('team')} /> 팀별 게시판</label>
-        <label><input type="radio" name="board" value="showcase" checked={board === 'showcase'} onChange={() => { setBoard('showcase'); setTeamId('') }} /> 나만의 팀 자랑</label>
+        <label className="community__board-choice"><input type="radio" name="board" value="free" checked={board === 'free'} onChange={() => { setBoard('free'); setTeamId('') }} /><span>자유게시판</span></label>
+        <label className="community__board-choice"><input type="radio" name="board" value="team" checked={board === 'team'} onChange={() => setBoard('team')} /><span>팀별 게시판</span></label>
+        <label className="community__board-choice"><input type="radio" name="board" value="showcase" checked={board === 'showcase'} onChange={() => { setBoard('showcase'); setTeamId('') }} /><span>나만의 팀 자랑</span></label>
       </fieldset>}
 
       {board === 'showcase' && <section className="community__shared-team" aria-label="공유할 나만의 팀">
@@ -291,7 +291,7 @@ export default function PostWrite() {
         <small className="community__character-count">{contentLength(content)} / {POST_CONTENT_MAX_LENGTH}</small>
       </label>
 
-      <label>이미지
+      <label className="community__file-picker">이미지
         <input
           type="file"
           multiple
@@ -299,6 +299,10 @@ export default function PostWrite() {
           onChange={(event) => selectAttachments(event, 'image')}
           disabled={loading || submitting}
         />
+        <span className="community__file-trigger">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="8" cy="8" r="1.5" /><path d="m3 17 6-6 4 4 3-3 5 5" /></svg>
+          <span>이미지 첨부</span><small>{imageAttachments.length ? `${imageAttachments.length}개 선택됨` : 'JPG · PNG · GIF · WEBP'}</small>
+        </span>
         <small>본문 아래 이미지 영역에 미리보기로 표시됩니다.</small>
       </label>
       {imageAttachments.length > 0 && <ul className="community__selected-files">
@@ -308,7 +312,7 @@ export default function PostWrite() {
         </li>)}
       </ul>}
 
-      <label>일반 첨부파일
+      <label className="community__file-picker">일반 첨부파일
         <input
           type="file"
           multiple
@@ -316,6 +320,10 @@ export default function PostWrite() {
           onChange={(event) => selectAttachments(event, 'file')}
           disabled={loading || submitting}
         />
+        <span className="community__file-trigger">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m8 13 7-7a3 3 0 0 1 4 4l-9 9a5 5 0 0 1-7-7l9-9M6 15l8-8" /></svg>
+          <span>파일 첨부</span><small>{fileAttachments.length ? `${fileAttachments.length}개 선택됨` : 'PDF · TXT · DOCX · XLSX · ZIP'}</small>
+        </span>
         <small>다운로드 목록에 표시됩니다. 이미지와 합쳐 최대 5개, 파일당 10MB, 전체 20MB까지 등록할 수 있습니다.</small>
       </label>
       {fileAttachments.length > 0 && <ul className="community__selected-files">
