@@ -84,12 +84,41 @@ export async function getMyPointHistories() {
 }
 
 /**
- * 로그인 회원의 포인트샵 보유 아이템(USER_INVENTORY) 및 구매 내역(ITEM_ORDERS) 조회
+ * 로그인 회원의 최신 프로필 정보 조회
  */
-export async function getMyShopData() {
-  const res = await fetch('/api/users/me/shop', {
+export async function getMyProfile() {
+  const res = await fetch('/api/users/me', {
     headers: getAuthHeaders(),
   });
+  if (!res.ok) {
+    return null;
+  }
+  const json = await res.json();
+  return json.data || null;
+}
+
+/**
+ * 로그인 회원의 포인트샵 보유 아이템(USER_INVENTORY) 및 구매 내역(ITEM_ORDERS) 조회
+ * (/api/shop/inventory, /api/shop/orders 및 /api/users/me/shop 통합 연동)
+ */
+export async function getMyShopData() {
+  const headers = getAuthHeaders();
+  try {
+    const [invRes, ordRes] = await Promise.all([
+      fetch('/api/shop/inventory', { headers }),
+      fetch('/api/shop/orders', { headers }),
+    ]);
+    if (invRes.ok && ordRes.ok) {
+      const invJson = await invRes.json();
+      const ordJson = await ordRes.json();
+      return {
+        inventory: Array.isArray(invJson.data) ? invJson.data : [],
+        orders: Array.isArray(ordJson.data) ? ordJson.data : [],
+      };
+    }
+  } catch {}
+
+  const res = await fetch('/api/users/me/shop', { headers });
   if (!res.ok) {
     throw new Error('포인트샵 보관함 및 구매 내역을 불러올 수 없습니다.');
   }

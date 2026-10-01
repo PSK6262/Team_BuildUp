@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateUser, logout } from '../store/authSlice.js'
 import { getMyActivities, getMyPosts, getMyComments, getMyLikedPosts, getMyPointHistories, getMyShopData } from '../api/userApi.js'
-import { SHOP_ITEMS } from './PointShop.jsx'
+import { SHOP_ITEMS } from '../api/shopApi.js'
 import '../css/MyPage.css'
 
 const EMAIL_REGEX = /^[a-zA-Z0-9](?!.*\.\.)[a-zA-Z0-9._-]{2,28}[a-zA-Z0-9]@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -514,7 +514,9 @@ export default function MyPage() {
 
     if (Array.isArray(localIds)) {
       localIds.forEach((itemId) => {
-        const catalogItem = SHOP_ITEMS.find((s) => s.id === itemId)
+        const catalogItem = SHOP_ITEMS.find(
+          (s) => s.id === itemId || Number(s.id) === Number(itemId) || Number(s.itemId) === Number(itemId)
+        )
         if (catalogItem && !ownedMap.has(catalogItem.name)) {
           ownedMap.set(catalogItem.name, {
             id: catalogItem.id,

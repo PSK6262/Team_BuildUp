@@ -3,8 +3,7 @@ package com.app.service.team.impl;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.annotation.PostConstruct;
-
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +17,7 @@ import com.app.service.api.FootballApiService;
 import com.app.service.team.TeamService;
 
 @Service
-public class TeamServiceImpl implements TeamService {
+public class TeamServiceImpl implements TeamService, InitializingBean {
 
     @Autowired
     private TeamDAO teamDAO;
@@ -28,7 +27,11 @@ public class TeamServiceImpl implements TeamService {
 
     private final AtomicBoolean schemaVerified = new AtomicBoolean(false);
 
-    @PostConstruct
+    @Override
+    public void afterPropertiesSet() {
+        initCleanSheetsSchema();
+    }
+
     public void initCleanSheetsSchema() {
         ensureSchemaReady();
     }

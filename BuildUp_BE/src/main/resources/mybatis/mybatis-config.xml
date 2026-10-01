@@ -29,6 +29,10 @@
 		<typeAlias type="com.app.dto.user.UserPredicts" alias="UserPredicts"/>
 		<typeAlias type="com.app.dto.prediction.Predictions" alias="Predictions"/>
 		<typeAlias type="com.app.dto.prediction.PointHistory" alias="PointHistory"/>
+		<typeAlias type="com.app.dto.shop.ShopItem" alias="ShopItem"/>
+		<typeAlias type="com.app.dto.shop.UserInventory" alias="UserInventory"/>
+		<typeAlias type="com.app.dto.shop.ItemOrder" alias="ItemOrder"/>
+		<typeAlias type="com.app.dto.shop.PointTransaction" alias="PointTransaction"/>
 	</typeAliases>
 	
 </configuration>
