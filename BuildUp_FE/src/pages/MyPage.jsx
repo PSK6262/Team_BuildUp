@@ -768,14 +768,14 @@ export default function MyPage() {
     }
 
     try {
-      const res = await fetch(`/api/users/check-nickname?nickname=${encodeURIComponent(trimmed)}`)
+      const res = await fetch(`/api/auth/check-nickname?nickname=${encodeURIComponent(trimmed)}`)
       const data = await res.json()
-      if (res.ok && data.data === true) {
+      if (res.ok && (data.data === true || data.status === 'SUCCESS' || data.code === 'SUC_001')) {
         setNicknameChecked(true)
         setNicknameCheckMsg('✓ 사용 가능한 닉네임입니다.')
       } else {
         setNicknameChecked(false)
-        setNicknameCheckMsg('✕ 이미 사용 중인 닉네임입니다.')
+        setNicknameCheckMsg(data.message || '✕ 이미 사용 중인 닉네임입니다.')
       }
     } catch (err) {
       setNicknameChecked(false)
@@ -798,10 +798,13 @@ export default function MyPage() {
     setSendingEmailCode(true)
     setEmailVerifyMsg('')
     try {
-      const res = await fetch('/api/mail/send-change-code', {
+      const token = localStorage.getItem('buildup_token')
+      const headers = {}
+      if (token) headers['Authorization'] = `Bearer ${token}`
+
+      const res = await fetch(`/api/auth/send-email-change-code?email=${encodeURIComponent(trimmed)}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: trimmed })
+        headers,
       })
       const data = await res.json()
       if (res.ok && (data.status === 'SUCCESS' || data.code === 'SUC_001')) {
@@ -827,11 +830,17 @@ export default function MyPage() {
 
     setVerifyingEmailCode(true)
     try {
-      const res = await fetch('/api/mail/verify-change-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), authCode: trimmedCode })
-      })
+      const token = localStorage.getItem('buildup_token')
+      const headers = {}
+      if (token) headers['Authorization'] = `Bearer ${token}`
+
+      const res = await fetch(
+        `/api/auth/verify-email-change-code?email=${encodeURIComponent(email.trim())}&code=${encodeURIComponent(trimmedCode)}`,
+        {
+          method: 'POST',
+          headers,
+        }
+      )
       const data = await res.json()
       if (res.ok && (data.status === 'SUCCESS' || data.code === 'SUC_001')) {
         setEmailVerified(true)
@@ -854,7 +863,7 @@ export default function MyPage() {
     setErrorMsg('')
 
     const trimmedNickname = nickname.trim()
-    const trimmedEmail = email.trim()
+    const trimmedEmail = (email || profile?.email || '').trim()
 
     if (!trimmedNickname) {
       setErrorMsg('닉네임을 입력해주세요.')
@@ -876,7 +885,7 @@ export default function MyPage() {
       return
     }
 
-    if (trimmedEmail.toLowerCase() !== profile?.email?.toLowerCase() && !emailVerified) {
+    if (profile?.email && trimmedEmail.toLowerCase() !== profile.email.toLowerCase() && !emailVerified) {
       setErrorMsg('변경된 이메일의 인증을 완료해주세요.')
       return
     }

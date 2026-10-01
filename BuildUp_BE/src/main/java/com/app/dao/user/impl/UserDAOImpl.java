@@ -19,8 +19,21 @@ public class UserDAOImpl implements UserDAO {
 	@Autowired
 	private SqlSessionTemplate sqlSession;
 
+	private volatile boolean nicknameColumnExpanded = false;
+
+	private void ensureNicknameColumnCapacity() {
+		if (!nicknameColumnExpanded) {
+			nicknameColumnExpanded = true;
+			try {
+				sqlSession.update("UserMapper.expandUsersNicknameColumn");
+			} catch (Exception ignored) {
+			}
+		}
+	}
+
 	@Override
 	public int insertUser(Users user) {
+		ensureNicknameColumnCapacity();
 		return sqlSession.insert("UserMapper.insertUser", user);
 	}
 
@@ -56,6 +69,7 @@ public class UserDAOImpl implements UserDAO {
 
 	@Override
 	public int updateUser(Users user) {
+		ensureNicknameColumnCapacity();
 		return sqlSession.update("UserMapper.updateUser", user);
 	}
 
