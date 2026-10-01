@@ -318,7 +318,11 @@ public class AdminServiceImpl implements AdminService {
 			throw new IllegalStateException("현재 테스트용 임시(더미) 경기가 존재합니다. 포인트 오류 방지를 위해 임시 경기가 존재하는 동안에는 임시 경기 승부예측 이외의 모든 포인트 변동이 금지됩니다.");
 		}
 
-		if (amount != null && Math.abs(amount) > 10000) {
+		if (amount == null) {
+			throw new IllegalArgumentException("변경할 포인트를 입력해주세요.");
+		}
+
+		if (Math.abs(amount) > 10000) {
 			log.warn("[포인트 조정 차단] 1회 조정 한도 초과 (요청: {}P, 최대: ±10,000P)", amount);
 			throw new IllegalArgumentException("한 번에 변경할 수 있는 포인트는 최대 ±10,000P 입니다.");
 		}
