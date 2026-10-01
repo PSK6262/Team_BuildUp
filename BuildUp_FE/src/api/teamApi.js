@@ -19,26 +19,26 @@ export function isExcludedTeam(t) {
 
 // 20개 프리미어리그 구단 공식 응원가 검증된 유튜브 URL 매핑 (DB 내 유효하지 않은 링크 보정)
 export const VERIFIED_ANTHEM_URLS = {
-  57: 'https://www.youtube.com/watch?v=N8_m1XqypSQ',   // Arsenal FC
-  58: 'https://www.youtube.com/watch?v=CxomHtwvG6I',   // Aston Villa FC
-  61: 'https://www.youtube.com/watch?v=uchOo5HU95s',   // Chelsea FC
-  62: 'https://www.youtube.com/watch?v=zEoifRY8ViU',   // Everton FC
-  63: 'https://www.youtube.com/watch?v=N5a_RmmCDtg',   // Fulham FC
-  64: 'https://www.youtube.com/watch?v=EEFf5H4wuRc',   // Liverpool FC
-  65: 'https://www.youtube.com/watch?v=oJF6EUf9J_k',   // Manchester City FC
-  66: 'https://www.youtube.com/watch?v=9XGMpo4Sk2k',   // Manchester United FC
-  67: 'https://www.youtube.com/watch?v=WOTBR-AU82s',   // Newcastle United FC
-  71: 'https://www.youtube.com/watch?v=2XUzrNlion0',   // Sunderland AFC
-  73: 'https://www.youtube.com/watch?v=dGl4JmAoSdg',   // Tottenham Hotspur FC
+  57: 'https://www.youtube.com/watch?v=2SeLP5hXGCI&list=RD2SeLP5hXGCI&start_radio=1',   // Arsenal FC
+  58: 'https://www.youtube.com/watch?v=QazosoiBJyQ&list=RDQazosoiBJyQ&start_radio=1',   // Aston Villa FC
+  61: 'https://www.youtube.com/watch?v=LTbZr7-X3To&list=RDLTbZr7-X3To&start_radio=1',   // Chelsea FC
+  62: 'https://www.youtube.com/watch?v=1w51TFCx0vY&list=RD1w51TFCx0vY&start_radio=1',   // Everton FC
+  63: 'https://www.youtube.com/watch?v=U_PXj6B-ILo',   // Fulham FC
+  64: 'https://www.youtube.com/watch?v=naGYqb8n6QY&list=RDnaGYqb8n6QY&start_radio=1',   // Liverpool FC
+  65: 'https://www.youtube.com/watch?v=oJF6EUf9J_k&list=RDoJF6EUf9J_k&start_radio=1',   // Manchester City FC
+  66: 'https://www.youtube.com/watch?v=cE6jxhtNI18&list=RDcE6jxhtNI18&start_radio=1',   // Manchester United FC
+  67: 'https://www.youtube.com/watch?v=x-frfQJlRW4&list=RDx-frfQJlRW4&start_radio=1',   // Newcastle United FC
+  71: 'https://www.youtube.com/watch?v=-EeEjS-8bN4&list=RD-EeEjS-8bN4&start_radio=1',   // Sunderland AFC
+  73: 'https://www.youtube.com/watch?v=yfi8axOsWqE',   // Tottenham Hotspur FC
   322: 'https://www.youtube.com/watch?v=UWV3zuslDLI',  // Hull City AFC
-  341: 'https://www.youtube.com/watch?v=E1NXh1JRZik',  // Leeds United FC
+  341: 'https://www.youtube.com/watch?v=Qy_2dpkPt4I&list=RDQy_2dpkPt4I&start_radio=1',  // Leeds United FC
   349: 'https://www.youtube.com/watch?v=_xB5n798sVQ',  // Ipswich Town FC
-  351: 'https://www.youtube.com/watch?v=2iOskofJfGg',  // Nottingham Forest FC
+  351: 'https://www.youtube.com/watch?v=DS2UERtBeLk&list=RDDS2UERtBeLk&start_radio=1',  // Nottingham Forest FC
   354: 'https://www.youtube.com/watch?v=gXd6aSM-R20',  // Crystal Palace FC
-  397: 'https://www.youtube.com/watch?v=rRpkuAG98KA',  // Brighton & Hove Albion FC
+  397: 'https://www.youtube.com/watch?v=NR71Kk0ROxw',  // Brighton & Hove Albion FC
   402: 'https://www.youtube.com/watch?v=Omee74eSev0',  // Brentford FC
-  1044: 'https://www.youtube.com/watch?v=fQJ0ZHbY0xc', // AFC Bournemouth
-  1076: 'https://www.youtube.com/watch?v=ilIxNt__DFc', // Coventry City FC
+  1044: 'https://www.youtube.com/watch?v=gHfJIEMHIKc&list=RDgHfJIEMHIKc&start_radio=1', // AFC Bournemouth
+  1076: 'https://www.youtube.com/watch?v=dpyFKnse1gc&list=RDdpyFKnse1gc&start_radio=1', // Coventry City FC
 };
 
 // 창단연도 순수 연도(4자리 숫자) 정제 함수
