@@ -114,10 +114,15 @@
 		UPDATE USERS
 		SET 
 			NICKNAME = #{nickname},
-			EMAIL = #{email},
+			EMAIL = NVL(#{email, jdbcType=VARCHAR}, EMAIL),
 			FAVORITE_TEAM_ID = #{favoriteTeamId, jdbcType=NUMERIC},
 			UPDATED_AT = SYSTIMESTAMP
 		WHERE USER_ID = #{userId}
+	</update>
+
+	<!-- [자동 마이그레이션 방어] 한글 20자(60Byte) 지원을 위한 NICKNAME 컬럼 길이 확장 -->
+	<update id="expandUsersNicknameColumn">
+		ALTER TABLE USERS MODIFY (NICKNAME VARCHAR2(100))
 	</update>
 
 	<!-- 비밀번호 변경 -->
