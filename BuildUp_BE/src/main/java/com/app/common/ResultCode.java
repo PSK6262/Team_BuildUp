@@ -47,6 +47,12 @@ public enum ResultCode {
     COMMUNITY_POST_TITLE_TOO_LONG("REJ_214", "게시글 제목은 50자까지 입력할 수 있습니다."),
     COMMUNITY_NEWS_WRITE_DISABLED("REJ_215", "뉴스 게시글 작성은 현재 사용할 수 없습니다."),
 
+    // 포인트샵 영역
+    SHOP_ITEM_NOT_FOUND("REJ_301", "아이템을 찾을 수 없습니다."),
+    SHOP_INSUFFICIENT_POINT("REJ_302", "보유 포인트가 부족합니다."),
+    SHOP_ALREADY_OWNED("REJ_303", "이미 보유하고 있는 아이템입니다."),
+    SHOP_PURCHASE_FAIL("REJ_304", "아이템 구매 처리에 실패했습니다."),
+
     // 외부 API 연동 오류 코드 (질문 11)
     EXTERNAL_API_ERROR("REJ_501", "외부 축구 데이터 제공처(API) 통신 중 오류가 발생했습니다."),
     EXTERNAL_API_RATE_LIMIT("REJ_502", "외부 API 호출 한도(429 Too Many Requests)를 초과했습니다. 잠시 후 다시 시도해주세요."),

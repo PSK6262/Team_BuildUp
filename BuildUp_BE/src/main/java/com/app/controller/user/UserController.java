@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -62,6 +63,24 @@ public class UserController {
 
 		user.setPassword(null);
 		return ApiResponse.success(user);
+	}
+
+	/**
+	 * 닉네임 중복 확인 (/api/users/check-nickname 호환 지원)
+	 */
+	@GetMapping("/check-nickname")
+	public ApiResponse<Boolean> checkNickname(@RequestParam("nickname") String nickname) {
+		if (nickname == null || nickname.trim().isEmpty()) {
+			return ApiResponse.error(ResultCode.INVALID_INPUT);
+		}
+		if (!NICKNAME_PATTERN.matcher(nickname.trim()).matches()) {
+			return ApiResponse.error(ResultCode.INVALID_NICKNAME);
+		}
+		boolean available = userService.isNicknameAvailable(nickname.trim());
+		if (!available) {
+			return ApiResponse.error(ResultCode.DUPLICATE_NICKNAME);
+		}
+		return ApiResponse.success(true);
 	}
 
 	/**
@@ -169,6 +188,53 @@ public class UserController {
 	}
 
 	/**
+	 * 마이페이지 & 포인트샵: 본인 보유 아이템 및 구매 내역 조회
+	 */
+	@GetMapping("/me/shop")
+	public ApiResponse<Map<String, Object>> getMyShopData(HttpServletRequest request) {
+		String loginId = resolveLoginId(request);
+		if (loginId == null) {
+			return ApiResponse.error(ResultCode.UNAUTHORIZED);
+		}
+
+		Users user = userDAO.selectUserByLoginId(loginId);
+		if (user == null) {
+			return ApiResponse.error(ResultCode.USER_NOT_FOUND);
+		}
+
+		Map<String, Object> shopData = userService.getUserShopData(user.getUserId());
+		return ApiResponse.success(shopData);
+	}
+
+	/**
+	 * 포인트샵 아이템 구매 처리 (USER_INVENTORY, ITEM_ORDERS, POINT_TRANSACTIONS, POINT_HISTORY, USERS.POINT 연동)
+	 */
+	@PostMapping("/me/shop/purchase")
+	public ApiResponse<Map<String, Object>> purchaseShopItem(
+			@RequestBody Map<String, Object> itemRequest,
+			HttpServletRequest request) {
+		String loginId = resolveLoginId(request);
+		if (loginId == null) {
+			return ApiResponse.error(ResultCode.UNAUTHORIZED);
+		}
+
+		Users user = userDAO.selectUserByLoginId(loginId);
+		if (user == null) {
+			return ApiResponse.error(ResultCode.USER_NOT_FOUND);
+		}
+
+		try {
+			Map<String, Object> result = userService.purchaseShopItem(user.getUserId(), itemRequest);
+			return ApiResponse.success(result);
+		} catch (IllegalArgumentException e) {
+			return ApiResponse.error(ResultCode.INVALID_INPUT, e.getMessage());
+		} catch (Exception e) {
+			log.error("[UserController] 포인트샵 아이템 구매 오류: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL);
+		}
+	}
+
+	/**
 	 * 회원 정보 수정 (닉네임, 이메일, 선호 구단)
 	 */
 	@PutMapping("/me")
@@ -186,12 +252,23 @@ public class UserController {
 		// 본인 정보만 업데이트 가능하도록 PK 고정
 		updateData.setUserId(currentUser.getUserId());
 
+		// 닉네임 공백 제거 및 미입력 시 기존 닉네임 유지
+		if (updateData.getNickname() == null || updateData.getNickname().trim().isEmpty()) {
+			updateData.setNickname(currentUser.getNickname());
+		} else {
+			updateData.setNickname(updateData.getNickname().trim());
+		}
+
+		// 이메일 미입력 시 기존 이메일 유지
+		if (updateData.getEmail() == null || updateData.getEmail().trim().isEmpty()) {
+			updateData.setEmail(currentUser.getEmail());
+		} else {
+			updateData.setEmail(updateData.getEmail().trim());
+		}
+
 		// 닉네임 변경 시 형식 및 중복 검증 (자신의 기존 닉네임과 다른 경우만)
-		if (updateData.getNickname() != null && !updateData.getNickname().trim().equals(currentUser.getNickname())) {
-			String newNickname = updateData.getNickname().trim();
-			if (newNickname.isEmpty()) {
-				return ApiResponse.error(ResultCode.INVALID_INPUT);
-			}
+		if (!updateData.getNickname().equals(currentUser.getNickname())) {
+			String newNickname = updateData.getNickname();
 			if (!NICKNAME_PATTERN.matcher(newNickname).matches()) {
 				return ApiResponse.error(ResultCode.INVALID_NICKNAME);
 			}
@@ -201,8 +278,8 @@ public class UserController {
 		}
 
 		// 이메일 변경 시 인증 완료 및 중복 검증 (자신의 기존 이메일과 다른 경우만)
-		if (updateData.getEmail() != null && !updateData.getEmail().trim().equalsIgnoreCase(currentUser.getEmail())) {
-			String newEmail = updateData.getEmail().trim();
+		if (!updateData.getEmail().equalsIgnoreCase(currentUser.getEmail())) {
+			String newEmail = updateData.getEmail();
 			if (!userService.isEmailAvailable(newEmail)) {
 				return ApiResponse.error(ResultCode.DUPLICATE_EMAIL);
 			}

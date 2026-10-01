@@ -628,13 +628,10 @@ body.mainpage-intro-active .chatbot-widget__panel {
 
 /* --------------------------------------------------------
    스마트폰 브레이크포인트 (<= 425px)
-   - 마이페이지 버튼은 상단 바에서 숨기고 햄버거 메뉴 안으로 이동
-   - 상단 바에는 로고 + 테마 + [로그아웃] + [햄버거] 가 여유롭게 유지됨
+   - 작은 화면에서는 계정 버튼을 유지하고 로그아웃을 메뉴 안에 표시
    -------------------------------------------------------- */
 @media (max-width: 425px) {
-  .user-nav__mypage-top {
-    display: none !important;
-  }
+
 
   .user-nav .user-nav__logout-btn,
   .user-nav .user-nav__login-btn {
@@ -689,4 +686,72 @@ body.mainpage-intro-active .chatbot-widget__panel {
     grid-template-columns: 1fr 1fr;
     gap: 6px;
   }
+}
+
+/* 닉네임과 마이페이지를 하나의 계정 버튼으로 표시 */
+.user-nav__profile {
+  position: relative;
+  min-width: 0;
+}
+
+.user-nav .user-nav__mypage-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  width: 156px;
+  min-height: 46px;
+  padding: 7px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 255, 135, 0.65);
+  background: rgba(0, 255, 135, 0.07);
+  box-shadow: none;
+  text-shadow: none;
+}
+
+.user-nav__profile-icon { flex-shrink: 0; color: #00ff87; }
+.user-nav__profile-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.user-nav__nickname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 1.25; }
+.user-nav__profile-label { color: #c9d3ce; font-size: 11px; line-height: 1.2; font-weight: 500; }
+.user-nav__nickname-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: max-content;
+  max-width: min(280px, calc(100vw - 32px));
+  padding: 9px 12px;
+  border: 1px solid #605267;
+  border-radius: 8px;
+  background: #281b30;
+  color: #fff;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  visibility: hidden;
+  pointer-events: none;
+}
+.user-nav__profile:hover .user-nav__nickname-tooltip,
+.user-nav__profile:focus-within .user-nav__nickname-tooltip { visibility: visible; }
+.user-nav__mobile-account { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 0 14px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+.user-nav__mobile-nickname { min-width: 0; overflow-wrap: anywhere; font-size: 14px; font-weight: 600; }
+.user-nav__mobile-nickname small { display: block; margin-top: 4px; color: #bfb2c7; font-size: 11px; font-weight: 400; }
+.user-nav__mobile-account button { flex-shrink: 0; min-height: 44px; }
+
+@media (min-width: 1025px) and (max-width: 1250px) {
+  .user-nav__inner { gap: 12px; padding-inline: 18px; }
+  .user-nav__links { gap: 12px; }
+  .user-nav__account { gap: 10px; }
+  .user-nav .user-nav__mypage-top { width: 132px; }
+}
+
+@media (max-width: 640px) {
+  .user-nav__account > .user-nav__logout-btn { display: none; }
+  .user-nav .user-nav__mypage-top { width: 120px; min-height: 44px; padding: 6px 10px; border-radius: 12px; }
+  .user-nav__theme-btn, .user-nav__hamburger { width: 44px; height: 44px; }
+}
+
+@media (max-width: 380px) {
+  .user-nav__inner { gap: 6px; padding-inline: 6px; }
+  .user-nav__account { gap: 4px; }
+  .user-nav .user-nav__mypage-top { width: 104px; padding: 6px 9px; }
+  .user-nav__profile-icon { display: none; }
+  .user-nav__theme-btn, .user-nav__hamburger { width: 44px; height: 44px; }
 }

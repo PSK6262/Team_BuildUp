@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateUser, logout } from '../store/authSlice.js'
-import { getMyActivities, getMyPosts, getMyComments, getMyLikedPosts, getMyPointHistories } from '../api/userApi.js'
+import { getMyActivities, getMyPosts, getMyComments, getMyLikedPosts, getMyPointHistories, getMyShopData } from '../api/userApi.js'
+import { SHOP_ITEMS } from '../api/shopApi.js'
 import '../css/MyPage.css'
 
 const EMAIL_REGEX = /^[a-zA-Z0-9](?!.*\.\.)[a-zA-Z0-9._-]{2,28}[a-zA-Z0-9]@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -97,6 +99,27 @@ function IconCoins({ size = 18, color = 'currentColor', className = '', style = 
       <path d="M18.09 10.37A6 6 0 1 1 10.34 18" />
       <path d="M7 6h1v4" />
       <path d="M17 12h1v4" />
+    </svg>
+  )
+}
+
+function IconShoppingBag({ size = 18, color = 'currentColor', className = '', style = {} }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, ...style }}>
+      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <path d="M16 10a4 4 0 0 1-8 0" />
+    </svg>
+  )
+}
+
+function IconReceipt({ size = 18, color = 'currentColor', className = '', style = {} }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, ...style }}>
+      <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z" />
+      <line x1="8" y1="9" x2="16" y2="9" />
+      <line x1="8" y1="13" x2="16" y2="13" />
+      <line x1="8" y1="17" x2="12" y2="17" />
     </svg>
   )
 }
@@ -365,6 +388,216 @@ export default function MyPage() {
     }
   }, [profile?.favoriteTeamId, matches, teamList])
 
+  // 포인트샵 보유 아이템 및 구매 내역 상태
+  const [ownedShopItems, setOwnedShopItems] = useState([])
+  const [shopOrders, setShopOrders] = useState([])
+
+  // 내 보유 아이템 전체보기 모달 & 포인트샵 구매 내역 전체보기 모달 상태 (카드형 스와이프 지원)
+  const [showInventoryModal, setShowInventoryModal] = useState(false)
+  const [invModalTab, setInvModalTab] = useState('ALL') // 'ALL' | 'icon' | 'emoticon'
+  const [invModalPage, setInvModalPage] = useState(0)
+  const invSliderRef = useRef(null)
+
+  const [showOrdersModal, setShowOrdersModal] = useState(false)
+  const [ordModalPage, setOrdModalPage] = useState(0)
+  const ordSliderRef = useRef(null)
+
+  const SHOP_MODAL_PAGE_SIZE = 4 // 한 슬라이드당 2열 x 2줄 (4개씩)
+
+  const filteredModalInventory = useMemo(() => {
+    if (invModalTab === 'ALL') return ownedShopItems
+    return ownedShopItems.filter((item) => item.type === invModalTab)
+  }, [ownedShopItems, invModalTab])
+
+  const invModalPages = useMemo(() => {
+    const chunks = []
+    for (let i = 0; i < filteredModalInventory.length; i += SHOP_MODAL_PAGE_SIZE) {
+      chunks.push(filteredModalInventory.slice(i, i + SHOP_MODAL_PAGE_SIZE))
+    }
+    return chunks
+  }, [filteredModalInventory])
+
+  const ordModalPages = useMemo(() => {
+    const chunks = []
+    for (let i = 0; i < shopOrders.length; i += SHOP_MODAL_PAGE_SIZE) {
+      chunks.push(shopOrders.slice(i, i + SHOP_MODAL_PAGE_SIZE))
+    }
+    return chunks
+  }, [shopOrders])
+
+  const scrollModalSlider = (ref, setPage, pageIdx) => {
+    if (!ref.current) return
+    const targetLeft = pageIdx * ref.current.clientWidth
+    ref.current.scrollTo({ left: targetLeft, behavior: 'smooth' })
+    setPage(pageIdx)
+  }
+
+  const handleModalSliderScroll = (e, currentPage, setPage, totalPages) => {
+    const el = e.currentTarget
+    if (el && el.clientWidth > 0) {
+      const page = Math.round(el.scrollLeft / el.clientWidth)
+      if (page !== currentPage && page >= 0 && page < totalPages) {
+        setPage(page)
+      }
+    }
+  }
+
+  const handleOpenInventoryModal = () => {
+    setInvModalTab('ALL')
+    setInvModalPage(0)
+    setShowInventoryModal(true)
+  }
+
+  const handleOpenOrdersModal = () => {
+    setOrdModalPage(0)
+    setShowOrdersModal(true)
+  }
+
+  // 모달 오픈 상태에서 ESC 키 입력 시 닫기
+  useEffect(() => {
+    if (!showInventoryModal && !showOrdersModal && !showPointModal && !showWithdrawModal) return
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (showInventoryModal) setShowInventoryModal(false)
+        if (showOrdersModal) setShowOrdersModal(false)
+        if (showPointModal) setShowPointModal(false)
+        if (showWithdrawModal && !withdrawing) setShowWithdrawModal(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showInventoryModal, showOrdersModal, showPointModal, showWithdrawModal, withdrawing])
+
+  // 포인트샵 보관함(USER_INVENTORY) & 구매 내역(ITEM_ORDERS) 로드 (DB + localStorage 양방향 병합)
+  const loadShopData = async (targetUserId) => {
+    const uid = targetUserId || profile?.userId || reduxUser?.userId
+    if (!uid) return
+
+    let localIds = []
+    let localHistory = []
+    try {
+      const savedIds = localStorage.getItem(`buildup_purchased_items_${uid}`)
+      if (savedIds) localIds = JSON.parse(savedIds)
+    } catch {}
+    try {
+      const savedHist = localStorage.getItem(`buildup_purchase_history_${uid}`)
+      if (savedHist) localHistory = JSON.parse(savedHist)
+    } catch {}
+
+    let dbInventory = []
+    let dbOrders = []
+    try {
+      const shopData = await getMyShopData()
+      if (shopData) {
+        if (Array.isArray(shopData.inventory)) dbInventory = shopData.inventory
+        if (Array.isArray(shopData.orders)) dbOrders = shopData.orders
+      }
+    } catch {}
+
+    // 1) 보유 아이템 목록 병합 (DB USER_INVENTORY 우선 + localStorage 폴백)
+    const ownedMap = new Map()
+    dbInventory.forEach((inv) => {
+      const catalogItem = SHOP_ITEMS.find((s) => s.name === inv.itemName)
+      const isIcon = String(inv.itemType || catalogItem?.type || '').toUpperCase() === 'ICON'
+      ownedMap.set(inv.itemName, {
+        id: catalogItem?.id || `db_${inv.itemId}`,
+        name: inv.itemName,
+        type: isIcon ? 'icon' : 'emoticon',
+        categoryName: isIcon ? '아이콘' : '이모티콘',
+        visual: inv.imageUrl || catalogItem?.visual || (isIcon ? '🏆' : '🔥'),
+        price: Number(inv.point ?? catalogItem?.price ?? 0),
+        desc: inv.description || catalogItem?.desc || '',
+        purchasedAt: inv.purchasedAt || '',
+        isEquipped: inv.isEquipped === 'Y',
+      })
+    })
+
+    if (Array.isArray(localIds)) {
+      localIds.forEach((itemId) => {
+        const catalogItem = SHOP_ITEMS.find(
+          (s) => s.id === itemId || Number(s.id) === Number(itemId) || Number(s.itemId) === Number(itemId)
+        )
+        if (catalogItem && !ownedMap.has(catalogItem.name)) {
+          ownedMap.set(catalogItem.name, {
+            id: catalogItem.id,
+            name: catalogItem.name,
+            type: catalogItem.type,
+            categoryName: catalogItem.categoryName,
+            visual: catalogItem.visual,
+            price: catalogItem.price,
+            desc: catalogItem.desc || '',
+            purchasedAt: '',
+            isEquipped: false,
+          })
+        }
+      })
+    }
+    const mergedOwned = Array.from(ownedMap.values())
+    setOwnedShopItems(mergedOwned)
+
+    // 2) 구매 내역 목록 병합 (DB ITEM_ORDERS 우선 + localStorage 구매이력 + 보유아이템 폴백)
+    const orderList = []
+    const seenOrderItemNames = new Set()
+
+    dbOrders.forEach((ord) => {
+      const catalogItem = SHOP_ITEMS.find((s) => s.name === ord.itemName)
+      const isIcon = String(ord.itemType || catalogItem?.type || '').toUpperCase() === 'ICON'
+      seenOrderItemNames.add(ord.itemName)
+      orderList.push({
+        orderId: ord.orderId,
+        itemName: ord.itemName,
+        type: isIcon ? 'icon' : 'emoticon',
+        categoryName: isIcon ? '아이콘' : '이모티콘',
+        visual: ord.imageUrl || catalogItem?.visual || (isIcon ? '🏆' : '🔥'),
+        point: Number(ord.point ?? catalogItem?.price ?? 0),
+        desc: ord.description || catalogItem?.desc || '',
+        orderStatus: ord.orderStatus || 'COMPLETED',
+        orderedAt: ord.orderedAt || '구매 완료',
+      })
+    })
+
+    if (Array.isArray(localHistory)) {
+      localHistory.forEach((lh) => {
+        if (lh && lh.itemName && !seenOrderItemNames.has(lh.itemName)) {
+          const catalogItem = SHOP_ITEMS.find((s) => s.name === lh.itemName || s.id === lh.itemId)
+          const isIcon = String(lh.itemType || catalogItem?.type || '').toUpperCase() === 'ICON'
+          seenOrderItemNames.add(lh.itemName)
+          orderList.push({
+            orderId: lh.orderId || `LOCAL_${lh.itemName}`,
+            itemName: lh.itemName,
+            type: isIcon ? 'icon' : 'emoticon',
+            categoryName: lh.categoryName || (isIcon ? '아이콘' : '이모티콘'),
+            visual: lh.imageUrl || catalogItem?.visual || (isIcon ? '🏆' : '🔥'),
+            point: Number(lh.point ?? catalogItem?.price ?? 0),
+            desc: lh.description || catalogItem?.desc || '',
+            orderStatus: lh.orderStatus || 'COMPLETED',
+            orderedAt: lh.orderedAt || '구매 완료',
+          })
+        }
+      })
+    }
+
+    // 기존 localStorage로만 구매해둔 아이템이 있다면 구매 내역에도 누락 없이 표시
+    mergedOwned.forEach((owned) => {
+      if (!seenOrderItemNames.has(owned.name)) {
+        seenOrderItemNames.add(owned.name)
+        orderList.push({
+          orderId: `OWNED_${owned.id}`,
+          itemName: owned.name,
+          type: owned.type,
+          categoryName: owned.categoryName,
+          visual: owned.visual,
+          point: owned.price,
+          desc: owned.desc || '',
+          orderStatus: 'COMPLETED',
+          orderedAt: owned.purchasedAt || '보유중',
+        })
+      }
+    })
+
+    setShopOrders(orderList)
+  }
+
   // 활동 요약 통계 로드
   const loadActivities = async () => {
     try {
@@ -478,6 +711,7 @@ export default function MyPage() {
           setEmail(userObj.email || '')
           setFavoriteTeamId(userObj.favoriteTeamId ? String(userObj.favoriteTeamId) : '')
           loadActivities()
+          loadShopData(userObj.userId)
         } else {
           // 백엔드 세션 만료 시 리덕스 데이터로 1차 폴백
           if (reduxUser) {
@@ -486,6 +720,7 @@ export default function MyPage() {
             setEmail(reduxUser.email || '')
             setFavoriteTeamId(reduxUser.favoriteTeamId ? String(reduxUser.favoriteTeamId) : '')
             loadActivities()
+            loadShopData(reduxUser.userId)
           }
         }
       } catch {
@@ -494,6 +729,7 @@ export default function MyPage() {
           setNickname(reduxUser.nickname || '')
           setEmail(reduxUser.email || '')
           setFavoriteTeamId(reduxUser.favoriteTeamId ? String(reduxUser.favoriteTeamId) : '')
+          loadShopData(reduxUser.userId)
         }
       } finally {
         setLoading(false)
@@ -532,14 +768,14 @@ export default function MyPage() {
     }
 
     try {
-      const res = await fetch(`/api/users/check-nickname?nickname=${encodeURIComponent(trimmed)}`)
+      const res = await fetch(`/api/auth/check-nickname?nickname=${encodeURIComponent(trimmed)}`)
       const data = await res.json()
-      if (res.ok && data.data === true) {
+      if (res.ok && (data.data === true || data.status === 'SUCCESS' || data.code === 'SUC_001')) {
         setNicknameChecked(true)
         setNicknameCheckMsg('✓ 사용 가능한 닉네임입니다.')
       } else {
         setNicknameChecked(false)
-        setNicknameCheckMsg('✕ 이미 사용 중인 닉네임입니다.')
+        setNicknameCheckMsg(data.message || '✕ 이미 사용 중인 닉네임입니다.')
       }
     } catch (err) {
       setNicknameChecked(false)
@@ -562,10 +798,13 @@ export default function MyPage() {
     setSendingEmailCode(true)
     setEmailVerifyMsg('')
     try {
-      const res = await fetch('/api/mail/send-change-code', {
+      const token = localStorage.getItem('buildup_token')
+      const headers = {}
+      if (token) headers['Authorization'] = `Bearer ${token}`
+
+      const res = await fetch(`/api/auth/send-email-change-code?email=${encodeURIComponent(trimmed)}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: trimmed })
+        headers,
       })
       const data = await res.json()
       if (res.ok && (data.status === 'SUCCESS' || data.code === 'SUC_001')) {
@@ -591,11 +830,17 @@ export default function MyPage() {
 
     setVerifyingEmailCode(true)
     try {
-      const res = await fetch('/api/mail/verify-change-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), authCode: trimmedCode })
-      })
+      const token = localStorage.getItem('buildup_token')
+      const headers = {}
+      if (token) headers['Authorization'] = `Bearer ${token}`
+
+      const res = await fetch(
+        `/api/auth/verify-email-change-code?email=${encodeURIComponent(email.trim())}&code=${encodeURIComponent(trimmedCode)}`,
+        {
+          method: 'POST',
+          headers,
+        }
+      )
       const data = await res.json()
       if (res.ok && (data.status === 'SUCCESS' || data.code === 'SUC_001')) {
         setEmailVerified(true)
@@ -618,7 +863,7 @@ export default function MyPage() {
     setErrorMsg('')
 
     const trimmedNickname = nickname.trim()
-    const trimmedEmail = email.trim()
+    const trimmedEmail = (email || profile?.email || '').trim()
 
     if (!trimmedNickname) {
       setErrorMsg('닉네임을 입력해주세요.')
@@ -640,7 +885,7 @@ export default function MyPage() {
       return
     }
 
-    if (trimmedEmail.toLowerCase() !== profile?.email?.toLowerCase() && !emailVerified) {
+    if (profile?.email && trimmedEmail.toLowerCase() !== profile.email.toLowerCase() && !emailVerified) {
       setErrorMsg('변경된 이메일의 인증을 완료해주세요.')
       return
     }
@@ -1189,8 +1434,28 @@ export default function MyPage() {
                         </div>
                       </div>
 
-                      {/* 위젯 2: 내 응원 구단 다음 경기 프리뷰 */}
-                      <div className="mypage-subwidget-card">
+                      {/* 위젯 2: 내 응원 구단 다음 경기 프리뷰 (클릭 시 경기 일정 해당 위치로 스크롤 & 포커싱) */}
+                      <div
+                        className={`mypage-subwidget-card ${nextFavoriteMatch ? 'is-clickable-match-card' : ''}`}
+                        onClick={
+                          nextFavoriteMatch
+                            ? () => window.location.assign(`/plug/match?matchId=${nextFavoriteMatch.matchId}`)
+                            : undefined
+                        }
+                        onKeyDown={
+                          nextFavoriteMatch
+                            ? (e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  window.location.assign(`/plug/match?matchId=${nextFavoriteMatch.matchId}`)
+                                }
+                              }
+                            : undefined
+                        }
+                        role={nextFavoriteMatch ? 'button' : undefined}
+                        tabIndex={nextFavoriteMatch ? 0 : undefined}
+                        title={nextFavoriteMatch ? '클릭하여 경기 일정에서 해당 경기 보기' : undefined}
+                      >
                         <div className="mypage-subwidget-header">
                           <span className="mypage-subwidget-title">
                             <IconBall size={18} color={currentTheme === 'light' ? '#38003c' : '#00ff87'} />
@@ -1255,6 +1520,126 @@ export default function MyPage() {
                                 </button>
                               </>
                             )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 2열 하단 포인트샵 위젯: 3) 내 보유 아이템 보관함  4) 포인트샵 구매 내역 */}
+                    <div className="mypage-dashboard-subwidgets mypage-shop-subwidgets">
+                      {/* 위젯 3: 내 보유 아이템 (USER_INVENTORY - 가로 50%씩 한 줄에 2개) */}
+                      <div className="mypage-subwidget-card mypage-shop-card">
+                        <div className="mypage-subwidget-header">
+                          <span className="mypage-subwidget-title">
+                            <IconShoppingBag size={17} color={currentTheme === 'light' ? '#38003c' : '#00ff87'} />
+                            <span>내 보유 아이템</span>
+                            <span className="mypage-shop-count-badge">{ownedShopItems.length}</span>
+                          </span>
+                          <button
+                            type="button"
+                            className="mypage-subwidget-link mypage-subwidget-link-btn"
+                            onClick={handleOpenInventoryModal}
+                          >
+                            전체보기 →
+                          </button>
+                        </div>
+
+                        {ownedShopItems.length > 0 ? (
+                          <div className="mypage-shop-inventory-grid">
+                            {ownedShopItems.slice(0, 4).map((item) => (
+                              <div
+                                key={item.id || item.name}
+                                className="mypage-shop-item-chip"
+                                title={`${item.name} (${item.categoryName}) - 클릭하여 전체보기`}
+                                onClick={handleOpenInventoryModal}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault()
+                                    handleOpenInventoryModal()
+                                  }
+                                }}
+                              >
+                                <span className="mypage-shop-item-visual">{item.visual}</span>
+                                <div className="mypage-shop-item-meta">
+                                  <span className="mypage-shop-item-name">{item.name}</span>
+                                  <span className={`mypage-shop-item-type is-${item.type}`}>
+                                    {item.categoryName}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="mypage-next-match-empty mypage-shop-empty">
+                            <p>보유한 포인트샵 아이템이 없습니다.</p>
+                            <a href="/plug/point" className="mypage-subwidget-action-btn" style={{ textDecoration: 'none' }}>
+                              포인트샵 구경하기
+                            </a>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 위젯 4: 포인트샵 구매 내역 (ITEM_ORDERS - 가로 50%씩 한 줄에 2개) */}
+                      <div className="mypage-subwidget-card mypage-shop-card">
+                        <div className="mypage-subwidget-header">
+                          <span className="mypage-subwidget-title">
+                            <IconReceipt size={17} color={currentTheme === 'light' ? '#38003c' : '#00ff87'} />
+                            <span>포인트샵 구매 내역</span>
+                            <span className="mypage-shop-count-badge">{shopOrders.length}</span>
+                          </span>
+                          <button
+                            type="button"
+                            className="mypage-subwidget-link mypage-subwidget-link-btn"
+                            onClick={handleOpenOrdersModal}
+                          >
+                            전체보기 →
+                          </button>
+                        </div>
+
+                        {shopOrders.length > 0 ? (
+                          <div className="mypage-shop-order-grid">
+                            {shopOrders.slice(0, 4).map((ord, idx) => (
+                              <div
+                                key={ord.orderId || idx}
+                                className="mypage-shop-order-chip"
+                                title={`${ord.itemName} (-${Number(ord.point || 0).toLocaleString()} P) - 클릭하여 전체보기`}
+                                onClick={handleOpenOrdersModal}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault()
+                                    handleOpenOrdersModal()
+                                  }
+                                }}
+                              >
+                                <span className="mypage-shop-order-icon">{ord.visual}</span>
+                                <div className="mypage-shop-order-meta">
+                                  <span className="mypage-shop-order-name">{ord.itemName}</span>
+                                  <div className="mypage-shop-order-subrow">
+                                    <span className="mypage-shop-order-pt">
+                                      -{Number(ord.point || 0).toLocaleString()} P
+                                    </span>
+                                    <span className="mypage-shop-order-date">
+                                      {String(ord.orderedAt || '').split(' ')[0] || '완료'}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="mypage-next-match-empty mypage-shop-empty">
+                            <p>포인트샵 구매 내역이 없습니다.</p>
+                            <button
+                              type="button"
+                              className="mypage-subwidget-action-btn"
+                              onClick={handleOpenOrdersModal}
+                            >
+                              내역 확인하기
+                            </button>
                           </div>
                         )}
                       </div>
@@ -1700,153 +2085,445 @@ export default function MyPage() {
         </div>
       </div>
 
-      {/* 회원 탈퇴 경고 모달 */}
-      {showWithdrawModal && (
-        <div className="withdraw-modal-overlay" onClick={() => !withdrawing && setShowWithdrawModal(false)}>
-          <div className="withdraw-modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="withdraw-modal-header">
-              <IconAlertTriangle size={24} color="#ff3377" />
-              <h3>회원 탈퇴 전 필수 확인 사항</h3>
-            </div>
-
-            <div className="withdraw-warning-box">
-              <div className="withdraw-warning-item">
-                <h4 className="withdraw-item-title">1. 작성된 게시글 및 댓글 보존</h4>
-                <p className="withdraw-item-desc">
-                  회원 탈퇴를 진행하더라도 기존에 작성하신 게시글과 댓글은 삭제되지 않고 사이트에 영구 보존되며, 작성자명은 <strong>(탈퇴회원)</strong>으로 안전하게 익명화 처리됩니다.
-                </p>
-              </div>
-
-              <div className="withdraw-warning-item">
-                <h4 className="withdraw-item-title">2. 작성글 수정 및 삭제 영구 불가 (중요)</h4>
-                <p className="withdraw-item-desc">
-                  탈퇴 완료 즉시 계정이 소멸되므로, 이후에는 본인이 작성했던 글이나 댓글을 다시 수정하거나 삭제할 수 없습니다.
-                </p>
-                <p className="withdraw-item-desc">
-                  삭제를 원하시는 게시물이나 댓글이 있다면 <strong>반드시 탈퇴 전에 먼저 직접 삭제</strong>해 주시기 바랍니다.
-                </p>
-              </div>
-
-              <div className="withdraw-warning-item">
-                <h4 className="withdraw-item-title">3. 계정 복구 불가 및 재가입 안내</h4>
-                <p className="withdraw-item-desc">
-                  탈퇴 즉시 보유 포인트 및 계정 정보는 초기화되며 복구가 불가능합니다. 추후 동일한 이메일로 다시 회원가입을 하실 수는 있으나, 새로운 계정으로 생성되므로 <strong>이전 작성글에 대한 관리 권한은 절대 복구되지 않습니다.</strong>
-                </p>
-              </div>
-            </div>
-
-            <label className="withdraw-agree-label">
-              <input
-                type="checkbox"
-                checked={withdrawAgreed}
-                onChange={(e) => setWithdrawAgreed(e.target.checked)}
-                disabled={withdrawing}
-              />
-              <span>위 유의사항을 모두 확인하였으며, 이에 동의하고 탈퇴를 진행합니다. (필수)</span>
-            </label>
-
-            <div className="withdraw-modal-actions">
-              <button
-                type="button"
-                className="withdraw-cancel-modal-btn"
-                onClick={() => setShowWithdrawModal(false)}
-                disabled={withdrawing}
+      {/* 포털 모달 렌더링: document.body 직속에 마운트하여 스크롤 시 푸터/네비바에 절대 가려지지 않도록 보장 */}
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <div className={`mypage-portal-root ${currentTheme === 'light' ? 'mypage-light-mode' : ''}`}>
+            {/* 회원 탈퇴 경고 모달 */}
+            {showWithdrawModal && (
+              <div
+                className="withdraw-modal-overlay"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget && !withdrawing) setShowWithdrawModal(false)
+                }}
               >
-                취소
-              </button>
-              <button
-                type="button"
-                className="withdraw-confirm-btn"
-                onClick={handleConfirmWithdraw}
-                disabled={!withdrawAgreed || withdrawing}
-              >
-                {withdrawing ? '탈퇴 처리 중...' : '탈퇴 완료하기'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                <div className="withdraw-modal-content" onClick={(e) => e.stopPropagation()}>
+                  <div className="withdraw-modal-header">
+                    <IconAlertTriangle size={24} color="#ff3377" />
+                    <h3>회원 탈퇴 전 필수 확인 사항</h3>
+                  </div>
 
-      {/* 포인트 변동 이력 모달 (최근 5건) */}
-      {showPointModal && (
-        <div className="point-modal-overlay" onClick={() => setShowPointModal(false)}>
-          <div className="point-modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="point-modal-header">
-              <div className="point-modal-header-left">
-                <IconCoins size={22} color="#00ff87" />
-                <h3 className="point-modal-title">최근 포인트 변동 이력</h3>
-              </div>
-              <button
-                type="button"
-                className="point-modal-close-btn"
-                onClick={() => setShowPointModal(false)}
-                title="닫기"
-              >
-                <IconX size={20} />
-              </button>
-            </div>
-
-            <div className="point-modal-summary">
-              <span className="point-modal-summary-lbl">현재 보유 포인트</span>
-              <span className="point-modal-summary-val">{profile?.point?.toLocaleString() || 100} P</span>
-            </div>
-
-            <div className="point-modal-list-title">
-              <span>변동 내역 (최근 5건)</span>
-              <span>변동 금액 / 잔여</span>
-            </div>
-
-            <div className="point-modal-list">
-              {pointHistoriesLoading ? (
-                <div className="point-modal-empty">
-                  <p>포인트 내역을 불러오는 중입니다...</p>
-                </div>
-              ) : pointHistories.length === 0 ? (
-                <div className="point-modal-empty">
-                  <p>최근 포인트 변동 이력이 없습니다.</p>
-                  <span style={{ fontSize: '12px', color: '#8e7a9c', marginTop: '4px', display: 'inline-block' }}>
-                    회원가입 기본 지급 포인트: 100 P
-                  </span>
-                </div>
-              ) : (
-                pointHistories.slice(0, 5).map((history, idx) => {
-                  const amount = Number(history.amount) || 0
-                  const isPlus = amount >= 0
-                  return (
-                    <div key={history.pointHistoryId || idx} className="point-modal-item">
-                      <div className="point-modal-item-left">
-                        <span className="point-modal-item-desc">
-                          {history.description || (isPlus ? '포인트 적립' : '포인트 사용')}
-                        </span>
-                        <span className="point-modal-item-date">{history.createdAt}</span>
-                      </div>
-                      <div className="point-modal-item-right">
-                        <span className={`point-modal-item-amount ${isPlus ? 'is-plus' : 'is-minus'}`}>
-                          {isPlus ? `+${amount.toLocaleString()}` : amount.toLocaleString()} P
-                        </span>
-                        <span className="point-modal-item-bal">
-                          잔여 {history.balanceAfter != null ? history.balanceAfter.toLocaleString() : profile?.point?.toLocaleString()} P
-                        </span>
-                      </div>
+                  <div className="withdraw-warning-box">
+                    <div className="withdraw-warning-item">
+                      <h4 className="withdraw-item-title">1. 작성된 게시글 및 댓글 보존</h4>
+                      <p className="withdraw-item-desc">
+                        회원 탈퇴를 진행하더라도 기존에 작성하신 게시글과 댓글은 삭제되지 않고 사이트에 영구 보존되며, 작성자명은 <strong>(탈퇴회원)</strong>으로 안전하게 익명화 처리됩니다.
+                      </p>
                     </div>
-                  )
-                })
-              )}
-            </div>
 
-            <div className="point-modal-footer">
-              <button
-                type="button"
-                className="mypage-action-outline-btn"
-                onClick={() => setShowPointModal(false)}
-                style={{ padding: '8px 20px', borderRadius: '10px' }}
+                    <div className="withdraw-warning-item">
+                      <h4 className="withdraw-item-title">2. 작성글 수정 및 삭제 영구 불가 (중요)</h4>
+                      <p className="withdraw-item-desc">
+                        탈퇴 완료 즉시 계정이 소멸되므로, 이후에는 본인이 작성했던 글이나 댓글을 다시 수정하거나 삭제할 수 없습니다.
+                      </p>
+                      <p className="withdraw-item-desc">
+                        삭제를 원하시는 게시물이나 댓글이 있다면 <strong>반드시 탈퇴 전에 먼저 직접 삭제</strong>해 주시기 바랍니다.
+                      </p>
+                    </div>
+
+                    <div className="withdraw-warning-item">
+                      <h4 className="withdraw-item-title">3. 계정 복구 불가 및 재가입 안내</h4>
+                      <p className="withdraw-item-desc">
+                        탈퇴 즉시 보유 포인트 및 계정 정보는 초기화되며 복구가 불가능합니다. 추후 동일한 이메일로 다시 회원가입을 하실 수는 있으나, 새로운 계정으로 생성되므로 <strong>이전 작성글에 대한 관리 권한은 절대 복구되지 않습니다.</strong>
+                      </p>
+                    </div>
+                  </div>
+
+                  <label className="withdraw-agree-label">
+                    <input
+                      type="checkbox"
+                      checked={withdrawAgreed}
+                      onChange={(e) => setWithdrawAgreed(e.target.checked)}
+                      disabled={withdrawing}
+                    />
+                    <span>위 유의사항을 모두 확인하였으며, 이에 동의하고 탈퇴를 진행합니다. (필수)</span>
+                  </label>
+
+                  <div className="withdraw-modal-actions">
+                    <button
+                      type="button"
+                      className="withdraw-cancel-modal-btn"
+                      onClick={() => setShowWithdrawModal(false)}
+                      disabled={withdrawing}
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="button"
+                      className="withdraw-confirm-btn"
+                      onClick={handleConfirmWithdraw}
+                      disabled={!withdrawAgreed || withdrawing}
+                    >
+                      {withdrawing ? '탈퇴 처리 중...' : '탈퇴 완료하기'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 포인트 변동 이력 모달 (최근 5건) */}
+            {showPointModal && (
+              <div
+                className="point-modal-overlay"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) setShowPointModal(false)
+                }}
               >
-                닫기
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                <div className="point-modal-content" onClick={(e) => e.stopPropagation()}>
+                  <div className="point-modal-header">
+                    <div className="point-modal-header-left">
+                      <IconCoins size={22} color="#00ff87" />
+                      <h3 className="point-modal-title">최근 포인트 변동 이력</h3>
+                    </div>
+                    <button
+                      type="button"
+                      className="point-modal-close-btn"
+                      onClick={() => setShowPointModal(false)}
+                      title="닫기"
+                    >
+                      <IconX size={20} />
+                    </button>
+                  </div>
+
+                  <div className="point-modal-summary">
+                    <span className="point-modal-summary-lbl">현재 보유 포인트</span>
+                    <span className="point-modal-summary-val">{profile?.point?.toLocaleString() || 100} P</span>
+                  </div>
+
+                  <div className="point-modal-list-title">
+                    <span>변동 내역 (최근 5건)</span>
+                    <span>변동 금액 / 잔여</span>
+                  </div>
+
+                  <div className="point-modal-list">
+                    {pointHistoriesLoading ? (
+                      <div className="point-modal-empty">
+                        <p>포인트 내역을 불러오는 중입니다...</p>
+                      </div>
+                    ) : pointHistories.length === 0 ? (
+                      <div className="point-modal-empty">
+                        <p>최근 포인트 변동 이력이 없습니다.</p>
+                        <span style={{ fontSize: '12px', color: '#8e7a9c', marginTop: '4px', display: 'inline-block' }}>
+                          회원가입 기본 지급 포인트: 100 P
+                        </span>
+                      </div>
+                    ) : (
+                      pointHistories.slice(0, 5).map((history, idx) => {
+                        const amount = Number(history.amount) || 0
+                        const isPlus = amount >= 0
+                        return (
+                          <div key={history.pointHistoryId || idx} className="point-modal-item">
+                            <div className="point-modal-item-left">
+                              <span className="point-modal-item-desc">
+                                {history.description || (isPlus ? '포인트 적립' : '포인트 사용')}
+                              </span>
+                              <span className="point-modal-item-date">{history.createdAt}</span>
+                            </div>
+                            <div className="point-modal-item-right">
+                              <span className={`point-modal-item-amount ${isPlus ? 'is-plus' : 'is-minus'}`}>
+                                {isPlus ? `+${amount.toLocaleString()}` : amount.toLocaleString()} P
+                              </span>
+                              <span className="point-modal-item-bal">
+                                잔여 {history.balanceAfter != null ? history.balanceAfter.toLocaleString() : profile?.point?.toLocaleString()} P
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 내 보유 아이템 전체보기 모달 (2x2 카드형 스와이프 슬라이더 지원, 하단 닫기 버튼 제거 및 바깥 클릭 닫기) */}
+            {showInventoryModal && (
+              <div
+                className="point-modal-overlay"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) setShowInventoryModal(false)
+                }}
+              >
+                <div className="point-modal-content mypage-shop-modal-content" onClick={(e) => e.stopPropagation()}>
+                  <div className="point-modal-header">
+                    <div className="point-modal-header-left">
+                      <IconShoppingBag size={20} color={currentTheme === 'light' ? '#38003c' : '#00ff87'} />
+                      <h3 className="point-modal-title">내 보유 아이템 전체보기</h3>
+                    </div>
+                    <button
+                      type="button"
+                      className="point-modal-close-btn"
+                      onClick={() => setShowInventoryModal(false)}
+                      title="닫기"
+                    >
+                      <IconX size={20} />
+                    </button>
+                  </div>
+
+                  {/* 상단 카테고리 필터 탭 & 포인트샵 이동 링크 */}
+                  <div className="mypage-shop-modal-toolbar">
+                    <div className="mypage-shop-modal-tabs">
+                      <button
+                        type="button"
+                        className={`mypage-shop-modal-tab ${invModalTab === 'ALL' ? 'is-active' : ''}`}
+                        onClick={() => {
+                          setInvModalTab('ALL')
+                          setInvModalPage(0)
+                          if (invSliderRef.current) invSliderRef.current.scrollLeft = 0
+                        }}
+                      >
+                        전체 <span>{ownedShopItems.length}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`mypage-shop-modal-tab ${invModalTab === 'icon' ? 'is-active' : ''}`}
+                        onClick={() => {
+                          setInvModalTab('icon')
+                          setInvModalPage(0)
+                          if (invSliderRef.current) invSliderRef.current.scrollLeft = 0
+                        }}
+                      >
+                        아이콘 <span>{ownedShopItems.filter((i) => i.type === 'icon').length}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`mypage-shop-modal-tab ${invModalTab === 'emoticon' ? 'is-active' : ''}`}
+                        onClick={() => {
+                          setInvModalTab('emoticon')
+                          setInvModalPage(0)
+                          if (invSliderRef.current) invSliderRef.current.scrollLeft = 0
+                        }}
+                      >
+                        이모티콘 <span>{ownedShopItems.filter((i) => i.type === 'emoticon').length}</span>
+                      </button>
+                    </div>
+                    <a href="/plug/point" className="mypage-shop-goto-link">
+                      포인트샵 가기 →
+                    </a>
+                  </div>
+
+                  {filteredModalInventory.length === 0 ? (
+                    <div className="point-modal-empty" style={{ padding: '28px 16px' }}>
+                      <div style={{ fontSize: '34px', marginBottom: '8px' }}>🎁</div>
+                      <p>보유 중인 아이템이 없습니다.</p>
+                      <a
+                        href="/plug/point"
+                        className="mypage-subwidget-action-btn"
+                        style={{ display: 'inline-block', marginTop: '10px', textDecoration: 'none' }}
+                      >
+                        포인트샵에서 아이템 구매하기
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="mypage-shop-swipe-container">
+                      {invModalPages.length > 1 && (
+                        <div className="mypage-shop-swipe-nav" aria-label="보유 아이템 슬라이드 넘기기">
+                          <button
+                            type="button"
+                            className="mypage-shop-swipe-arrow"
+                            disabled={invModalPage === 0}
+                            onClick={() => scrollModalSlider(invSliderRef, setInvModalPage, Math.max(0, invModalPage - 1))}
+                            aria-label="이전 페이지"
+                          >
+                            ‹
+                          </button>
+                          <span className="mypage-shop-swipe-indicator">
+                            {invModalPage + 1} / {invModalPages.length}
+                          </span>
+                          <button
+                            type="button"
+                            className="mypage-shop-swipe-arrow"
+                            disabled={invModalPage >= invModalPages.length - 1}
+                            onClick={() => scrollModalSlider(invSliderRef, setInvModalPage, Math.min(invModalPages.length - 1, invModalPage + 1))}
+                            aria-label="다음 페이지"
+                          >
+                            ›
+                          </button>
+                        </div>
+                      )}
+
+                      <div
+                        ref={invSliderRef}
+                        className="mypage-shop-swipe-track"
+                        onScroll={(e) => handleModalSliderScroll(e, invModalPage, setInvModalPage, invModalPages.length)}
+                      >
+                        {invModalPages.map((pageItems, pIdx) => (
+                          <div key={pIdx} className="mypage-shop-swipe-slide">
+                            {pageItems.map((item) => (
+                              <article key={item.id || item.name} className="mypage-shop-modal-card">
+                                <div className="mypage-shop-modal-card-top">
+                                  <span className={`mypage-shop-item-type is-${item.type}`}>
+                                    {item.categoryName}
+                                  </span>
+                                  <span className="mypage-shop-owned-pill">✓ 보유중</span>
+                                </div>
+                                <div className="mypage-shop-modal-visual-box">
+                                  <span className="mypage-shop-modal-emoji">{item.visual}</span>
+                                </div>
+                                <h4 className="mypage-shop-modal-item-title">{item.name}</h4>
+                                {item.desc && <p className="mypage-shop-modal-item-desc">{item.desc}</p>}
+                                <div className="mypage-shop-modal-item-footer">
+                                  <span className="mypage-shop-modal-price">{Number(item.price || 0).toLocaleString()} P</span>
+                                  {item.purchasedAt && (
+                                    <span className="mypage-shop-modal-date">{String(item.purchasedAt).split(' ')[0]}</span>
+                                  )}
+                                </div>
+                              </article>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+
+                      {invModalPages.length > 1 && (
+                        <div className="mypage-shop-swipe-footer">
+                          <div className="mypage-shop-swipe-dots">
+                            {invModalPages.map((_, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                className={`mypage-shop-swipe-dot ${invModalPage === idx ? 'is-active' : ''}`}
+                                onClick={() => scrollModalSlider(invSliderRef, setInvModalPage, idx)}
+                                aria-label={`${idx + 1}페이지로 이동`}
+                              />
+                            ))}
+                          </div>
+                          <span className="mypage-shop-swipe-hint">스와이프하여 넘겨보기 ↔</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* 포인트샵 구매 내역 전체보기 모달 (2x2 카드형 스와이프 슬라이더 지원, 하단 닫기 버튼 제거 및 바깥 클릭 닫기) */}
+            {showOrdersModal && (
+              <div
+                className="point-modal-overlay"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) setShowOrdersModal(false)
+                }}
+              >
+                <div className="point-modal-content mypage-shop-modal-content" onClick={(e) => e.stopPropagation()}>
+                  <div className="point-modal-header">
+                    <div className="point-modal-header-left">
+                      <IconReceipt size={20} color={currentTheme === 'light' ? '#38003c' : '#00ff87'} />
+                      <h3 className="point-modal-title">포인트샵 구매 내역 전체보기</h3>
+                    </div>
+                    <button
+                      type="button"
+                      className="point-modal-close-btn"
+                      onClick={() => setShowOrdersModal(false)}
+                      title="닫기"
+                    >
+                      <IconX size={20} />
+                    </button>
+                  </div>
+
+                  <div className="point-modal-summary mypage-shop-modal-summary">
+                    <span className="point-modal-summary-lbl">총 구매 건수 ({shopOrders.length}건)</span>
+                    <span className="point-modal-summary-val">
+                      총 {shopOrders.reduce((acc, cur) => acc + (Number(cur.point) || 0), 0).toLocaleString()} P 사용
+                    </span>
+                  </div>
+
+                  {shopOrders.length === 0 ? (
+                    <div className="point-modal-empty" style={{ padding: '28px 16px' }}>
+                      <div style={{ fontSize: '34px', marginBottom: '8px' }}>🧾</div>
+                      <p>포인트샵 구매 내역이 없습니다.</p>
+                      <a
+                        href="/plug/point"
+                        className="mypage-subwidget-action-btn"
+                        style={{ display: 'inline-block', marginTop: '10px', textDecoration: 'none' }}
+                      >
+                        포인트샵 구경하기
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="mypage-shop-swipe-container">
+                      {ordModalPages.length > 1 && (
+                        <div className="mypage-shop-swipe-nav" aria-label="구매 내역 슬라이드 넘기기">
+                          <button
+                            type="button"
+                            className="mypage-shop-swipe-arrow"
+                            disabled={ordModalPage === 0}
+                            onClick={() => scrollModalSlider(ordSliderRef, setOrdModalPage, Math.max(0, ordModalPage - 1))}
+                            aria-label="이전 페이지"
+                          >
+                            ‹
+                          </button>
+                          <span className="mypage-shop-swipe-indicator">
+                            {ordModalPage + 1} / {ordModalPages.length}
+                          </span>
+                          <button
+                            type="button"
+                            className="mypage-shop-swipe-arrow"
+                            disabled={ordModalPage >= ordModalPages.length - 1}
+                            onClick={() => scrollModalSlider(ordSliderRef, setOrdModalPage, Math.min(ordModalPages.length - 1, ordModalPage + 1))}
+                            aria-label="다음 페이지"
+                          >
+                            ›
+                          </button>
+                        </div>
+                      )}
+
+                      <div
+                        ref={ordSliderRef}
+                        className="mypage-shop-swipe-track"
+                        onScroll={(e) => handleModalSliderScroll(e, ordModalPage, setOrdModalPage, ordModalPages.length)}
+                      >
+                        {ordModalPages.map((pageOrders, pIdx) => (
+                          <div key={pIdx} className="mypage-shop-swipe-slide">
+                            {pageOrders.map((ord, idx) => (
+                              <article key={ord.orderId || idx} className="mypage-shop-modal-card is-order-card">
+                                <div className="mypage-shop-modal-card-top">
+                                  <span className={`mypage-shop-item-type is-${ord.type}`}>
+                                    {ord.categoryName}
+                                  </span>
+                                  <span className={`mypage-shop-order-status ${ord.orderStatus === 'REFUNDED' ? 'is-refunded' : 'is-completed'}`}>
+                                    {ord.orderStatus === 'REFUNDED' ? '환불됨' : '구매완료'}
+                                  </span>
+                                </div>
+                                <div className="mypage-shop-modal-visual-box">
+                                  <span className="mypage-shop-modal-emoji">{ord.visual}</span>
+                                </div>
+                                <h4 className="mypage-shop-modal-item-title">{ord.itemName}</h4>
+                                <div className="mypage-shop-modal-item-footer">
+                                  <span className="mypage-shop-order-pt">
+                                    -{Number(ord.point || 0).toLocaleString()} P
+                                  </span>
+                                  <span className="mypage-shop-modal-date">{ord.orderedAt}</span>
+                                </div>
+                              </article>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+
+                      {ordModalPages.length > 1 && (
+                        <div className="mypage-shop-swipe-footer">
+                          <div className="mypage-shop-swipe-dots">
+                            {ordModalPages.map((_, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                className={`mypage-shop-swipe-dot ${ordModalPage === idx ? 'is-active' : ''}`}
+                                onClick={() => scrollModalSlider(ordSliderRef, setOrdModalPage, idx)}
+                                aria-label={`${idx + 1}페이지로 이동`}
+                              />
+                            ))}
+                          </div>
+                          <span className="mypage-shop-swipe-hint">스와이프하여 넘겨보기 ↔</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>,
+          document.body
+        )}
     </div>
   )
 }
