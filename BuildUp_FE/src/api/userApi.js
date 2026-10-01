@@ -98,25 +98,17 @@ export async function getMyShopData() {
 }
 
 /**
- * 포인트샵 아이템 구매 요청 (DB 인벤토리/주문내역/포인트차감 반영)
+ * 로그인 회원의 최신 프로필 정보 조회
  */
-export async function purchaseShopItem(item) {
-  const res = await fetch('/api/users/me/shop/purchase', {
-    method: 'POST',
+export async function getMyProfile() {
+  const res = await fetch('/api/users/me', {
     headers: getAuthHeaders(),
-    body: JSON.stringify({
-      id: item.id,
-      name: item.name,
-      type: item.type,
-      price: item.price,
-      visual: item.visual,
-      desc: item.desc,
-    }),
   });
   if (!res.ok) {
-    throw new Error('포인트샵 구매 요청에 실패했습니다.');
+    return null;
   }
   const json = await res.json();
   return json.data || null;
 }
+
 

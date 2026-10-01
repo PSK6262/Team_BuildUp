@@ -359,18 +359,51 @@ html[data-theme='light'] .point-tab-btn.is-active {
 }
 
 @media (max-width: 768px) {
+  /* 카테고리 탭: 모바일 반응형에서 한 줄로 표시 */
+  .point-category-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 2px 0;
+  }
+
+  .point-category-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .point-tab-btn {
+    padding: 7px 9px;
+    font-size: 12.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    gap: 4px;
+  }
+
+  .point-tab-count {
+    font-size: 11px;
+    padding: 1px 5px;
+  }
+
   .point-squad-slider-container {
     width: 100%;
     position: relative;
     overflow: hidden;
   }
 
+  /* 하단 슬라이더 네비게이션 컨트롤 (‹ 1 / 4 ›) */
   .point-squad-slider-nav {
     display: flex !important;
     align-items: center;
     justify-content: flex-end;
-    gap: 10px;
-    margin-bottom: 14px;
+    gap: 8px;
+    margin-bottom: 0;
   }
 
   .point-squad-arrow-btn {
@@ -488,17 +521,17 @@ html[data-theme='light'] .point-tab-btn.is-active {
     background: #e90052;
     box-shadow: 0 0 8px rgba(233, 0, 82, 0.6);
   }
+}
 
-  .point-squad-swipe-hint {
-    font-family: var(--font-plug, -apple-system, sans-serif);
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.5);
-    letter-spacing: -0.01em;
+@media (max-width: 400px) {
+  .point-category-tabs {
+    gap: 6px;
+    justify-content: flex-start;
   }
 
-  html[data-theme='light'] .point-squad-swipe-hint {
-    color: #64748b;
+  .point-tab-btn {
+    padding: 7px 10px;
+    font-size: 12px;
   }
 }
 
@@ -838,6 +871,201 @@ html[data-theme='light'] .point-modal-btn--cancel {
 }
 
 /* --------------------------------------------------------
+   포인트 부족 커스텀 모달
+   -------------------------------------------------------- */
+.point-insufficient-modal-card {
+  max-width: 380px;
+  border-radius: 24px;
+  padding: 30px 24px 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+html[data-theme='dark'] .point-insufficient-modal-card {
+  background: linear-gradient(165deg, #240e2b 0%, #15091a 100%);
+  border: 1px solid rgba(233, 0, 82, 0.35);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(233, 0, 82, 0.2);
+}
+
+html[data-theme='light'] .point-insufficient-modal-card {
+  background: #ffffff;
+  border: 1px solid #fecdd3;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12), 0 0 30px rgba(233, 0, 82, 0.08);
+}
+
+.point-modal-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+html[data-theme='light'] .point-modal-close-btn {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.point-modal-close-btn:hover {
+  background: rgba(233, 0, 82, 0.2);
+  color: #e90052;
+}
+
+.point-insufficient-title {
+  font-size: 21px;
+  font-weight: 800;
+  margin: 12px 0 8px;
+}
+
+.point-insufficient-subtext {
+  font-size: 14px;
+  font-weight: 700;
+  color: #00ff87;
+  margin: 0 0 20px;
+  line-height: 1.4;
+  letter-spacing: -0.2px;
+}
+
+html[data-theme='light'] .point-insufficient-subtext {
+  color: #059669;
+}
+
+.point-insufficient-detail-box {
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 22px;
+  text-align: left;
+}
+
+html[data-theme='dark'] .point-insufficient-detail-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme='light'] .point-insufficient-detail-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.point-insufficient-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13.5px;
+  padding: 4px 0;
+}
+
+.point-insufficient-row-label {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+html[data-theme='light'] .point-insufficient-row-label {
+  color: #64748b;
+}
+
+.point-insufficient-row-value {
+  font-weight: 700;
+}
+
+.point-insufficient-row-item {
+  color: #f1f5f9;
+}
+
+html[data-theme='light'] .point-insufficient-row-item {
+  color: #0f172a;
+}
+
+.point-insufficient-divider {
+  height: 1px;
+  margin: 8px 0;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme='light'] .point-insufficient-divider {
+  background: #e2e8f0;
+}
+
+.point-insufficient-row--shortage .point-insufficient-row-label {
+  color: #e90052;
+  font-weight: 800;
+}
+
+.point-insufficient-shortage-val {
+  color: #e90052;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.point-insufficient-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.point-insufficient-btn {
+  padding: 13px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+.point-insufficient-btn--cancel {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+}
+
+html[data-theme='light'] .point-insufficient-btn--cancel {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.point-insufficient-btn--cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+html[data-theme='light'] .point-insufficient-btn--cancel:hover {
+  background: #cbd5e1;
+  color: #0f172a;
+}
+
+.point-insufficient-btn--predict {
+  flex: 1.8;
+  background: linear-gradient(135deg, #00ff87 0%, #00c476 100%);
+  color: #0f172a;
+  box-shadow: 0 4px 16px rgba(0, 255, 135, 0.35);
+}
+
+.point-insufficient-btn--predict:hover {
+  background: linear-gradient(135deg, #26ff98 0%, #00db84 100%);
+  box-shadow: 0 6px 22px rgba(0, 255, 135, 0.55);
+  transform: translateY(-2px);
+  color: #000000;
+}
+
+/* --------------------------------------------------------
    반응형 모바일 미디어 쿼리
    -------------------------------------------------------- */
 @media (max-width: 768px) {
@@ -845,16 +1073,97 @@ html[data-theme='light'] .point-modal-btn--cancel {
     padding: 24px 14px 60px;
   }
 
+  /* 상단 보유 포인트 배너: 모바일에서도 좌/우 요소 한 줄로 완벽 정렬 */
   .point-balance-banner {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 12px 16px;
     gap: 12px;
-    padding: 16px;
+    margin-bottom: 22px;
+  }
+
+  .point-balance-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .point-coin-icon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+  }
+
+  .point-balance-label {
+    font-size: 11.5px;
+    white-space: nowrap;
+    margin-bottom: 0;
+    line-height: 1.2;
+  }
+
+  .point-balance-value {
+    font-size: 19px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .point-balance-unit {
+    font-size: 13px;
   }
 
   .point-balance-right {
-    width: 100%;
+    width: auto !important;
     display: flex;
+    align-items: center;
     justify-content: flex-end;
+    flex-shrink: 0;
+  }
+
+  .point-history-link {
+    padding: 7px 13px;
+    font-size: 12px;
+    white-space: nowrap;
+    gap: 4px;
+    border-radius: 999px;
+  }
+
+  .point-login-prompt {
+    font-size: 12px;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .point-login-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 400px) {
+  .point-balance-banner {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .point-coin-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .point-balance-value {
+    font-size: 17px;
+  }
+
+  .point-history-link {
+    padding: 6px 10px;
+    font-size: 11.5px;
+  }
+
+  .point-login-prompt-text {
+    display: none;
   }
 }

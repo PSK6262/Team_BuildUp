@@ -5,6 +5,10 @@ import App from './App.jsx'
 import { Provider } from 'react-redux';
 import store from './store/store.js';
 
+if (import.meta.env.DEV) {
+  window.__store = store;
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={store}>
