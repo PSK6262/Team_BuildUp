@@ -299,7 +299,7 @@ export function StandingsPage() {
                 event.preventDefault();
                 changeTab(tabs[next][0]);
                 document.getElementById(`ranking-tab-${tabs[next][0]}`).focus();
-              }}><span className="ranking-tab-kicker" aria-hidden="true">{tabDetails[id][0]}</span><span>{label}</span></button>
+              }} aria-label={label}><span className="ranking-tab-kicker" aria-hidden="true">{tabDetails[id][0]}</span><span className="ranking-tab-label">{label}</span><span className="ranking-tab-label-mobile" aria-hidden="true">{{ league: '순위표', goals: '득점', assists: '도움', contributions: '공격포인트', cleanSheets: '클린시트' }[id]}</span></button>
           ))}
         </div>
         <section id="ranking-panel" className="ranking-panel" role="tabpanel" aria-labelledby={`ranking-tab-${tab}`} tabIndex={0}>
@@ -550,8 +550,9 @@ function StandingsTable({ season }) {
         <span><strong>{season}/{String(season + 1).slice(-2)} 시즌</strong> · 총 <strong>{result.rows.length}개 구단</strong></span>
         <span>전체 경기 성적 기준</span>
       </div>
-      <div className="standings-scroll" role="region" aria-label="프리미어리그 순위표, 가로 스크롤 가능" tabIndex={0}>
-        <table className="standings-table">
+      <p className="standings-swipe-hint">← 좌우로 밀어 승점·승무패·득실 기록을 확인하세요 →</p>
+      <div className="standings-scroll standings-scroll--league" role="region" aria-label="프리미어리그 순위표, 가로 스크롤 가능" tabIndex={0}>
+        <table className="standings-table standings-table--league">
           <caption>{season}/{String(season + 1).slice(-2)} 프리미어리그 공식 순위표</caption>
           <thead><tr>
             <th scope="col">순위</th><th scope="col">구단명</th>

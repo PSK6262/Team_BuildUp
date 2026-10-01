@@ -1,3 +1,30 @@
+/* Keep league statistics readable inside their own horizontal viewport. */
+.standings-swipe-hint, .ranking-tab-label-mobile { display: none; }
+html[data-theme] .teams-page-container--rankings .standings-scroll--league {
+  width: 100%; max-width: 100%; min-width: 0; overflow-x: auto;
+  overscroll-behavior-x: contain; touch-action: pan-x pan-y pinch-zoom;
+}
+html[data-theme] .teams-page-container--rankings .standings-table--league {
+  min-width: 820px; width: 100%; table-layout: auto; font-size: 14px;
+}
+html[data-theme] .teams-page-container--rankings .standings-table--league :is(th, td) {
+  padding: 14px 12px; white-space: nowrap; overflow-wrap: normal;
+}
+html[data-theme] .teams-page-container--rankings .standings-table--league tr > :first-child { width: 56px; }
+html[data-theme] .teams-page-container--rankings .standings-table--league tr > :nth-child(2) {
+  width: auto; min-width: 180px; position: static;
+}
+html[data-theme] .teams-page-container--rankings .standings-table--league .standings-team {
+  flex-wrap: nowrap; justify-content: flex-start; gap: 10px; text-align: left;
+}
+html[data-theme] .teams-page-container--rankings .standings-table--league .standings-team span { width: auto; }
+html[data-theme] .teams-page-container--rankings .standings-table--league .standings-team img { width: 28px; height: 28px; }
+@media (max-width: 600px) {
+  html[data-theme] .teams-page-container--rankings .standings-swipe-hint {
+    display: block; margin: 0 0 12px; font-size: 12px; line-height: 1.6; color: var(--ranking-muted);
+  }
+}
+
 /* Ranking-only surfaces share the community and team-builder palettes. */
 html[data-theme] .teams-page-container--rankings {
   --ranking-surface: #fff;
@@ -131,9 +158,11 @@ html[data-theme] .teams-page-container--rankings :is(button, a, select, [tabinde
 
 @media (max-width: 600px) {
   html[data-theme] .teams-page-container--rankings .teams-page-wrapper { max-width: 393px; }
-  html[data-theme] .teams-page-container--rankings .ranking-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(6 * var(--mobile-unit)); }
-  html[data-theme] .teams-page-container--rankings .ranking-tabs button { padding: calc(14 * var(--mobile-unit)); font-size: calc(14 * var(--mobile-unit)); }
-  html[data-theme] .teams-page-container--rankings .ranking-tab-kicker { font-size: calc(10 * var(--mobile-unit)); }
+  html[data-theme] .teams-page-container--rankings .ranking-tabs { grid-template-columns: 1fr .8fr .8fr 1.5fr 1.3fr; gap: 2px; padding: 4px; }
+  html[data-theme] .teams-page-container--rankings .ranking-tabs button { min-height: 44px; align-items: center; justify-content: center; padding: 10px 2px; font-size: clamp(11px, 3vw, 13px); white-space: nowrap; letter-spacing: -.3px; }
+  html[data-theme] .teams-page-container--rankings .ranking-tab-label { display: none; }
+  html[data-theme] .teams-page-container--rankings .ranking-tab-label-mobile { display: inline; }
+  html[data-theme] .teams-page-container--rankings .ranking-tab-kicker { display: none; }
   html[data-theme] .teams-page-container--rankings .ranking-panel { padding: calc(10 * var(--mobile-unit)); border-radius: 16px; }
   html[data-theme] .teams-page-container--rankings .ranking-panel-heading { flex-wrap: wrap; gap: 10px; padding: calc(8 * var(--mobile-unit)) calc(4 * var(--mobile-unit)) calc(16 * var(--mobile-unit)); }
   html[data-theme] .teams-page-container--rankings .ranking-panel-heading h2 { font-size: calc(20 * var(--mobile-unit)); }
