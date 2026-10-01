@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { loginSuccess } from '../store/authSlice.js'
+import { loginSuccess, recordUserActivity } from '../store/authSlice.js'
 import '../css/Auth.css'
 
 export default function Login() {
@@ -35,6 +35,7 @@ export default function Login() {
         const token = data.data?.token || data.token
         const user = data.data?.user || data.user
 
+        recordUserActivity()
         if (token) {
           localStorage.setItem('buildup_token', token)
         }
