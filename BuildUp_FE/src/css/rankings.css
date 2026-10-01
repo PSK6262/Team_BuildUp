@@ -52,6 +52,39 @@ html[data-theme] .teams-page-container--rankings .ranking-player-inline .ranking
 .league-ranking-card .player-ranking-detail { text-decoration: none; box-sizing: border-box; }
 .player-ranking-detail { margin-top: auto; min-height: 44px; padding: 10px 20px; border: 1px solid var(--ranking-line); border-radius: 10px; background: var(--ranking-surface); color: var(--ranking-text); font: inherit; cursor: pointer; }
 @media (max-width: 600px) {
+  .ranking-player-events:is(details) {
+    margin-top: 10px;
+    border: 1px solid var(--ranking-line);
+    border-radius: 12px;
+    background: var(--ranking-soft);
+    overflow: hidden;
+  }
+
+  .ranking-player-events > summary {
+    padding: 14px;
+    min-height: 44px;
+    box-sizing: border-box;
+    color: var(--ranking-text);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .ranking-player-events > summary:focus-visible {
+    outline: 2px solid var(--ranking-accent);
+    outline-offset: -3px;
+  }
+
+  .ranking-player-events[open] > summary {
+    border-bottom: 1px solid var(--ranking-line);
+    color: var(--ranking-accent);
+  }
+
+  .ranking-player-events:is(details) > :is(ul, p) {
+    margin: 0;
+    padding: 12px 14px;
+  }
+
   .player-ranking-card { padding: 22px 12px; }
   .player-ranking-card h3 { font-size: 21px; }
 }

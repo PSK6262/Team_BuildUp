@@ -364,11 +364,27 @@ function PlayerRankings({ metric, label }) {
 const playerPhotoCache = new Map();
 
 function PlayerRankingCarousel({ rows, metric, label }) {
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 600px)').matches);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [openedIndex, setOpenedIndex] = useState(null);
   const [detailKey, setDetailKey] = useState(0);
   const league = metric === 'league';
   const listRef = useRef(null);
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 600px)');
+    const handleChange = (event) => setIsMobile(event.matches);
+    query.addEventListener('change', handleChange);
+    return () => query.removeEventListener('change', handleChange);
+  }, []);
+
+  if (isMobile && !league) {
+    return <RankingDetailCarousel rows={rows} metric={metric} label={label} initialIndex={0} mobileInline />;
+  }
+
+  if (!isMobile) {
+    return league ? <DesktopLeagueRankings rows={rows} /> : <DesktopPlayerRankings rows={rows} metric={metric} label={label} />;
+  }
+
   return <div className="ranking-entries">
     {selectedIndex !== null && <div className="ranking-selected-detail">
       <button type="button" className="player-ranking-detail" onClick={() => {
@@ -399,7 +415,190 @@ function PlayerRankingCarousel({ rows, metric, label }) {
   </div>;
 }
 
-function RankingDetailCarousel({ rows, metric, label, initialIndex, onActiveIndexChange }) {
+
+function DesktopPlayerRankings({ rows, metric, label }) {
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  return <>
+    <div className="standings-scroll" role="region" aria-label={`${label} 순위표, 가로 스크롤 가능`} tabIndex={0}>
+      <table className="standings-table player-rankings-table">
+        <caption>{label} 상위 {rows.length}명</caption>
+        <thead><tr><th scope="col">순위</th><th scope="col">선수명</th><th scope="col">소속 구단</th>
+          {metric === 'cleanSheets'
+            ? <><th scope="col">포지션</th><th scope="col">클린시트</th></>
+            : <><th scope="col">득점</th><th scope="col">도움</th><th scope="col">공격포인트</th></>}</tr></thead>
+        <tbody>{rows.map((row) => <tr key={row.playerId}>
+          <td><span className="standings-rank" data-rank={row.rank}>{row.rank}</span></td>
+          <th scope="row"><button type="button" className="ranking-player-link" aria-haspopup="dialog" onClick={() => setSelectedPlayer(row)}>{row.playerNameKor || row.playerName || '선수명 미등록'}</button></th>
+          <td><span className="standings-team">{row.emblemUrl && <img src={row.emblemUrl} alt="" width="28" height="28" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} />}{row.teamNameKor || getTeamNameKor(row.teamId, row.teamName)}</span></td>
+          {metric === 'cleanSheets' ? (
+            <>
+              <td>{row.detailPosition || row.mainPosition || 'GK'}</td>
+              <td className="standings-points">{row.cleanSheets ?? 0}</td>
+            </>
+          ) : (
+            ['goals', 'assists', 'contributions'].map((field) => <td key={field} className={metric === field ? 'standings-points' : undefined}>
+              {field === 'contributions' ? (row.goals ?? 0) + (row.assists ?? 0) : row[field] ?? '—'}
+            </td>)
+          )}
+        </tr>)}</tbody>
+      </table>
+    </div>
+    {selectedPlayer && <DesktopRankingPlayerDetails key={selectedPlayer.playerId} player={selectedPlayer} onClose={() => setSelectedPlayer(null)} />}
+  </>;
+}
+
+function DesktopRankingPlayerDetails({ player, onClose }) {
+  const dialogRef = useRef(null);
+  const [events, setEvents] = useState({ status: 'loading', rows: [] });
+  const [attempt, setAttempt] = useState(0);
+  const [photo, setPhoto] = useState({ status: 'loading', url: '' });
+  const name = player.playerNameKor || player.playerName || '선수명 미등록';
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    const trigger = document.activeElement;
+    const originalOverflow = document.body.style.overflow;
+    dialog.showModal();
+    document.body.style.overflow = 'hidden';
+    return () => {
+      dialog.close();
+      document.body.style.overflow = originalOverflow;
+      if (trigger instanceof HTMLElement && trigger.isConnected) trigger.focus();
+    };
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    fetch(`/api/matches/players/${player.playerId}/events?season=2026`, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error('기록 조회 실패');
+        return response.json();
+      })
+      .then((rows) => {
+        if (!Array.isArray(rows) || rows.some((row) => !row || row.eventId == null
+          || ![1, 2].includes(Number(row.eventType))
+          || (Number(row.playerId) !== player.playerId && Number(row.assistPlayerId) !== player.playerId))) {
+          throw new Error('잘못된 기록 응답');
+        }
+        if (active) setEvents({ status: 'ready', rows });
+      })
+      .catch(() => { if (active) setEvents({ status: 'error', rows: [] }); })
+      .finally(() => clearTimeout(timeout));
+    return () => { active = false; clearTimeout(timeout); controller.abort(); };
+  }, [player.playerId, attempt]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    async function loadPhoto() {
+      try {
+        let url = playerPhotoCache.get(player.playerId);
+        if (url === undefined) {
+          if (!player.playerName) throw new Error('선수명 없음');
+          const response = await fetch(`https://www.thesportsdb.com/api/v1/json/123/searchplayers.php?p=${encodeURIComponent(player.playerName)}`, { signal: controller.signal });
+          if (!response.ok) throw new Error('사진 조회 실패');
+          const data = await response.json();
+          const normalize = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+          const candidates = (Array.isArray(data.player) ? data.player : []).filter((item) =>
+            item.strSport === 'Soccer' && [item.strPlayer, ...(item.strPlayerAlternate || '').split(';')]
+              .some((value) => normalize(value) === normalize(player.playerName)));
+          const candidate = candidates.length === 1 ? candidates[0] : null;
+          const imageUrl = candidate?.strCutout || candidate?.strThumb;
+          url = imageUrl && /^https:\/\/(www\.|r2\.)?thesportsdb\.com\//.test(imageUrl) ? imageUrl : '';
+          if (url) playerPhotoCache.set(player.playerId, url);
+        }
+        if (active) setPhoto({ status: url ? 'ready' : 'empty', url });
+      } catch {
+        if (active) setPhoto({ status: 'empty', url: '' });
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+    loadPhoto();
+    return () => { active = false; clearTimeout(timeout); controller.abort(); };
+  }, [player.playerId, player.playerName]);
+
+  return <dialog ref={dialogRef} className="ranking-player-dialog" aria-labelledby="ranking-player-title"
+    onCancel={(event) => { event.preventDefault(); onClose(); }}
+    onClick={(event) => {
+      if (event.target !== event.currentTarget) return;
+      const rect = event.currentTarget.getBoundingClientRect();
+      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) onClose();
+    }}>
+    <div className="ranking-player-toolbar">
+      <span>선수 상세 기록</span>
+      <button type="button" className="ranking-player-close" onClick={onClose} aria-label="선수 상세 닫기" title="닫기" autoFocus>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+      </button>
+    </div>
+    <div className="ranking-player-details">
+      <header className="ranking-player-header">
+        <div className="ranking-player-photo">
+          {photo.status === 'ready' ? <img src={photo.url} alt={`${name} 선수 사진`} onError={() => setPhoto({ status: 'empty', url: '' })} />
+            : <span>{photo.status === 'loading' ? '사진 불러오는 중…' : '등록된 선수 사진이 없습니다.'}</span>}
+        </div>
+        <div><p>26-27 시즌</p><h2 id="ranking-player-title">{name}</h2><p>{player.teamNameKor || player.teamName}</p>
+          <p>득점 {player.goals ?? '—'} · 도움 {player.assists ?? '—'}{(player.mainPosition === 'GK' || (player.cleanSheets ?? 0) > 0) ? ` · 클린시트 ${player.cleanSheets ?? 0}` : ''}</p>
+          {photo.status === 'ready' && <a href="https://www.thesportsdb.com/" target="_blank" rel="noreferrer">사진: TheSportsDB</a>}
+        </div>
+      </header>
+      <p className="standings-note">경기별 상세 기록은 집계된 득점·도움 수와 차이가 있을 수 있습니다. 경기 시작 일시는 한국 시간(KST)입니다.</p>
+      {events.status === 'loading' ? <p role="status">득점·도움 기록을 불러오는 중입니다…</p>
+        : events.status === 'error' ? <div role="alert"><p>상세 기록을 불러오지 못했습니다.</p><button type="button" onClick={() => { setEvents({ status: 'loading', rows: [] }); setAttempt((value) => value + 1); }}>다시 시도</button></div>
+          : [['goals', '득점 기록', 'playerId'], ['assists', '도움 기록', 'assistPlayerId']].map(([key, title, field]) => {
+            const rows = events.rows.filter((row) => Number(row[field]) === player.playerId);
+            return <section key={key} className="ranking-player-events"><h3>{title} ({rows.length})</h3>
+              {rows.length === 0 ? <p>등록된 {title}이 없습니다.</p> : <ul>{rows.map((row) => <li key={row.eventId}>
+                <time>{row.matchDate || '일시 미등록'}</time>
+                <span>{row.homeTeamName} vs {row.awayTeamName}</span>
+                <strong>{row.eventTime == null ? '시간 미등록' : `${row.eventTime}분`}{key === 'goals' && Number(row.eventType) === 2 ? ' · 페널티킥' : ''}</strong>
+              </li>)}</ul>}
+            </section>;
+          })}
+    </div>
+  </dialog>;
+}
+
+function DesktopLeagueRankings({ rows }) {
+  const season = rows[0]?.season ?? 2026;
+  return (
+      <div className="standings-scroll standings-scroll--league" role="region" aria-label="프리미어리그 순위표, 가로 스크롤 가능" tabIndex={0}>
+        <table className="standings-table standings-table--league">
+          <caption>{season}/{String(season + 1).slice(-2)} 프리미어리그 공식 순위표</caption>
+          <thead><tr>
+            <th scope="col">순위</th><th scope="col">구단명</th>
+            {standingsColumns.map(([ field, label ]) => <th key={field} scope="col">{label}</th>)}
+          </tr></thead>
+          <tbody>{rows.map((row) => {
+            const teamKor = row.teamNameKor || getTeamNameKor(row.teamId, row.teamName);
+            return (
+              <tr key={row.teamId}>
+                <td><span className="standings-rank" data-rank={row.currentRank}>{row.currentRank ?? '—'}</span></td>
+                <th scope="row"><a className="standings-team" href={`/plug/team/${row.teamId}`} title={`${teamKor} 상세 정보 보기`}>
+                  {row.emblemUrl && <img src={row.emblemUrl} alt="" width="28" height="28" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} />}
+                  <span style={{ fontWeight: 700 }}>{teamKor}</span>
+                  {row.teamName && teamKor !== row.teamName && (
+                    <span style={{ fontSize: '11px', color: 'var(--ranking-muted, #64748b)', marginLeft: '5px' }}>({row.teamName})</span>
+                  )}
+                </a></th>
+                {standingsColumns.map(([ field ]) => (
+                  <td key={field} className={field === 'points' ? 'standings-points' : undefined}>
+                    {row[ field ] == null ? '—' : field === 'goalDiff' && row[ field ] > 0 ? `+${row[ field ]}` : row[ field ]}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}</tbody>
+        </table>
+      </div>
+
+  );
+}
+
+function RankingDetailCarousel({ rows, metric, label, initialIndex, onActiveIndexChange, mobileInline = false }) {
   const league = metric === 'league';
   const entryLabel = league ? '구단' : '선수';
   const trackRef = useRef(null);
@@ -407,9 +606,11 @@ function RankingDetailCarousel({ rows, metric, label, initialIndex, onActiveInde
   useEffect(() => {
     const track = trackRef.current;
     track.scrollLeft = track.children[initialIndex].offsetLeft - track.children[0].offsetLeft;
-    track.closest('section').scrollIntoView({ block: 'start' });
-    track.focus({ preventScroll: true });
-  }, [initialIndex]);
+    if (!mobileInline) {
+      track.closest('section').scrollIntoView({ block: 'start' });
+      track.focus({ preventScroll: true });
+    }
+  }, [initialIndex, mobileInline]);
   const move = (direction) => {
     const track = trackRef.current;
     if (!track) return;
@@ -445,7 +646,7 @@ function RankingDetailCarousel({ rows, metric, label, initialIndex, onActiveInde
           if (next < distance) { closest = index; distance = next; }
         });
         setActiveIndex(closest);
-        onActiveIndexChange(closest);
+        onActiveIndexChange?.(closest);
       }}>
       {rows.map((row, index) => {
         if (league) {
@@ -467,7 +668,7 @@ function RankingDetailCarousel({ rows, metric, label, initialIndex, onActiveInde
         }
         const name = row.playerNameKor || row.playerName || '선수명 미등록';
         return <article className="player-ranking-card player-ranking-card--profile" key={row.playerId} aria-label={`${row.rank}위 ${name}`} inert={index !== activeIndex}>
-          {Math.abs(index - activeIndex) <= 1 && <RankingPlayerDetails player={row} metric={metric} />}
+          {Math.abs(index - activeIndex) <= 1 && <RankingPlayerDetails player={row} metric={metric} collapsibleEvents={mobileInline} />}
 
         </article>;
       })}
@@ -475,7 +676,7 @@ function RankingDetailCarousel({ rows, metric, label, initialIndex, onActiveInde
   </section>;
 }
 
-function RankingPlayerDetails({ player, metric }) {
+function RankingPlayerDetails({ player, metric, collapsibleEvents = false }) {
   const [events, setEvents] = useState({ status: 'loading', rows: [] });
   const [attempt, setAttempt] = useState(0);
   const [photo, setPhoto] = useState({ status: 'loading', url: '' });
@@ -559,13 +760,15 @@ function RankingPlayerDetails({ player, metric }) {
         : events.status === 'error' ? <div role="alert"><p>상세 기록을 불러오지 못했습니다.</p><button type="button" onClick={() => { setEvents({ status: 'loading', rows: [] }); setAttempt((value) => value + 1); }}>다시 시도</button></div>
           : [['goals', '득점 기록', 'playerId'], ['assists', '도움 기록', 'assistPlayerId']].map(([key, title, field]) => {
             const rows = events.rows.filter((row) => Number(row[field]) === player.playerId);
-            return <section key={key} className="ranking-player-events"><h3>{title} ({rows.length})</h3>
+            const EventContainer = collapsibleEvents ? 'details' : 'section';
+            const EventHeading = collapsibleEvents ? 'summary' : 'h3';
+            return <EventContainer key={key} className="ranking-player-events"><EventHeading>{title} ({rows.length})</EventHeading>
               {rows.length === 0 ? <p>등록된 {title}이 없습니다.</p> : <ul>{rows.map((row) => <li key={row.eventId}>
                 <time>{row.matchDate || '일시 미등록'}</time>
                 <span>{row.homeTeamName} vs {row.awayTeamName}</span>
                 <strong>{row.eventTime == null ? '시간 미등록' : `${row.eventTime}분`}{key === 'goals' && Number(row.eventType) === 2 ? ' · 페널티킥' : ''}</strong>
               </li>)}</ul>}
-            </section>;
+            </EventContainer>;
           })}
     </div>
   </section>;
