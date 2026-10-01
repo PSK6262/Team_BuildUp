@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import '../../css/MatchFilters.css'
+import useHorizontalSwipe from '../../hooks/useHorizontalSwipe.js'
 
 function ClubEmblem({ team }) {
   const [failed, setFailed] = useState(false)
@@ -66,41 +67,18 @@ export function MatchClubPicker({ teams, value, onChange }) {
 function MatchPeriodPicker({ value, onChange, items, unit }) {
   const maxStart = Math.max(0, items.length - 5)
   const [start, setStart] = useState(() => Math.min(maxStart, Math.floor(Math.max(0, items.findIndex(item => item.id === value)) / 5) * 5))
-  const gesture = useRef(null)
-  const suppressClick = useRef(false)
   const move = direction => setStart(current => Math.max(0, Math.min(maxStart, current + direction * 5)))
+  const swipeHandlers = useHorizontalSwipe(move)
+  const [previousValue, setPreviousValue] = useState(value)
+  if (value !== previousValue) {
+    setPreviousValue(value)
+    const index = items.findIndex(item => item.id === value)
+    if (value === 'ALL') setStart(0)
+    else if (index < start || index >= start + 5) setStart(Math.min(maxStart, Math.floor(index / 5) * 5))
+  }
   return <section className="match-round-picker" aria-label={`${unit}별 일정 필터`}>
     <div className="month-filter-nav match-round-controls"
-      onTouchStart={event => {
-        suppressClick.current = false
-        const touch = event.touches[0]
-        gesture.current = event.touches.length === 1 ? { x: touch.clientX, y: touch.clientY, vertical: false } : null
-      }}
-      onTouchMove={event => {
-        const origin = gesture.current
-        if (!origin) return
-        if (event.touches.length !== 1) { gesture.current = null; suppressClick.current = true; return }
-        const dx = event.touches[0].clientX - origin.x
-        const dy = event.touches[0].clientY - origin.y
-        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) suppressClick.current = true
-        if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) origin.vertical = true
-      }}
-      onTouchEnd={event => {
-        const origin = gesture.current
-        gesture.current = null
-        if (!origin || origin.vertical || event.touches.length) return
-        const dx = event.changedTouches[0].clientX - origin.x
-        const dy = event.changedTouches[0].clientY - origin.y
-        if (Math.abs(dx) >= 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-          suppressClick.current = true
-          move(dx < 0 ? 1 : -1)
-        }
-      }}
-      onTouchCancel={() => { gesture.current = null; suppressClick.current = true }}
-      onClickCapture={event => {
-        if (suppressClick.current && event.detail !== 0) { event.preventDefault(); event.stopPropagation() }
-        suppressClick.current = false
-      }}>
+      {...swipeHandlers}>
       <button type="button" className={`month-filter-btn match-round-all ${value === 'ALL' ? 'active' : ''}`} aria-label={`전체 ${unit}`} aria-pressed={value === 'ALL'} onClick={() => onChange('ALL')}>전체</button>
       <button type="button" className="month-filter-btn match-round-arrow" aria-label={`이전 5개 ${unit}`} disabled={start === 0} onClick={() => move(-1)}>‹</button>
       <div className="match-round-window" role="group" aria-label={`${items[start].label}부터 ${items[start + 4].label}`}>

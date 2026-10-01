@@ -654,6 +654,7 @@ export default function Match() {
         </div>
 
         {/* 경기 카드 목록 리스트 */}
+        <div className="match-results">
         {loading ? (
           <div className="match-empty">
             <div className="match-loading-spinner" />
@@ -691,7 +692,9 @@ export default function Match() {
             </div>
           </div>
         ) : (
-          <div className="match-grid">
+          <>
+          <p className="match-swipe-hint">좌우로 밀어 다른 경기를 확인하세요</p>
+          <div className="match-grid" key={`${selectedSeason}-${selectedTeamId}-${filterMode}-${selectedMonth}-${selectedRound}`} role="region" aria-label="경기 카드 목록" tabIndex={0}>
             {visibleMatches.map((match) => {
               const homeTeam = getTeamInfo(match.homeTeamId)
               const awayTeam = getTeamInfo(match.awayTeamId)
@@ -813,6 +816,7 @@ export default function Match() {
                 </article>
               )
             })}
+          </div>
             {visibleMatches.length < filteredMatches.length && (
               <button
                 type="button"
@@ -822,8 +826,10 @@ export default function Match() {
                 더보기 ({visibleMatches.length} / {filteredMatches.length})
               </button>
             )}
-          </div>
+          </>
         )}
+
+        </div>
 
         {/* FC 온라인 감독모드 스타일 2D 피치 & 타임라인 텍스트 중계 모달 */}
         {activeMatchForModal && (

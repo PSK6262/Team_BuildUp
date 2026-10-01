@@ -342,10 +342,45 @@
 /* --------------------------------------------------------
    경기 카드 목록 그리드
    -------------------------------------------------------- */
+.match-swipe-hint { display: none; }
+
 .match-grid {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+@media (max-width: 600px) {
+  .match-page-container .match-swipe-hint {
+    display: block;
+    color: inherit;
+    font-size: 12px;
+    opacity: .7;
+    margin: 0 0 12px;
+    text-align: center;
+  }
+
+  .match-page-container .match-grid {
+    flex-direction: row;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x pan-y pinch-zoom;
+    gap: 12px;
+    padding: 6px 4px 16px;
+    scroll-padding-inline: 4px;
+    scrollbar-width: thin;
+  }
+
+  .match-page-container .match-grid > .match-card {
+    flex: 0 0 94%;
+    min-width: 0;
+    box-sizing: border-box;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .match-page-container .match-grid > .match-card:hover { transform: none; }
 }
 
 /* 단일 경기 카드 */
