@@ -66,6 +66,24 @@ public class UserController {
 	}
 
 	/**
+	 * 닉네임 중복 확인 (/api/users/check-nickname 호환 지원)
+	 */
+	@GetMapping("/check-nickname")
+	public ApiResponse<Boolean> checkNickname(@RequestParam("nickname") String nickname) {
+		if (nickname == null || nickname.trim().isEmpty()) {
+			return ApiResponse.error(ResultCode.INVALID_INPUT);
+		}
+		if (!NICKNAME_PATTERN.matcher(nickname.trim()).matches()) {
+			return ApiResponse.error(ResultCode.INVALID_NICKNAME);
+		}
+		boolean available = userService.isNicknameAvailable(nickname.trim());
+		if (!available) {
+			return ApiResponse.error(ResultCode.DUPLICATE_NICKNAME);
+		}
+		return ApiResponse.success(true);
+	}
+
+	/**
 	 * 마이페이지 활동 요약 통계 (작성글 수, 작성댓글 수, 좋아요 수)
 	 */
 	@GetMapping("/me/activities")
@@ -234,12 +252,23 @@ public class UserController {
 		// 본인 정보만 업데이트 가능하도록 PK 고정
 		updateData.setUserId(currentUser.getUserId());
 
+		// 닉네임 공백 제거 및 미입력 시 기존 닉네임 유지
+		if (updateData.getNickname() == null || updateData.getNickname().trim().isEmpty()) {
+			updateData.setNickname(currentUser.getNickname());
+		} else {
+			updateData.setNickname(updateData.getNickname().trim());
+		}
+
+		// 이메일 미입력 시 기존 이메일 유지
+		if (updateData.getEmail() == null || updateData.getEmail().trim().isEmpty()) {
+			updateData.setEmail(currentUser.getEmail());
+		} else {
+			updateData.setEmail(updateData.getEmail().trim());
+		}
+
 		// 닉네임 변경 시 형식 및 중복 검증 (자신의 기존 닉네임과 다른 경우만)
-		if (updateData.getNickname() != null && !updateData.getNickname().trim().equals(currentUser.getNickname())) {
-			String newNickname = updateData.getNickname().trim();
-			if (newNickname.isEmpty()) {
-				return ApiResponse.error(ResultCode.INVALID_INPUT);
-			}
+		if (!updateData.getNickname().equals(currentUser.getNickname())) {
+			String newNickname = updateData.getNickname();
 			if (!NICKNAME_PATTERN.matcher(newNickname).matches()) {
 				return ApiResponse.error(ResultCode.INVALID_NICKNAME);
 			}
@@ -249,8 +278,8 @@ public class UserController {
 		}
 
 		// 이메일 변경 시 인증 완료 및 중복 검증 (자신의 기존 이메일과 다른 경우만)
-		if (updateData.getEmail() != null && !updateData.getEmail().trim().equalsIgnoreCase(currentUser.getEmail())) {
-			String newEmail = updateData.getEmail().trim();
+		if (!updateData.getEmail().equalsIgnoreCase(currentUser.getEmail())) {
+			String newEmail = updateData.getEmail();
 			if (!userService.isEmailAvailable(newEmail)) {
 				return ApiResponse.error(ResultCode.DUPLICATE_EMAIL);
 			}

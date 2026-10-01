@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateUser } from '../store/authSlice.js';
 import {
+  DEFAULT_SHOP_ITEMS,
   getShopItems,
   getUserInventory,
   purchaseShopItem,
@@ -9,175 +10,6 @@ import {
 } from '../api/shopApi.js';
 import { getMyProfile } from '../api/userApi.js';
 import '../css/PointShop.css';
-
-// 포인트샵 판매 아이템 목록 (아이콘 & 이모티콘)
-export const DEFAULT_SHOP_ITEMS = [
-
-  // --- 아이콘 카테고리 ---
-  {
-    itemId: 1,
-    id: 1,
-    type: 'icon',
-    categoryName: '아이콘',
-    name: '골든 트로피',
-    visual: '🏆',
-    price: 300,
-    desc: '프리미어리그 챔피언의 영광을 상징하는 황금 트로피 프로필 아이콘',
-  },
-  {
-    itemId: 2,
-    id: 2,
-    type: 'icon',
-    categoryName: '아이콘',
-    name: '불타는 축구공',
-    visual: '⚽',
-    price: 150,
-    desc: '경기장을 뜨겁게 달구는 클래식 축구공 시그니처 아이콘',
-  },
-  {
-    itemId: 3,
-    id: 3,
-    type: 'icon',
-    categoryName: '아이콘',
-    name: '골든 부츠',
-    visual: '👟',
-    price: 250,
-    desc: '리그 최고의 골잡이에게 주어지는 득점왕 골든부츠 아이콘',
-  },
-  {
-    itemId: 4,
-    id: 4,
-    type: 'icon',
-    categoryName: '아이콘',
-    name: '황금 왕관',
-    visual: '👑',
-    price: 400,
-    desc: 'PL 명예의 전당 레전드를 위한 시그니처 크라운 프로필 아이콘',
-  },
-  {
-    itemId: 5,
-    id: 5,
-    type: 'icon',
-    categoryName: '아이콘',
-    name: '철벽 방패',
-    visual: '🛡️',
-    price: 200,
-    desc: '무실점 클린시트를 지켜내는 단단한 수호의 방패 아이콘',
-  },
-  {
-    itemId: 6,
-    id: 6,
-    type: 'icon',
-    categoryName: '아이콘',
-    name: '캡틴 완장',
-    visual: '🎖️',
-    price: 250,
-    desc: '피치 위 팀을 이끄는 리더십의 상징 주장 완장 아이콘',
-  },
-  {
-    itemId: 7,
-    id: 7,
-    type: 'icon',
-    categoryName: '아이콘',
-    name: '마법의 패서',
-    visual: '🎯',
-    price: 350,
-    desc: '환상적인 어시스트를 찔러주는 플레이메이커의 마법 아이콘',
-  },
-  {
-    itemId: 8,
-    id: 8,
-    type: 'icon',
-    categoryName: '아이콘',
-    name: '거미손 글러브',
-    visual: '🧤',
-    price: 200,
-    desc: '슈퍼 세이브로 팀을 구원하는 수문장의 골키퍼 글러브 아이콘',
-  },
-
-  // --- 이모티콘 카테고리 (ITEM_ID: 9~16) ---
-  {
-    itemId: 9,
-    id: 9,
-    type: 'emoticon',
-    categoryName: '이모티콘',
-    name: '골 세레머니',
-    visual: '🔥',
-    price: 100,
-    desc: '짜릿한 득점 순간 열광하는 시그니처 축하 응원 이모티콘',
-  },
-  {
-    itemId: 10,
-    id: 10,
-    type: 'emoticon',
-    categoryName: '이모티콘',
-    name: '심판 레드카드',
-    visual: '🟥',
-    price: 150,
-    desc: '거친 파울과 판정에 분노를 표현하는 레드카드 이모티콘',
-  },
-  {
-    itemId: 11,
-    id: 11,
-    type: 'emoticon',
-    categoryName: '이모티콘',
-    name: '승리의 축포',
-    visual: '🎉',
-    price: 120,
-    desc: '극적인 역전승과 우승을 자축하는 화려한 팡파르 이모티콘',
-  },
-  {
-    itemId: 12,
-    id: 12,
-    type: 'emoticon',
-    categoryName: '이모티콘',
-    name: 'VAR 판독중',
-    visual: '📺',
-    price: 150,
-    desc: '숨죽이고 주심의 판독을 기다리는 긴장감 넘치는 VAR 모니터',
-  },
-  {
-    itemId: 13,
-    id: 13,
-    type: 'emoticon',
-    categoryName: '이모티콘',
-    name: '열광의 나팔',
-    visual: '📣',
-    price: 100,
-    desc: '경기장을 가득 메우는 서포터즈의 열렬한 함성과 나팔 이모티콘',
-  },
-  {
-    itemId: 14,
-    id: 14,
-    type: 'emoticon',
-    categoryName: '이모티콘',
-    name: '통곡의 벽',
-    visual: '🧱',
-    price: 120,
-    desc: '상대의 파상 공세를 빈틈없이 막아내는 짠물 수비 이모티콘',
-  },
-  {
-    itemId: 15,
-    id: 15,
-    type: 'emoticon',
-    categoryName: '이모티콘',
-    name: '승점 3점 V',
-    visual: '✌️',
-    price: 80,
-    desc: '경기 종료 휘슬 후 승점 3점을 만끽하는 승리의 V 이모티콘',
-  },
-  {
-    itemId: 16,
-    id: 16,
-    type: 'emoticon',
-    categoryName: '이모티콘',
-    name: '눈물바다',
-    visual: '😭',
-    price: 80,
-    desc: '아쉬운 실점과 패배에 눈물 흘리는 서포터즈의 오열 이모티콘',
-  },
-];
-export const SHOP_ITEMS = DEFAULT_SHOP_ITEMS;
 
 export default function PointShop() {
   const dispatch = useDispatch();
@@ -389,6 +221,26 @@ export default function PointShop() {
         if (currentUid) {
           try {
             localStorage.setItem(`buildup_purchased_items_${currentUid}`, JSON.stringify(nextPurchased));
+
+            const historyKey = `buildup_purchase_history_${currentUid}`;
+            const prevHistoryRaw = localStorage.getItem(historyKey);
+            const prevHistory = prevHistoryRaw ? JSON.parse(prevHistoryRaw) : [];
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const orderedAtStr = `${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+            const newOrderEntry = {
+              orderId: res.orderId || `LOCAL_${Date.now()}`,
+              itemId: targetItemId,
+              itemName: item.name,
+              itemType: item.type === 'icon' ? 'ICON' : 'EMOTICON',
+              categoryName: item.categoryName,
+              point: item.price,
+              imageUrl: item.visual,
+              description: item.desc,
+              orderStatus: 'COMPLETED',
+              orderedAt: orderedAtStr,
+            };
+            localStorage.setItem(historyKey, JSON.stringify([newOrderEntry, ...prevHistory]));
           } catch {}
         }
 
