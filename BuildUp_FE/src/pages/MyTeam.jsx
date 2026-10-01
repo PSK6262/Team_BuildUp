@@ -602,6 +602,26 @@ export default function MyTeam() {
 
   // 클릭으로 선수 배치할 때 활성화된 대상 슬롯 ID
   const [selectedSlotId, setSelectedSlotId] = useState(null);
+  const [mobilePickerOpen, setMobilePickerOpen] = useState(false);
+  const playerPickerRef = useRef(null);
+  const RosterContainer = mobilePickerOpen ? 'dialog' : 'div';
+
+  const closePlayerPicker = () => {
+    setMobilePickerOpen(false);
+    setSelectedSlotId(null);
+  };
+
+  useEffect(() => {
+    if (!mobilePickerOpen) return;
+    const dialog = playerPickerRef.current;
+    dialog.showModal();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      dialog.close();
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobilePickerOpen]);
 
   // 드래그 앤 드롭 중 대상 슬롯 하이라이트
   const [dragOverSlotId, setDragOverSlotId] = useState(null);
@@ -1239,6 +1259,7 @@ export default function MyTeam() {
     });
     setSelectedSlotId(null);
     showToast(`⚽ ${player.nameKor || player.name} (${player.mainPosition}) 선수가 배치되었습니다.`);
+    setMobilePickerOpen(false);
     return true;
   };
 
@@ -1269,6 +1290,11 @@ export default function MyTeam() {
 
   // 슬롯 클릭 핸들러
   const handleSlotClick = (slotId) => {
+    if (window.matchMedia('(max-width: 1080px)').matches) {
+      setSelectedSlotId(slotId);
+      setMobilePickerOpen(true);
+      return;
+    }
     if (selectedSlotId === slotId) {
       setSelectedSlotId(null); // 토글 해제
     } else {
@@ -1381,7 +1407,8 @@ export default function MyTeam() {
 
     const dx = Math.abs(e.clientX - dragInfo.startX);
     const dy = Math.abs(e.clientY - dragInfo.startY);
-    if (dx > 3 || dy > 3) {
+    const dragThreshold = e.pointerType === 'touch' ? 10 : 3;
+    if (dx > dragThreshold || dy > dragThreshold) {
       dragInfo.hasMoved = true;
     }
 
@@ -1972,7 +1999,7 @@ export default function MyTeam() {
               <div className="pitch-hint">
                 {selectedSlotId !== null ? (
                   <span style={{ color: 'var(--myteam-accent, #00ff87)', fontWeight: 700 }}>
-                    👉 우측 목록에서 배치할 선수를 클릭하세요!
+                    👉 선수 목록에서 배치할 선수를 선택하세요!
                   </span>
                 ) : (
                   '💡 선수를 드래그하여 필드 원하는 곳으로 자유롭게 움직이세요'
@@ -2004,7 +2031,22 @@ export default function MyTeam() {
           </section>
 
           {/* 3-B. 선수 검색 & 구단별 로스터 패널 */}
+          <RosterContainer
+            ref={playerPickerRef}
+            className={mobilePickerOpen ? 'myteam-player-picker' : 'myteam-roster-container'}
+            aria-labelledby={mobilePickerOpen ? 'myteam-player-picker-title' : undefined}
+            onCancel={mobilePickerOpen ? (event) => { event.preventDefault(); closePlayerPicker(); } : undefined}
+          >
           <section className="myteam-roster-panel" aria-label="선수 검색 및 명단">
+            {mobilePickerOpen && (
+              <div className="myteam-player-picker-header">
+                <div>
+                  <h2 id="myteam-player-picker-title">선수 선택</h2>
+                  <p>{slots.find((slot) => slot.id === selectedSlotId)?.pos} 위치에 배치할 선수를 선택하세요.</p>
+                </div>
+                <button type="button" className="myteam-btn-mini" onClick={closePlayerPicker} autoFocus>닫기</button>
+              </div>
+            )}
             {/* 상단 탭: 구단별 선수 보기 vs 전체 검색 */}
             <div className="roster-view-nav">
               <button
@@ -2247,6 +2289,7 @@ export default function MyTeam() {
               </div>
             )}
           </section>
+          </RosterContainer>
         </div>
           </div>
         <section id="myteam-match-view" className="myteam-ai-panel" aria-labelledby="ai-match-title" hidden={workspaceView !== 'match'}>

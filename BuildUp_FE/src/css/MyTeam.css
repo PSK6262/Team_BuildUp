@@ -814,6 +814,63 @@ html[data-theme='dark'] body:has(.myteam-page) {
 }
 
 /* 5. 우측: 선수 검색 & 로스터 패널 */
+.myteam-roster-container {
+  display: contents;
+}
+
+.myteam-player-picker {
+  width: min(600px, calc(100% - 24px));
+  max-width: none;
+  max-height: 85dvh;
+  margin: auto auto 0;
+  padding: 0;
+  border: 1px solid #475569;
+  border-radius: 20px 20px 0 0;
+  background: #172033;
+  color: #f8fafc;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.myteam-player-picker::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.myteam-player-picker .myteam-roster-panel {
+  height: auto;
+  padding: 16px 12px max(20px, env(safe-area-inset-bottom));
+  border: 0;
+  border-radius: 0;
+}
+
+.myteam-player-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.myteam-player-picker-header h2 {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+
+.myteam-player-picker-header p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.myteam-player-picker-header button {
+  min-height: 44px;
+  flex-shrink: 0;
+}
+
+html[data-theme='light'] .myteam-player-picker {
+  background: #fff;
+  color: #172033;
+}
+
 .myteam-roster-panel {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.09);
@@ -2354,6 +2411,11 @@ html[data-theme='dark'] .myteam-page .member-ranking-scroll tbody td strong {
 
 /* 7. 반응형 미디어 쿼리 */
 @media (max-width: 1080px) {
+
+  .club-grid-scroll {
+    max-height: 180px;
+  }
+
   .myteam-main-layout {
     grid-template-columns: 1fr;
   }
