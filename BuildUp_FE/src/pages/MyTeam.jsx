@@ -1,6 +1,7 @@
 import { shuffledCopy } from '../utils/shuffle.js';
 import { captureMatchSquads, restoreMatchPlacement, matchPitchPoint } from '../utils/matchPlacement.js';
 import { findOverlappingPitchSlot } from '../utils/pitchCollision.js';
+import { replayAttackingSide, replaySetPiece, replayNextIndex } from '../utils/matchReplay.js';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { getAllPremierLeaguePlayers, getInitialTeams, getTeams } from '../api/teamApi.js';
@@ -119,6 +120,19 @@ function AiMatchTimeline({ match }) {
   const [playing, setPlaying] = useState(false);
   const activeEventRef = useRef(null);
   const eventsRef = useRef(null);
+  const replaySvgRef = useRef(null);
+
+  useEffect(() => {
+    const svg = replaySvgRef.current;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const syncPlayback = () => {
+      if (playing && !reducedMotion.matches) svg?.unpauseAnimations();
+      else svg?.pauseAnimations();
+    };
+    syncPlayback();
+    reducedMotion.addEventListener('change', syncPlayback);
+    return () => reducedMotion.removeEventListener('change', syncPlayback);
+  }, [playing, selectedIndex]);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -140,9 +154,9 @@ function AiMatchTimeline({ match }) {
   useEffect(() => {
     if (!playing) return;
     const timer = setTimeout(() => {
-      const nextIndex = Math.min(selectedIndex + 1, match.events.length - 1);
+      const nextIndex = replayNextIndex(selectedIndex, match.events.length);
       setSelectedIndex(nextIndex);
-      if (nextIndex === selectedIndex) setPlaying(false);
+      if (nextIndex === match.events.length - 1) setPlaying(false);
     }, 2400);
     return () => clearTimeout(timer);
   }, [playing, selectedIndex, match]);
@@ -162,7 +176,7 @@ function AiMatchTimeline({ match }) {
   // 이벤트별 공(Ball) 위치 및 전술 라벨 계산
   const getBallPosition = (currentEvent, index) => {
     if (!currentEvent) return { x: 180, y: 220, label: '킥오프' };
-    const isAi = currentEvent.side === 1;
+    const isAi = replayAttackingSide(currentEvent) === 1;
 
     switch (currentEvent.type) {
       case 'period':
@@ -226,9 +240,10 @@ function AiMatchTimeline({ match }) {
     : baseBallPos;
 
   // 세트피스 상황 판정 (코너킥, PK, 프리킥)
-  const isCorner = event.type === 'corner';
-  const isPk = event.type === 'penalty' || (event.label && event.label.includes('PK'));
-  const isFreeKick = event.type === 'free-kick' || (event.label && event.label.includes('프리킥'));
+  const setPiece = replaySetPiece(event);
+  const isCorner = setPiece === 'corner';
+  const isPk = setPiece === 'penalty';
+  const isFreeKick = setPiece === 'free-kick';
   const isSetPiece = isCorner || isPk || isFreeKick;
 
   // 세트피스 전담 키커 (FW 우선, 없으면 MF 첫 번째 선수)
@@ -314,7 +329,7 @@ function AiMatchTimeline({ match }) {
             <button type="button" className="myteam-btn myteam-btn-secondary myteam-ai-step" disabled={selectedIndex >= match.events.length - 1} onClick={() => selectEvent(selectedIndex + 1)}>다음 <span aria-hidden="true">›</span></button>
           </div>
           <p>{isSecondHalf ? '후반' : '전반'} · <span style={{ color: 'var(--myteam-home, #60a5fa)' }}>● {match.homeName} {homeLineup.length}명 · {isSecondHalf ? '↓' : '↑'} 공격</span>{' / '}<span style={{ color: 'var(--myteam-danger, #f87171)' }}>● {match.opponentName} {lineup.length}명 · {isSecondHalf ? '↑' : '↓'} 공격</span></p>
-          <svg className="myteam-ai-mini-pitch" viewBox="0 0 360 440" role="img" aria-label={`양 팀 선수 배치: ${match.homeName} ${homeLineup.length}명, ${match.opponentName} ${lineup.length}명`}>
+          <svg ref={replaySvgRef} className="myteam-ai-mini-pitch" data-playing={playing} viewBox="0 0 360 440" role="img" aria-label={`양 팀 선수 배치: ${match.homeName} ${homeLineup.length}명, ${match.opponentName} ${lineup.length}명`}>
             <rect x="10" y="10" width="340" height="420" rx="8" fill="#123e30" stroke="#a7c9ba" />
             <path d="M10 220H350 M100 10V70H260V10 M100 430V370H260V430" fill="none" stroke="#a7c9ba" />
             <circle cx="180" cy="220" r="45" fill="none" stroke="#a7c9ba" />
@@ -407,7 +422,7 @@ function AiMatchTimeline({ match }) {
                 const pIdx = activeLineup.findIndex((s) => s.player.playerId === player.playerId);
                 if (pIdx < 4) {
                   x = localBall.x - 24 + (pIdx * 16);
-                  y = localBall.y - 28;
+                  y = localBall.y + 28;
                 }
               } else if (isCorner && event.side === side && pos !== 'GK') {
                 // 코너킥 시 나머지 선수들은 박스 안 헤더 쇄도

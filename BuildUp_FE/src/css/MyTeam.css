@@ -2276,6 +2276,14 @@ html[data-theme='light'] .myteam-match-rules summary span { color: #637083; }
   will-change: transform;
 }
 
+.myteam-ai-mini-pitch[data-playing='false'] .myteam-ai-marker-inner {
+  animation-play-state: paused;
+}
+
+.myteam-ai-mini-pitch[data-playing='false'] :is(.myteam-ai-marker, .myteam-ai-ball-marker) {
+  transition: none;
+}
+
 @keyframes playerAliveSway {
   0% {
     transform: translate(-1.2px, 1px);
