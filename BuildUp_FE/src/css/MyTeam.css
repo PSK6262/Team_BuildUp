@@ -27,6 +27,181 @@ html[data-theme='dark'] body:has(.myteam-page) {
   margin: 0 auto;
 }
 
+.myteam-reset-dialog {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  width: min(530px, calc(100% - 24px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 28px clamp(16px, 4vw, 24px) 20px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  background: linear-gradient(160deg, #2a0631, #18001f);
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.myteam-reset-dialog::backdrop {
+  background: rgba(10, 0, 16, 0.75);
+  backdrop-filter: blur(4px);
+}
+
+.myteam-reset-dialog h2 {
+  margin: 12px 0 20px;
+  font-size: clamp(19px, 4.5vw, 23px);
+  font-weight: 800;
+}
+
+.myteam-reset-dialog p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.myteam-reset-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.myteam-reset-actions button {
+  min-height: 48px;
+  padding: 12px;
+  border-radius: 13px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.myteam-reset-icon {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 12px;
+  border: 1px solid #ad780b;
+  border-radius: 50%;
+  background: rgba(255, 193, 7, 0.1);
+  box-shadow: 0 0 24px #ffc1071f;
+  font-size: 30px;
+}
+
+.myteam-reset-badge {
+  padding: 4px 12px;
+  border: 1px solid #89610e;
+  border-radius: 999px;
+  background: #ffc1071a;
+  color: #ffcd38;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.myteam-reset-info {
+  padding: 16px;
+  border: 1px solid #76551b;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #c9bdd1;
+  text-align: left;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.myteam-reset-info .myteam-reset-team {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed #76551b;
+  color: #ffe083;
+  font-weight: 700;
+}
+
+.myteam-reset-notice {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 193, 7, 0.08);
+  color: #e0d0b0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.myteam-reset-notice strong { color: #ffcd38; }
+.myteam-reset-notice ul { margin: 6px 0 0; padding-left: 20px; }
+
+.myteam-reset-keep {
+  border: 1px solid #00e87d;
+  background: #00ef82;
+  color: #08291f;
+  box-shadow: 0 0 20px #00ff8726;
+}
+
+.myteam-reset-confirm {
+  border: 1px solid #a92a59;
+  background: #5d163b80;
+  color: #ffd0df;
+}
+
+.myteam-reset-close {
+  min-height: 44px;
+  margin-top: 10px;
+  padding: 8px 20px;
+  border: 0;
+  background: transparent;
+  color: #bcadca;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.myteam-reset-dialog button:focus-visible {
+  outline: 2px solid #ffe083;
+  outline-offset: 3px;
+}
+
+.myteam-reset-dialog button:hover { filter: brightness(1.1); }
+
+@media (max-width: 640px) {
+  .myteam-reset-dialog {
+    padding: 24px 16px 16px;
+    word-break: keep-all;
+  }
+
+  .myteam-reset-info {
+    padding: 14px 12px;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .myteam-reset-copy-line {
+    display: block;
+    text-wrap: balance;
+  }
+
+  .myteam-reset-notice {
+    padding: 12px 10px;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .myteam-reset-notice ul {
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .myteam-reset-notice li + li {
+    margin-top: 8px;
+  }
+
+  .myteam-reset-actions button {
+    font-size: 14px;
+    text-wrap: balance;
+  }
+}
+
 /* 1. 상단 헤더 & 툴바 */
 .myteam-header {
   display: flex;
@@ -1686,6 +1861,9 @@ html[data-theme='light'] .myteam-match-rules summary span { color: #637083; }
   gap: 10px;
 }
 
+.myteam-opponent-page { display: contents; }
+.myteam-opponent-swipe-hint { display: none; }
+
 .myteam-opponent-club {
   display: flex;
   align-items: center;
@@ -1890,7 +2068,47 @@ html[data-theme='light'] .myteam-match-rules summary span { color: #637083; }
   }
 
   .myteam-opponent-grid {
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    padding: 4px 0 12px;
+  }
+
+  .myteam-opponent-page {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    flex: 0 0 100%;
+    min-width: 0;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .myteam-opponent-page .myteam-opponent-club {
+    position: relative;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    min-height: 140px;
+    padding: 16px 10px;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+
+  .myteam-opponent-page .myteam-opponent-check {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+  }
+
+  .myteam-opponent-page .myteam-opponent-club:focus-visible {
+    outline-offset: -4px;
+  }
+
+  .myteam-opponent-swipe-hint {
+    display: block;
+    font-size: 12px;
   }
 }
 

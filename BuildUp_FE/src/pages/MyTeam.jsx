@@ -604,6 +604,8 @@ export default function MyTeam() {
   const [selectedSlotId, setSelectedSlotId] = useState(null);
   const [mobilePickerOpen, setMobilePickerOpen] = useState(false);
   const playerPickerRef = useRef(null);
+  const resetDialogRef = useRef(null);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const RosterContainer = mobilePickerOpen ? 'dialog' : 'div';
 
   const closePlayerPicker = () => {
@@ -622,6 +624,18 @@ export default function MyTeam() {
       document.body.style.overflow = previousOverflow;
     };
   }, [mobilePickerOpen]);
+
+  useEffect(() => {
+    if (!resetDialogOpen) return;
+    const dialog = resetDialogRef.current;
+    dialog.showModal();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      dialog.close();
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [resetDialogOpen]);
 
   // 드래그 앤 드롭 중 대상 슬롯 하이라이트
   const [dragOverSlotId, setDragOverSlotId] = useState(null);
@@ -1556,11 +1570,10 @@ export default function MyTeam() {
 
   // 스쿼드 전체 초기화
   const handleResetSquad = () => {
-    if (window.confirm('현재 필드에 배치된 모든 선수를 비우시겠습니까?')) {
-      setSlots((prev) => prev.map((s) => ({ ...s, player: null })));
-      setSelectedSlotId(null);
-      showToast('스쿼드가 초기화되었습니다.');
-    }
+    setSlots((prev) => prev.map((s) => ({ ...s, player: null })));
+    setSelectedSlotId(null);
+    setResetDialogOpen(false);
+    showToast('스쿼드가 초기화되었습니다.');
   };
 
   // 포지션 상관 없이 자동 완성 (Auto-Fill)
@@ -1800,7 +1813,7 @@ export default function MyTeam() {
               <span className="counter-num">{filledCount} / 11명</span>
             </div>
 
-            <button type="button" className="myteam-btn myteam-btn-secondary" onClick={handleResetSquad} title="스쿼드 초기화">
+            <button type="button" className="myteam-btn myteam-btn-secondary" onClick={() => setResetDialogOpen(true)} title="스쿼드 초기화">
               🗑️ 비우기
             </button>
             <button type="button" className="myteam-btn myteam-btn-secondary" onClick={handleAutoFillSquad} title="스쿼드 자동 채우기">
@@ -2329,8 +2342,11 @@ export default function MyTeam() {
                         {selectedOpponentClub ? `✓ ${selectedOpponentClub.teamNameKor || selectedOpponentClub.teamName} 선택됨` : '아래 구단 카드를 선택해주세요'}
                       </span>
                     </div>
-                    <div className="myteam-opponent-grid" role="group" aria-label="상대 구단 선택">
-                      {loading ? <p>구단 목록을 불러오는 중입니다...</p> : teams.length === 0 ? <p>선택 가능한 구단이 없습니다.</p> : teams.map((team) => {
+                    {!loading && teams.length > 2 && <p className="myteam-opponent-swipe-hint">좌우로 넘겨 상대 구단을 선택하세요 ↔</p>}
+                    <div className="myteam-opponent-grid" role="group" aria-label="상대 구단 선택" tabIndex={0}>
+                      {loading ? <p>구단 목록을 불러오는 중입니다...</p> : teams.length === 0 ? <p>선택 가능한 구단이 없습니다.</p> : Array.from({ length: Math.ceil(teams.length / 2) }, (_, pageIndex) => (
+                        <div className="myteam-opponent-page" key={pageIndex}>
+                        {teams.slice(pageIndex * 2, pageIndex * 2 + 2).map((team) => {
                         const selected = String(team.teamId) === opponentClubId;
                         return (
                           <button type="button" key={team.teamId} className="myteam-opponent-club"
@@ -2343,7 +2359,9 @@ export default function MyTeam() {
                             <span className="myteam-opponent-check" aria-hidden="true">{selected ? '✓' : '+'}</span>
                           </button>
                         );
-                      })}
+                        })}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -2509,6 +2527,32 @@ export default function MyTeam() {
         </div>
 
       </div>
+
+      <dialog ref={resetDialogRef} className="myteam-reset-dialog"
+        aria-labelledby="myteam-reset-title" aria-describedby="myteam-reset-description"
+        onCancel={(event) => { event.preventDefault(); setResetDialogOpen(false); }}>
+        <div className="myteam-reset-icon" aria-hidden="true">🗑️</div>
+        <span className="myteam-reset-badge">SQUAD RESET</span>
+        <h2 id="myteam-reset-title">스쿼드 비우기 안내</h2>
+        <div className="myteam-reset-info">
+          <p className="myteam-reset-team">현재 팀: {teamName.trim() || '나만의 드림 스쿼드'}</p>
+          <p id="myteam-reset-description"><span className="myteam-reset-copy-line">현재 필드에 배치된 선수 {filledCount}명을</span>{' '}<span className="myteam-reset-copy-line">모두 제외하시겠습니까?</span></p>
+          <div className="myteam-reset-notice">
+            <strong>💡 비우기 전 확인해주세요</strong>
+            <ul>
+              <li><span className="myteam-reset-copy-line">팀 이름과 포메이션, 필드의 위치는</span>{' '}<span className="myteam-reset-copy-line">유지됩니다.</span></li>
+              <li><span className="myteam-reset-copy-line">비우기 후 원하는 선수를</span>{' '}<span className="myteam-reset-copy-line">다시 배치할 수 있습니다.</span></li>
+            </ul>
+          </div>
+        </div>
+        <div className="myteam-reset-actions">
+          <button type="button" className="myteam-reset-keep" autoFocus
+            onClick={() => setResetDialogOpen(false)}>⚽ 현재 스쿼드 유지</button>
+          <button type="button" className="myteam-reset-confirm"
+            onClick={handleResetSquad}>🗑️ 스쿼드 비우기</button>
+        </div>
+        <button type="button" className="myteam-reset-close" onClick={() => setResetDialogOpen(false)}>닫기</button>
+      </dialog>
 
       {/* 토스트 알림 메시지 */}
       {toastMessage && (
