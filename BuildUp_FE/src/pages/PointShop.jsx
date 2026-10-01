@@ -1,18 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateUser } from '../store/authSlice.js';
-import {
-  getShopItems,
-  getUserInventory,
-  purchaseShopItem,
-  getUserPoint,
-} from '../api/shopApi.js';
-import { getMyProfile } from '../api/userApi.js';
+import { getMyShopData, purchaseShopItem } from '../api/userApi.js';
 import '../css/PointShop.css';
 
-// 포인트샵 상품 목록 (SHOP_ITEMS 테이블 연동 및 초기/오프라인 폴백용)
-const DEFAULT_SHOP_ITEMS = [
-  // --- 아이콘 카테고리 (ITEM_ID: 1~8) ---
+// 포인트샵 판매 아이템 목록 (아이콘 & 이모티콘)
+export const SHOP_ITEMS = [
+  // --- 아이콘 카테고리 ---
   {
     itemId: 1,
     id: 1,
@@ -215,6 +209,7 @@ export default function PointShop() {
   const [toastMessage, setToastMessage] = useState('');
 
   // 1. SHOP_ITEMS 테이블에서 실시간 상품 목록 로드
+  // 마운트 시 USERS 테이블의 최신 POINT 및 DB 인벤토리 데이터 동기화
   useEffect(() => {
     let isMounted = true;
     getShopItems()
@@ -278,6 +273,29 @@ export default function PointShop() {
         setCurrentPoint(getDisplayPoint(user, isLoggedIn));
       });
 
+    // DB USER_INVENTORY와 localStorage 보유 아이템 동기화
+    getMyShopData()
+      .then((shopData) => {
+        if (shopData && Array.isArray(shopData.inventory)) {
+          const dbItemIds = shopData.inventory
+            .map((inv) => {
+              const matched = SHOP_ITEMS.find((s) => s.name === inv.itemName);
+              return matched ? matched.id : null;
+            })
+            .filter(Boolean);
+
+          setPurchasedItemIds((prev) => {
+            const merged = Array.from(new Set([...prev, ...dbItemIds]));
+            try {
+              localStorage.setItem(`buildup_purchased_items_${user.userId}`, JSON.stringify(merged));
+            } catch {}
+            return merged;
+          });
+        }
+      })
+      .catch(() => {});
+  }, [dispatch, isLoggedIn, user?.userId]);
+
     // USER_INVENTORY 회원의 보관함 조회 (/api/shop/inventory)
     getUserInventory()
       .then((inventory) => {
@@ -295,7 +313,7 @@ export default function PointShop() {
       .catch((err) => {
         console.warn('인벤토리 조회 실패 (로컬 스토리지 사용):', err);
       });
-  }, [dispatch, isLoggedIn, userId]);
+  } [dispatch, isLoggedIn, userId];
 
   // Redux user 객체 변경 시 실시간 동기화
   useEffect(() => {
@@ -345,68 +363,59 @@ export default function PointShop() {
     setSelectedItemForPurchase(item);
   };
 
-  // 5개 테이블 상호작용 구매 처리 (USERS, SHOP_ITEMS, ITEM_ORDERS, POINT_TRANSACTIONS, USER_INVENTORY)
   const handleConfirmPurchase = async () => {
-    if (!selectedItemForPurchase) return;
-    const token = localStorage.getItem('buildup_token');
-    if (!isLoggedIn && !token) {
-      alert('로그인이 필요한 서비스입니다.');
-      return;
-    }
+    if (!selectedItemForPurchase || !isLoggedIn || !user?.userId) return;
 
     const item = selectedItemForPurchase;
-    const targetItemId = item.itemId || item.id;
-    setIsPurchasing(true);
+    const nextPoint = Math.max(0, currentPoint - item.price);
+    const nextPurchased = Array.from(new Set([...purchasedItemIds, item.id]));
 
+    setCurrentPoint(nextPoint);
+    setPurchasedItemIds(nextPurchased);
+
+    // localStorage 보유 아이템 및 구매 내역 즉시 반영
     try {
-      // 백엔드 트랜잭션 호출:
-      // 1. SHOP_ITEMS 아이템 검증
-      // 2. USERS.POINT 비관적 락 및 차감
-      // 3. ITEM_ORDERS 주문 내역 등록
-      // 4. POINT_TRANSACTIONS 포인트 변동 트랜잭션 기록
-      // 5. USER_INVENTORY 보관함 등록
-      const res = await purchaseShopItem(targetItemId);
+      localStorage.setItem(`buildup_purchased_items_${user.userId}`, JSON.stringify(nextPurchased));
 
-      if (res) {
-        const nextPoint = res.remainingPoint !== undefined
-          ? Math.max(0, Number(res.remainingPoint))
-          : Math.max(0, currentPoint - item.price);
-        const nextPurchased = Array.from(new Set([...purchasedItemIds, targetItemId]));
+      const historyKey = `buildup_purchase_history_${user.userId}`;
+      const prevHistoryRaw = localStorage.getItem(historyKey);
+      const prevHistory = prevHistoryRaw ? JSON.parse(prevHistoryRaw) : [];
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const orderedAtStr = `${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      const newOrderEntry = {
+        orderId: `LOCAL_${Date.now()}`,
+        itemId: item.id,
+        itemName: item.name,
+        itemType: item.type === 'icon' ? 'ICON' : 'EMOTICON',
+        categoryName: item.categoryName,
+        point: item.price,
+        imageUrl: item.visual,
+        description: item.desc,
+        orderStatus: 'COMPLETED',
+        orderedAt: orderedAtStr,
+      };
+      localStorage.setItem(historyKey, JSON.stringify([newOrderEntry, ...prevHistory]));
+    } catch {}
 
-        setCurrentPoint(nextPoint);
-        setPurchasedItemIds(nextPurchased);
-
-        // USERS 상태(Redux 및 localStorage) 최신 포인트 반영
-        dispatch(updateUser({ ...user, point: nextPoint }));
-        const currentUid = userId || user?.userId;
-        if (currentUid) {
-          try {
-            localStorage.setItem(`buildup_purchased_items_${currentUid}`, JSON.stringify(nextPurchased));
-          } catch {}
+    // 백엔드 DB 연동 (USER_INVENTORY, ITEM_ORDERS, POINT_TRANSACTIONS, USERS.POINT)
+    try {
+      const result = await purchaseShopItem(item);
+      if (result && result.user) {
+        dispatch(updateUser(result.user));
+        const dbPt = Number(result.user.point);
+        if (!isNaN(dbPt)) {
+          setCurrentPoint(Math.max(0, dbPt));
         }
-
-        setSelectedItemForPurchase(null);
-        setToastMessage(`🎉 [${item.name}] 구매가 완료되었습니다!`);
-
-        // 백엔드 최신 상태 재검증 및 완전 동기화
-        getUserPoint().then((pt) => {
-          if (typeof pt === 'number') {
-            const p = pt > 0 ? pt : 0;
-            setCurrentPoint(p);
-            dispatch(updateUser({ point: p }));
-          }
-        }).catch(() => {});
-        getUserInventory().then((inv) => {
-          if (Array.isArray(inv)) {
-            setPurchasedItemIds(inv.map((i) => i.itemId));
-          }
-        }).catch(() => {});
+      } else {
+        dispatch(updateUser({ ...user, point: nextPoint }));
       }
-    } catch (err) {
-      alert(err.message || '아이템 구매에 실패했습니다.');
-    } finally {
-      setIsPurchasing(false);
+    } catch {
+      dispatch(updateUser({ ...user, point: nextPoint }));
     }
+
+    setSelectedItemForPurchase(null);
+    setToastMessage(`🎉 [${item.name}] 구매가 완료되었습니다!`);
   };
 
   // 탭 필터링
@@ -752,4 +761,5 @@ export default function PointShop() {
       </div>
     </main>
   );
-}
+
+

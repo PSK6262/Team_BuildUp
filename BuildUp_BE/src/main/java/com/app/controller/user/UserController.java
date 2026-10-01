@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -166,6 +167,53 @@ public class UserController {
 
 		List<PointHistory> histories = userService.getUserPointHistories(user.getUserId());
 		return ApiResponse.success(histories);
+	}
+
+	/**
+	 * 마이페이지 & 포인트샵: 본인 보유 아이템 및 구매 내역 조회
+	 */
+	@GetMapping("/me/shop")
+	public ApiResponse<Map<String, Object>> getMyShopData(HttpServletRequest request) {
+		String loginId = resolveLoginId(request);
+		if (loginId == null) {
+			return ApiResponse.error(ResultCode.UNAUTHORIZED);
+		}
+
+		Users user = userDAO.selectUserByLoginId(loginId);
+		if (user == null) {
+			return ApiResponse.error(ResultCode.USER_NOT_FOUND);
+		}
+
+		Map<String, Object> shopData = userService.getUserShopData(user.getUserId());
+		return ApiResponse.success(shopData);
+	}
+
+	/**
+	 * 포인트샵 아이템 구매 처리 (USER_INVENTORY, ITEM_ORDERS, POINT_TRANSACTIONS, POINT_HISTORY, USERS.POINT 연동)
+	 */
+	@PostMapping("/me/shop/purchase")
+	public ApiResponse<Map<String, Object>> purchaseShopItem(
+			@RequestBody Map<String, Object> itemRequest,
+			HttpServletRequest request) {
+		String loginId = resolveLoginId(request);
+		if (loginId == null) {
+			return ApiResponse.error(ResultCode.UNAUTHORIZED);
+		}
+
+		Users user = userDAO.selectUserByLoginId(loginId);
+		if (user == null) {
+			return ApiResponse.error(ResultCode.USER_NOT_FOUND);
+		}
+
+		try {
+			Map<String, Object> result = userService.purchaseShopItem(user.getUserId(), itemRequest);
+			return ApiResponse.success(result);
+		} catch (IllegalArgumentException e) {
+			return ApiResponse.error(ResultCode.INVALID_INPUT, e.getMessage());
+		} catch (Exception e) {
+			log.error("[UserController] 포인트샵 아이템 구매 오류: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL);
+		}
 	}
 
 	/**

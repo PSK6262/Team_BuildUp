@@ -327,4 +327,194 @@
 		FETCH FIRST 5 ROWS ONLY
 	</select>
 
+	<!-- ========================================================
+	     [포인트샵 보유 아이템(USER_INVENTORY) 및 구매 내역(ITEM_ORDERS)]
+	     ======================================================== -->
+
+	<!-- 회원 탈퇴: 포인트샵 거래 내역 삭제 -->
+	<delete id="deletePointTransactionsByUserId" parameterType="long">
+		DELETE FROM POINT_TRANSACTIONS
+		WHERE USER_ID = #{userId}
+	</delete>
+
+	<!-- 회원 탈퇴: 포인트샵 주문 내역 삭제 -->
+	<delete id="deleteItemOrdersByUserId" parameterType="long">
+		DELETE FROM ITEM_ORDERS
+		WHERE USER_ID = #{userId}
+	</delete>
+
+	<!-- 회원 탈퇴: 포인트샵 인벤토리 삭제 -->
+	<delete id="deleteUserInventoryByUserId" parameterType="long">
+		DELETE FROM USER_INVENTORY
+		WHERE USER_ID = #{userId}
+	</delete>
+
+	<!-- SHOP_ITEMS 총 개수 확인 -->
+	<select id="countShopItems" resultType="int">
+		SELECT COUNT(*) FROM SHOP_ITEMS
+	</select>
+
+	<!-- SHOP_ITEMS 기본 상품 등록 -->
+	<insert id="insertShopItem" parameterType="map">
+		INSERT INTO SHOP_ITEMS (
+			ITEM_TYPE,
+			ITEM_NAME,
+			DESCRIPTION,
+			POINT,
+			IMAGE_URL,
+			IS_ACTIVE,
+			CREATED_AT
+		) VALUES (
+			#{itemType},
+			#{itemName},
+			#{description},
+			#{point},
+			#{imageUrl},
+			'Y',
+			SYSDATE
+		)
+	</insert>
+
+	<!-- 상품명으로 SHOP_ITEMS 단건 조회 -->
+	<select id="selectShopItemByName" parameterType="string" resultType="map">
+		SELECT
+			ITEM_ID AS "itemId",
+			ITEM_TYPE AS "itemType",
+			ITEM_NAME AS "itemName",
+			DESCRIPTION AS "description",
+			POINT AS "point",
+			IMAGE_URL AS "imageUrl"
+		FROM SHOP_ITEMS
+		WHERE ITEM_NAME = #{itemName}
+		FETCH FIRST 1 ROWS ONLY
+	</select>
+
+	<!-- 회원이 보유한 포인트샵 아이템 목록 조회 -->
+	<select id="selectUserInventoryByUserId" parameterType="long" resultType="map">
+		SELECT
+			ui.INVENTORY_ID AS "inventoryId",
+			ui.ITEM_ID AS "itemId",
+			si.ITEM_TYPE AS "itemType",
+			si.ITEM_NAME AS "itemName",
+			si.DESCRIPTION AS "description",
+			si.POINT AS "point",
+			si.IMAGE_URL AS "imageUrl",
+			ui.IS_EQUIPPED AS "isEquipped",
+			TO_CHAR(ui.PURCHASED_AT, 'YYYY-MM-DD HH24:MI') AS "purchasedAt"
+		FROM USER_INVENTORY ui
+		JOIN SHOP_ITEMS si ON si.ITEM_ID = ui.ITEM_ID
+		WHERE ui.USER_ID = #{userId}
+		ORDER BY ui.PURCHASED_AT DESC, ui.INVENTORY_ID DESC
+	</select>
+
+	<!-- 회원의 포인트샵 구매 내역 목록 조회 -->
+	<select id="selectUserItemOrdersByUserId" parameterType="long" resultType="map">
+		SELECT
+			io.ORDER_ID AS "orderId",
+			io.ITEM_ID AS "itemId",
+			si.ITEM_TYPE AS "itemType",
+			si.ITEM_NAME AS "itemName",
+			si.DESCRIPTION AS "description",
+			io.POINT AS "point",
+			si.IMAGE_URL AS "imageUrl",
+			io.ORDER_STATUS AS "orderStatus",
+			TO_CHAR(io.ORDERED_AT, 'YYYY-MM-DD HH24:MI') AS "orderedAt"
+		FROM ITEM_ORDERS io
+		JOIN SHOP_ITEMS si ON si.ITEM_ID = io.ITEM_ID
+		WHERE io.USER_ID = #{userId}
+		ORDER BY io.ORDERED_AT DESC, io.ORDER_ID DESC
+	</select>
+
+	<!-- 회원 아이템 보유 여부 확인 -->
+	<select id="countUserInventoryItem" parameterType="map" resultType="int">
+		SELECT COUNT(*)
+		FROM USER_INVENTORY
+		WHERE USER_ID = #{userId}
+		AND ITEM_ID = #{itemId}
+	</select>
+
+	<!-- 포인트 차감 -->
+	<update id="deductUserPoint" parameterType="map">
+		UPDATE USERS
+		SET
+			POINT = POINT - #{price},
+			UPDATED_AT = SYSTIMESTAMP
+		WHERE USER_ID = #{userId}
+		AND POINT &gt;= #{price}
+	</update>
+
+	<!-- 회원 인벤토리 아이템 등록 -->
+	<insert id="insertUserInventory" parameterType="map">
+		INSERT INTO USER_INVENTORY (
+			USER_ID,
+			ITEM_ID,
+			IS_EQUIPPED,
+			PURCHASED_AT
+		) VALUES (
+			#{userId},
+			#{itemId},
+			'N',
+			SYSDATE
+		)
+	</insert>
+
+	<!-- 포인트샵 주문 내역 등록 -->
+	<insert id="insertItemOrder" parameterType="map">
+		INSERT INTO ITEM_ORDERS (
+			ORDER_ID,
+			USER_ID,
+			ITEM_ID,
+			POINT,
+			ORDER_STATUS,
+			ORDERED_AT
+		) VALUES (
+			#{orderId},
+			#{userId},
+			#{itemId},
+			#{point},
+			'COMPLETED',
+			SYSDATE
+		)
+	</insert>
+
+	<!-- 포인트샵 거래 원장(POINT_TRANSACTIONS) 등록 -->
+	<insert id="insertPointTransaction" parameterType="map">
+		INSERT INTO POINT_TRANSACTIONS (
+			USER_ID,
+			TX_TYPE,
+			AMOUNT,
+			BALANCE_AFTER,
+			ORDER_ID,
+			DESCRIPTION,
+			CREATED_AT
+		) VALUES (
+			#{userId},
+			'SPEND',
+			#{amount},
+			#{balanceAfter},
+			#{orderId},
+			#{description},
+			SYSDATE
+		)
+	</insert>
+
+	<!-- 포인트 변동 이력(POINT_HISTORY) 등록 -->
+	<insert id="insertShopPointHistory" parameterType="map">
+		INSERT INTO POINT_HISTORY (
+			USER_ID,
+			PREDICTION_ID,
+			AMOUNT,
+			BALANCE_AFTER,
+			CREATED_AT,
+			DESCRIPTION
+		) VALUES (
+			#{userId},
+			NULL,
+			#{amount},
+			#{balanceAfter},
+			SYSTIMESTAMP,
+			#{description}
+		)
+	</insert>
+
 </mapper>
