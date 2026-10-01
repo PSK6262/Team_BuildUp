@@ -93,6 +93,7 @@ export default function ChatbotWidget() {
   const [position, setPosition] = useState(initialPosition)
   const [panelOffset, setPanelOffset] = useState({ x: 0, y: 0 })
   const [viewport, setViewport] = useState({ width: window.innerWidth, height: window.innerHeight })
+  const isMobile = viewport.width <= 680
   const [open, setOpen] = useState(false)
   const [question, setQuestion] = useState('')
   const [messages, setMessages] = useState([
@@ -128,6 +129,7 @@ export default function ChatbotWidget() {
   }, [messages, loading, open])
 
   const onPointerDown = (event) => {
+    if (isMobile) { ignoreClick.current = false; return }
     if (event.button !== 0) return
     ignoreClick.current = false
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -144,6 +146,7 @@ export default function ChatbotWidget() {
   }
 
   const onPointerMove = (event) => {
+    if (isMobile) return
     const current = drag.current
     if (!current || current.pointerId !== event.pointerId) return
     const dx = event.clientX - current.startX
@@ -161,6 +164,7 @@ export default function ChatbotWidget() {
   }
 
   const onPointerUp = (event) => {
+    if (isMobile) { drag.current = null; return }
     const current = drag.current
     if (!current || current.pointerId !== event.pointerId) return
     if (current.moved) {
@@ -270,6 +274,7 @@ export default function ChatbotWidget() {
 
   // 열린 창의 제목 표시줄을 끌면 창을 화면 안에서 이동합니다.
   const onPanelPointerDown = (event) => {
+    if (isMobile) return
     if (event.button !== 0 || event.target.closest('button')) return
     event.currentTarget.setPointerCapture(event.pointerId)
     panelDrag.current = {
@@ -284,6 +289,7 @@ export default function ChatbotWidget() {
   }
 
   const movePanel = (event) => {
+    if (isMobile) return
     const current = panelDrag.current
     if (!current || current.pointerId !== event.pointerId) return
     return moveTogether(current, event.clientX - current.startX, event.clientY - current.startY)
@@ -304,7 +310,7 @@ export default function ChatbotWidget() {
   return <>
     {open && <section
       className="chatbot-widget__panel"
-      style={{ left: panelLeft, top: panelTop, width: panelWidth, height: panelHeight }}
+      style={isMobile ? undefined : { left: panelLeft, top: panelTop, width: panelWidth, height: panelHeight }}
       aria-label="EPL 챗봇"
     >
       <header
@@ -352,7 +358,7 @@ export default function ChatbotWidget() {
     <button
       type="button"
       className="chatbot-widget__launcher"
-      style={{ left: position.x, top: position.y }}
+      style={isMobile ? undefined : { left: position.x, top: position.y }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}

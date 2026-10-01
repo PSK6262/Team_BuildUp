@@ -440,7 +440,7 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 				: "";
 		// 주장 정보는 선수 명단이나 모델의 과거 지식만으로 확인할 수 없습니다.
 		boolean captainQuestion = Pattern.compile("주장|captain", Pattern.CASE_INSENSITIVE)
-				.matcher(trimmedQuestion + " " + previousUserQuestion(conversationContext)).find();
+				.matcher(trimmedQuestion).find();
 		String captainInstruction = captainQuestion
 				? "주장·부주장은 반드시 구단 또는 리그 공식 발표를 검색해서 확인하세요. "
 					+ "시점을 명시하지 않은 질문은 아래 기준일 현재를 뜻합니다. 과거 주장 임명 기사를 현재 정보로 사용하지 마세요. "
@@ -472,8 +472,12 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 			try {
 				groundedResult = callGeminiWithSearch(prompt);
 			} catch (Exception searchException) {
+				// 응답 본문·API 키 대신 원인 분류만 남겨 연결 문제를 구분합니다.
+				String searchFailure = describeSearchFailure(searchException);
+				java.util.logging.Logger.getLogger(GeminiApiServiceImpl.class.getName())
+						.warning("[Gemini chat] " + searchFailure);
 				if (captainQuestion) {
-					return "현재 검색에 연결하지 못해 주장 정보를 확인할 수 없습니다. 잠시 후 다시 질문해주세요.";
+					return "주장 정보를 검색으로 확인하지 못했습니다. " + searchFailure;
 				}
 				log.warn("[Gemini chat] Google 검색 연동 실패, 일반 답변으로 재시도: {}",
 						searchException.getClass().getSimpleName());
@@ -500,6 +504,20 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		}
 	}
 
+	private String describeSearchFailure(Throwable exception) {
+		for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
+			String message = String.valueOf(cause.getMessage());
+			if (message.contains("HTTP 429")) return "[SEARCH_QUOTA] 검색 API 사용 한도에 도달했습니다.";
+			if (message.contains("HTTP 403") || message.contains("HTTP 401")) return "[SEARCH_AUTH] 검색 API 인증 또는 접근 권한을 확인해야 합니다.";
+			if (message.contains("HTTP 404")) return "[SEARCH_MODEL] 설정된 검색 모델을 사용할 수 없습니다.";
+			if (message.contains("HTTP 400")) return "[SEARCH_REQUEST] 검색 요청 설정을 API가 거절했습니다.";
+			if (message.contains("유효한 gemini.api.key")) return "[SEARCH_CONFIG] 서버의 Gemini API 키 설정이 필요합니다.";
+			if (cause instanceof java.net.http.HttpTimeoutException || message.contains("타임아웃")) return "[SEARCH_TIMEOUT] 검색 서버의 응답 시간이 초과되었습니다.";
+			if (cause instanceof java.io.IOException && !(cause instanceof com.fasterxml.jackson.core.JsonProcessingException)) return "[SEARCH_NETWORK] 서버에서 검색 API에 연결하지 못했습니다.";
+		}
+		return "[SEARCH_FAILED] 검색 요청이 실패했습니다. 서버의 Gemini API 설정을 확인해야 합니다.";
+	}
+
 	private long[] parseScore(String text) {
 		if (text == null) return null;
 		Matcher matcher = SCORE_PATTERN.matcher(text);
@@ -515,8 +533,14 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		boolean resultDetail = question.contains("누가 이겼") || question.contains("승리 팀")
 				|| question.contains("승리팀") || question.contains("이긴 팀")
 				|| question.contains("몇 대 몇") || question.contains("몇대몇");
-		boolean timeFollowUp = conversationContext != null && question.contains("언제")
-				&& !question.contains("다음") && !question.contains("예정");
+		// '언제'만으로 창단·이적·생일 질문을 경기 후속 질문으로 바꾸지 않습니다.
+		String previousQuestion = previousUserQuestion(conversationContext);
+		boolean previousMatchQuestion = previousQuestion.contains("경기")
+				|| parseScore(previousQuestion) != null || isScoringEventQuestion(previousQuestion);
+		boolean explicitMatchTime = question.contains("경기")
+				&& (question.contains("언제 했") || question.contains("언제 열린") || question.contains("언제 열렸"));
+		boolean shortTimeFollowUp = question.matches("\\s*(?:그럼\\s*)?언제(?:야|였어|였지|인데|했어|했지)?[?？! .]*");
+		boolean timeFollowUp = explicitMatchTime || (previousMatchQuestion && shortTimeFollowUp);
 		boolean matchFollowUp = scoringDetail || resultDetail || timeFollowUp;
 		if (!matchFollowUp) return question;
 		if (KOREAN_DATE_PATTERN.matcher(question).find() || ISO_DATE_PATTERN.matcher(question).find()) {
