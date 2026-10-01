@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { silentRefresh, logout, isTokenExpired } from './store/authSlice.js'
+import { silentRefresh, logout, isTokenExpired, recordUserActivity } from './store/authSlice.js'
 import AllUseNav from './pages/AllUseNav.jsx'
 import { communityTeams } from './data/communityTeams.js'
 import GlobalFooter from './components/GlobalFooter.jsx'
@@ -32,6 +32,7 @@ function App() {
   const dispatch = useDispatch()
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn)
   const lastRefreshTimeRef = useRef(0)
+  const lastActivityWriteRef = useRef(0)
 
   const pathname = window.location.pathname.replace(/\/$/, '')
   const isMainPage = !pathname || pathname === '' || pathname === '/plug' || pathname === '/plug/mainpage'
@@ -47,39 +48,94 @@ function App() {
   // 커뮤니티 구단별 게시판 라우팅
   const commuTeam = communityTeams.find((item) => pathname === `/plug/community/teams/${item.slug}`)
 
-  // 1. 슬라이딩 세션 자동 연장: 접속 또는 페이지 이동 시 토큰 유효기간을 30분으로 자동 갱신
+  // 1. 최초 진입 및 페이지 이동 시: 만료 여부 및 서버 재시작 여부 즉시 검증 + 슬라이딩 세션 갱신
   useEffect(() => {
     if (!isLoggedIn) return
 
     const token = localStorage.getItem('buildup_token')
-    if (!token) return
-
-    // 30분 이상 미활동으로 이미 만료된 경우 자동 로그아웃
-    if (isTokenExpired(token)) {
+    if (!token || isTokenExpired(token)) {
+      fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {})
       dispatch(logout())
       return
     }
 
-    const now = Date.now()
-    // 60초 이내 중복 리프레시 요청 방지 (과도한 네트워크 호출 방지)
-    if (now - lastRefreshTimeRef.current < 60000) return
-
-    lastRefreshTimeRef.current = now
+    recordUserActivity()
+    lastRefreshTimeRef.current = Date.now()
     dispatch(silentRefresh())
   }, [ dispatch, isLoggedIn, pathname ])
 
-  // 2. 미활동 장시간 방치 감지: 탭을 열어두고 30분 이상 방치 시 자동 만료 처리
+  // 2. 30분 타 탭/창 방치 자동 로그아웃 & 사용자 활동 감지 및 포커스 복귀 시 서버 재기동 체크
   useEffect(() => {
     if (!isLoggedIn) return
 
-    const interval = setInterval(() => {
+    const expireSessionNow = () => {
+      fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {})
+      dispatch(logout())
+    }
+
+    // 사용자 입력(마우스/키보드/스크롤/터치) 시 만료 여부를 먼저 확인한 뒤 활동 시각 갱신
+    const handleUserActivity = () => {
+      const now = Date.now()
+      if (now - lastActivityWriteRef.current < 10000) return
+
       const token = localStorage.getItem('buildup_token')
-      if (token && isTokenExpired(token)) {
+      if (!token || isTokenExpired(token)) {
+        expireSessionNow()
+        return
+      }
+
+      lastActivityWriteRef.current = now
+      recordUserActivity()
+
+      // 활동 중인 경우 5분 주기로 백엔드 JWT 만료시간(30분) 슬라이딩 연장
+      if (now - lastRefreshTimeRef.current >= 5 * 60 * 1000) {
+        lastRefreshTimeRef.current = now
+        dispatch(silentRefresh())
+      }
+    }
+
+    // 다른 곳(다른 탭/프로그램/IDE)에 있다가 브라우저로 돌아왔을 때 즉시 검사
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'hidden') return
+      const token = localStorage.getItem('buildup_token')
+      if (!token || isTokenExpired(token)) {
+        expireSessionNow()
+        return
+      }
+      const now = Date.now()
+      if (now - lastRefreshTimeRef.current >= 3000) {
+        lastRefreshTimeRef.current = now
+        dispatch(silentRefresh())
+      }
+    }
+
+    // 다른 탭에서 로그아웃된 경우 동기화
+    const handleStorageChange = (e) => {
+      if (e.key === 'buildup_token' && !e.newValue) {
         dispatch(logout())
       }
-    }, 30000) // 30초마다 세션 만료 체크
+    }
 
-    return () => clearInterval(interval)
+    const interval = setInterval(() => {
+      const token = localStorage.getItem('buildup_token')
+      if (!token || isTokenExpired(token)) {
+        expireSessionNow()
+      }
+    }, 15000) // 15초마다 30분 미활동 만료 여부 점검
+
+    const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove']
+    activityEvents.forEach((evt) => window.addEventListener(evt, handleUserActivity, { passive: true }))
+    window.addEventListener('focus', handleVisibilityOrFocus)
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus)
+    window.addEventListener('storage', handleStorageChange)
+
+    return () => {
+      clearInterval(interval)
+      activityEvents.forEach((evt) => window.removeEventListener(evt, handleUserActivity))
+      window.removeEventListener('focus', handleVisibilityOrFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus)
+      window.removeEventListener('storage', handleStorageChange)
+    }
   }, [ dispatch, isLoggedIn ])
 
   return (

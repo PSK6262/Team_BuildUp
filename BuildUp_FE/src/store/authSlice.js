@@ -1,9 +1,24 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 
-// JWT 토큰 유효기간 만료 여부 판별 (만료되었거나 손상된 경우 true 반환)
+// 30분(1,800,000ms) 동안 활동이 없으면 자동 로그아웃
+export const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000
+
+// 사용자 활동 시각 기록
+export function recordUserActivity() {
+  localStorage.setItem('buildup_last_activity', String(Date.now()))
+}
+
+// JWT 토큰 유효기간 만료 또는 30분 미활동 여부 판별 (만료되었거나 손상된 경우 true 반환)
 export function isTokenExpired(token) {
   if (!token) return true
   try {
+    // 1. 마지막 활동 시각 기준 30분 경과 여부 확인 (다른 탭/창 방치 감지)
+    const lastActivity = Number(localStorage.getItem('buildup_last_activity') || 0)
+    if (lastActivity > 0 && Date.now() - lastActivity >= INACTIVITY_TIMEOUT_MS) {
+      return true
+    }
+
+    // 2. JWT 자체 만료 시각(exp) 확인
     const parts = token.split('.')
     if (parts.length < 2) return true
     const base64Url = parts[1]
@@ -24,13 +39,14 @@ export function isTokenExpired(token) {
 }
 
 // 새로고침 시에도 로그인이 풀리지 않도록 localStorage에서 초기 상태 복원
-// 단, 토큰이 만료되었거나 누락된 경우 오래된 세션 정보를 자동 정리하여 불필요한 인증 오류 방지
+// 단, 토큰이 만료되었거나 30분 이상 미활동인 경우 오래된 세션 정보를 자동 정리
 const savedUser = (() => {
   try {
     const token = localStorage.getItem('buildup_token')
     if (!token || isTokenExpired(token)) {
       localStorage.removeItem('buildup_token')
       localStorage.removeItem('buildup_user')
+      localStorage.removeItem('buildup_last_activity')
       return null
     }
     const item = localStorage.getItem('buildup_user')
@@ -40,14 +56,17 @@ const savedUser = (() => {
   }
 })()
 
-// 슬라이딩 세션 자동 토큰 갱신 비동기 Thunk (/api/auth/refresh)
+// 슬라이딩 세션 자동 토큰 갱신 및 서버 재기동 검증 비동기 Thunk (/api/auth/refresh)
 export const silentRefresh = createAsyncThunk(
   'auth/silentRefresh',
   async (_, { dispatch, rejectWithValue }) => {
     const token = localStorage.getItem('buildup_token')
-    if (!token) return null
+    if (!token) {
+      dispatch(logout())
+      return null
+    }
 
-    // 이미 만료되었으면 즉시 로그아웃
+    // 이미 만료되었거나 30분 이상 다른 곳에 있어 미활동 상태면 즉시 로그아웃
     if (isTokenExpired(token)) {
       dispatch(logout())
       return rejectWithValue('세션 만료')
@@ -62,20 +81,25 @@ export const silentRefresh = createAsyncThunk(
         },
         credentials: 'include',
       })
-      const json = await res.json()
-      if (res.ok && (json.code === 'SUC_001' || json.status === 'SUCCESS') && json.data?.token) {
+      const json = await res.json().catch(() => null)
+      if (res.ok && json && (json.code === 'SUC_001' || json.status === 'SUCCESS') && json.data?.token) {
         localStorage.setItem('buildup_token', json.data.token)
+        if (!localStorage.getItem('buildup_last_activity')) {
+          recordUserActivity()
+        }
         if (json.data.user) {
           dispatch(loginSuccess(json.data.user))
         }
         return json.data
-      } else if (res.status === 401 || res.status === 403) {
+      } else {
+        // 서버가 재시작되어 bootId가 달라졌거나(REJ_003), 토큰이 무효화된 경우 즉시 로그아웃
         dispatch(logout())
         return rejectWithValue('세션 만료')
       }
     } catch {
-      // 오프라인이거나 일시적 네트워크 에러 시에는 토큰 유효기간 내에서 상태 보존
-      return null
+      // 서버가 종료되었거나 응답 불가 상태인 경우에도 보안상 로그아웃 처리
+      dispatch(logout())
+      return rejectWithValue('서버 연결 만료')
     }
   }
 )
@@ -93,12 +117,16 @@ const authSlice = createSlice({
       if (action.payload) {
         localStorage.setItem('buildup_user', JSON.stringify(action.payload))
       }
+      if (!localStorage.getItem('buildup_last_activity')) {
+        recordUserActivity()
+      }
     },
     logout(state) {
       state.isLoggedIn = false
       state.user = null
       localStorage.removeItem('buildup_user')
       localStorage.removeItem('buildup_token')
+      localStorage.removeItem('buildup_last_activity')
     },
     updateUser(state, action) {
       state.user = { ...state.user, ...action.payload }
