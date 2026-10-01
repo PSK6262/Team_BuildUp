@@ -50,6 +50,7 @@ export default function AllUseNav() {
   const pathname = window.location.pathname.replace(/\/$/, '')
   const isMainPage = !pathname || pathname === '' || pathname === '/plug' || pathname === '/plug/mainpage' || pathname === '/plug/teams'
   const isAdmin = user && Number(user.roleCode) === 9
+  const nickname = user?.nickname?.trim() || '내 계정'
 
   // 외부 클릭 시 모바일 메뉴 닫기 & ESC 키로 닫기
   useEffect(() => {
@@ -169,9 +170,19 @@ export default function AllUseNav() {
               >
                 로그아웃
               </button>
-              <a className="user-nav__primary user-nav__mypage-top" href="/plug/mypage">
-                마이페이지
-              </a>
+              <div className="user-nav__profile">
+                <a className="user-nav__primary user-nav__mypage-top" href="/plug/mypage" aria-label={`${nickname} · 마이페이지`}>
+                  <svg className="user-nav__profile-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+                    <circle cx="12" cy="8" r="3.5" />
+                    <path d="M5 21v-2a7 7 0 0 1 14 0v2" />
+                  </svg>
+                  <span className="user-nav__profile-copy">
+                    <span className="user-nav__nickname">{nickname}</span>
+                    <span className="user-nav__profile-label">마이페이지</span>
+                  </span>
+                </a>
+                <span className="user-nav__nickname-tooltip" aria-hidden="true">{nickname}</span>
+              </div>
             </>
           ) : (
             <>
@@ -203,6 +214,12 @@ export default function AllUseNav() {
         aria-hidden={!isMenuOpen}
       >
         <div className="user-nav__mobile-panel-inner">
+          {isLoggedIn && (
+            <div className="user-nav__mobile-account">
+              <span className="user-nav__mobile-nickname">{nickname}<small>로그인 중</small></span>
+              <button type="button" className="user-nav__logout-btn" onClick={handleLogout}>로그아웃</button>
+            </div>
+          )}
           <div className="user-nav__mobile-grid">
             {links.map(([label, path]) => {
               const active = isLinkActive(path)
