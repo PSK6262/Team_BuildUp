@@ -1369,3 +1369,75 @@ html[data-theme='dark'] .community__vertical-ad { background: #16111f; color: #b
   .community .community__more-search button { min-height: 44px; }
   .community .community__pagination { gap: 6px; }
 }
+
+/* 작성 화면의 게시판 선택 및 첨부 컨트롤 */
+.community .community__write-form fieldset:has(.community__board-choice) {
+  border: 0;
+  padding: 0;
+  gap: 8px;
+}
+.community .community__write-form fieldset:has(.community__board-choice) legend {
+  padding: 0;
+  margin-bottom: 12px;
+}
+.community__board-choice, .community__file-picker { position: relative; }
+.community .community__board-choice input,
+.community .community__file-picker input[type='file'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.community__board-choice > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--community-line);
+  border-radius: 10px;
+  background: var(--community-panel);
+  color: var(--community-muted);
+  cursor: pointer;
+}
+.community__board-choice input:checked + span {
+  border-color: var(--community-purple);
+  background: var(--community-purple);
+  color: var(--community-panel);
+  font-weight: 700;
+}
+.community__board-choice input:focus-visible + span,
+.community__file-picker input:focus-visible + .community__file-trigger {
+  outline: 2px solid var(--community-purple);
+  outline-offset: 3px;
+}
+.community__file-trigger {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-height: 56px;
+  padding: 14px 16px;
+  border: 1px solid var(--community-line);
+  border-radius: 12px;
+  background: var(--community-panel);
+  color: var(--community-text);
+  cursor: pointer;
+}
+.community__file-trigger svg { color: var(--community-purple); flex-shrink: 0; }
+.community__file-trigger small { margin-left: auto; }
+.community__file-picker input:not(:disabled) + .community__file-trigger:hover {
+  border-color: var(--community-purple);
+}
+.community__board-choice input:disabled + span,
+.community__file-picker input:disabled + .community__file-trigger { opacity: .5; cursor: not-allowed; }
+@media (max-width: 480px) {
+  .community__board-choice { flex: 1 1 100%; }
+  .community__board-choice > span { width: 100%; }
+  .community__file-trigger small { flex-basis: 100%; margin-left: 32px; }
+}

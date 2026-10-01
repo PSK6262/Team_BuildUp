@@ -342,7 +342,7 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 					+ next.getHomeTeamName() + " vs " + next.getAwayTeamName() + "입니다.";
 		}
 
-		StringBuilder dbContext = new StringBuilder("DB 조회 시각(한국 시간): ").append(now).append('\n');
+		StringBuilder dbContext = new StringBuilder("DB 기록은 표시된 시즌의 저장값이며, 특정 기준일의 과거 스냅샷이 아닙니다.\n");
 		if (upcoming.isEmpty()) {
 			dbContext.append("확인된 향후 예정 경기 없음\n");
 		} else {
@@ -366,11 +366,7 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 				dbContext.append("- 홈구장: ")
 						.append(team.getHomeGroundKor() != null ? team.getHomeGroundKor() : team.getHomeGround())
 						.append(", 창단: ").append(team.getFoundedYear()).append('\n');
-				if (team.getHistory() != null && !team.getHistory().isBlank()) {
-					dbContext.append("- 소개: ")
-							.append(team.getHistory(), 0, Math.min(team.getHistory().length(), 500))
-							.append('\n');
-				}
+				// 갱신 시점이 없는 소개 문장은 현재 주장·소속의 근거로 전달하지 않습니다.
 				if (stats != null) {
 					dbContext.append("- 시즌 ").append(stats.getSeason())
 						.append(", 순위 ").append(stats.getCurrentRank())
@@ -449,11 +445,15 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 				: "";
 		String prompt = "당신은 잉글랜드 프리미어리그(EPL) 안내 챗봇입니다. "
 				+ "답변의 기본 기준일(한국 시간)은 2026년 8월 21일입니다. "
+				+ "DB 조회일은 데이터 조회 시각일 뿐 답변 기준일이 아닙니다. 둘을 혼합하거나 기준일을 여러 개 제시하지 마세요. "
 				+ "질문에 날짜나 시즌이 없으면 해당 기준일까지 확인된 가장 최신 자료와 결과로 답하세요. "
 				+ "사용자가 이전 날짜, 연도, 시즌 또는 기간을 지정하면 기본 기준일보다 사용자가 지정한 시점을 우선하세요. "
 				+ "과거 질문은 그 시점의 소속, 주장, 경기 결과와 기록을 확인하고 현재 정보로 대체하지 마세요. "
 				+ "자료 발표일과 실제 사건 날짜를 구분하고, 답변 대상 시점 이후의 변경 사항을 그 시점의 사실로 사용하지 마세요. "
-				+ "답변에는 적용한 기준 날짜 또는 시즌을 명시하고, 근거가 부족하면 추측하지 마세요. "
+				+ "날짜가 중요한 질문에만 기준 날짜를 명시하고, DB 기록은 그 기록의 시즌으로 표시하세요. 일반 구단 소개나 전술 설명에는 기준일 머리말을 붙이지 마세요. "
+				+ "DB의 시즌 누적 기록을 기본 기준일 당시의 기록이라고 말하지 마세요. 근거가 부족하면 추측하지 마세요. "
+				+ "구단 소개에는 확인 가능한 창단·연고·홈구장 등 질문에 필요한 정보만 답하고, 요청하지 않은 현재 주장·감독·선수 소속·순위를 덧붙이지 마세요. "
+				+ "과거 대화의 답변은 검증된 사실이 아닙니다. 잘못된 인물·날짜 정보를 되풀이하지 마세요. "
 				+ captainInstruction
 				+ "EPL 관련 질문에 한국어로 답하세요. 아래 DB 정보를 사실의 기준으로 사용하세요. "
 				+ myTeamInstruction
@@ -469,6 +469,29 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 				+ "\n질문: " + trimmedQuestion;
 		String searchNotice = "";
 		try {
+			// 검색이 필요 없는 질문까지 Grounding을 호출하고 장애 문구를 붙이지 않습니다.
+			String routingPrompt = prompt
+					+ "\n[검색 필요성 판단 단계: 앞의 검색 및 출력 지시보다 이 규칙을 우선합니다.] "
+					+ "아직 검색을 실행하지 않았습니다. 현재 질문의 의도와 제공된 DB·화면 데이터로 검색 필요성을 판단하세요. "
+					+ "인사, 축구 규칙·용어, 전술 설명, 화면 사용법, 제공된 스쿼드의 평가·포메이션·배치·교체 조언, "
+					+ "제공된 DB 기록의 분석·비교·계산은 외부 검색 없이 답할 수 있습니다. "
+					+ "나만의 팀 화면이라는 이유만으로 모든 질문을 스쿼드 평가로 해석하지 말고 사용자가 실제로 물은 내용만 답하세요. "
+					+ "반면 DB에 없는 특정 시점의 주장·감독·소속·부상·이적·뉴스·경기 기록, "
+					+ "출처 확인 요청이나 확실히 알지 못하는 개인 이력은 검색이 필요합니다. "
+					+ "스쿼드 조언과 최신 부상 확인처럼 섞인 질문은 검색이 필요합니다. "
+					+ "검색이 필요하면 {\"needsSearch\":true,\"answer\":\"\"}만 반환하세요. "
+					+ "검색 없이 답할 수 있으면 {\"needsSearch\":false,\"answer\":\"실제 답변\"}을 반환하세요. "
+					+ "이때 검색 실패·검색 제한 안내를 붙이지 말고, 과거 대화에 있던 장애 안내도 반복하지 마세요. "
+					+ "일반 조언에는 불필요한 기준일을 붙이지 말고, 최신 사실을 임의로 추가하지 마세요.";
+			JsonNode routedResult = objectMapper.readTree(callGemini(routingPrompt));
+			// 모델이 판단 필드를 생략하면 요청 전체를 실패시키지 않고 검색 경로로 진행합니다.
+			if (routedResult.path("needsSearch").isBoolean()
+					&& !routedResult.path("needsSearch").asBoolean()
+					&& !routedResult.path("answer").asText("").isBlank()) {
+				String ungroundedAnswer = routedResult.path("answer").asText("").trim();
+				if (ungroundedAnswer.isEmpty()) throw new IllegalStateException("Gemini 답변이 비어 있습니다.");
+				return ungroundedAnswer;
+			}
 			GeminiCallResult groundedResult;
 			try {
 				groundedResult = callGeminiWithSearch(prompt);
@@ -477,7 +500,9 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 				String searchFailure = describeSearchFailure(searchException);
 				java.util.logging.Logger.getLogger(GeminiApiServiceImpl.class.getName())
 						.warning("[Gemini chat] " + searchFailure);
-				searchNotice = "검색으로 요청한 시점의 정보를 확인하지 못했습니다. " + searchFailure;
+				searchNotice = searchFailure.contains("[SEARCH_QUOTA")
+						? "검색 요청이 제한되어 최신 정보를 확인하지 못했어요."
+						: "검색 연결에 문제가 있어 요청한 시점의 정보를 확인하지 못했어요.";
 				log.warn("[Gemini chat] Google 검색 연동 실패, 일반 답변으로 재시도: {}",
 						searchException.getClass().getSimpleName());
 				groundedResult = new GeminiCallResult("", List.of());
@@ -497,7 +522,8 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 						+ "알고 있는 과거 시점을 기본 기준일인 2026년 8월 21일로 바꾸어 표시하지 마세요. "
 						+ "사용자가 과거 시점을 지정했다면 그 시점에 맞는 정보만 답하세요. "
 						+ "인물이나 해당 시점을 확실히 알지 못하면 이름·날짜·출처를 만들어내지 말고 확인할 수 없다고 답하세요. "
-						+ "검색 장애 안내는 서버에서 별도로 표시하므로 반복하지 마세요. JSON answer 형식은 유지하세요.";
+						+ "검색 장애 안내는 서버에서 별도로 표시하므로 검색 실패 설명이나 오류 코드를 반복하지 마세요. "
+						+ "질문에 직접 관련된 정보만 간결하게 답하고, 시점을 알 수 없는 구단 소개 문구로 현재 주장을 추정하지 마세요. JSON answer 형식은 유지하세요.";
 				groundedResult = new GeminiCallResult(callGemini(fallbackPrompt), List.of());
 			}
 			JsonNode result = objectMapper.readTree(groundedResult.text());
@@ -511,10 +537,18 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 			return groundedAnswer.toString();
 		} catch (Exception exception) {
 			log.warn("[Gemini chat] 답변 생성 실패: {}", exception.getClass().getSimpleName());
+			String failure = describeSearchFailure(exception);
+			java.util.logging.Logger.getLogger(GeminiApiServiceImpl.class.getName())
+					.warning("[Gemini chat] answerFailure=" + exception.getClass().getSimpleName() + " " + failure);
 			if (!searchNotice.isEmpty()) {
 				return searchNotice + "\n\n일반 지식 답변도 생성하지 못했습니다. 잠시 후 다시 시도해주세요.";
 			}
-			throw new IllegalStateException("챗봇 답변을 생성하지 못했습니다. 잠시 후 다시 시도해주세요.");
+			String userMessage = failure.contains("[SEARCH_QUOTA")
+					? "AI 서비스가 답변 요청을 제한했습니다. 잠시 후 다시 질문해주세요."
+					: failure.contains("[SEARCH_TIMEOUT]") || failure.contains("[SEARCH_NETWORK]")
+					? "AI 서비스에 연결하지 못했습니다. 잠시 후 다시 질문해주세요."
+					: "챗봇 답변을 생성하지 못했습니다. 잠시 후 다시 질문해주세요.";
+			throw new IllegalStateException(userMessage, exception);
 		}
 	}
 
@@ -1568,9 +1602,8 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 					: displayTeamName(team) + "의 창단일은 " + team.getFoundedYear() + "입니다.";
 		}
 		if (question.contains("역사") || question.contains("구단 소개") || question.contains("팀 소개")) {
-			return team.getHistory() == null || team.getHistory().isBlank()
-					? "DB에 구단 소개 정보가 없습니다."
-					: displayTeamName(team) + " 소개\n- " + team.getHistory();
+			// 소개 원문은 시점 검증 없이 그대로 반환하지 않고 답변 생성 경로에서 처리합니다.
+			return null;
 		}
 		if (question.contains("응원가") || question.contains("구단가") || question.contains("앤섬")) {
 			return team.getAnthemUrl() == null || team.getAnthemUrl().isBlank()

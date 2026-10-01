@@ -40,7 +40,13 @@ public class ChatbotController {
 				question, body.get("pagePath"), body.get("scoreContext"),
 				body.get("conversationContext"), teamContext)));
         } catch (IllegalStateException exception) {
-            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(ApiResponse.error(ResultCode.FAIL));
+            // 내부 예외 내용 대신 서비스에서 정의한 사용자 안내만 전달합니다.
+            String message = exception.getMessage();
+            if (!"AI 서비스가 답변 요청을 제한했습니다. 잠시 후 다시 질문해주세요.".equals(message)
+                    && !"AI 서비스에 연결하지 못했습니다. 잠시 후 다시 질문해주세요.".equals(message)) {
+                message = "챗봇 답변을 생성하지 못했습니다. 잠시 후 다시 질문해주세요.";
+            }
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(ApiResponse.error(ResultCode.FAIL, message));
         }
     }
 }

@@ -200,6 +200,8 @@ export default function ChatbotWidget() {
     setQuestion('')
     setError('')
     setLoading(true)
+    const controller = new AbortController()
+    const timeout = window.setTimeout(() => controller.abort(), 60000)
     try {
       const scoreContext = messages.filter((message) => message.role === 'user')
         .slice(-4).reverse().map((message) => message.text.match(SCORE_PATTERN)?.[0])
@@ -217,6 +219,7 @@ export default function ChatbotWidget() {
         }
       }
       const response = await fetch('/api/chatbot/ask', {
+        signal: controller.signal,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -234,8 +237,11 @@ export default function ChatbotWidget() {
       }
       setMessages((current) => [...current, { role: 'assistant', text: result.data }])
     } catch (exception) {
-      setError(exception.message || '답변을 가져오지 못했습니다. 잠시 후 다시 시도해주세요.')
+      setError(controller.signal.aborted
+        ? '답변 대기 시간이 초과되었습니다. 다시 질문해주세요.'
+        : exception.message || '답변을 가져오지 못했습니다. 잠시 후 다시 시도해주세요.')
     } finally {
+      window.clearTimeout(timeout)
       setLoading(false)
     }
   }
@@ -350,9 +356,8 @@ export default function ChatbotWidget() {
           placeholder={isMyTeamPage ? '예: 현재 스쿼드의 약점은?'
             : isRankingPage ? '예: 1위와 2위의 승점 차이는?' : 'EPL에 대해 질문하세요'}
           maxLength={1000}
-          disabled={loading}
         />
-        <button type="submit" disabled={loading || !question.trim()}>전송</button>
+        <button type="submit" disabled={loading || !question.trim()}>{loading ? '답변 중' : '전송'}</button>
       </form>
     </section>}
     <button
