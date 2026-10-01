@@ -1,13 +1,21 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateUser } from '../store/authSlice.js';
+import {
+  getShopItems,
+  getUserInventory,
+  purchaseShopItem,
+  getUserPoint,
+} from '../api/shopApi.js';
+import { getMyProfile } from '../api/userApi.js';
 import '../css/PointShop.css';
 
-// 포인트샵 판매 아이템 목록 (아이콘 & 이모티콘)
-const SHOP_ITEMS = [
-  // --- 아이콘 카테고리 ---
+// 포인트샵 상품 목록 (SHOP_ITEMS 테이블 연동 및 초기/오프라인 폴백용)
+const DEFAULT_SHOP_ITEMS = [
+  // --- 아이콘 카테고리 (ITEM_ID: 1~8) ---
   {
-    id: 'icon_golden_trophy',
+    itemId: 1,
+    id: 1,
     type: 'icon',
     categoryName: '아이콘',
     name: '골든 트로피',
@@ -16,7 +24,8 @@ const SHOP_ITEMS = [
     desc: '프리미어리그 챔피언의 영광을 상징하는 황금 트로피 프로필 아이콘',
   },
   {
-    id: 'icon_classic_ball',
+    itemId: 2,
+    id: 2,
     type: 'icon',
     categoryName: '아이콘',
     name: '불타는 축구공',
@@ -25,7 +34,8 @@ const SHOP_ITEMS = [
     desc: '경기장을 뜨겁게 달구는 클래식 축구공 시그니처 아이콘',
   },
   {
-    id: 'icon_golden_boot',
+    itemId: 3,
+    id: 3,
     type: 'icon',
     categoryName: '아이콘',
     name: '골든 부츠',
@@ -34,7 +44,8 @@ const SHOP_ITEMS = [
     desc: '리그 최고의 골잡이에게 주어지는 득점왕 골든부츠 아이콘',
   },
   {
-    id: 'icon_crown_legend',
+    itemId: 4,
+    id: 4,
     type: 'icon',
     categoryName: '아이콘',
     name: '황금 왕관',
@@ -43,7 +54,8 @@ const SHOP_ITEMS = [
     desc: 'PL 명예의 전당 레전드를 위한 시그니처 크라운 프로필 아이콘',
   },
   {
-    id: 'icon_iron_shield',
+    itemId: 5,
+    id: 5,
     type: 'icon',
     categoryName: '아이콘',
     name: '철벽 방패',
@@ -52,7 +64,8 @@ const SHOP_ITEMS = [
     desc: '무실점 클린시트를 지켜내는 단단한 수호의 방패 아이콘',
   },
   {
-    id: 'icon_captain_armband',
+    itemId: 6,
+    id: 6,
     type: 'icon',
     categoryName: '아이콘',
     name: '캡틴 완장',
@@ -61,7 +74,8 @@ const SHOP_ITEMS = [
     desc: '피치 위 팀을 이끄는 리더십의 상징 주장 완장 아이콘',
   },
   {
-    id: 'icon_magic_playmaker',
+    itemId: 7,
+    id: 7,
     type: 'icon',
     categoryName: '아이콘',
     name: '마법의 패서',
@@ -70,7 +84,8 @@ const SHOP_ITEMS = [
     desc: '환상적인 어시스트를 찔러주는 플레이메이커의 마법 아이콘',
   },
   {
-    id: 'icon_gk_gloves',
+    itemId: 8,
+    id: 8,
     type: 'icon',
     categoryName: '아이콘',
     name: '거미손 글러브',
@@ -79,9 +94,10 @@ const SHOP_ITEMS = [
     desc: '슈퍼 세이브로 팀을 구원하는 수문장의 골키퍼 글러브 아이콘',
   },
 
-  // --- 이모티콘 카테고리 ---
+  // --- 이모티콘 카테고리 (ITEM_ID: 9~16) ---
   {
-    id: 'emoticon_goal_fire',
+    itemId: 9,
+    id: 9,
     type: 'emoticon',
     categoryName: '이모티콘',
     name: '골 세레머니',
@@ -90,7 +106,8 @@ const SHOP_ITEMS = [
     desc: '짜릿한 득점 순간 열광하는 시그니처 축하 응원 이모티콘',
   },
   {
-    id: 'emoticon_red_card',
+    itemId: 10,
+    id: 10,
     type: 'emoticon',
     categoryName: '이모티콘',
     name: '심판 레드카드',
@@ -99,7 +116,8 @@ const SHOP_ITEMS = [
     desc: '거친 파울과 판정에 분노를 표현하는 레드카드 이모티콘',
   },
   {
-    id: 'emoticon_victory_party',
+    itemId: 11,
+    id: 11,
     type: 'emoticon',
     categoryName: '이모티콘',
     name: '승리의 축포',
@@ -108,7 +126,8 @@ const SHOP_ITEMS = [
     desc: '극적인 역전승과 우승을 자축하는 화려한 팡파르 이모티콘',
   },
   {
-    id: 'emoticon_var_check',
+    itemId: 12,
+    id: 12,
     type: 'emoticon',
     categoryName: '이모티콘',
     name: 'VAR 판독중',
@@ -117,7 +136,8 @@ const SHOP_ITEMS = [
     desc: '숨죽이고 주심의 판독을 기다리는 긴장감 넘치는 VAR 모니터',
   },
   {
-    id: 'emoticon_loud_whistle',
+    itemId: 13,
+    id: 13,
     type: 'emoticon',
     categoryName: '이모티콘',
     name: '열광의 나팔',
@@ -126,7 +146,8 @@ const SHOP_ITEMS = [
     desc: '경기장을 가득 메우는 서포터즈의 열렬한 함성과 나팔 이모티콘',
   },
   {
-    id: 'emoticon_brick_wall',
+    itemId: 14,
+    id: 14,
     type: 'emoticon',
     categoryName: '이모티콘',
     name: '통곡의 벽',
@@ -135,7 +156,8 @@ const SHOP_ITEMS = [
     desc: '상대의 파상 공세를 빈틈없이 막아내는 짠물 수비 이모티콘',
   },
   {
-    id: 'emoticon_peace_victory',
+    itemId: 15,
+    id: 15,
     type: 'emoticon',
     categoryName: '이모티콘',
     name: '승점 3점 V',
@@ -144,7 +166,8 @@ const SHOP_ITEMS = [
     desc: '경기 종료 휘슬 후 승점 3점을 만끽하는 승리의 V 이모티콘',
   },
   {
-    id: 'emoticon_crying_fan',
+    itemId: 16,
+    id: 16,
     type: 'emoticon',
     categoryName: '이모티콘',
     name: '눈물바다',
@@ -158,23 +181,28 @@ export default function PointShop() {
   const dispatch = useDispatch();
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const user = useSelector((state) => state.auth.user);
+  const userId = user?.userId ?? user?.user_id ?? user?.id;
 
   // USERS 테이블의 로그인된 user_id가 보유한 POINT 기반:
   // - 로그인이 안 되어 있거나 point가 0인 경우: 0 출력
   // - 포인트를 가지고 있는 경우: 현재 가지고 있는 포인트 출력
   const getDisplayPoint = (u, loggedIn) => {
-    if (!loggedIn || !u || !u.userId) return 0;
-    const pt = Number(u.point);
+    if (!loggedIn || !u) return 0;
+    const uid = u.userId ?? u.user_id ?? u.id;
+    if (!uid) return 0;
+    const pt = Number(u.point ?? u.userPoint ?? u.POINT);
     return !isNaN(pt) && pt > 0 ? pt : 0;
   };
 
   const [currentPoint, setCurrentPoint] = useState(() => getDisplayPoint(user, isLoggedIn));
+  const [shopItems, setShopItems] = useState(DEFAULT_SHOP_ITEMS);
 
-  // 구매 완료한 아이템 ID 목록 (로그인한 user_id별 로컬 스토리지 연동)
+  // 구매 완료한 아이템 ID 목록 (USER_INVENTORY 테이블 + localStorage 캐시 동기화)
   const [purchasedItemIds, setPurchasedItemIds] = useState(() => {
     try {
-      if (!isLoggedIn || !user?.userId) return [];
-      const saved = localStorage.getItem(`buildup_purchased_items_${user.userId}`);
+      const currentUid = user?.userId ?? user?.user_id ?? user?.id;
+      if (!isLoggedIn || !currentUid) return [];
+      const saved = localStorage.getItem(`buildup_purchased_items_${currentUid}`);
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -183,56 +211,105 @@ export default function PointShop() {
 
   const [activeTab, setActiveTab] = useState('ALL'); // ALL, icon, emoticon, my
   const [selectedItemForPurchase, setSelectedItemForPurchase] = useState(null);
+  const [isPurchasing, setIsPurchasing] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  // 마운트 시 USERS 테이블의 최신 POINT 데이터 동기화 (/api/users/me)
+  // 1. SHOP_ITEMS 테이블에서 실시간 상품 목록 로드
   useEffect(() => {
-    // 이전 가상 mock 포인트 캐시가 남아있다면 제거
-    try {
-      localStorage.removeItem('buildup_user_points');
-    } catch {}
+    let isMounted = true;
+    getShopItems()
+      .then((items) => {
+        if (isMounted && Array.isArray(items) && items.length > 0) {
+          const mapped = items.map((it) => ({
+            itemId: it.itemId,
+            id: it.itemId,
+            type: (it.itemType || 'icon').toLowerCase(),
+            categoryName: (it.itemType || '').toUpperCase() === 'ICON' ? '아이콘' : '이모티콘',
+            name: it.itemName,
+            visual: it.imageUrl || '⚽',
+            price: Number(it.point) || 0,
+            desc: it.description || '',
+            isActive: it.isActive,
+          }));
+          setShopItems(mapped);
+        }
+      })
+      .catch((err) => {
+        console.warn('DB 상품 목록 조회 실패 (기본 목록 유지):', err);
+      });
 
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // 2. 로그인 회원의 USER_INVENTORY 및 USERS.POINT 최신 데이터 동기화
+  useEffect(() => {
     const token = localStorage.getItem('buildup_token');
-    if (!token || !isLoggedIn || !user?.userId) {
+    if (!isLoggedIn && !token) {
       setCurrentPoint(0);
       setPurchasedItemIds([]);
       return;
     }
 
-    const headers = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    };
-
-    fetch('/api/users/me', { headers })
-      .then((res) => {
-        if (!res.ok) throw new Error('인증 실패');
-        return res.json();
+    // 최신 프로필 정보 동기화 (Redux user 갱신)
+    getMyProfile()
+      .then((profile) => {
+        if (profile) {
+          dispatch(updateUser(profile));
+          if (profile.point !== undefined) {
+            const p = Number(profile.point);
+            setCurrentPoint(!isNaN(p) && p > 0 ? p : 0);
+          }
+        }
       })
-      .then((data) => {
-        const freshUser = data.data || data.user;
-        if (freshUser) {
-          dispatch(updateUser(freshUser));
-          const pt = Number(freshUser.point);
-          setCurrentPoint(!isNaN(pt) && pt > 0 ? pt : 0);
+      .catch(() => {});
+
+    // USERS.POINT 최신 잔액 조회 (/api/shop/point)
+    getUserPoint()
+      .then((pt) => {
+        if (typeof pt === 'number') {
+          const validPoint = pt > 0 ? pt : 0;
+          setCurrentPoint(validPoint);
+          dispatch(updateUser({ point: validPoint }));
         }
       })
       .catch(() => {
         setCurrentPoint(getDisplayPoint(user, isLoggedIn));
       });
-  }, [dispatch, isLoggedIn, user?.userId]);
 
-  // Redux user 객체 변경 시(포인트 적립 등) 실시간 동기화
+    // USER_INVENTORY 회원의 보관함 조회 (/api/shop/inventory)
+    getUserInventory()
+      .then((inventory) => {
+        if (Array.isArray(inventory)) {
+          const owned = inventory.map((inv) => inv.itemId);
+          setPurchasedItemIds(owned);
+          const currentUid = userId || user?.userId;
+          if (currentUid) {
+            try {
+              localStorage.setItem(`buildup_purchased_items_${currentUid}`, JSON.stringify(owned));
+            } catch {}
+          }
+        }
+      })
+      .catch((err) => {
+        console.warn('인벤토리 조회 실패 (로컬 스토리지 사용):', err);
+      });
+  }, [dispatch, isLoggedIn, userId]);
+
+  // Redux user 객체 변경 시 실시간 동기화
   useEffect(() => {
     setCurrentPoint(getDisplayPoint(user, isLoggedIn));
-    if (isLoggedIn && user?.userId) {
+    const currentUid = user?.userId ?? user?.user_id ?? user?.id;
+    if (isLoggedIn && currentUid) {
       try {
-        const saved = localStorage.getItem(`buildup_purchased_items_${user.userId}`);
-        setPurchasedItemIds(saved ? JSON.parse(saved) : []);
-      } catch {
-        setPurchasedItemIds([]);
-      }
-    } else {
+        const saved = localStorage.getItem(`buildup_purchased_items_${currentUid}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setPurchasedItemIds((prev) => (prev.length > 0 ? prev : parsed));
+        }
+      } catch {}
+    } else if (!isLoggedIn) {
       setPurchasedItemIds([]);
     }
   }, [user, isLoggedIn]);
@@ -247,9 +324,13 @@ export default function PointShop() {
   }, [toastMessage]);
 
   const handleOpenPurchaseModal = (item) => {
-    if (purchasedItemIds.includes(item.id)) return;
+    const targetId = item.itemId || item.id;
+    const isOwned = purchasedItemIds.some((id) => Number(id) === Number(targetId));
+    if (isOwned) return;
 
-    if (!isLoggedIn || !user || !user.userId) {
+    const token = localStorage.getItem('buildup_token');
+    const currentUid = user?.userId ?? user?.user_id ?? user?.id;
+    if ((!isLoggedIn && !token) || (!currentUid && !token)) {
       if (window.confirm('로그인이 필요한 서비스입니다. 로그인 페이지로 이동하시겠습니까?')) {
         window.location.assign('/plug/login');
       }
@@ -264,36 +345,80 @@ export default function PointShop() {
     setSelectedItemForPurchase(item);
   };
 
-  const handleConfirmPurchase = () => {
-    if (!selectedItemForPurchase || !isLoggedIn || !user?.userId) return;
+  // 5개 테이블 상호작용 구매 처리 (USERS, SHOP_ITEMS, ITEM_ORDERS, POINT_TRANSACTIONS, USER_INVENTORY)
+  const handleConfirmPurchase = async () => {
+    if (!selectedItemForPurchase) return;
+    const token = localStorage.getItem('buildup_token');
+    if (!isLoggedIn && !token) {
+      alert('로그인이 필요한 서비스입니다.');
+      return;
+    }
 
     const item = selectedItemForPurchase;
-    const nextPoint = Math.max(0, currentPoint - item.price);
-    const nextPurchased = [...purchasedItemIds, item.id];
-
-    setCurrentPoint(nextPoint);
-    setPurchasedItemIds(nextPurchased);
-
-    // Redux 및 localStorage 동기화
-    dispatch(updateUser({ ...user, point: nextPoint }));
+    const targetItemId = item.itemId || item.id;
+    setIsPurchasing(true);
 
     try {
-      localStorage.setItem(`buildup_purchased_items_${user.userId}`, JSON.stringify(nextPurchased));
-    } catch {}
+      // 백엔드 트랜잭션 호출:
+      // 1. SHOP_ITEMS 아이템 검증
+      // 2. USERS.POINT 비관적 락 및 차감
+      // 3. ITEM_ORDERS 주문 내역 등록
+      // 4. POINT_TRANSACTIONS 포인트 변동 트랜잭션 기록
+      // 5. USER_INVENTORY 보관함 등록
+      const res = await purchaseShopItem(targetItemId);
 
-    setSelectedItemForPurchase(null);
-    setToastMessage(`🎉 [${item.name}] 구매가 완료되었습니다!`);
+      if (res) {
+        const nextPoint = res.remainingPoint !== undefined
+          ? Math.max(0, Number(res.remainingPoint))
+          : Math.max(0, currentPoint - item.price);
+        const nextPurchased = Array.from(new Set([...purchasedItemIds, targetItemId]));
+
+        setCurrentPoint(nextPoint);
+        setPurchasedItemIds(nextPurchased);
+
+        // USERS 상태(Redux 및 localStorage) 최신 포인트 반영
+        dispatch(updateUser({ ...user, point: nextPoint }));
+        const currentUid = userId || user?.userId;
+        if (currentUid) {
+          try {
+            localStorage.setItem(`buildup_purchased_items_${currentUid}`, JSON.stringify(nextPurchased));
+          } catch {}
+        }
+
+        setSelectedItemForPurchase(null);
+        setToastMessage(`🎉 [${item.name}] 구매가 완료되었습니다!`);
+
+        // 백엔드 최신 상태 재검증 및 완전 동기화
+        getUserPoint().then((pt) => {
+          if (typeof pt === 'number') {
+            const p = pt > 0 ? pt : 0;
+            setCurrentPoint(p);
+            dispatch(updateUser({ point: p }));
+          }
+        }).catch(() => {});
+        getUserInventory().then((inv) => {
+          if (Array.isArray(inv)) {
+            setPurchasedItemIds(inv.map((i) => i.itemId));
+          }
+        }).catch(() => {});
+      }
+    } catch (err) {
+      alert(err.message || '아이템 구매에 실패했습니다.');
+    } finally {
+      setIsPurchasing(false);
+    }
   };
 
   // 탭 필터링
-  const filteredItems = SHOP_ITEMS.filter((item) => {
+  const filteredItems = shopItems.filter((item) => {
+    const targetId = item.itemId || item.id;
     if (activeTab === 'ALL') return true;
-    if (activeTab === 'my') return purchasedItemIds.includes(item.id);
+    if (activeTab === 'my') return purchasedItemIds.some((id) => Number(id) === Number(targetId));
     return item.type === activeTab;
   });
 
-  const iconCount = SHOP_ITEMS.filter((i) => i.type === 'icon').length;
-  const emoticonCount = SHOP_ITEMS.filter((i) => i.type === 'emoticon').length;
+  const iconCount = shopItems.filter((i) => i.type === 'icon').length;
+  const emoticonCount = shopItems.filter((i) => i.type === 'emoticon').length;
   const myCount = purchasedItemIds.length;
 
   // 모바일 반응형 2열 2줄 (4개씩) 청크 분할 (팀 소개 페이지 선수단 스쿼드 반응형 방식)
@@ -408,7 +533,7 @@ export default function PointShop() {
             onClick={() => setActiveTab('ALL')}
           >
             <span>전체</span>
-            <span className="point-tab-count">{SHOP_ITEMS.length}</span>
+            <span className="point-tab-count">{shopItems.length}</span>
           </button>
 
           <button
@@ -486,10 +611,10 @@ export default function PointShop() {
               {pages.map((pageItems, pageIdx) => (
                 <div key={pageIdx} className="point-squad-slide">
                   {pageItems.map((item) => {
-                    const isOwned = purchasedItemIds.includes(item.id);
+                    const isOwned = purchasedItemIds.some((id) => Number(id) === Number(item.itemId || item.id));
 
                     return (
-                      <article key={item.id} className="point-item-card">
+                      <article key={item.itemId || item.id} className="point-item-card">
                         {/* 상단 뱃지 */}
                         <span className={`point-item-badge point-item-badge--${item.type}`}>
                           {item.categoryName}
@@ -558,7 +683,7 @@ export default function PointShop() {
 
         {/* 구매 확인 모달창 */}
         {selectedItemForPurchase && (
-          <div className="point-modal-backdrop" onClick={() => setSelectedItemForPurchase(null)}>
+          <div className="point-modal-backdrop" onClick={() => !isPurchasing && setSelectedItemForPurchase(null)}>
             <div className="point-modal-card" onClick={(e) => e.stopPropagation()}>
               <div className="point-modal-visual">{selectedItemForPurchase.visual}</div>
               <h3 className="point-modal-title">[{selectedItemForPurchase.name}] 구매</h3>
@@ -585,6 +710,7 @@ export default function PointShop() {
                   type="button"
                   className="point-modal-btn point-modal-btn--cancel"
                   onClick={() => setSelectedItemForPurchase(null)}
+                  disabled={isPurchasing}
                 >
                   취소
                 </button>
@@ -592,8 +718,9 @@ export default function PointShop() {
                   type="button"
                   className="point-modal-btn point-modal-btn--confirm"
                   onClick={handleConfirmPurchase}
+                  disabled={isPurchasing}
                 >
-                  구매 확인
+                  {isPurchasing ? '구매 처리중...' : '구매 확인'}
                 </button>
               </div>
             </div>

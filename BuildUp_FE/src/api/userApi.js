@@ -82,3 +82,19 @@ export async function getMyPointHistories() {
   const json = await res.json();
   return json.data || [];
 }
+
+/**
+ * 로그인 회원의 최신 프로필 정보 조회
+ */
+export async function getMyProfile() {
+  const res = await fetch('/api/users/me', {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    return null;
+  }
+  const json = await res.json();
+  return json.data || null;
+}
+
+
