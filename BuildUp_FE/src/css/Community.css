@@ -1394,23 +1394,35 @@ html[data-theme='dark'] .community__vertical-ad { background: #16111f; color: #b
   border: 0;
 }
 .community__board-choice > span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 10px 16px;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  min-height: 142px;
+  padding: 18px;
   border: 1px solid var(--community-line);
-  border-radius: 10px;
+  border-radius: 14px;
   background: var(--community-panel);
   color: var(--community-muted);
   cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
 }
+.community .community__write-form .community__board-choice { flex: 1 1 200px; min-width: 0; }
+.community__board-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: color-mix(in srgb, var(--community-purple) 7%, var(--community-panel)); color: var(--community-purple); }
+.community__board-copy { display: grid; gap: 6px; min-width: 0; }
+.community__board-copy strong { color: var(--community-text); font-size: 15px; font-weight: 700; }
+.community .community__board-copy small { color: var(--community-muted); font-size: 12px; line-height: 1.5; word-break: keep-all; }
+.community__board-check { position: absolute; top: 18px; right: 18px; display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid var(--community-line); border-radius: 50%; color: transparent; }
+.community__board-choice input:not(:disabled) + span:hover { border-color: var(--community-purple); }
 .community__board-choice input:checked + span {
   border-color: var(--community-purple);
-  background: var(--community-purple);
-  color: var(--community-panel);
+  background: color-mix(in srgb, var(--community-purple) 6%, var(--community-panel));
+  box-shadow: inset 0 0 0 1px var(--community-purple);
   font-weight: 700;
 }
+.community__board-choice input:checked + span .community__board-check { background: var(--community-purple); border-color: var(--community-purple); color: var(--community-panel); }
+.community__board-choice input:checked + span .community__board-icon { background: var(--community-purple); color: var(--community-panel); }
 .community__board-choice input:focus-visible + span,
 .community__file-picker input:focus-visible + .community__file-trigger {
   outline: 2px solid var(--community-purple);
@@ -1437,7 +1449,34 @@ html[data-theme='dark'] .community__vertical-ad { background: #16111f; color: #b
 .community__board-choice input:disabled + span,
 .community__file-picker input:disabled + .community__file-trigger { opacity: .5; cursor: not-allowed; }
 @media (max-width: 480px) {
-  .community__board-choice { flex: 1 1 100%; }
-  .community__board-choice > span { width: 100%; }
+  .community .community__write-form .community__board-choice { flex-basis: 100%; }
+  .community__board-choice > span { flex-direction: row; align-items: center; min-height: 88px; padding: 14px 42px 14px 14px; gap: 12px; }
+  .community__board-icon { flex-shrink: 0; width: 36px; height: 36px; }
+  .community__board-check { top: 50%; right: 12px; transform: translateY(-50%); }
   .community__file-trigger small { flex-basis: 100%; margin-left: 32px; }
 }
+
+.community__write-select { position: relative; min-width: 0; display: grid; gap: 9px; }
+.community__write-select-label { font-size: 14px; font-weight: 700; }
+.community .community__write-select-trigger { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 48px; padding: 12px 16px; border: 1px solid var(--community-line); border-radius: 10px; background: var(--community-panel); color: var(--community-text); text-align: left; }
+.community__write-select-trigger span { min-width: 0; overflow-wrap: anywhere; }
+.community__write-select-trigger svg { flex-shrink: 0; color: var(--community-purple); }
+.community .community__write-select-trigger[aria-expanded='true'] { border-color: var(--community-purple); box-shadow: 0 0 0 3px color-mix(in srgb, var(--community-purple) 12%, transparent); }
+.community__write-select-menu { position: absolute; top: calc(100% + 7px); left: 0; right: 0; z-index: 50; padding: 7px; border: 1px solid var(--community-line); border-radius: 12px; background: var(--community-panel); box-shadow: 0 12px 28px #10051e26; }
+.community .community__write-select-menu input { box-sizing: border-box; width: 100%; min-height: 44px; padding: 10px 12px; margin-bottom: 6px; border: 1px solid var(--community-line); border-radius: 8px; background: var(--community-panel); color: var(--community-text); font: inherit; font-size: 16px; }
+.community__write-select-options { max-height: min(264px, 40dvh); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--community-muted) var(--community-panel); }
+.community .community__write-option { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 44px; padding: 11px 12px; border: 0; border-radius: 7px; text-align: left; background: transparent; color: var(--community-text); font-weight: 500; }
+.community .community__write-option[aria-pressed='true'], .community .community__write-option:not(:disabled):hover { background: color-mix(in srgb, var(--community-purple) 10%, var(--community-panel)); color: var(--community-purple); }
+.community .community__write-option:disabled { opacity: .45; cursor: not-allowed; }
+.community__write-select button:focus-visible { outline: 2px solid var(--community-purple); outline-offset: -2px; }
+.community__write-select-options p { margin: 14px 12px; color: var(--community-muted); font-size: 13px; }
+
+/* 애정팀은 선택 상태와 구분되는 은은한 따뜻한 배경으로 표시 */
+.community .community__card.community__favorite-team,
+.community .community__write-option.community__favorite-team:not([aria-pressed='true']),
+.community .community__custom-select-options .community__favorite-team:not([aria-selected='true']) {
+  background: color-mix(in srgb, #c39a58 9%, var(--community-panel));
+}
+.community .community__card.community__favorite-team { border-color: color-mix(in srgb, #c39a58 35%, var(--community-line)); }
+.community .community__favorite-label { display: inline-block; margin-left: 8px; color: var(--community-muted); font-size: 11px; font-weight: 500; white-space: nowrap; }
+.community .community__card > .community__favorite-label { margin: 2px 0 0; }
