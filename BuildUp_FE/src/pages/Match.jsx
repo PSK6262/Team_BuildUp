@@ -3,7 +3,7 @@ import teamDbFallback from '../data/teamDbFallback.json'
 import { getTeams } from '../api/teamApi.js'
 import FcManagerModeModal from '../components/match/FcManagerModeModal.jsx'
 import '../css/match.css'
-import { MatchClubPicker, MatchRoundPicker } from '../components/match/MatchFilters.jsx'
+import { MatchClubPicker, MatchMonthPicker, MatchRoundPicker } from '../components/match/MatchFilters.jsx'
 
 const teamsData = teamDbFallback.teams
 const SEASONS = [2024, 2025, 2026]
@@ -613,24 +613,7 @@ export default function Match() {
 
         {/* 1. 월별 필터 탭 바 (MONTH 모드일 때 노출) */}
         {filterMode === 'MONTH' && (
-          <section className="month-filter-container" aria-label="월별 일정 필터">
-            <div className="month-filter-nav">
-              {MONTH_TABS.map((tab) => {
-                const isActive = selectedMonth === tab.id
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    className={`month-filter-btn ${isActive ? 'active' : ''}`}
-                    onClick={() => setSelectedMonth(tab.id)}
-                    aria-pressed={isActive}
-                  >
-                    {tab.label}
-                  </button>
-                )
-              })}
-            </div>
-          </section>
+          <MatchMonthPicker value={selectedMonth} onChange={setSelectedMonth} months={MONTH_TABS} />
         )}
 
         {/* 2. 라운드별 필터 UI (ROUND 모드일 때 노출) */}

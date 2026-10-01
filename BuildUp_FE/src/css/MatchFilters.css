@@ -44,6 +44,7 @@ html[data-theme='dark'] .match-page-container {
 .match-club-check { margin-left: auto; color: var(--filter-accent); font-weight: 800; }
 .match-club-option:hover, .match-club-option[aria-pressed='true'] { background: var(--filter-tint); border-color: var(--filter-accent); }
 .match-round-picker { position: relative; margin-bottom: 30px; }
+.match-round-controls { touch-action: pan-y pinch-zoom; }
 .match-page-container .match-round-controls { display: grid; grid-template-columns: auto 24px minmax(0, 1fr) 24px; align-items: center; gap: 8px; overflow: visible; }
 .match-round-window { --round-gap: 6px; min-width: 0; overflow: hidden; padding: 4px; margin: -4px; }
 .match-round-track {
