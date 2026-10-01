@@ -2149,8 +2149,8 @@ html[data-theme='light'] .myteam-page .myteam-ai-event--corner { --event-color: 
 html[data-theme='light'] .myteam-page .myteam-ai-event--yellow { --event-color: #854d0e; }
 html[data-theme='light'] .myteam-page .myteam-ai-event--red { --event-color: #9d174d; }
 
-/* Virtual-match leaderboard: match the surrounding light-theme cards. */
-html[data-theme='light'] .myteam-page .member-rankings {
+/* Shared leaderboard geometry; theme overrides below only change colors. */
+html[data-theme] .myteam-page .member-rankings {
   --ranking-space: var(--mobile-unit, 1px);
   margin: 24px 0;
   padding: calc(24 * var(--ranking-space));
@@ -2161,7 +2161,7 @@ html[data-theme='light'] .myteam-page .member-rankings {
   box-shadow: 0 4px 16px #16744b08;
 }
 
-html[data-theme='light'] .myteam-page .member-rankings h2 {
+html[data-theme] .myteam-page .member-rankings h2 {
   margin: 0 0 10px;
   padding-left: 12px;
   border-left: 4px solid #16744b;
@@ -2172,19 +2172,19 @@ html[data-theme='light'] .myteam-page .member-rankings h2 {
   overflow-wrap: anywhere;
 }
 
-html[data-theme='light'] .myteam-page .member-rankings > p {
+html[data-theme] .myteam-page .member-rankings > p {
   margin: 0;
   font-size: calc(14 * var(--ranking-space));
   line-height: 1.7;
   color: #637083;
 }
 
-html[data-theme='light'] .myteam-page .member-ranking-actions {
+html[data-theme] .myteam-page .member-ranking-actions {
   gap: calc(10 * var(--ranking-space));
   margin: calc(20 * var(--ranking-space)) 0;
 }
 
-html[data-theme='light'] .myteam-page .member-ranking-actions :is(a, button) {
+html[data-theme] .myteam-page .member-ranking-actions :is(a, button) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2205,31 +2205,31 @@ html[data-theme='light'] .myteam-page .member-ranking-actions :is(a, button) {
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-html[data-theme='light'] .myteam-page .member-ranking-actions a {
+html[data-theme] .myteam-page .member-ranking-actions a {
   border-color: #16744b;
   background: #16744b;
   color: #fff;
   box-shadow: 0 4px 12px #16744b20;
 }
 
-html[data-theme='light'] .myteam-page .member-ranking-actions a:hover {
+html[data-theme] .myteam-page .member-ranking-actions a:hover {
   border-color: #105a39;
   background: #105a39;
 }
 
-html[data-theme='light'] .myteam-page .member-ranking-actions button:hover:not(:disabled) {
+html[data-theme] .myteam-page .member-ranking-actions button:hover:not(:disabled) {
   border-color: #8bc3a3;
   background: #edf7f1;
   color: #16744b;
 }
 
-html[data-theme='light'] .myteam-page .member-ranking-actions button:disabled {
+html[data-theme] .myteam-page .member-ranking-actions button:disabled {
   opacity: 0.55;
   cursor: wait;
 }
 
 /* Loading, empty and error messages share a deliberate inset surface. */
-html[data-theme='light'] .myteam-page .member-ranking-actions + p {
+html[data-theme] .myteam-page .member-ranking-actions + p {
   padding: calc(24 * var(--ranking-space)) calc(16 * var(--ranking-space));
   border: 1px dashed #d9e1dc;
   border-radius: 12px;
@@ -2238,23 +2238,23 @@ html[data-theme='light'] .myteam-page .member-ranking-actions + p {
   overflow-wrap: anywhere;
 }
 
-html[data-theme='light'] .myteam-page .member-ranking-scroll {
+html[data-theme] .myteam-page .member-ranking-scroll {
   border: 1px solid #d9e1dc;
   border-radius: 12px;
   background: #fff;
   scrollbar-color: #8aa897 #edf1ee;
 }
 
-html[data-theme='light'] .myteam-page .member-ranking-scroll .standings-table {
+html[data-theme] .myteam-page .member-ranking-scroll .standings-table {
   font-size: calc(13 * var(--ranking-space));
 }
 
-html[data-theme='light'] .myteam-page .member-ranking-scroll thead {
+html[data-theme] .myteam-page .member-ranking-scroll thead {
   background: #edf7f1;
   color: #16744b;
 }
 
-html[data-theme='light'] .myteam-page .member-ranking-scroll :is(th, td) {
+html[data-theme] .myteam-page .member-ranking-scroll :is(th, td) {
   padding: 14px 12px;
   border-bottom-color: #e5ece7;
 }
@@ -2273,8 +2273,81 @@ html[data-theme='light'] .myteam-page .member-ranking-scroll tbody tr:hover > * 
   background: #f3f6f4;
 }
 
-html[data-theme='light'] .myteam-page .member-ranking-scroll td strong {
+html[data-theme] .myteam-page .member-ranking-scroll td strong {
   color: #16744b;
+}
+
+html[data-theme='dark'] .myteam-page .member-rankings {
+  background: #191321;
+  border-color: #3b304a;
+  color: #f4f1fa;
+  box-shadow: 0 4px 16px #0002;
+}
+
+html[data-theme='dark'] .myteam-page .member-rankings h2 { border-left-color: #00e58a; }
+html[data-theme='dark'] .myteam-page .member-rankings > p { color: #b5adc4; }
+html[data-theme='dark'] .myteam-page .member-ranking-actions :is(a, button),
+html[data-theme='dark'] .myteam-page .member-ranking-actions + p,
+html[data-theme='dark'] .myteam-page .member-ranking-scroll {
+  background: #231a2e;
+  border-color: #3b304a;
+  color: #f4f1fa;
+}
+html[data-theme='dark'] .myteam-page .member-ranking-actions a {
+  background: #00e58a;
+  border-color: #00e58a;
+  color: #10241b;
+  box-shadow: 0 4px 12px #00e58a20;
+}
+html[data-theme='dark'] .myteam-page .member-ranking-actions a:hover {
+  background: #6df2bc;
+  border-color: #6df2bc;
+}
+html[data-theme='dark'] .myteam-page .member-ranking-actions button:hover:not(:disabled) {
+  background: #352540;
+  border-color: #9475aa;
+  color: #fff;
+}
+html[data-theme='dark'] .myteam-page .member-ranking-scroll { scrollbar-color: #725682 #231a2e; }
+html[data-theme='dark'] .myteam-page .member-ranking-scroll thead,
+html[data-theme='dark'] .myteam-page .member-ranking-scroll thead tr > :nth-child(2) {
+  background: #38003c;
+  color: #fff;
+}
+
+/* Keep dark ranking rows and the mobile sticky member cell on the same surface. */
+html[data-theme='dark'] .myteam-page .member-ranking-scroll tbody tr {
+  background: #191321;
+  color: #f4f1fa;
+}
+
+html[data-theme='dark'] .myteam-page .member-ranking-scroll tbody tr:nth-child(even) {
+  background: #231a2e;
+}
+
+html[data-theme='dark'] .myteam-page .member-ranking-scroll tbody tr.member-ranking-mine {
+  background: #12372e;
+  color: #a7f3d0;
+}
+
+html[data-theme='dark'] .myteam-page .member-ranking-scroll tbody tr:hover {
+  background: #352540;
+  color: #ffffff;
+}
+
+html[data-theme='dark'] .myteam-page .member-ranking-scroll tbody tr.member-ranking-mine:hover {
+  background: #1b4d40;
+  color: #d1fae5;
+}
+
+html[data-theme='dark'] .myteam-page .member-ranking-scroll tbody tr > :is(th, td) {
+  background: inherit;
+  color: inherit;
+  border-bottom-color: #3b304a;
+}
+
+html[data-theme='dark'] .myteam-page .member-ranking-scroll tbody td strong {
+  color: inherit;
 }
 
 /* 7. 반응형 미디어 쿼리 */

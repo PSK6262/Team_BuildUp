@@ -265,13 +265,13 @@ export async function getTeamPlayersWithStats(teamId) {
  */
 export async function getAllPremierLeaguePlayers() {
   const teams = await getTeams();
-  const teamMap = new Map((teams || []).map((t) => [t.teamId, t]));
+  const teamMap = new Map((teams || []).map((t) => [Number(t.teamId), t]));
 
-  const rawPlayers = fallbackBundle.players || [];
+  const rawPlayers = (await Promise.all(teams.map((team) => getTeamPlayers(team.teamId)))).flat();
   return rawPlayers
     .filter((p) => !isExcludedTeam(p.teamId))
     .map((p) => {
-      const t = teamMap.get(p.teamId) || {};
+      const t = teamMap.get(Number(p.teamId)) || {};
       return {
         ...p,
         teamName: t.teamName || 'Premier League',

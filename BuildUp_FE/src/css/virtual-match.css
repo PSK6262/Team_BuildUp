@@ -1,3 +1,37 @@
+.myteam-workspace { min-width: 0; }
+.myteam-page [hidden] { display: none !important; }
+.myteam-workspace-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  max-width: 480px;
+  margin: 0 auto 24px;
+  padding: 6px;
+  border: 1px solid #3b304a;
+  border-radius: 14px;
+  background: #191321;
+}
+.myteam-workspace-switch button {
+  min-height: 44px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #b5adc4;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.myteam-workspace-switch button[aria-pressed='true'] { background: #00e58a; color: #10241b; }
+.myteam-workspace-switch button:hover:not([aria-pressed='true']) { background: #30203c; color: #fff; }
+.myteam-workspace-switch button:focus-visible { outline: 2px solid #00e58a; outline-offset: 2px; }
+html[data-theme='light'] .myteam-workspace-switch { background: #f3f6f4; border-color: #d9e1dc; }
+html[data-theme='light'] .myteam-workspace-switch button { color: #637083; }
+html[data-theme='light'] .myteam-workspace-switch button[aria-pressed='true'] { background: #16744b; color: #fff; }
+html[data-theme='light'] .myteam-workspace-switch button:hover:not([aria-pressed='true']) { background: #e5ece7; color: #253247; }
+html[data-theme='light'] .myteam-workspace-switch button:focus-visible { outline-color: #16744b; }
+
 .myteam-ai-result {
   margin-top: 28px;
   padding-top: 24px;

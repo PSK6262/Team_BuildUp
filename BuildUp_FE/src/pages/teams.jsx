@@ -609,9 +609,9 @@ export function MemberRankings({ type, refreshKey = 0 }) {
       .finally(() => clearTimeout(timer));
     return () => { active = false; clearTimeout(timer); controller.abort(); };
   }, [prediction, requestKey]);
-  return <section className="member-rankings" aria-label={prediction ? '승부예측 적중 랭킹' : '가상 대결 승리수 랭킹'}>
-    <h2>{prediction ? '승부예측 적중' : '나만의 팀 가상 대결 승리수'} TOP 10</h2>
-    <p>{prediction ? '정산된 예측의 적중 수 → 적중률 순입니다.' : '로그인 후 진행한 가상 대결의 승리수 → 승률 순입니다. 무승부는 승리에 포함되지 않습니다.'}</p>
+  return <section className="member-rankings" aria-label={prediction ? '승부예측 적중 랭킹' : '가상 대결 승률 랭킹'}>
+    <h2>{prediction ? '승부예측 적중' : '나만의 팀 가상 대결 승률'} TOP 10</h2>
+    <p>{prediction ? '정산된 예측의 적중 수 → 적중률 순입니다.' : '로그인 후 진행한 가상 대결의 승률 → 승리 수 순입니다. 승률은 전체 대결 중 승리 비율이며, 무승부도 전체 대결에 포함됩니다.'}</p>
     <div className="member-ranking-actions">
       <a href={prediction ? '/plug/prediction' : '/plug/myteam'}>{prediction ? '승부예측 참여하기' : '나만의 팀 대결하기'}</a>
       <button type="button" disabled={result.status === 'loading'} onClick={() => setAttempt((value) => value + 1)}>새로고침</button>
