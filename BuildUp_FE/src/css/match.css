@@ -441,6 +441,23 @@
     0 12px 32px rgba(56, 0, 60, 0.14);
 }
 
+.match-page-container .match-team,
+.match-page-container .match-team__info,
+.match-page-container .match-card__ground { min-width: 0; }
+.match-page-container .match-team__name-kor {
+  max-width: 100%; min-width: 0; flex-wrap: nowrap; white-space: nowrap;
+}
+.match-team__name-text {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.match-page-container .match-team__name-eng {
+  display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.match-page-container .match-ground-pill {
+  display: block; box-sizing: border-box; line-height: 1.5;
+}
+.match-page-container .match-team__name-kor :is(.match-team-rank-badge, .match-win-badge) { flex-shrink: 0; }
+
 /* 경기 시간/날짜 정보 */
 .match-card__datetime {
   display: flex;
@@ -893,6 +910,16 @@
   background: #00ff85;
   color: #38003c;
   vertical-align: middle;
+}
+
+.match-win-badge.match-loss-badge {
+  background: #ffe4e6;
+  color: #be123c;
+}
+
+html[data-theme='dark'] .match-win-badge.match-loss-badge {
+  background: #4c1d2b;
+  color: #fda4af;
 }
 
 /* 로딩 스피너 */

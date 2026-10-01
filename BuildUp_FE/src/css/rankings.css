@@ -1,3 +1,50 @@
+.player-ranking-carousel { width: 100%; max-width: 760px; min-width: 0; margin: 0 auto; }
+.ranking-player-inline { width: 100%; min-width: 0; text-align: left; }
+html[data-theme] .teams-page-container--rankings .ranking-player-inline .ranking-player-details {
+  margin: 0; padding: 0; overflow: visible; scrollbar-gutter: auto;
+}
+html[data-theme] .teams-page-container--rankings .ranking-player-inline .ranking-player-header {
+  flex-wrap: wrap; justify-content: center; padding: 12px; text-align: center;
+}
+.ranking-player-inline .ranking-player-header > div { min-width: 0; }
+.ranking-player-inline .ranking-player-header h2 { overflow-wrap: anywhere; }
+.player-ranking-navigation { display: flex; align-items: center; justify-content: center; gap: 24px; }
+.player-ranking-navigation button {
+  width: 44px; height: 44px; border: 1px solid var(--ranking-line); border-radius: 50%;
+  background: var(--ranking-soft); color: var(--ranking-text); font-size: 28px; cursor: pointer;
+}
+.player-ranking-navigation button:disabled { opacity: .35; cursor: default; }
+.player-ranking-navigation span { min-width: 80px; text-align: center; font-variant-numeric: tabular-nums; }
+.player-ranking-hint { text-align: center; font-size: 12px; line-height: 1.6; color: var(--ranking-muted); }
+.player-ranking-track {
+  position: relative; display: flex; gap: 16px; width: 100%; overflow-x: auto;
+  scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+  touch-action: pan-x pan-y pinch-zoom; scrollbar-width: thin;
+  scrollbar-color: var(--ranking-line) transparent; padding-bottom: 12px;
+}
+.player-ranking-card {
+  box-sizing: border-box; flex: 0 0 100%; min-width: 0; padding: 28px 20px;
+  display: flex; flex-direction: column; align-items: center;
+  scroll-snap-align: start; scroll-snap-stop: always; text-align: center;
+  border: 1px solid var(--ranking-line); border-radius: 16px;
+  background: var(--ranking-soft); color: var(--ranking-text);
+}
+.player-ranking-position { padding: 8px 18px; border-radius: 999px; background: var(--ranking-tint); color: var(--ranking-accent); font-weight: 800; }
+.player-ranking-card h3 { font-size: 24px; margin: 20px 0 12px; overflow-wrap: anywhere; }
+.player-ranking-club { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; }
+.player-ranking-club img { object-fit: contain; flex-shrink: 0; }
+.player-ranking-position-label { color: var(--ranking-muted); font-size: 13px; }
+.player-ranking-stats { display: flex; width: 100%; gap: 8px; margin: 24px 0; }
+.player-ranking-stats > div { flex: 1; min-width: 0; padding: 14px 4px; border-radius: 12px; background: var(--ranking-surface); }
+.player-ranking-stats > .is-highlighted { background: var(--ranking-tint); color: var(--ranking-accent); }
+.player-ranking-stats dt { font-size: 12px; }
+.player-ranking-stats dd { font-size: 30px; font-weight: 800; margin: 8px 0 0; font-variant-numeric: tabular-nums; }
+.player-ranking-detail { margin-top: auto; min-height: 44px; padding: 10px 20px; border: 1px solid var(--ranking-line); border-radius: 10px; background: var(--ranking-surface); color: var(--ranking-text); font: inherit; cursor: pointer; }
+@media (max-width: 600px) {
+  .player-ranking-card { padding: 22px 12px; }
+  .player-ranking-card h3 { font-size: 21px; }
+}
+
 /* Keep league statistics readable inside their own horizontal viewport. */
 .standings-swipe-hint, .ranking-tab-label-mobile { display: none; }
 html[data-theme] .teams-page-container--rankings .standings-scroll--league {

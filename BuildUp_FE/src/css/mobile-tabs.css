@@ -49,14 +49,14 @@
   .match-page-container .match-count { flex: 1; text-align: right; font-size: calc(13 * var(--mobile-unit)); overflow-wrap: anywhere; }
   .match-page-container .team-filter-reset-btn { flex-shrink: 0; font-size: calc(12 * var(--mobile-unit)); }
   .match-page-container .match-card { grid-template-columns: minmax(0, 1fr); padding: calc(16 * var(--mobile-unit)); gap: calc(16 * var(--mobile-unit)); }
-  .match-page-container .match-card__datetime { flex-direction: row; justify-content: center; flex-wrap: wrap; gap: calc(8 * var(--mobile-unit)); }
+  .match-page-container .match-card__datetime { flex-direction: row; justify-content: center; align-items: center; flex-wrap: nowrap; gap: calc(6 * var(--mobile-unit)); white-space: nowrap; }
   .match-page-container .match-card__date { font-size: calc(14 * var(--mobile-unit)); }
   .match-page-container :is(.match-card__time, .match-card__round-tag) { font-size: calc(12 * var(--mobile-unit)); }
   .match-page-container .match-card__versus { display: grid; grid-template-columns: minmax(0, 1fr) calc(76 * var(--mobile-unit)) minmax(0, 1fr); gap: calc(8 * var(--mobile-unit)); align-items: start; }
   .match-page-container .match-team { min-width: 0; gap: calc(8 * var(--mobile-unit)); }
   .match-page-container .match-team__info { align-items: center; text-align: center; width: 100%; }
-  .match-page-container .match-team__name-kor { justify-content: center; flex-wrap: wrap; gap: calc(3 * var(--mobile-unit)); font-size: calc(14 * var(--mobile-unit)); overflow-wrap: anywhere; }
-  .match-page-container .match-team__name-eng { font-size: calc(11 * var(--mobile-unit)); overflow-wrap: anywhere; }
+  .match-page-container .match-team__name-kor { justify-content: center; flex-wrap: nowrap; gap: calc(3 * var(--mobile-unit)); font-size: calc(14 * var(--mobile-unit)); width: 100%; min-height: 1.5em; line-height: 1.5; white-space: nowrap; }
+  .match-page-container .match-card .match-team__name-eng { display: none; }
   .match-page-container .match-team__emblem-wrap { width: calc(44 * var(--mobile-unit)); height: calc(44 * var(--mobile-unit)); }
   .match-page-container :is(.match-team-rank-badge, .match-win-badge, .match-badge) { font-size: calc(10 * var(--mobile-unit)); margin: 0; }
   .match-page-container .match-score-box { min-width: 0; width: 100%; align-self: center; }

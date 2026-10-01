@@ -756,8 +756,9 @@ export default function Match() {
                       <div className="match-team__info">
                         <span className="match-team__name-kor">
                           {renderTeamRankBadge(match.homeTeamId)}
-                          {homeTeam.teamNameKor}
+                          <span className="match-team__name-text" title={homeTeam.teamNameKor}>{homeTeam.teamNameKor}</span>
                           {isHomeWinner && <span className="match-win-badge">승</span>}
+                          {isAwayWinner && <span className="match-win-badge match-loss-badge">패</span>}
                         </span>
                         <span className="match-team__name-eng">({homeTeam.teamName})</span>
                       </div>
@@ -799,8 +800,9 @@ export default function Match() {
                       <div className="match-team__info">
                         <span className="match-team__name-kor">
                           {renderTeamRankBadge(match.awayTeamId)}
-                          {awayTeam.teamNameKor}
+                          <span className="match-team__name-text" title={awayTeam.teamNameKor}>{awayTeam.teamNameKor}</span>
                           {isAwayWinner && <span className="match-win-badge">승</span>}
+                          {isHomeWinner && <span className="match-win-badge match-loss-badge">패</span>}
                         </span>
                         <span className="match-team__name-eng">({awayTeam.teamName})</span>
                       </div>
