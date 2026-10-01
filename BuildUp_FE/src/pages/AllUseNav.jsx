@@ -35,6 +35,7 @@ const links = [
   ['나만의 팀', 'myteam'],
   ['랭킹', 'rankpage'],
   ['예측', 'prediction'],
+  ['포인트샵', 'point'],
   ['미니게임', 'minigames'],
 ]
 
