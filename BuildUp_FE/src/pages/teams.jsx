@@ -626,7 +626,7 @@ function StandingsTable({ season }) {
   );
 }
 
-export function MemberRankings({ type, refreshKey = 0 }) {
+export function MemberRankings({ type, refreshKey = 0, mobileCards = false }) {
   const [response, setResult] = useState(null);
   const [attempt, setAttempt] = useState(0);
   const userId = useSelector((state) => state.auth.user?.userId);
@@ -660,7 +660,30 @@ export function MemberRankings({ type, refreshKey = 0 }) {
     {result.status === 'loading' ? <p role="status">랭킹을 불러오는 중입니다...</p>
       : result.status === 'error' ? <p role="alert">랭킹을 불러오지 못했습니다. 새로고침으로 다시 시도해주세요.</p>
       : result.rows.length === 0 ? <p>아직 집계된 기록이 없습니다.</p>
-      : <div className="member-ranking-scroll"><table className="standings-table">
+      : <>
+      {mobileCards && !prediction && (
+        <div className="member-ranking-mobile">
+          <p className="member-ranking-swipe-hint">좌우로 넘겨 TOP 10을 확인하세요 ↔</p>
+          <ol className="member-ranking-cards" aria-label="가상 대결 승률 TOP 10" tabIndex={0}>
+            {result.rows.slice(0, 10).map((row, index) => {
+              const mine = userId != null && String(userId) === String(row.userId);
+              return <li key={row.userId} className={`member-ranking-card${mine ? ' is-mine' : ''}`}>
+                <span className="member-ranking-card-rank">{index + 1}위{mine && ' · 나'}</span>
+                <h3>{row.nickname || '회원'}</h3>
+                <p>{row.teamName || '나만의 팀'}</p>
+                <div className="member-ranking-card-rate">승률 <strong>{(row.totalMatches ? row.wins / row.totalMatches * 100 : 0).toFixed(1)}%</strong></div>
+                <dl>
+                  <div><dt>대결</dt><dd>{row.totalMatches}</dd></div>
+                  <div><dt>승리</dt><dd>{row.wins}</dd></div>
+                  <div><dt>무승부</dt><dd>{row.draws}</dd></div>
+                  <div><dt>패배</dt><dd>{row.losses}</dd></div>
+                </dl>
+              </li>;
+            })}
+          </ol>
+        </div>
+      )}
+      <div className={`member-ranking-scroll${mobileCards && !prediction ? ' member-ranking-desktop' : ''}`}><table className="standings-table">
         <thead><tr><th scope="col">순위</th><th scope="col">회원</th>{!prediction && <th scope="col">팀</th>}<th scope="col">{prediction ? '적중' : '승리'}</th><th scope="col">{prediction ? '정산 예측' : '대결'}</th><th scope="col">{prediction ? '적중률' : '승률'}</th>{!prediction && <><th scope="col">무승부</th><th scope="col">패배</th></>}</tr></thead>
         <tbody>{result.rows.map((row, index) => {
           const wins = prediction ? row.predictWin : row.wins;
@@ -672,6 +695,6 @@ export function MemberRankings({ type, refreshKey = 0 }) {
             {!prediction && <><td>{row.draws}</td><td>{row.losses}</td></>}
           </tr>;
         })}</tbody>
-      </table></div>}
+      </table></div></>}
   </section>;
 }

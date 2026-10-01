@@ -1569,6 +1569,15 @@ html[data-theme='light'] .myteam-player-picker {
   align-items: stretch;
 }
 
+.myteam-opponent-row {
+  display: contents;
+}
+
+.myteam-mobile-start,
+.member-ranking-mobile {
+  display: none;
+}
+
 .myteam-opponent-mode {
   display: flex;
   box-sizing: border-box;
@@ -1738,6 +1747,142 @@ html[data-theme='light'] .myteam-match-rules summary span { color: #637083; }
 @media (max-width: 640px) {
   .myteam-opponent-modes {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .myteam-opponent-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: stretch;
+    gap: 0;
+    border: 2px solid #526077;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #172334;
+  }
+
+  .myteam-opponent-row:has(.myteam-opponent-mode[aria-pressed='true']) {
+    border-color: #00ff87;
+    background: #12372e;
+    box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.12);
+  }
+
+  html[data-theme='light'] .myteam-page .myteam-opponent-row {
+    border-color: #d9e1dc;
+    background: #f8faf9;
+  }
+
+  html[data-theme='light'] .myteam-page .myteam-opponent-row:has(.myteam-opponent-mode[aria-pressed='true']) {
+    border-color: #16744b;
+    background: #edf7f1;
+    box-shadow: 0 0 0 2px #16744b12;
+  }
+
+  .myteam-page .myteam-opponent-row .myteam-opponent-mode,
+  html[data-theme='light'] .myteam-page .myteam-opponent-row .myteam-opponent-mode {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .myteam-page .myteam-opponent-row .myteam-mobile-start {
+    border-radius: 0;
+    transform: none;
+  }
+
+  .myteam-opponent-row > button:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: -4px;
+  }
+
+  .myteam-opponent-row .myteam-opponent-mode {
+    padding: 12px 10px;
+    gap: 8px;
+  }
+
+  .myteam-opponent-row .myteam-opponent-mode > span:first-child {
+    font-size: 22px;
+  }
+
+  .myteam-mobile-start {
+    display: block;
+    min-height: 44px;
+    padding: 12px 10px;
+    white-space: nowrap;
+  }
+
+  .myteam-desktop-start,
+  .myteam-page .member-ranking-desktop {
+    display: none;
+  }
+
+  .myteam-page .member-ranking-mobile {
+    display: block;
+    min-width: 0;
+  }
+
+  .myteam-page .member-ranking-cards {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    list-style: none;
+    margin: 0;
+    padding: 4px 0 12px;
+  }
+
+  .myteam-page .member-ranking-card {
+    box-sizing: border-box;
+    flex: 0 0 88%;
+    min-width: 0;
+    padding: 18px 14px;
+    border: 1px solid #64748b;
+    border-radius: 16px;
+    scroll-snap-align: start;
+    background: rgba(128, 128, 128, 0.08);
+    overflow-wrap: anywhere;
+  }
+
+  .myteam-page .member-ranking-card.is-mine {
+    border: 2px solid var(--myteam-accent, #00b875);
+  }
+
+  .myteam-page .member-ranking-card-rank {
+    display: inline-block;
+    margin-bottom: 16px;
+    font-weight: 800;
+  }
+
+  .myteam-page .member-ranking-card h3 {
+    margin-bottom: 4px;
+  }
+
+  .myteam-page .member-ranking-card p {
+    margin: 0 0 20px;
+  }
+
+  .myteam-page .member-ranking-card-rate strong {
+    display: block;
+    font-size: 32px;
+  }
+
+  .myteam-page .member-ranking-card dl {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    margin: 20px 0 0;
+    text-align: center;
+  }
+
+  .myteam-page .member-ranking-card dt,
+  .myteam-page .member-ranking-swipe-hint {
+    font-size: 12px;
+  }
+
+  .myteam-page .member-ranking-card dd {
+    margin: 6px 0 0;
+    font-weight: 700;
   }
 
   .myteam-opponent-picker {

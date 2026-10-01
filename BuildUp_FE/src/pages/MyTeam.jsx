@@ -1709,22 +1709,23 @@ export default function MyTeam() {
   const filledCount = slots.filter((s) => s.player).length;
   const selectedOpponentClub = teams.find((team) => String(team.teamId) === opponentClubId);
 
-  const handleAiMatch = async () => {
+  const handleAiMatch = async (mode = opponentMode) => {
     if (matchRequestRef.current) return;
     if (loading || slots.length !== 11 || filledCount !== 11 ||
       new Set(slots.map((slot) => String(slot.player?.playerId))).size !== 11) {
       showToast('대전하려면 서로 다른 선수 11명을 먼저 배치해주세요.');
       return;
     }
-    const club = opponentMode === 'CLUB'
+    const club = mode === 'CLUB'
       ? teams.find((team) => String(team.teamId) === opponentClubId)
       : null;
-    if (opponentMode === 'CLUB' && !club) {
+    if (mode === 'CLUB' && !club) {
       showToast('대결할 상대 구단을 선택해주세요.');
       return;
     }
     const controller = new AbortController();
     const submittedSquads = captureMatchSquads(slots);
+    setOpponentMode(mode);
     matchRequestRef.current = controller;
     setMatching(true);
     const timeout = setTimeout(() => controller.abort(), 30000);
@@ -2297,14 +2298,28 @@ export default function MyTeam() {
             <div className="myteam-opponent-section">
               <h2 id="ai-match-title">AI 팀과 대전</h2>
               <div className="myteam-opponent-modes" role="group" aria-label="대전 상대 유형">
+                <div className="myteam-opponent-row">
                 <button type="button" className="myteam-opponent-mode"
                   aria-pressed={opponentMode === 'RANDOM'} onClick={() => setOpponentMode('RANDOM')}>
                   <span aria-hidden="true">🎲</span><span><strong>랜덤 AI 대전</strong><small>전체 구단 선수로 구성된 랜덤 상대</small></span>
                 </button>
+                <button type="button" className="myteam-btn myteam-btn-primary myteam-mobile-start"
+                  aria-label="랜덤 AI 대전 시작" onClick={() => handleAiMatch('RANDOM')}
+                  disabled={loading || matching || filledCount !== 11}>
+                  {matching && opponentMode === 'RANDOM' ? '준비 중...' : '대전 시작'}
+                </button>
+                </div>
+                <div className="myteam-opponent-row">
                 <button type="button" className="myteam-opponent-mode"
                   aria-pressed={opponentMode === 'CLUB'} onClick={() => setOpponentMode('CLUB')}>
                   <span aria-hidden="true">🛡️</span><span><strong>구단 선택 대전</strong><small>20개 구단 중 원하는 상대를 직접 선택</small></span>
                 </button>
+                <button type="button" className="myteam-btn myteam-btn-primary myteam-mobile-start"
+                  aria-label="선택한 구단과 대전 시작" onClick={() => handleAiMatch('CLUB')}
+                  disabled={loading || matching || filledCount !== 11 || !selectedOpponentClub}>
+                  {matching && opponentMode === 'CLUB' ? '준비 중...' : '대전 시작'}
+                </button>
+                </div>
               </div>
                 {opponentMode === 'CLUB' && (
                   <div className="myteam-opponent-picker">
@@ -2341,8 +2356,8 @@ export default function MyTeam() {
                   대전 끝내기
                 </button>
               )}
-              <button type="button" className="myteam-btn myteam-btn-primary"
-                onClick={handleAiMatch} disabled={loading || matching || filledCount !== 11 || (opponentMode === 'CLUB' && !opponentClubId)}>
+              <button type="button" className="myteam-btn myteam-btn-primary myteam-desktop-start"
+                onClick={() => handleAiMatch()} disabled={loading || matching || filledCount !== 11 || (opponentMode === 'CLUB' && !opponentClubId)}>
                 {matching ? 'AI 대전 준비 중...' : opponentMode === 'CLUB' ? (selectedOpponentClub ? `${selectedOpponentClub.teamNameKor || selectedOpponentClub.teamName} 상대 대전 시작` : '상대 구단을 먼저 선택해주세요') : (aiMatch ? '새 AI 팀과 다시 대전' : 'AI 대전 시작')}
               </button>
             </div>
@@ -2353,7 +2368,7 @@ export default function MyTeam() {
             <p>매판 무작위 포메이션과 선수로 구성된 AI 팀에 도전하세요. AI는 각 자리에 같은 포지션의 선수만 배치합니다.</p>
             <p>90분 경기를 즉시 시뮬레이션합니다. 원래 포지션과 다른 자리에 배치한 선수 1명당 팀의 득점 확률이 5%씩, 최대 50% 감소합니다. 일반 슈팅·PK·프리킥에 모두 적용되며 실제 선수 능력치는 반영하지 않습니다.</p>
           </details>
-          <MemberRankings type="virtual" refreshKey={aiMatch?.replayId ?? 0} />
+          <MemberRankings type="virtual" refreshKey={aiMatch?.replayId ?? 0} mobileCards />
           {aiMatch && (
             <div className="myteam-ai-result">
               <div className="myteam-ai-result-heading">
