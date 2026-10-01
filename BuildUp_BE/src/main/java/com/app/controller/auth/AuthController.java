@@ -276,6 +276,7 @@ public class AuthController {
 				}
 			}
 		}
+		LoginManager.logout(request);
 		return ApiResponse.error(ResultCode.UNAUTHORIZED);
 	}
 

@@ -467,6 +467,7 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 				+ "DB 정보:\n" + dbContext
 				+ (recentConversation.isBlank() ? "" : "\n최근 대화:\n" + recentConversation)
 				+ "\n질문: " + trimmedQuestion;
+		String searchNotice = "";
 		try {
 			GeminiCallResult groundedResult;
 			try {
@@ -476,30 +477,43 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 				String searchFailure = describeSearchFailure(searchException);
 				java.util.logging.Logger.getLogger(GeminiApiServiceImpl.class.getName())
 						.warning("[Gemini chat] " + searchFailure);
-				if (captainQuestion) {
-					return "주장 정보를 검색으로 확인하지 못했습니다. " + searchFailure;
-				}
+				searchNotice = "검색으로 요청한 시점의 정보를 확인하지 못했습니다. " + searchFailure;
 				log.warn("[Gemini chat] Google 검색 연동 실패, 일반 답변으로 재시도: {}",
 						searchException.getClass().getSimpleName());
-				String fallbackPrompt = prompt
-						+ "\n현재 Google 검색 도구를 사용할 수 없습니다. 검색했다고 표현하지 말고, "
-						+ "확실한 일반 정보만 답하며 최신 정보는 확인이 필요하다고 명시하세요.";
-				groundedResult = new GeminiCallResult(callGemini(fallbackPrompt), List.of());
+				groundedResult = new GeminiCallResult("", List.of());
 			}
-			if (captainQuestion && groundedResult.sources().isEmpty()) {
-				return "주장 정보를 확인할 검색 출처를 확보하지 못했습니다. 과거 정보를 현재 주장으로 안내하지 않도록 답변을 보류합니다.";
+			if (groundedResult.sources().isEmpty()) {
+				if (searchNotice.isEmpty()) {
+					searchNotice = "검색 출처를 확보하지 못해 요청한 시점의 정보를 검증하지 못했습니다.";
+				}
+				String fallbackPrompt = prompt
+						+ "\n[검색 불가 시 답변 규칙: 앞의 검색 필수 지시는 아래 규칙으로 대체합니다.] "
+						+ "실제 검색 상태: " + searchNotice
+						+ " 검색에 성공했다거나 최신 자료를 확인했다고 말하지 마세요. "
+						+ "실패 이유는 위 상태에 명시된 범위에서만 설명하고 토큰 소진 등 확인되지 않은 원인을 추측하지 마세요. "
+						+ "DB로 답할 수 있는 부분과 확실히 알고 있는 일반 정보는 답하세요. "
+						+ "주장·감독·소속 등 바뀔 수 있는 정보는 알고 있는 과거 사실과 그 연도 또는 시즌을 함께 안내할 수 있습니다. "
+						+ "반드시 '과거 정보'라고 구분하고, 요청한 기준일의 상태와 일치하는지는 확인하지 못했다고 밝히세요. "
+						+ "알고 있는 과거 시점을 기본 기준일인 2026년 8월 21일로 바꾸어 표시하지 마세요. "
+						+ "사용자가 과거 시점을 지정했다면 그 시점에 맞는 정보만 답하세요. "
+						+ "인물이나 해당 시점을 확실히 알지 못하면 이름·날짜·출처를 만들어내지 말고 확인할 수 없다고 답하세요. "
+						+ "검색 장애 안내는 서버에서 별도로 표시하므로 반복하지 마세요. JSON answer 형식은 유지하세요.";
+				groundedResult = new GeminiCallResult(callGemini(fallbackPrompt), List.of());
 			}
 			JsonNode result = objectMapper.readTree(groundedResult.text());
 			String answer = result.path("answer").asText("").trim();
 			if (answer.isEmpty()) {
 				throw new IllegalStateException("Gemini 답변이 비어 있습니다.");
 			}
-			if (groundedResult.sources().isEmpty()) return answer;
+			if (groundedResult.sources().isEmpty()) return searchNotice + "\n\n" + answer;
 			StringBuilder groundedAnswer = new StringBuilder(answer).append("\n\n검색 출처");
 			groundedResult.sources().forEach(source -> groundedAnswer.append("\n- ").append(source));
 			return groundedAnswer.toString();
 		} catch (Exception exception) {
 			log.warn("[Gemini chat] 답변 생성 실패: {}", exception.getClass().getSimpleName());
+			if (!searchNotice.isEmpty()) {
+				return searchNotice + "\n\n일반 지식 답변도 생성하지 못했습니다. 잠시 후 다시 시도해주세요.";
+			}
 			throw new IllegalStateException("챗봇 답변을 생성하지 못했습니다. 잠시 후 다시 시도해주세요.");
 		}
 	}
@@ -507,7 +521,10 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 	private String describeSearchFailure(Throwable exception) {
 		for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
 			String message = String.valueOf(cause.getMessage());
-			if (message.contains("HTTP 429")) return "[SEARCH_QUOTA] 검색 API 사용 한도에 도달했습니다.";
+			if (message.contains("QUOTA_ZERO")) return "[SEARCH_QUOTA_ZERO] 해당 모델의 허용량이 0입니다. Google AI Studio에서 프로젝트의 모델별 할당량을 확인해주세요.";
+			if (message.contains("QUOTA_DAILY")) return "[SEARCH_QUOTA_DAILY] 프로젝트의 일일 한도에 도달했습니다. AI Studio에서 초기화 시점을 확인해주세요.";
+			if (message.contains("QUOTA_MINUTE")) return "[SEARCH_QUOTA_MINUTE] 프로젝트의 분당 요청 또는 토큰 제한입니다. 잠시 후 다시 시도해주세요.";
+			if (message.contains("HTTP 429")) return "[SEARCH_QUOTA] Google이 검색 요청을 제한했습니다(HTTP 429). 응답만으로는 정확한 제한 원인을 확인할 수 없으며, 전체 토큰을 소진했다는 뜻으로 단정할 수 없습니다.";
 			if (message.contains("HTTP 403") || message.contains("HTTP 401")) return "[SEARCH_AUTH] 검색 API 인증 또는 접근 권한을 확인해야 합니다.";
 			if (message.contains("HTTP 404")) return "[SEARCH_MODEL] 설정된 검색 모델을 사용할 수 없습니다.";
 			if (message.contains("HTTP 400")) return "[SEARCH_REQUEST] 검색 요청 설정을 API가 거절했습니다.";

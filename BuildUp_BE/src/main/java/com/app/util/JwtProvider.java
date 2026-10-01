@@ -25,8 +25,15 @@ public class JwtProvider {
 	// JWT 서명에 사용할 비밀키 (소스코드에 직접 하드코딩하지 않고 외부 설정에서 안전하게 불러옵니다)
 	private static final String SECRET_KEY = loadSecretKey();
 	
+	// 서버 기동 시마다 새로 생성되는 고유 식별자 (서버를 껐다 켜면 이전 토큰을 즉시 무효화)
+	private static final String SERVER_BOOT_ID = java.util.UUID.randomUUID().toString();
+	
 	// token 만료시간 설정 (30분 슬라이딩 세션 기준)
 	private static final long ACCESS_TOKEN_EXPIRATION = 1000L * 60 * 30; // 30분 
+
+	public static String getServerBootId() {
+		return SERVER_BOOT_ID;
+	}
 	
 	/**
 	 * 외부 설정(1순위: OS 환경변수, 2순위: application.properties)에서 비밀키를 안전하게 읽어오는 메서드
@@ -69,10 +76,11 @@ public class JwtProvider {
 		
 		Date now = new Date(System.currentTimeMillis());
 		
-		// 토큰에 로그인 아이디 저장 (프로젝트 표준 loginId 및 기존 호환 userId 동시 보관)
+		// 토큰에 로그인 아이디 및 현재 서버 기동 ID 저장 (서버 재시작 시 이전 토큰 자동 만료)
 		Claims claims = Jwts.claims()
 							.add("loginId", loginId)
 							.add("userId", loginId)
+							.add("bootId", SERVER_BOOT_ID)
 							.build();  
 		
 		return Jwts.builder()
@@ -101,18 +109,13 @@ public class JwtProvider {
 	
 	// 토큰의 유효성 검증
 	public static boolean isValidToken(String token) {
-		
-		// return  유효여부 (true/false) 
-		// return 상태코드 -> 만료, 위변조, 유효X   
-		// 			exception -> throw 
-		
-		// 인증된 (Authenticated)
-		// 만료된 (Expired)
-		// 유효하지않다 (Invalid)
-		
-		//------------------------
 		try {
-			Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token);
+			Claims claims = Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token).getPayload();
+			String tokenBootId = claims.get("bootId", String.class);
+			if (!SERVER_BOOT_ID.equals(tokenBootId)) {
+				System.out.println("서버 재시작 이전 발급된 토큰 무효화 (bootId 불일치)");
+				return false;
+			}
 			return true;  //정상적인 토큰 인증 완료
 		} catch (MalformedJwtException e) {
 			System.out.println("유효하지 않은 토큰: " + e.getMessage());
@@ -135,6 +138,10 @@ public class JwtProvider {
 		String loginId = null;
 		try {
 			Claims claims = Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token).getPayload();
+			String tokenBootId = claims.get("bootId", String.class);
+			if (!SERVER_BOOT_ID.equals(tokenBootId)) {
+				return null;
+			}
 			loginId = claims.get("loginId", String.class);
 			if (loginId == null) {
 				loginId = claims.get("userId", String.class);

@@ -147,7 +147,13 @@ public class GeminiApiClient {
 									}
 								}
 							}
-						} else if (response.statusCode() >= 500 || response.statusCode() == 429) {
+						} else if (response.statusCode() == 429) {
+							// 한도 제한은 모델을 바꿔 연속 호출하지 않고 상세 원인을 전달합니다.
+							String quotaFailure = describeQuotaFailure(response.body());
+							java.util.logging.Logger.getLogger(GeminiApiClient.class.getName())
+									.warning("[Gemini API] model=" + modelName + " " + quotaFailure);
+							throw new IllegalStateException(quotaFailure);
+						} else if (response.statusCode() >= 500) {
 							lastError = "모델 [" + modelName + "] 서버 일시 장애 (HTTP " + response.statusCode() + ")";
 							log.warn("[Gemini API] 시도 {}/{} 실패: {}", attempt + 1, MAX_RETRY_COUNT + 1, lastError);
 							if (attempt < MAX_RETRY_COUNT) {
@@ -185,6 +191,34 @@ public class GeminiApiClient {
 		} catch (Exception e) {
 			throw new RuntimeException("Gemini API 요청 처리 중 예외 발생: " + e.getMessage(), e);
 		}
+	}
+
+	// 키나 전체 응답 대신 한도 식별자·허용량·재시도 시간만 기록합니다.
+	private String describeQuotaFailure(String body) {
+		StringBuilder details = new StringBuilder();
+		boolean zeroQuota = false;
+		boolean dailyQuota = false;
+		boolean minuteQuota = false;
+		try {
+			for (JsonNode detail : objectMapper.readTree(body).path("error").path("details")) {
+				for (JsonNode violation : detail.path("violations")) {
+					String id = violation.path("quotaId").asText("");
+					String value = violation.path("quotaValue").asText("");
+					zeroQuota |= "0".equals(value);
+					dailyQuota |= id.contains("PerDay");
+					minuteQuota |= id.contains("PerMinute");
+					details.append(" quota=").append(id.replaceAll("[^a-zA-Z0-9_-]", ""))
+							.append(" limit=").append(value.replaceAll("[^0-9.]", ""));
+				}
+				if (detail.has("retryDelay")) {
+					details.append(" retryDelay=").append(detail.path("retryDelay").asText("").replaceAll("[^0-9.s]", ""));
+				}
+			}
+		} catch (Exception ignored) {
+			// 상세 형식이 다르면 429 사실만 전달합니다.
+		}
+		String code = zeroQuota ? "QUOTA_ZERO" : dailyQuota ? "QUOTA_DAILY" : minuteQuota ? "QUOTA_MINUTE" : "QUOTA_UNKNOWN";
+		return "HTTP 429 [" + code + "]" + details;
 	}
 
 	private List<String> extractGroundingSources(JsonNode candidate) {
