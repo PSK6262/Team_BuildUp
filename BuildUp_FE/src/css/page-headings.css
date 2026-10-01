@@ -3,12 +3,12 @@ html[data-theme] :is(.teams-page-container--rankings, .myteam-page) {
   padding-top: 40px;
 }
 
-html[data-theme] :is(.match-page-header, .teams-page-container--rankings .teams-page-header, .myteam-title-box) {
+html[data-theme] :is(.match-page-header, .teams-page-container--rankings .teams-page-header, .myteam-title-box, .point-page-header) {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   text-align: center;
 }
 
-html[data-theme] :is(.match-page-title, .teams-page-container--rankings .teams-page-title, .myteam-title-box h1) {
+html[data-theme] :is(.match-page-title, .teams-page-container--rankings .teams-page-title, .myteam-title-box h1, .point-page-title) {
   display: block;
   font-family: inherit;
   font-size: 36px;
@@ -18,7 +18,7 @@ html[data-theme] :is(.match-page-title, .teams-page-container--rankings .teams-p
   margin: 0 0 10px;
 }
 
-html[data-theme] :is(.match-page-eyebrow, .teams-page-container--rankings .teams-page-eyebrow, .myteam-title-box .myteam-title-badge) {
+html[data-theme] :is(.match-page-eyebrow, .teams-page-container--rankings .teams-page-eyebrow, .myteam-title-box .myteam-title-badge, .point-page-eyebrow) {
   display: inline-block;
   font-family: inherit;
   font-size: 13px;
@@ -34,20 +34,22 @@ html[data-theme] :is(.match-page-eyebrow, .teams-page-container--rankings .teams
 }
 
 html[data-theme='light'] .myteam-page .myteam-title-box .myteam-title-badge,
-html[data-theme='light'] .teams-page-container--rankings .teams-page-header .teams-page-eyebrow {
+html[data-theme='light'] .teams-page-container--rankings .teams-page-header .teams-page-eyebrow,
+html[data-theme='light'] .point-page-eyebrow {
   color: #38003c;
   background: transparent;
   border: 0;
   box-shadow: none;
   text-shadow: none;
 }
-html[data-theme='dark'] .myteam-title-box .myteam-title-badge { color: #00e58a; }
+html[data-theme='dark'] .myteam-title-box .myteam-title-badge,
+html[data-theme='dark'] .point-page-eyebrow { color: #00e58a; }
 
 @media (max-width: 600px) {
   html[data-theme] :is(.teams-page-container--rankings, .myteam-page) {
     padding-top: calc(24 * var(--mobile-unit));
   }
-  html[data-theme] :is(.match-page-title, .teams-page-container--rankings .teams-page-title, .myteam-title-box h1) {
+  html[data-theme] :is(.match-page-title, .teams-page-container--rankings .teams-page-title, .myteam-title-box h1, .point-page-title) {
     font-size: calc(28 * var(--mobile-unit));
   }
 }

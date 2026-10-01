@@ -1,0 +1,860 @@
+/* ========================================================
+   POINT SHOP PAGE STYLES (다크 / 라이트 모드 완벽 대응)
+   ======================================================== */
+
+/* Follow the navigation theme using the match / community palette. */
+body:has(.point-page-container) {
+  background: #f8fafc;
+}
+
+html[data-theme='dark'] body:has(.point-page-container) {
+  background: radial-gradient(ellipse at 15% 0%, #291131 0%, transparent 48%), #0c0a14;
+}
+
+.point-page-container {
+  color-scheme: light;
+  min-height: calc(100vh - 84px);
+  padding: 40px 24px 80px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: #0f172a;
+  background-color: #f8fafc;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+html[data-theme='dark'] .point-page-container {
+  color-scheme: dark;
+  background: transparent;
+  color: #f4f1fa;
+}
+
+html[data-theme='light'] .point-page-container {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.point-page-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* --------------------------------------------------------
+   헤더 영역 (경기 일정 페이지 스타일 100% 일치)
+   -------------------------------------------------------- */
+.point-page-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.point-page-eyebrow {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: normal;
+  letter-spacing: 2px;
+  color: #38003c;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+
+html[data-theme='dark'] .point-page-container .point-page-eyebrow,
+html[data-theme='dark'] .point-page-eyebrow {
+  color: #00e58a;
+  text-shadow: none;
+}
+
+html[data-theme='light'] .point-page-container .point-page-eyebrow,
+html[data-theme='light'] .point-page-eyebrow {
+  color: #38003c;
+  text-shadow: none;
+}
+
+.point-page-title {
+  display: block;
+  font-size: 36px;
+  font-weight: 900;
+  line-height: normal;
+  letter-spacing: -0.5px;
+  margin: 0 0 10px;
+  color: #0f172a;
+}
+
+html[data-theme='dark'] .point-page-container .point-page-title,
+html[data-theme='dark'] .point-page-title {
+  color: #f4f1fa;
+  text-shadow: none;
+}
+
+html[data-theme='light'] .point-page-container .point-page-title,
+html[data-theme='light'] .point-page-title {
+  color: #0f172a;
+  text-shadow: none;
+}
+
+.point-page-desc {
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #64748b;
+  margin: 0;
+}
+
+html[data-theme='dark'] .point-page-container .point-page-desc,
+html[data-theme='dark'] .point-page-desc {
+  color: #b5adc4;
+}
+
+html[data-theme='light'] .point-page-container .point-page-desc,
+html[data-theme='light'] .point-page-desc {
+  color: #64748b;
+}
+
+/* --------------------------------------------------------
+   내 포인트 보유 현황 배너
+   -------------------------------------------------------- */
+.point-balance-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 28px;
+  border-radius: 16px;
+  margin-bottom: 32px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.25s ease;
+}
+
+html[data-theme='dark'] .point-balance-banner {
+  background: linear-gradient(135deg, rgba(56, 0, 60, 0.6) 0%, rgba(24, 0, 30, 0.8) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme='light'] .point-balance-banner {
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.point-balance-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.point-coin-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  background: radial-gradient(circle, #ffe600 0%, #ff9900 100%);
+  box-shadow: 0 0 16px rgba(255, 204, 0, 0.5);
+  flex-shrink: 0;
+}
+
+.point-balance-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+html[data-theme='dark'] .point-balance-label {
+  color: #94a3b8;
+}
+
+html[data-theme='light'] .point-balance-label {
+  color: #64748b;
+}
+
+.point-balance-value {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+html[data-theme='dark'] .point-balance-value {
+  color: #00ff87;
+  text-shadow: 0 0 10px rgba(0, 255, 135, 0.4);
+}
+
+html[data-theme='light'] .point-balance-value {
+  color: #059669;
+}
+
+.point-balance-unit {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.point-balance-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.point-history-link {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+html[data-theme='dark'] .point-history-link {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+html[data-theme='dark'] .point-history-link:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border-color: #00ff87;
+}
+
+html[data-theme='light'] .point-history-link {
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+
+html[data-theme='light'] .point-history-link:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #38003c;
+}
+
+.point-login-prompt {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.point-login-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: #e90052;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 13px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.point-login-btn:hover {
+  background: #ff1a6b;
+}
+
+/* --------------------------------------------------------
+   카테고리 탭 (전체 / 아이콘 / 이모티콘 / 내 보관함)
+   -------------------------------------------------------- */
+.point-category-tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.point-tab-btn {
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+html[data-theme='dark'] .point-tab-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+}
+
+html[data-theme='dark'] .point-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+html[data-theme='dark'] .point-tab-btn.is-active {
+  background: #e90052;
+  border-color: #e90052;
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(233, 0, 82, 0.45);
+}
+
+html[data-theme='light'] .point-tab-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+}
+
+html[data-theme='light'] .point-tab-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+html[data-theme='light'] .point-tab-btn.is-active {
+  background: #38003c;
+  border-color: #38003c;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(56, 0, 60, 0.2);
+}
+
+.point-tab-count {
+  font-size: 12px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  color: inherit;
+}
+
+/* --------------------------------------------------------
+   스쿼드형 반응형 슬라이더 (데스크탑: 일반 그리드, 모바일: 2열 2줄 스와이프 슬라이더)
+   -------------------------------------------------------- */
+.point-squad-slider-container {
+  width: 100%;
+}
+
+.point-squad-slider-track {
+  display: contents;
+}
+
+.point-squad-slide {
+  display: contents;
+}
+
+.point-squad-slider-nav,
+.point-squad-slider-footer {
+  display: none !important;
+}
+
+.point-items-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+}
+
+@media (max-width: 1024px) {
+  .point-items-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+}
+
+@media (max-width: 768px) {
+  .point-squad-slider-container {
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .point-squad-slider-nav {
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .point-squad-arrow-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+    line-height: 1;
+    user-select: none;
+  }
+
+  html[data-theme='light'] .point-squad-arrow-btn {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+    color: #1e293b;
+  }
+
+  .point-squad-arrow-btn:active {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(0.92);
+  }
+
+  .point-squad-arrow-btn:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .point-squad-page-indicator {
+    font-family: var(--font-plug, -apple-system, sans-serif);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #00ff87;
+    min-width: 44px;
+    text-align: center;
+    letter-spacing: 0.03em;
+  }
+
+  html[data-theme='light'] .point-squad-page-indicator {
+    color: #38003c;
+  }
+
+  .point-squad-slider-track.point-items-grid {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    touch-action: pan-y pinch-zoom;
+    gap: 0 !important;
+    padding: 4px 0 8px;
+  }
+
+  .point-squad-slider-track::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* 각 슬라이드: 팀 소개 페이지 선수단 스쿼드처럼 2열 2줄 (4개) 고정 */
+  .point-squad-slide {
+    display: grid !important;
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 100%;
+    box-sizing: border-box;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, auto);
+    gap: 12px;
+    padding: 0 2px;
+  }
+
+  .point-squad-slider-footer {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 14px;
+    padding: 0 4px;
+  }
+
+  .point-squad-dots {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .point-squad-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  html[data-theme='light'] .point-squad-dot {
+    background: #cbd5e1;
+  }
+
+  .point-squad-dot.is-active {
+    width: 22px;
+    border-radius: 4px;
+    background: #e90052;
+    box-shadow: 0 0 8px rgba(233, 0, 82, 0.6);
+  }
+
+  .point-squad-swipe-hint {
+    font-family: var(--font-plug, -apple-system, sans-serif);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: -0.01em;
+  }
+
+  html[data-theme='light'] .point-squad-swipe-hint {
+    color: #64748b;
+  }
+}
+
+/* --------------------------------------------------------
+   개별 아이템 카드
+   -------------------------------------------------------- */
+.point-item-card {
+  border-radius: 18px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+html[data-theme='dark'] .point-item-card {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+html[data-theme='dark'] .point-item-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(233, 0, 82, 0.6);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 28px rgba(233, 0, 82, 0.25);
+}
+
+html[data-theme='light'] .point-item-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+html[data-theme='light'] .point-item-card:hover {
+  border-color: #38003c;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(56, 0, 60, 0.12);
+}
+
+/* 아이템 미리보기 영역 */
+.point-item-preview-box {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+.point-item-card:hover .point-item-preview-box {
+  transform: scale(1.04);
+}
+
+html[data-theme='dark'] .point-item-preview-box {
+  background: radial-gradient(circle, rgba(233, 0, 82, 0.12) 0%, rgba(255, 255, 255, 0.02) 80%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+html[data-theme='light'] .point-item-preview-box {
+  background: radial-gradient(circle, rgba(56, 0, 60, 0.06) 0%, rgba(0, 0, 0, 0.02) 80%);
+  border: 1px solid #f1f5f9;
+}
+
+.point-item-visual {
+  font-size: 52px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+  transition: transform 0.25s ease;
+}
+
+.point-item-card:hover .point-item-visual {
+  transform: scale(1.1);
+}
+
+.point-item-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.3px;
+}
+
+.point-item-badge--icon {
+  background: rgba(0, 255, 135, 0.18);
+  color: #00ff87;
+  border: 1px solid rgba(0, 255, 135, 0.35);
+}
+
+html[data-theme='light'] .point-item-badge--icon {
+  background: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
+}
+
+.point-item-badge--emoticon {
+  background: rgba(233, 0, 82, 0.18);
+  color: #ff3377;
+  border: 1px solid rgba(233, 0, 82, 0.35);
+}
+
+html[data-theme='light'] .point-item-badge--emoticon {
+  background: #fdf2f8;
+  color: #db2777;
+  border-color: #fbcfe8;
+}
+
+/* 아이템 정보 영역 */
+.point-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.point-item-title {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  letter-spacing: -0.2px;
+}
+
+html[data-theme='dark'] .point-item-title {
+  color: #f8fafc;
+}
+
+html[data-theme='light'] .point-item-title {
+  color: #1e293b;
+}
+
+.point-item-desc {
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 0 0 14px;
+  flex: 1;
+}
+
+html[data-theme='dark'] .point-item-desc {
+  color: #94a3b8;
+}
+
+html[data-theme='light'] .point-item-desc {
+  color: #64748b;
+}
+
+/* 가격 및 구매 버튼 영역 */
+.point-item-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  gap: 10px;
+}
+
+.point-item-price {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+html[data-theme='dark'] .point-item-price {
+  color: #ffe600;
+}
+
+html[data-theme='light'] .point-item-price {
+  color: #d97706;
+}
+
+
+.point-buy-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.point-buy-btn--active {
+  background: #e90052;
+  color: #ffffff;
+}
+
+.point-buy-btn--active:hover {
+  background: #ff1a6b;
+  box-shadow: 0 0 12px rgba(233, 0, 82, 0.5);
+  transform: translateY(-1px);
+}
+
+.point-buy-btn--owned {
+  background: rgba(0, 255, 135, 0.15);
+  color: #00ff87;
+  border: 1px solid rgba(0, 255, 135, 0.3);
+  cursor: default;
+}
+
+html[data-theme='light'] .point-buy-btn--owned {
+  background: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
+}
+
+/* --------------------------------------------------------
+   구매 완료 / 확인 모달창
+   -------------------------------------------------------- */
+.point-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.point-modal-card {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 20px;
+  padding: 28px;
+  text-align: center;
+  position: relative;
+  animation: modalPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalPop {
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+html[data-theme='dark'] .point-modal-card {
+  background: #1c0f24;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 24px rgba(233, 0, 82, 0.25);
+  color: #ffffff;
+}
+
+html[data-theme='light'] .point-modal-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+  color: #0f172a;
+}
+
+.point-modal-visual {
+  font-size: 64px;
+  margin-bottom: 12px;
+}
+
+.point-modal-title {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+
+.point-modal-text {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 20px;
+  color: #94a3b8;
+}
+
+html[data-theme='light'] .point-modal-text {
+  color: #64748b;
+}
+
+.point-modal-summary-box {
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+html[data-theme='dark'] .point-modal-summary-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme='light'] .point-modal-summary-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.point-modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.point-modal-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.point-modal-btn--confirm {
+  background: #e90052;
+  color: #ffffff;
+}
+
+.point-modal-btn--confirm:hover {
+  background: #ff1a6b;
+}
+
+.point-modal-btn--cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+}
+
+html[data-theme='light'] .point-modal-btn--cancel {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+/* --------------------------------------------------------
+   반응형 모바일 미디어 쿼리
+   -------------------------------------------------------- */
+@media (max-width: 768px) {
+  .point-page-container {
+    padding: 24px 14px 60px;
+  }
+
+  .point-balance-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .point-balance-right {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+  }
+}

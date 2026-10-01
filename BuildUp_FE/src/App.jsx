@@ -19,6 +19,7 @@ const TeamBoards = lazy(() => import('./pages/TeamBoards.jsx'))
 const PostDetail = lazy(() => import('./pages/PostDetail.jsx'))
 const PostWrite = lazy(() => import('./pages/PostWrite.jsx'))
 const Prediction = lazy(() => import('./pages/Prediction.jsx'))
+const PointShop = lazy(() => import('./pages/PointShop.jsx'))
 const MyTeam = lazy(() => import('./pages/MyTeam.jsx'))
 const Login = lazy(() => import('./pages/Login.jsx'))
 const Signup = lazy(() => import('./pages/Signup.jsx'))
@@ -103,6 +104,7 @@ function App() {
 
       {/* 회원 인증 및 마이페이지 */}
       {pathname === '/plug/prediction' && <Prediction />}
+      {pathname === '/plug/point' && <PointShop />}
       {pathname === '/plug/myteam' && <MyTeam />}
       {pathname === '/plug/login' && <Login />}
       {(pathname === '/plug/signin' || pathname === '/plug/signup' || pathname === '/plug/signup/confirm') && <Signup />}
