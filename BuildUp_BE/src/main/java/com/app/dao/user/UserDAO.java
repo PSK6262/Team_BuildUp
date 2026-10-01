@@ -33,4 +33,17 @@ public interface UserDAO {
 	int countUserLikedPosts(Long userId);
 
 	List<PointHistory> selectUserPointHistories(Long userId);
+
+	// 포인트샵 보유 아이템 및 구매 내역
+	int countShopItems();
+	int insertShopItem(Map<String, Object> item);
+	Map<String, Object> selectShopItemByName(String itemName);
+	List<Map<String, Object>> selectUserInventoryByUserId(Long userId);
+	List<Map<String, Object>> selectUserItemOrdersByUserId(Long userId);
+	int countUserInventoryItem(Long userId, Long itemId);
+	int deductUserPoint(Long userId, int price);
+	int insertUserInventory(Long userId, Long itemId);
+	int insertItemOrder(Map<String, Object> order);
+	int insertPointTransaction(Map<String, Object> tx);
+	int insertShopPointHistory(Map<String, Object> history);
 }

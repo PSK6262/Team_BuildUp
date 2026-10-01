@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateUser } from '../store/authSlice.js';
+import { getMyShopData, purchaseShopItem } from '../api/userApi.js';
 import '../css/PointShop.css';
 
 // 포인트샵 판매 아이템 목록 (아이콘 & 이모티콘)
-const SHOP_ITEMS = [
+export const SHOP_ITEMS = [
   // --- 아이콘 카테고리 ---
   {
     id: 'icon_golden_trophy',
@@ -185,7 +186,7 @@ export default function PointShop() {
   const [selectedItemForPurchase, setSelectedItemForPurchase] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
 
-  // 마운트 시 USERS 테이블의 최신 POINT 데이터 동기화 (/api/users/me)
+  // 마운트 시 USERS 테이블의 최신 POINT 및 DB 인벤토리 데이터 동기화
   useEffect(() => {
     // 이전 가상 mock 포인트 캐시가 남아있다면 제거
     try {
@@ -220,6 +221,28 @@ export default function PointShop() {
       .catch(() => {
         setCurrentPoint(getDisplayPoint(user, isLoggedIn));
       });
+
+    // DB USER_INVENTORY와 localStorage 보유 아이템 동기화
+    getMyShopData()
+      .then((shopData) => {
+        if (shopData && Array.isArray(shopData.inventory)) {
+          const dbItemIds = shopData.inventory
+            .map((inv) => {
+              const matched = SHOP_ITEMS.find((s) => s.name === inv.itemName);
+              return matched ? matched.id : null;
+            })
+            .filter(Boolean);
+
+          setPurchasedItemIds((prev) => {
+            const merged = Array.from(new Set([...prev, ...dbItemIds]));
+            try {
+              localStorage.setItem(`buildup_purchased_items_${user.userId}`, JSON.stringify(merged));
+            } catch {}
+            return merged;
+          });
+        }
+      })
+      .catch(() => {});
   }, [dispatch, isLoggedIn, user?.userId]);
 
   // Redux user 객체 변경 시(포인트 적립 등) 실시간 동기화
@@ -264,22 +287,56 @@ export default function PointShop() {
     setSelectedItemForPurchase(item);
   };
 
-  const handleConfirmPurchase = () => {
+  const handleConfirmPurchase = async () => {
     if (!selectedItemForPurchase || !isLoggedIn || !user?.userId) return;
 
     const item = selectedItemForPurchase;
     const nextPoint = Math.max(0, currentPoint - item.price);
-    const nextPurchased = [...purchasedItemIds, item.id];
+    const nextPurchased = Array.from(new Set([...purchasedItemIds, item.id]));
 
     setCurrentPoint(nextPoint);
     setPurchasedItemIds(nextPurchased);
 
-    // Redux 및 localStorage 동기화
-    dispatch(updateUser({ ...user, point: nextPoint }));
-
+    // localStorage 보유 아이템 및 구매 내역 즉시 반영
     try {
       localStorage.setItem(`buildup_purchased_items_${user.userId}`, JSON.stringify(nextPurchased));
+
+      const historyKey = `buildup_purchase_history_${user.userId}`;
+      const prevHistoryRaw = localStorage.getItem(historyKey);
+      const prevHistory = prevHistoryRaw ? JSON.parse(prevHistoryRaw) : [];
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const orderedAtStr = `${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      const newOrderEntry = {
+        orderId: `LOCAL_${Date.now()}`,
+        itemId: item.id,
+        itemName: item.name,
+        itemType: item.type === 'icon' ? 'ICON' : 'EMOTICON',
+        categoryName: item.categoryName,
+        point: item.price,
+        imageUrl: item.visual,
+        description: item.desc,
+        orderStatus: 'COMPLETED',
+        orderedAt: orderedAtStr,
+      };
+      localStorage.setItem(historyKey, JSON.stringify([newOrderEntry, ...prevHistory]));
     } catch {}
+
+    // 백엔드 DB 연동 (USER_INVENTORY, ITEM_ORDERS, POINT_TRANSACTIONS, USERS.POINT)
+    try {
+      const result = await purchaseShopItem(item);
+      if (result && result.user) {
+        dispatch(updateUser(result.user));
+        const dbPt = Number(result.user.point);
+        if (!isNaN(dbPt)) {
+          setCurrentPoint(Math.max(0, dbPt));
+        }
+      } else {
+        dispatch(updateUser({ ...user, point: nextPoint }));
+      }
+    } catch {
+      dispatch(updateUser({ ...user, point: nextPoint }));
+    }
 
     setSelectedItemForPurchase(null);
     setToastMessage(`🎉 [${item.name}] 구매가 완료되었습니다!`);

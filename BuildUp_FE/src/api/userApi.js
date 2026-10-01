@@ -82,3 +82,41 @@ export async function getMyPointHistories() {
   const json = await res.json();
   return json.data || [];
 }
+
+/**
+ * 로그인 회원의 포인트샵 보유 아이템(USER_INVENTORY) 및 구매 내역(ITEM_ORDERS) 조회
+ */
+export async function getMyShopData() {
+  const res = await fetch('/api/users/me/shop', {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error('포인트샵 보관함 및 구매 내역을 불러올 수 없습니다.');
+  }
+  const json = await res.json();
+  return json.data || { inventory: [], orders: [] };
+}
+
+/**
+ * 포인트샵 아이템 구매 요청 (DB 인벤토리/주문내역/포인트차감 반영)
+ */
+export async function purchaseShopItem(item) {
+  const res = await fetch('/api/users/me/shop/purchase', {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      id: item.id,
+      name: item.name,
+      type: item.type,
+      price: item.price,
+      visual: item.visual,
+      desc: item.desc,
+    }),
+  });
+  if (!res.ok) {
+    throw new Error('포인트샵 구매 요청에 실패했습니다.');
+  }
+  const json = await res.json();
+  return json.data || null;
+}
+

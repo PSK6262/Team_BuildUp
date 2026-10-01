@@ -79,4 +79,14 @@ public interface UserService {
 	 * 사용자의 최근 포인트 변동 이력 (최근 5건) 조회
 	 */
 	java.util.List<com.app.dto.prediction.PointHistory> getUserPointHistories(Long userId);
+
+	/**
+	 * 마이페이지 / 포인트샵: 보유 아이템 목록 및 구매 내역 조회
+	 */
+	Map<String, Object> getUserShopData(Long userId);
+
+	/**
+	 * 포인트샵 아이템 구매 처리 (포인트 차감 + 보관함 등록 + 주문/거래 이력 저장)
+	 */
+	Map<String, Object> purchaseShopItem(Long userId, Map<String, Object> itemRequest);
 }
