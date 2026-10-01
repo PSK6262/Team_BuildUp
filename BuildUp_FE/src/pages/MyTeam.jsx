@@ -1,6 +1,7 @@
 import { shuffledCopy } from '../utils/shuffle.js';
 import { captureMatchSquads, restoreMatchPlacement, matchPitchPoint } from '../utils/matchPlacement.js';
 import { findOverlappingPitchSlot } from '../utils/pitchCollision.js';
+import { replayAttackingSide, replaySetPiece, replayNextIndex } from '../utils/matchReplay.js';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { getAllPremierLeaguePlayers, getInitialTeams, getTeams } from '../api/teamApi.js';
@@ -119,6 +120,19 @@ function AiMatchTimeline({ match }) {
   const [playing, setPlaying] = useState(false);
   const activeEventRef = useRef(null);
   const eventsRef = useRef(null);
+  const replaySvgRef = useRef(null);
+
+  useEffect(() => {
+    const svg = replaySvgRef.current;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const syncPlayback = () => {
+      if (playing && !reducedMotion.matches) svg?.unpauseAnimations();
+      else svg?.pauseAnimations();
+    };
+    syncPlayback();
+    reducedMotion.addEventListener('change', syncPlayback);
+    return () => reducedMotion.removeEventListener('change', syncPlayback);
+  }, [playing, selectedIndex]);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -140,9 +154,9 @@ function AiMatchTimeline({ match }) {
   useEffect(() => {
     if (!playing) return;
     const timer = setTimeout(() => {
-      const nextIndex = Math.min(selectedIndex + 1, match.events.length - 1);
+      const nextIndex = replayNextIndex(selectedIndex, match.events.length);
       setSelectedIndex(nextIndex);
-      if (nextIndex === selectedIndex) setPlaying(false);
+      if (nextIndex === match.events.length - 1) setPlaying(false);
     }, 2400);
     return () => clearTimeout(timer);
   }, [playing, selectedIndex, match]);
@@ -162,7 +176,7 @@ function AiMatchTimeline({ match }) {
   // 이벤트별 공(Ball) 위치 및 전술 라벨 계산
   const getBallPosition = (currentEvent, index) => {
     if (!currentEvent) return { x: 180, y: 220, label: '킥오프' };
-    const isAi = currentEvent.side === 1;
+    const isAi = replayAttackingSide(currentEvent) === 1;
 
     switch (currentEvent.type) {
       case 'period':
@@ -226,9 +240,10 @@ function AiMatchTimeline({ match }) {
     : baseBallPos;
 
   // 세트피스 상황 판정 (코너킥, PK, 프리킥)
-  const isCorner = event.type === 'corner';
-  const isPk = event.type === 'penalty' || (event.label && event.label.includes('PK'));
-  const isFreeKick = event.type === 'free-kick' || (event.label && event.label.includes('프리킥'));
+  const setPiece = replaySetPiece(event);
+  const isCorner = setPiece === 'corner';
+  const isPk = setPiece === 'penalty';
+  const isFreeKick = setPiece === 'free-kick';
   const isSetPiece = isCorner || isPk || isFreeKick;
 
   // 세트피스 전담 키커 (FW 우선, 없으면 MF 첫 번째 선수)
@@ -314,7 +329,7 @@ function AiMatchTimeline({ match }) {
             <button type="button" className="myteam-btn myteam-btn-secondary myteam-ai-step" disabled={selectedIndex >= match.events.length - 1} onClick={() => selectEvent(selectedIndex + 1)}>다음 <span aria-hidden="true">›</span></button>
           </div>
           <p>{isSecondHalf ? '후반' : '전반'} · <span style={{ color: 'var(--myteam-home, #60a5fa)' }}>● {match.homeName} {homeLineup.length}명 · {isSecondHalf ? '↓' : '↑'} 공격</span>{' / '}<span style={{ color: 'var(--myteam-danger, #f87171)' }}>● {match.opponentName} {lineup.length}명 · {isSecondHalf ? '↑' : '↓'} 공격</span></p>
-          <svg className="myteam-ai-mini-pitch" viewBox="0 0 360 440" role="img" aria-label={`양 팀 선수 배치: ${match.homeName} ${homeLineup.length}명, ${match.opponentName} ${lineup.length}명`}>
+          <svg ref={replaySvgRef} className="myteam-ai-mini-pitch" data-playing={playing} viewBox="0 0 360 440" role="img" aria-label={`양 팀 선수 배치: ${match.homeName} ${homeLineup.length}명, ${match.opponentName} ${lineup.length}명`}>
             <rect x="10" y="10" width="340" height="420" rx="8" fill="#123e30" stroke="#a7c9ba" />
             <path d="M10 220H350 M100 10V70H260V10 M100 430V370H260V430" fill="none" stroke="#a7c9ba" />
             <circle cx="180" cy="220" r="45" fill="none" stroke="#a7c9ba" />
@@ -407,7 +422,7 @@ function AiMatchTimeline({ match }) {
                 const pIdx = activeLineup.findIndex((s) => s.player.playerId === player.playerId);
                 if (pIdx < 4) {
                   x = localBall.x - 24 + (pIdx * 16);
-                  y = localBall.y - 28;
+                  y = localBall.y + 28;
                 }
               } else if (isCorner && event.side === side && pos !== 'GK') {
                 // 코너킥 시 나머지 선수들은 박스 안 헤더 쇄도
@@ -602,6 +617,40 @@ export default function MyTeam() {
 
   // 클릭으로 선수 배치할 때 활성화된 대상 슬롯 ID
   const [selectedSlotId, setSelectedSlotId] = useState(null);
+  const [mobilePickerOpen, setMobilePickerOpen] = useState(false);
+  const playerPickerRef = useRef(null);
+  const resetDialogRef = useRef(null);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const RosterContainer = mobilePickerOpen ? 'dialog' : 'div';
+
+  const closePlayerPicker = () => {
+    setMobilePickerOpen(false);
+    setSelectedSlotId(null);
+  };
+
+  useEffect(() => {
+    if (!mobilePickerOpen) return;
+    const dialog = playerPickerRef.current;
+    dialog.showModal();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      dialog.close();
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobilePickerOpen]);
+
+  useEffect(() => {
+    if (!resetDialogOpen) return;
+    const dialog = resetDialogRef.current;
+    dialog.showModal();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      dialog.close();
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [resetDialogOpen]);
 
   // 드래그 앤 드롭 중 대상 슬롯 하이라이트
   const [dragOverSlotId, setDragOverSlotId] = useState(null);
@@ -1239,6 +1288,7 @@ export default function MyTeam() {
     });
     setSelectedSlotId(null);
     showToast(`⚽ ${player.nameKor || player.name} (${player.mainPosition}) 선수가 배치되었습니다.`);
+    setMobilePickerOpen(false);
     return true;
   };
 
@@ -1269,6 +1319,11 @@ export default function MyTeam() {
 
   // 슬롯 클릭 핸들러
   const handleSlotClick = (slotId) => {
+    if (window.matchMedia('(max-width: 1080px)').matches) {
+      setSelectedSlotId(slotId);
+      setMobilePickerOpen(true);
+      return;
+    }
     if (selectedSlotId === slotId) {
       setSelectedSlotId(null); // 토글 해제
     } else {
@@ -1381,7 +1436,8 @@ export default function MyTeam() {
 
     const dx = Math.abs(e.clientX - dragInfo.startX);
     const dy = Math.abs(e.clientY - dragInfo.startY);
-    if (dx > 3 || dy > 3) {
+    const dragThreshold = e.pointerType === 'touch' ? 10 : 3;
+    if (dx > dragThreshold || dy > dragThreshold) {
       dragInfo.hasMoved = true;
     }
 
@@ -1529,11 +1585,10 @@ export default function MyTeam() {
 
   // 스쿼드 전체 초기화
   const handleResetSquad = () => {
-    if (window.confirm('현재 필드에 배치된 모든 선수를 비우시겠습니까?')) {
-      setSlots((prev) => prev.map((s) => ({ ...s, player: null })));
-      setSelectedSlotId(null);
-      showToast('스쿼드가 초기화되었습니다.');
-    }
+    setSlots((prev) => prev.map((s) => ({ ...s, player: null })));
+    setSelectedSlotId(null);
+    setResetDialogOpen(false);
+    showToast('스쿼드가 초기화되었습니다.');
   };
 
   // 포지션 상관 없이 자동 완성 (Auto-Fill)
@@ -1682,22 +1737,23 @@ export default function MyTeam() {
   const filledCount = slots.filter((s) => s.player).length;
   const selectedOpponentClub = teams.find((team) => String(team.teamId) === opponentClubId);
 
-  const handleAiMatch = async () => {
+  const handleAiMatch = async (mode = opponentMode) => {
     if (matchRequestRef.current) return;
     if (loading || slots.length !== 11 || filledCount !== 11 ||
       new Set(slots.map((slot) => String(slot.player?.playerId))).size !== 11) {
       showToast('대전하려면 서로 다른 선수 11명을 먼저 배치해주세요.');
       return;
     }
-    const club = opponentMode === 'CLUB'
+    const club = mode === 'CLUB'
       ? teams.find((team) => String(team.teamId) === opponentClubId)
       : null;
-    if (opponentMode === 'CLUB' && !club) {
+    if (mode === 'CLUB' && !club) {
       showToast('대결할 상대 구단을 선택해주세요.');
       return;
     }
     const controller = new AbortController();
     const submittedSquads = captureMatchSquads(slots);
+    setOpponentMode(mode);
     matchRequestRef.current = controller;
     setMatching(true);
     const timeout = setTimeout(() => controller.abort(), 30000);
@@ -1762,7 +1818,8 @@ export default function MyTeam() {
               className="myteam-name-input"
               value={teamName}
               onChange={(e) => setTeamName(e.target.value)}
-              placeholder="구단명 입력"
+              placeholder="스쿼드명"
+              aria-label="스쿼드명"
               title="팀 이름 변경"
             />
 
@@ -1771,7 +1828,7 @@ export default function MyTeam() {
               <span className="counter-num">{filledCount} / 11명</span>
             </div>
 
-            <button type="button" className="myteam-btn myteam-btn-secondary" onClick={handleResetSquad} title="스쿼드 초기화">
+            <button type="button" className="myteam-btn myteam-btn-secondary" onClick={() => setResetDialogOpen(true)} title="스쿼드 초기화">
               🗑️ 비우기
             </button>
             <button type="button" className="myteam-btn myteam-btn-secondary" onClick={handleAutoFillSquad} title="스쿼드 자동 채우기">
@@ -1804,7 +1861,7 @@ export default function MyTeam() {
             {/* 프리셋 포메이션 선택기 */}
             <div className="formation-presets-row">
               <span className="formation-label">⭐ 추천 포메이션:</span>
-              <div className="preset-chip-group">
+              <div className="preset-chip-group" role="group" aria-label="추천 포메이션, 좌우로 넘겨 선택">
                 {FORMATION_PRESETS.map((p) => {
                   const isActive = p.label === (formation.presetLabel ?? `${formation.df}-${formation.mf}-${formation.fw}`);
                   return (
@@ -1821,6 +1878,8 @@ export default function MyTeam() {
                 })}
               </div>
             </div>
+
+            <p className="formation-swipe-hint">← 좌우로 밀어 다른 포메이션 보기 →</p>
 
             {/* 커스텀 포메이션 조작 행 (합계 10명) */}
             <div className="formation-custom-row">
@@ -1969,7 +2028,7 @@ export default function MyTeam() {
               <div className="pitch-hint">
                 {selectedSlotId !== null ? (
                   <span style={{ color: 'var(--myteam-accent, #00ff87)', fontWeight: 700 }}>
-                    👉 우측 목록에서 배치할 선수를 클릭하세요!
+                    👉 선수 목록에서 배치할 선수를 선택하세요!
                   </span>
                 ) : (
                   '💡 선수를 드래그하여 필드 원하는 곳으로 자유롭게 움직이세요'
@@ -2001,7 +2060,22 @@ export default function MyTeam() {
           </section>
 
           {/* 3-B. 선수 검색 & 구단별 로스터 패널 */}
+          <RosterContainer
+            ref={playerPickerRef}
+            className={mobilePickerOpen ? 'myteam-player-picker' : 'myteam-roster-container'}
+            aria-labelledby={mobilePickerOpen ? 'myteam-player-picker-title' : undefined}
+            onCancel={mobilePickerOpen ? (event) => { event.preventDefault(); closePlayerPicker(); } : undefined}
+          >
           <section className="myteam-roster-panel" aria-label="선수 검색 및 명단">
+            {mobilePickerOpen && (
+              <div className="myteam-player-picker-header">
+                <div>
+                  <h2 id="myteam-player-picker-title">선수 선택</h2>
+                  <p>{slots.find((slot) => slot.id === selectedSlotId)?.pos} 위치에 배치할 선수를 선택하세요.</p>
+                </div>
+                <button type="button" className="myteam-btn-mini" onClick={closePlayerPicker} autoFocus>닫기</button>
+              </div>
+            )}
             {/* 상단 탭: 구단별 선수 보기 vs 전체 검색 */}
             <div className="roster-view-nav">
               <button
@@ -2244,6 +2318,7 @@ export default function MyTeam() {
               </div>
             )}
           </section>
+          </RosterContainer>
         </div>
           </div>
         <section id="myteam-match-view" className="myteam-ai-panel" aria-labelledby="ai-match-title" hidden={workspaceView !== 'match'}>
@@ -2251,14 +2326,28 @@ export default function MyTeam() {
             <div className="myteam-opponent-section">
               <h2 id="ai-match-title">AI 팀과 대전</h2>
               <div className="myteam-opponent-modes" role="group" aria-label="대전 상대 유형">
+                <div className="myteam-opponent-row">
                 <button type="button" className="myteam-opponent-mode"
                   aria-pressed={opponentMode === 'RANDOM'} onClick={() => setOpponentMode('RANDOM')}>
                   <span aria-hidden="true">🎲</span><span><strong>랜덤 AI 대전</strong><small>전체 구단 선수로 구성된 랜덤 상대</small></span>
                 </button>
+                <button type="button" className="myteam-btn myteam-btn-primary myteam-mobile-start"
+                  aria-label="랜덤 AI 대전 시작" onClick={() => handleAiMatch('RANDOM')}
+                  disabled={loading || matching || filledCount !== 11}>
+                  {matching && opponentMode === 'RANDOM' ? '준비 중...' : '대전 시작'}
+                </button>
+                </div>
+                <div className="myteam-opponent-row">
                 <button type="button" className="myteam-opponent-mode"
                   aria-pressed={opponentMode === 'CLUB'} onClick={() => setOpponentMode('CLUB')}>
                   <span aria-hidden="true">🛡️</span><span><strong>구단 선택 대전</strong><small>20개 구단 중 원하는 상대를 직접 선택</small></span>
                 </button>
+                <button type="button" className="myteam-btn myteam-btn-primary myteam-mobile-start"
+                  aria-label="선택한 구단과 대전 시작" onClick={() => handleAiMatch('CLUB')}
+                  disabled={loading || matching || filledCount !== 11 || !selectedOpponentClub}>
+                  {matching && opponentMode === 'CLUB' ? '준비 중...' : '대전 시작'}
+                </button>
+                </div>
               </div>
                 {opponentMode === 'CLUB' && (
                   <div className="myteam-opponent-picker">
@@ -2268,8 +2357,11 @@ export default function MyTeam() {
                         {selectedOpponentClub ? `✓ ${selectedOpponentClub.teamNameKor || selectedOpponentClub.teamName} 선택됨` : '아래 구단 카드를 선택해주세요'}
                       </span>
                     </div>
-                    <div className="myteam-opponent-grid" role="group" aria-label="상대 구단 선택">
-                      {loading ? <p>구단 목록을 불러오는 중입니다...</p> : teams.length === 0 ? <p>선택 가능한 구단이 없습니다.</p> : teams.map((team) => {
+                    {!loading && teams.length > 2 && <p className="myteam-opponent-swipe-hint">좌우로 넘겨 상대 구단을 선택하세요 ↔</p>}
+                    <div className="myteam-opponent-grid" role="group" aria-label="상대 구단 선택" tabIndex={0}>
+                      {loading ? <p>구단 목록을 불러오는 중입니다...</p> : teams.length === 0 ? <p>선택 가능한 구단이 없습니다.</p> : Array.from({ length: Math.ceil(teams.length / 2) }, (_, pageIndex) => (
+                        <div className="myteam-opponent-page" key={pageIndex}>
+                        {teams.slice(pageIndex * 2, pageIndex * 2 + 2).map((team) => {
                         const selected = String(team.teamId) === opponentClubId;
                         return (
                           <button type="button" key={team.teamId} className="myteam-opponent-club"
@@ -2282,7 +2374,9 @@ export default function MyTeam() {
                             <span className="myteam-opponent-check" aria-hidden="true">{selected ? '✓' : '+'}</span>
                           </button>
                         );
-                      })}
+                        })}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -2295,8 +2389,8 @@ export default function MyTeam() {
                   대전 끝내기
                 </button>
               )}
-              <button type="button" className="myteam-btn myteam-btn-primary"
-                onClick={handleAiMatch} disabled={loading || matching || filledCount !== 11 || (opponentMode === 'CLUB' && !opponentClubId)}>
+              <button type="button" className="myteam-btn myteam-btn-primary myteam-desktop-start"
+                onClick={() => handleAiMatch()} disabled={loading || matching || filledCount !== 11 || (opponentMode === 'CLUB' && !opponentClubId)}>
                 {matching ? 'AI 대전 준비 중...' : opponentMode === 'CLUB' ? (selectedOpponentClub ? `${selectedOpponentClub.teamNameKor || selectedOpponentClub.teamName} 상대 대전 시작` : '상대 구단을 먼저 선택해주세요') : (aiMatch ? '새 AI 팀과 다시 대전' : 'AI 대전 시작')}
               </button>
             </div>
@@ -2307,7 +2401,7 @@ export default function MyTeam() {
             <p>매판 무작위 포메이션과 선수로 구성된 AI 팀에 도전하세요. AI는 각 자리에 같은 포지션의 선수만 배치합니다.</p>
             <p>90분 경기를 즉시 시뮬레이션합니다. 원래 포지션과 다른 자리에 배치한 선수 1명당 팀의 득점 확률이 5%씩, 최대 50% 감소합니다. 일반 슈팅·PK·프리킥에 모두 적용되며 실제 선수 능력치는 반영하지 않습니다.</p>
           </details>
-          <MemberRankings type="virtual" refreshKey={aiMatch?.replayId ?? 0} />
+          <MemberRankings type="virtual" refreshKey={aiMatch?.replayId ?? 0} mobileCards />
           {aiMatch && (
             <div className="myteam-ai-result">
               <div className="myteam-ai-result-heading">
@@ -2448,6 +2542,32 @@ export default function MyTeam() {
         </div>
 
       </div>
+
+      <dialog ref={resetDialogRef} className="myteam-reset-dialog"
+        aria-labelledby="myteam-reset-title" aria-describedby="myteam-reset-description"
+        onCancel={(event) => { event.preventDefault(); setResetDialogOpen(false); }}>
+        <div className="myteam-reset-icon" aria-hidden="true">🗑️</div>
+        <span className="myteam-reset-badge">SQUAD RESET</span>
+        <h2 id="myteam-reset-title">스쿼드 비우기 안내</h2>
+        <div className="myteam-reset-info">
+          <p className="myteam-reset-team">현재 팀: {teamName.trim() || '나만의 드림 스쿼드'}</p>
+          <p id="myteam-reset-description"><span className="myteam-reset-copy-line">현재 필드에 배치된 선수 {filledCount}명을</span>{' '}<span className="myteam-reset-copy-line">모두 제외하시겠습니까?</span></p>
+          <div className="myteam-reset-notice">
+            <strong>💡 비우기 전 확인해주세요</strong>
+            <ul>
+              <li><span className="myteam-reset-copy-line">팀 이름과 포메이션, 필드의 위치는</span>{' '}<span className="myteam-reset-copy-line">유지됩니다.</span></li>
+              <li><span className="myteam-reset-copy-line">비우기 후 원하는 선수를</span>{' '}<span className="myteam-reset-copy-line">다시 배치할 수 있습니다.</span></li>
+            </ul>
+          </div>
+        </div>
+        <div className="myteam-reset-actions">
+          <button type="button" className="myteam-reset-keep" autoFocus
+            onClick={() => setResetDialogOpen(false)}>⚽ 현재 스쿼드 유지</button>
+          <button type="button" className="myteam-reset-confirm"
+            onClick={handleResetSquad}>🗑️ 스쿼드 비우기</button>
+        </div>
+        <button type="button" className="myteam-reset-close" onClick={() => setResetDialogOpen(false)}>닫기</button>
+      </dialog>
 
       {/* 토스트 알림 메시지 */}
       {toastMessage && (

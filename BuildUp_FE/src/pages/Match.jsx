@@ -3,7 +3,7 @@ import teamDbFallback from '../data/teamDbFallback.json'
 import { getTeams } from '../api/teamApi.js'
 import FcManagerModeModal from '../components/match/FcManagerModeModal.jsx'
 import '../css/match.css'
-import { MatchClubPicker, MatchRoundPicker } from '../components/match/MatchFilters.jsx'
+import { MatchClubPicker, MatchMonthPicker, MatchRoundPicker } from '../components/match/MatchFilters.jsx'
 
 const teamsData = teamDbFallback.teams
 const SEASONS = [2024, 2025, 2026]
@@ -613,24 +613,7 @@ export default function Match() {
 
         {/* 1. 월별 필터 탭 바 (MONTH 모드일 때 노출) */}
         {filterMode === 'MONTH' && (
-          <section className="month-filter-container" aria-label="월별 일정 필터">
-            <div className="month-filter-nav">
-              {MONTH_TABS.map((tab) => {
-                const isActive = selectedMonth === tab.id
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    className={`month-filter-btn ${isActive ? 'active' : ''}`}
-                    onClick={() => setSelectedMonth(tab.id)}
-                    aria-pressed={isActive}
-                  >
-                    {tab.label}
-                  </button>
-                )
-              })}
-            </div>
-          </section>
+          <MatchMonthPicker value={selectedMonth} onChange={setSelectedMonth} months={MONTH_TABS} />
         )}
 
         {/* 2. 라운드별 필터 UI (ROUND 모드일 때 노출) */}
@@ -671,6 +654,7 @@ export default function Match() {
         </div>
 
         {/* 경기 카드 목록 리스트 */}
+        <div className="match-results">
         {loading ? (
           <div className="match-empty">
             <div className="match-loading-spinner" />
@@ -708,7 +692,9 @@ export default function Match() {
             </div>
           </div>
         ) : (
-          <div className="match-grid">
+          <>
+          <p className="match-swipe-hint">좌우로 밀어 다른 경기를 확인하세요</p>
+          <div className="match-grid" key={`${selectedSeason}-${selectedTeamId}-${filterMode}-${selectedMonth}-${selectedRound}`} role="region" aria-label="경기 카드 목록" tabIndex={0}>
             {visibleMatches.map((match) => {
               const homeTeam = getTeamInfo(match.homeTeamId)
               const awayTeam = getTeamInfo(match.awayTeamId)
@@ -770,8 +756,9 @@ export default function Match() {
                       <div className="match-team__info">
                         <span className="match-team__name-kor">
                           {renderTeamRankBadge(match.homeTeamId)}
-                          {homeTeam.teamNameKor}
+                          <span className="match-team__name-text" title={homeTeam.teamNameKor}>{homeTeam.teamNameKor}</span>
                           {isHomeWinner && <span className="match-win-badge">승</span>}
+                          {isAwayWinner && <span className="match-win-badge match-loss-badge">패</span>}
                         </span>
                         <span className="match-team__name-eng">({homeTeam.teamName})</span>
                       </div>
@@ -813,8 +800,9 @@ export default function Match() {
                       <div className="match-team__info">
                         <span className="match-team__name-kor">
                           {renderTeamRankBadge(match.awayTeamId)}
-                          {awayTeam.teamNameKor}
+                          <span className="match-team__name-text" title={awayTeam.teamNameKor}>{awayTeam.teamNameKor}</span>
                           {isAwayWinner && <span className="match-win-badge">승</span>}
+                          {isHomeWinner && <span className="match-win-badge match-loss-badge">패</span>}
                         </span>
                         <span className="match-team__name-eng">({awayTeam.teamName})</span>
                       </div>
@@ -830,6 +818,7 @@ export default function Match() {
                 </article>
               )
             })}
+          </div>
             {visibleMatches.length < filteredMatches.length && (
               <button
                 type="button"
@@ -839,8 +828,10 @@ export default function Match() {
                 더보기 ({visibleMatches.length} / {filteredMatches.length})
               </button>
             )}
-          </div>
+          </>
         )}
+
+        </div>
 
         {/* FC 온라인 감독모드 스타일 2D 피치 & 타임라인 텍스트 중계 모달 */}
         {activeMatchForModal && (

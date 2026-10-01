@@ -239,9 +239,9 @@ function getTeamNameKor(teamId, teamName) {
 }
 
 const standingsColumns = [
-  [ 'matchesPlayed', '경기' ], [ 'wins', '승' ], [ 'draws', '무' ],
-  [ 'losses', '패' ], [ 'goalsFor', '득점' ], [ 'goalsAgainst', '실점' ],
-  [ 'goalDiff', '득실차' ], [ 'cleanSheets', '클린시트' ], [ 'points', '승점' ],
+  [ 'matchesPlayed', '경기' ], [ 'points', '승점' ],
+  [ 'wins', '승' ], [ 'draws', '무' ], [ 'losses', '패' ],
+  [ 'goalsFor', '득점' ], [ 'goalsAgainst', '실점' ], [ 'goalDiff', '득실차' ], [ 'cleanSheets', '클린시트' ],
 ];
 
 function isStandingRow(row) {
@@ -292,14 +292,14 @@ export function StandingsPage() {
             <button key={id} id={`ranking-tab-${id}`} type="button" role="tab"
               aria-selected={tab === id} aria-controls="ranking-panel" tabIndex={tab === id ? 0 : -1}
               onClick={() => changeTab(id)} onKeyDown={(event) => {
-                const next = event.key === 'ArrowRight' ? (index + 1) % tabs.length
-                  : event.key === 'ArrowLeft' ? (index + tabs.length - 1) % tabs.length
+                const next = ['ArrowRight', 'ArrowDown'].includes(event.key) ? (index + 1) % tabs.length
+                  : ['ArrowLeft', 'ArrowUp'].includes(event.key) ? (index + tabs.length - 1) % tabs.length
                     : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : null;
                 if (next == null) return;
                 event.preventDefault();
                 changeTab(tabs[next][0]);
                 document.getElementById(`ranking-tab-${tabs[next][0]}`).focus();
-              }}><span className="ranking-tab-kicker" aria-hidden="true">{tabDetails[id][0]}</span><span>{label}</span></button>
+              }} aria-label={label}><span className="ranking-tab-kicker" aria-hidden="true">{tabDetails[id][0]}</span><span className="ranking-tab-label">{label}</span><span className="ranking-tab-label-mobile" aria-hidden="true">{{ league: '순위표', goals: '득점', assists: '도움', contributions: '공격포인트', cleanSheets: '클린시트' }[id]}</span></button>
           ))}
         </div>
         <section id="ranking-panel" className="ranking-panel" role="tabpanel" aria-labelledby={`ranking-tab-${tab}`} tabIndex={0}>
@@ -316,7 +316,7 @@ export function StandingsPage() {
 }
 
 function PlayerRankings({ metric, label }) {
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
+
   const [ result, setResult ] = useState({ status: 'loading', rows: [] });
   const [ attempt, setAttempt ] = useState(0);
   const score = (row) => metric === 'contributions' ? (row.goals ?? 0) + (row.assists ?? 0) : row[metric] ?? 0;
@@ -357,6 +357,33 @@ function PlayerRankings({ metric, label }) {
         ? '현재 저장된 선수 기록 기준 · 클린시트 = 무실점 경기 횟수 · 동일 기록은 공동 순위로 표시합니다.'
         : '현재 저장된 선수 기록 기준 · 공격포인트 = 득점 + 도움 · 동일 기록은 공동 순위로 표시합니다.'}
     </p>
+    <PlayerRankingCarousel rows={rows} metric={metric} label={label} />
+  </>;
+}
+
+const playerPhotoCache = new Map();
+
+function PlayerRankingCarousel({ rows, metric, label }) {
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 600px)').matches);
+  const league = metric === 'league';
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 600px)');
+    const handleChange = (event) => setIsMobile(event.matches);
+    query.addEventListener('change', handleChange);
+    return () => query.removeEventListener('change', handleChange);
+  }, []);
+
+  if (isMobile) {
+    return <RankingDetailCarousel rows={rows} metric={metric} label={label} initialIndex={0} mobileInline />;
+  }
+
+  return league ? <DesktopLeagueRankings rows={rows} /> : <DesktopPlayerRankings rows={rows} metric={metric} label={label} />;
+}
+
+
+function DesktopPlayerRankings({ rows, metric, label }) {
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  return <>
     <div className="standings-scroll" role="region" aria-label={`${label} 순위표, 가로 스크롤 가능`} tabIndex={0}>
       <table className="standings-table player-rankings-table">
         <caption>{label} 상위 {rows.length}명</caption>
@@ -381,13 +408,11 @@ function PlayerRankings({ metric, label }) {
         </tr>)}</tbody>
       </table>
     </div>
-    {selectedPlayer && <RankingPlayerDetails key={selectedPlayer.playerId} player={selectedPlayer} onClose={() => setSelectedPlayer(null)} />}
+    {selectedPlayer && <DesktopRankingPlayerDetails key={selectedPlayer.playerId} player={selectedPlayer} onClose={() => setSelectedPlayer(null)} />}
   </>;
 }
 
-const playerPhotoCache = new Map();
-
-function RankingPlayerDetails({ player, onClose }) {
+function DesktopRankingPlayerDetails({ player, onClose }) {
   const dialogRef = useRef(null);
   const [events, setEvents] = useState({ status: 'loading', rows: [] });
   const [attempt, setAttempt] = useState(0);
@@ -502,6 +527,218 @@ function RankingPlayerDetails({ player, onClose }) {
   </dialog>;
 }
 
+function DesktopLeagueRankings({ rows }) {
+  const season = rows[0]?.season ?? 2026;
+  return (
+      <div className="standings-scroll standings-scroll--league" role="region" aria-label="프리미어리그 순위표, 가로 스크롤 가능" tabIndex={0}>
+        <table className="standings-table standings-table--league">
+          <caption>{season}/{String(season + 1).slice(-2)} 프리미어리그 공식 순위표</caption>
+          <thead><tr>
+            <th scope="col">순위</th><th scope="col">구단명</th>
+            {standingsColumns.map(([ field, label ]) => <th key={field} scope="col">{label}</th>)}
+          </tr></thead>
+          <tbody>{rows.map((row) => {
+            const teamKor = row.teamNameKor || getTeamNameKor(row.teamId, row.teamName);
+            return (
+              <tr key={row.teamId}>
+                <td><span className="standings-rank" data-rank={row.currentRank}>{row.currentRank ?? '—'}</span></td>
+                <th scope="row"><a className="standings-team" href={`/plug/team/${row.teamId}`} title={`${teamKor} 상세 정보 보기`}>
+                  {row.emblemUrl && <img src={row.emblemUrl} alt="" width="28" height="28" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} />}
+                  <span style={{ fontWeight: 700 }}>{teamKor}</span>
+                  {row.teamName && teamKor !== row.teamName && (
+                    <span style={{ fontSize: '11px', color: 'var(--ranking-muted, #64748b)', marginLeft: '5px' }}>({row.teamName})</span>
+                  )}
+                </a></th>
+                {standingsColumns.map(([ field ]) => (
+                  <td key={field} className={field === 'points' ? 'standings-points' : undefined}>
+                    {row[ field ] == null ? '—' : field === 'goalDiff' && row[ field ] > 0 ? `+${row[ field ]}` : row[ field ]}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}</tbody>
+        </table>
+      </div>
+
+  );
+}
+
+function RankingDetailCarousel({ rows, metric, label, initialIndex, onActiveIndexChange, mobileInline = false }) {
+  const league = metric === 'league';
+  const entryLabel = league ? '구단' : '선수';
+  const trackRef = useRef(null);
+  const [activeIndex, setActiveIndex] = useState(initialIndex);
+  useEffect(() => {
+    const track = trackRef.current;
+    track.scrollLeft = track.children[initialIndex].offsetLeft - track.children[0].offsetLeft;
+    if (!mobileInline) {
+      track.closest('section').scrollIntoView({ block: 'start' });
+      track.focus({ preventScroll: true });
+    }
+  }, [initialIndex, mobileInline]);
+  const move = (direction) => {
+    const track = trackRef.current;
+    if (!track) return;
+    const index = Math.max(0, Math.min(rows.length - 1, activeIndex + direction));
+    const card = track.children[index];
+    track.scrollTo({
+      left: card.offsetLeft - track.children[0].offsetLeft,
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    });
+  };
+
+  return <section className="player-ranking-carousel" aria-label={`${label} ${entryLabel} 카드`}>
+    <div className="player-ranking-navigation">
+      <button type="button" aria-label={`이전 순위 ${entryLabel}`} disabled={activeIndex === 0} onClick={() => move(-1)}>‹</button>
+      <span aria-live="polite">{activeIndex + 1} / {rows.length}</span>
+      <button type="button" aria-label={`다음 순위 ${entryLabel}`} disabled={activeIndex === rows.length - 1} onClick={() => move(1)}>›</button>
+    </div>
+    <p className="player-ranking-hint">좌우로 밀거나 화살표를 눌러 다음 {entryLabel}을 확인하세요</p>
+    <div className="player-ranking-track" ref={trackRef} tabIndex={0}
+      role="region" aria-label={`${label}, 순위순으로 좌우 이동`}
+      onKeyDown={event => {
+        if (event.target !== event.currentTarget || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+        event.preventDefault();
+        move(event.key === 'ArrowRight' ? 1 : -1);
+      }}
+      onScroll={event => {
+        const track = event.currentTarget;
+        const first = track.children[0];
+        let closest = 0;
+        let distance = Infinity;
+        Array.from(track.children).forEach((card, index) => {
+          const next = Math.abs(card.offsetLeft - first.offsetLeft - track.scrollLeft);
+          if (next < distance) { closest = index; distance = next; }
+        });
+        setActiveIndex(closest);
+        onActiveIndexChange?.(closest);
+      }}>
+      {rows.map((row, index) => {
+        if (league) {
+          const teamName = row.teamNameKor || getTeamNameKor(row.teamId, row.teamName);
+          return <article className="player-ranking-card league-ranking-card" key={row.teamId}
+            aria-label={`${row.currentRank ?? '미정'}위 ${teamName}`} inert={index !== activeIndex}>
+            <span className="player-ranking-position">{row.currentRank == null ? '순위 미정' : `${row.currentRank}위`}</span>
+            {row.emblemUrl && <img className="league-ranking-emblem" src={row.emblemUrl} alt="" width="80" height="80" onError={event => { event.currentTarget.style.visibility = 'hidden'; }} />}
+            <h3>{teamName}</h3>
+            {row.teamName && row.teamName !== teamName && <p className="player-ranking-hint">{row.teamName}</p>}
+            <dl className="player-ranking-stats league-ranking-stats">
+              {standingsColumns.map(([field, title]) => <div key={field} className={field === 'points' ? 'is-highlighted' : undefined}>
+                <dt>{title}</dt>
+                <dd>{row[field] == null ? '—' : field === 'goalDiff' && row[field] > 0 ? `+${row[field]}` : row[field]}</dd>
+              </div>)}
+            </dl>
+            <a className="player-ranking-detail" href={`/plug/team/${row.teamId}`}>{teamName} 상세 보기</a>
+          </article>;
+        }
+        const name = row.playerNameKor || row.playerName || '선수명 미등록';
+        return <article className="player-ranking-card player-ranking-card--profile" key={row.playerId} aria-label={`${row.rank}위 ${name}`} inert={index !== activeIndex}>
+          {Math.abs(index - activeIndex) <= 1 && <RankingPlayerDetails player={row} metric={metric} collapsibleEvents={mobileInline} />}
+
+        </article>;
+      })}
+    </div>
+  </section>;
+}
+
+function RankingPlayerDetails({ player, metric, collapsibleEvents = false }) {
+  const [events, setEvents] = useState({ status: 'loading', rows: [] });
+  const [attempt, setAttempt] = useState(0);
+  const [photo, setPhoto] = useState({ status: 'loading', url: '' });
+  const name = player.playerNameKor || player.playerName || '선수명 미등록';
+  const stats = metric === 'cleanSheets'
+    ? [['cleanSheets', '클린시트', player.cleanSheets ?? 0], ['goals', '득점', player.goals ?? 0], ['assists', '도움', player.assists ?? 0]]
+    : [['goals', '득점', player.goals ?? 0], ['assists', '도움', player.assists ?? 0], ['contributions', '공격포인트', (player.goals ?? 0) + (player.assists ?? 0)]];
+
+
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    fetch(`/api/matches/players/${player.playerId}/events?season=2026`, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error('기록 조회 실패');
+        return response.json();
+      })
+      .then((rows) => {
+        if (!Array.isArray(rows) || rows.some((row) => !row || row.eventId == null
+          || ![1, 2].includes(Number(row.eventType))
+          || (Number(row.playerId) !== player.playerId && Number(row.assistPlayerId) !== player.playerId))) {
+          throw new Error('잘못된 기록 응답');
+        }
+        if (active) setEvents({ status: 'ready', rows });
+      })
+      .catch(() => { if (active) setEvents({ status: 'error', rows: [] }); })
+      .finally(() => clearTimeout(timeout));
+    return () => { active = false; clearTimeout(timeout); controller.abort(); };
+  }, [player.playerId, attempt]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    async function loadPhoto() {
+      try {
+        let url = playerPhotoCache.get(player.playerId);
+        if (url === undefined) {
+          if (!player.playerName) throw new Error('선수명 없음');
+          const response = await fetch(`https://www.thesportsdb.com/api/v1/json/123/searchplayers.php?p=${encodeURIComponent(player.playerName)}`, { signal: controller.signal });
+          if (!response.ok) throw new Error('사진 조회 실패');
+          const data = await response.json();
+          const normalize = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+          const candidates = (Array.isArray(data.player) ? data.player : []).filter((item) =>
+            item.strSport === 'Soccer' && [item.strPlayer, ...(item.strPlayerAlternate || '').split(';')]
+              .some((value) => normalize(value) === normalize(player.playerName)));
+          const candidate = candidates.length === 1 ? candidates[0] : null;
+          const imageUrl = candidate?.strCutout || candidate?.strThumb;
+          url = imageUrl && /^https:\/\/(www\.|r2\.)?thesportsdb\.com\//.test(imageUrl) ? imageUrl : '';
+          if (url) playerPhotoCache.set(player.playerId, url);
+        }
+        if (active) setPhoto({ status: url ? 'ready' : 'empty', url });
+      } catch {
+        if (active) setPhoto({ status: 'empty', url: '' });
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+    loadPhoto();
+    return () => { active = false; clearTimeout(timeout); controller.abort(); };
+  }, [player.playerId, player.playerName]);
+
+  return <section className="ranking-player-inline" aria-label={`${name} 상세 기록`}>
+    <div className="ranking-player-details">
+      <header className="ranking-player-header">
+        <div className="ranking-player-photo">
+          {photo.status === 'ready' ? <img src={photo.url} alt={`${name} 선수 사진`} onError={() => setPhoto({ status: 'empty', url: '' })} />
+            : <span>{photo.status === 'loading' ? '사진 불러오는 중…' : '등록된 선수 사진이 없습니다.'}</span>}
+        </div>
+        <div className="ranking-player-identity"><h2 id={`ranking-player-title-${player.playerId}`}>{name}</h2><p>{player.teamNameKor || player.teamName}</p><p>26-27 시즌 · {player.rank}위</p>
+          {photo.status === 'ready' && <a href="https://www.thesportsdb.com/" target="_blank" rel="noreferrer">사진: TheSportsDB</a>}
+        </div>
+        <dl className="player-ranking-stats player-ranking-stats--pills">
+          {stats.map(([field, title, value]) => <div key={field} className={field === metric ? 'is-highlighted' : undefined}><dt>{title}</dt><dd>{value}</dd></div>)}
+        </dl>
+      </header>
+      <p className="standings-note">경기별 상세 기록은 집계된 득점·도움 수와 차이가 있을 수 있습니다. 경기 시작 일시는 한국 시간(KST)입니다.</p>
+      {events.status === 'loading' ? <p role="status">득점·도움 기록을 불러오는 중입니다…</p>
+        : events.status === 'error' ? <div role="alert"><p>상세 기록을 불러오지 못했습니다.</p><button type="button" onClick={() => { setEvents({ status: 'loading', rows: [] }); setAttempt((value) => value + 1); }}>다시 시도</button></div>
+          : [['goals', '득점 기록', 'playerId'], ['assists', '도움 기록', 'assistPlayerId']].map(([key, title, field]) => {
+            const rows = events.rows.filter((row) => Number(row[field]) === player.playerId);
+            const EventContainer = collapsibleEvents ? 'details' : 'section';
+            const EventHeading = collapsibleEvents ? 'summary' : 'h3';
+            return <EventContainer key={key} className="ranking-player-events"><EventHeading>{title} ({rows.length})</EventHeading>
+              {rows.length === 0 ? <p>등록된 {title}이 없습니다.</p> : <ul>{rows.map((row) => <li key={row.eventId}>
+                <time>{row.matchDate || '일시 미등록'}</time>
+                <span>{row.homeTeamName} vs {row.awayTeamName}</span>
+                <strong>{row.eventTime == null ? '시간 미등록' : `${row.eventTime}분`}{key === 'goals' && Number(row.eventType) === 2 ? ' · 페널티킥' : ''}</strong>
+              </li>)}</ul>}
+            </EventContainer>;
+          })}
+    </div>
+  </section>;
+}
+
 function StandingsTable({ season }) {
   const [ result, setResult ] = useState({ status: 'loading', rows: [] });
   const [ attempt, setAttempt ] = useState(0);
@@ -550,42 +787,14 @@ function StandingsTable({ season }) {
         <span><strong>{season}/{String(season + 1).slice(-2)} 시즌</strong> · 총 <strong>{result.rows.length}개 구단</strong></span>
         <span>전체 경기 성적 기준</span>
       </div>
-      <div className="standings-scroll" role="region" aria-label="프리미어리그 순위표, 가로 스크롤 가능" tabIndex={0}>
-        <table className="standings-table">
-          <caption>{season}/{String(season + 1).slice(-2)} 프리미어리그 공식 순위표</caption>
-          <thead><tr>
-            <th scope="col">순위</th><th scope="col">구단명</th>
-            {standingsColumns.map(([ field, label ]) => <th key={field} scope="col">{label}</th>)}
-          </tr></thead>
-          <tbody>{result.rows.map((row) => {
-            const teamKor = row.teamNameKor || getTeamNameKor(row.teamId, row.teamName);
-            return (
-              <tr key={row.teamId}>
-                <td><span className="standings-rank" data-rank={row.currentRank}>{row.currentRank ?? '—'}</span></td>
-                <th scope="row"><a className="standings-team" href={`/plug/team/${row.teamId}`} title={`${teamKor} 상세 정보 보기`}>
-                  {row.emblemUrl && <img src={row.emblemUrl} alt="" width="28" height="28" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} />}
-                  <span style={{ fontWeight: 700 }}>{teamKor}</span>
-                  {row.teamName && teamKor !== row.teamName && (
-                    <span style={{ fontSize: '11px', color: 'var(--ranking-muted, #64748b)', marginLeft: '5px' }}>({row.teamName})</span>
-                  )}
-                </a></th>
-                {standingsColumns.map(([ field ]) => (
-                  <td key={field} className={field === 'points' ? 'standings-points' : undefined}>
-                    {row[ field ] == null ? '—' : field === 'goalDiff' && row[ field ] > 0 ? `+${row[ field ]}` : row[ field ]}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}</tbody>
-        </table>
-      </div>
-      <p className="standings-note">순위 산정 기준: 승점 → 득실차 → 다득점 순입니다. (상위 1~4위 챔피언스리그 진출권 / 18~20위 강등권)</p>
+      <PlayerRankingCarousel rows={result.rows} metric="league" label="리그 순위" />
+      <p className="standings-note">순위 산정 기준: 승점 → 득실차 → 다득점 순입니다.<br />상위 1~4위 챔피언스리그 진출권 · 5~6위 유로파리그 · 18~20위 강등권</p>
       {updatedAt && <p className="standings-note">최근 순위 갱신 일시: {updatedAt}</p>}
     </>
   );
 }
 
-export function MemberRankings({ type, refreshKey = 0 }) {
+export function MemberRankings({ type, refreshKey = 0, mobileCards = false }) {
   const [response, setResult] = useState(null);
   const [attempt, setAttempt] = useState(0);
   const userId = useSelector((state) => state.auth.user?.userId);
@@ -619,7 +828,30 @@ export function MemberRankings({ type, refreshKey = 0 }) {
     {result.status === 'loading' ? <p role="status">랭킹을 불러오는 중입니다...</p>
       : result.status === 'error' ? <p role="alert">랭킹을 불러오지 못했습니다. 새로고침으로 다시 시도해주세요.</p>
       : result.rows.length === 0 ? <p>아직 집계된 기록이 없습니다.</p>
-      : <div className="member-ranking-scroll"><table className="standings-table">
+      : <>
+      {mobileCards && !prediction && (
+        <div className="member-ranking-mobile">
+          <p className="member-ranking-swipe-hint">좌우로 넘겨 TOP 10을 확인하세요 ↔</p>
+          <ol className="member-ranking-cards" aria-label="가상 대결 승률 TOP 10" tabIndex={0}>
+            {result.rows.slice(0, 10).map((row, index) => {
+              const mine = userId != null && String(userId) === String(row.userId);
+              return <li key={row.userId} className={`member-ranking-card${mine ? ' is-mine' : ''}`}>
+                <span className="member-ranking-card-rank">{index + 1}위{mine && ' · 나'}</span>
+                <h3>{row.nickname || '회원'}</h3>
+                <p>{row.teamName || '나만의 팀'}</p>
+                <div className="member-ranking-card-rate">승률 <strong>{(row.totalMatches ? row.wins / row.totalMatches * 100 : 0).toFixed(1)}%</strong></div>
+                <dl>
+                  <div><dt>대결</dt><dd>{row.totalMatches}</dd></div>
+                  <div><dt>승리</dt><dd>{row.wins}</dd></div>
+                  <div><dt>무승부</dt><dd>{row.draws}</dd></div>
+                  <div><dt>패배</dt><dd>{row.losses}</dd></div>
+                </dl>
+              </li>;
+            })}
+          </ol>
+        </div>
+      )}
+      <div className={`member-ranking-scroll${mobileCards && !prediction ? ' member-ranking-desktop' : ''}`}><table className="standings-table">
         <thead><tr><th scope="col">순위</th><th scope="col">회원</th>{!prediction && <th scope="col">팀</th>}<th scope="col">{prediction ? '적중' : '승리'}</th><th scope="col">{prediction ? '정산 예측' : '대결'}</th><th scope="col">{prediction ? '적중률' : '승률'}</th>{!prediction && <><th scope="col">무승부</th><th scope="col">패배</th></>}</tr></thead>
         <tbody>{result.rows.map((row, index) => {
           const wins = prediction ? row.predictWin : row.wins;
@@ -631,6 +863,6 @@ export function MemberRankings({ type, refreshKey = 0 }) {
             {!prediction && <><td>{row.draws}</td><td>{row.losses}</td></>}
           </tr>;
         })}</tbody>
-      </table></div>}
+      </table></div></>}
   </section>;
 }

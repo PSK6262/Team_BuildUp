@@ -27,6 +27,181 @@ html[data-theme='dark'] body:has(.myteam-page) {
   margin: 0 auto;
 }
 
+.myteam-reset-dialog {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  width: min(530px, calc(100% - 24px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 28px clamp(16px, 4vw, 24px) 20px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  background: linear-gradient(160deg, #2a0631, #18001f);
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.myteam-reset-dialog::backdrop {
+  background: rgba(10, 0, 16, 0.75);
+  backdrop-filter: blur(4px);
+}
+
+.myteam-reset-dialog h2 {
+  margin: 12px 0 20px;
+  font-size: clamp(19px, 4.5vw, 23px);
+  font-weight: 800;
+}
+
+.myteam-reset-dialog p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.myteam-reset-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.myteam-reset-actions button {
+  min-height: 48px;
+  padding: 12px;
+  border-radius: 13px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.myteam-reset-icon {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 12px;
+  border: 1px solid #ad780b;
+  border-radius: 50%;
+  background: rgba(255, 193, 7, 0.1);
+  box-shadow: 0 0 24px #ffc1071f;
+  font-size: 30px;
+}
+
+.myteam-reset-badge {
+  padding: 4px 12px;
+  border: 1px solid #89610e;
+  border-radius: 999px;
+  background: #ffc1071a;
+  color: #ffcd38;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.myteam-reset-info {
+  padding: 16px;
+  border: 1px solid #76551b;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #c9bdd1;
+  text-align: left;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.myteam-reset-info .myteam-reset-team {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed #76551b;
+  color: #ffe083;
+  font-weight: 700;
+}
+
+.myteam-reset-notice {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 193, 7, 0.08);
+  color: #e0d0b0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.myteam-reset-notice strong { color: #ffcd38; }
+.myteam-reset-notice ul { margin: 6px 0 0; padding-left: 20px; }
+
+.myteam-reset-keep {
+  border: 1px solid #00e87d;
+  background: #00ef82;
+  color: #08291f;
+  box-shadow: 0 0 20px #00ff8726;
+}
+
+.myteam-reset-confirm {
+  border: 1px solid #a92a59;
+  background: #5d163b80;
+  color: #ffd0df;
+}
+
+.myteam-reset-close {
+  min-height: 44px;
+  margin-top: 10px;
+  padding: 8px 20px;
+  border: 0;
+  background: transparent;
+  color: #bcadca;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.myteam-reset-dialog button:focus-visible {
+  outline: 2px solid #ffe083;
+  outline-offset: 3px;
+}
+
+.myteam-reset-dialog button:hover { filter: brightness(1.1); }
+
+@media (max-width: 640px) {
+  .myteam-reset-dialog {
+    padding: 24px 16px 16px;
+    word-break: keep-all;
+  }
+
+  .myteam-reset-info {
+    padding: 14px 12px;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .myteam-reset-copy-line {
+    display: block;
+    text-wrap: balance;
+  }
+
+  .myteam-reset-notice {
+    padding: 12px 10px;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .myteam-reset-notice ul {
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .myteam-reset-notice li + li {
+    margin-top: 8px;
+  }
+
+  .myteam-reset-actions button {
+    font-size: 14px;
+    text-wrap: balance;
+  }
+}
+
 /* 1. 상단 헤더 & 툴바 */
 .myteam-header {
   display: flex;
@@ -103,6 +278,7 @@ html[data-theme='dark'] body:has(.myteam-page) {
 .myteam-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 10px 16px;
   border-radius: 10px;
@@ -412,6 +588,8 @@ html[data-theme='dark'] body:has(.myteam-page) {
   align-items: center;
   gap: 8px;
 }
+
+.formation-swipe-hint { display: none; }
 
 .pitch-formation-display > * {
   flex-shrink: 0;
@@ -812,6 +990,63 @@ html[data-theme='dark'] body:has(.myteam-page) {
 }
 
 /* 5. 우측: 선수 검색 & 로스터 패널 */
+.myteam-roster-container {
+  display: contents;
+}
+
+.myteam-player-picker {
+  width: min(600px, calc(100% - 24px));
+  max-width: none;
+  max-height: 85dvh;
+  margin: auto auto 0;
+  padding: 0;
+  border: 1px solid #475569;
+  border-radius: 20px 20px 0 0;
+  background: #172033;
+  color: #f8fafc;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.myteam-player-picker::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.myteam-player-picker .myteam-roster-panel {
+  height: auto;
+  padding: 16px 12px max(20px, env(safe-area-inset-bottom));
+  border: 0;
+  border-radius: 0;
+}
+
+.myteam-player-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.myteam-player-picker-header h2 {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+
+.myteam-player-picker-header p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.myteam-player-picker-header button {
+  min-height: 44px;
+  flex-shrink: 0;
+}
+
+html[data-theme='light'] .myteam-player-picker {
+  background: #fff;
+  color: #172033;
+}
+
 .myteam-roster-panel {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.09);
@@ -919,7 +1154,7 @@ html[data-theme='dark'] body:has(.myteam-page) {
 .club-grid-scroll {
   flex: 1;
   overflow-y: auto;
-  max-height: 520px;
+  max-height: 640px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-auto-rows: max-content;
@@ -1493,8 +1728,14 @@ html[data-theme='dark'] body:has(.myteam-page) {
 .myteam-ai-actions {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
   gap: 10px;
+  width: 100%;
+}
+
+.myteam-ai-actions .myteam-desktop-start {
+  min-width: 220px;
 }
 
 .myteam-opponent-section {
@@ -1508,6 +1749,15 @@ html[data-theme='dark'] body:has(.myteam-page) {
   gap: 12px;
   margin-top: 12px;
   align-items: stretch;
+}
+
+.myteam-opponent-row {
+  display: contents;
+}
+
+.myteam-mobile-start,
+.member-ranking-mobile {
+  display: none;
 }
 
 .myteam-opponent-mode {
@@ -1618,6 +1868,9 @@ html[data-theme='light'] .myteam-match-rules summary span { color: #637083; }
   gap: 10px;
 }
 
+.myteam-opponent-page { display: contents; }
+.myteam-opponent-swipe-hint { display: none; }
+
 .myteam-opponent-club {
   display: flex;
   align-items: center;
@@ -1681,12 +1934,188 @@ html[data-theme='light'] .myteam-match-rules summary span { color: #637083; }
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .myteam-opponent-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: stretch;
+    gap: 0;
+    border: 2px solid #526077;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #172334;
+  }
+
+  .myteam-opponent-row:has(.myteam-opponent-mode[aria-pressed='true']) {
+    border-color: #00ff87;
+    background: #12372e;
+    box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.12);
+  }
+
+  html[data-theme='light'] .myteam-page .myteam-opponent-row {
+    border-color: #d9e1dc;
+    background: #f8faf9;
+  }
+
+  html[data-theme='light'] .myteam-page .myteam-opponent-row:has(.myteam-opponent-mode[aria-pressed='true']) {
+    border-color: #16744b;
+    background: #edf7f1;
+    box-shadow: 0 0 0 2px #16744b12;
+  }
+
+  .myteam-page .myteam-opponent-row .myteam-opponent-mode,
+  html[data-theme='light'] .myteam-page .myteam-opponent-row .myteam-opponent-mode {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .myteam-page .myteam-opponent-row .myteam-mobile-start {
+    border-radius: 0;
+    transform: none;
+  }
+
+  .myteam-opponent-row > button:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: -4px;
+  }
+
+  .myteam-opponent-row .myteam-opponent-mode {
+    padding: 12px 10px;
+    gap: 8px;
+  }
+
+  .myteam-opponent-row .myteam-opponent-mode > span:first-child {
+    font-size: 22px;
+  }
+
+  .myteam-mobile-start {
+    display: block;
+    min-height: 44px;
+    padding: 12px 10px;
+    white-space: nowrap;
+  }
+
+  .myteam-desktop-start,
+  .myteam-page .member-ranking-desktop {
+    display: none;
+  }
+
+  .myteam-page .member-ranking-mobile {
+    display: block;
+    min-width: 0;
+  }
+
+  .myteam-page .member-ranking-cards {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    list-style: none;
+    margin: 0;
+    padding: 4px 0 12px;
+  }
+
+  .myteam-page .member-ranking-card {
+    box-sizing: border-box;
+    flex: 0 0 88%;
+    min-width: 0;
+    padding: 18px 14px;
+    border: 1px solid #64748b;
+    border-radius: 16px;
+    scroll-snap-align: start;
+    background: rgba(128, 128, 128, 0.08);
+    overflow-wrap: anywhere;
+  }
+
+  .myteam-page .member-ranking-card.is-mine {
+    border: 2px solid var(--myteam-accent, #00b875);
+  }
+
+  .myteam-page .member-ranking-card-rank {
+    display: inline-block;
+    margin-bottom: 16px;
+    font-weight: 800;
+  }
+
+  .myteam-page .member-ranking-card h3 {
+    margin-bottom: 4px;
+  }
+
+  .myteam-page .member-ranking-card p {
+    margin: 0 0 20px;
+  }
+
+  .myteam-page .member-ranking-card-rate strong {
+    display: block;
+    font-size: 32px;
+  }
+
+  .myteam-page .member-ranking-card dl {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    margin: 20px 0 0;
+    text-align: center;
+  }
+
+  .myteam-page .member-ranking-card dt,
+  .myteam-page .member-ranking-swipe-hint {
+    font-size: 12px;
+  }
+
+  .myteam-page .member-ranking-card dd {
+    margin: 6px 0 0;
+    font-weight: 700;
+  }
+
   .myteam-opponent-picker {
     padding: 12px;
   }
 
   .myteam-opponent-grid {
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    padding: 4px 0 12px;
+  }
+
+  .myteam-opponent-page {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    flex: 0 0 100%;
+    min-width: 0;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .myteam-opponent-page .myteam-opponent-club {
+    position: relative;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    min-height: 140px;
+    padding: 16px 10px;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+
+  .myteam-opponent-page .myteam-opponent-check {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+  }
+
+  .myteam-opponent-page .myteam-opponent-club:focus-visible {
+    outline-offset: -4px;
+  }
+
+  .myteam-opponent-swipe-hint {
+    display: block;
+    font-size: 12px;
   }
 }
 
@@ -1852,6 +2281,14 @@ html[data-theme='light'] .myteam-match-rules summary span { color: #637083; }
   animation: playerAliveSway 3.6s ease-in-out infinite alternate;
   transform-origin: 0 0;
   will-change: transform;
+}
+
+.myteam-ai-mini-pitch[data-playing='false'] .myteam-ai-marker-inner {
+  animation-play-state: paused;
+}
+
+.myteam-ai-mini-pitch[data-playing='false'] :is(.myteam-ai-marker, .myteam-ai-ball-marker) {
+  transition: none;
 }
 
 @keyframes playerAliveSway {
@@ -2352,6 +2789,11 @@ html[data-theme='dark'] .myteam-page .member-ranking-scroll tbody td strong {
 
 /* 7. 반응형 미디어 쿼리 */
 @media (max-width: 1080px) {
+
+  .club-grid-scroll {
+    max-height: 180px;
+  }
+
   .myteam-main-layout {
     grid-template-columns: 1fr;
   }
