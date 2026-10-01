@@ -1,4 +1,12 @@
-.player-ranking-carousel { width: 100%; max-width: 760px; min-width: 0; margin: 0 auto; }
+.ranking-entry-list { display: flex; flex-direction: column; gap: 8px; list-style: none; padding: 0; margin: 16px 0 0; }
+.ranking-entry-button { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto 16px; align-items: center; gap: 12px; width: 100%; min-height: 68px; padding: 12px; border: 1px solid var(--ranking-line); border-radius: 12px; background: var(--ranking-soft); color: var(--ranking-text); text-align: left; font: inherit; cursor: pointer; }
+.ranking-entry-button:hover, .ranking-entry-button[aria-expanded='true'] { border-color: var(--ranking-accent); background: var(--ranking-tint); }
+.ranking-entry-rank, .ranking-entry-score { color: var(--ranking-accent); font-weight: 800; font-variant-numeric: tabular-nums; }
+.ranking-entry-name { display: flex; flex-direction: column; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+.ranking-entry-name small { color: var(--ranking-muted); font-size: 12px; }
+.ranking-selected-detail { margin-bottom: 24px; }
+.ranking-selected-detail > button { margin-bottom: 16px; }
+.player-ranking-carousel { width: 100%; max-width: 760px; min-width: 0; margin: 0 auto; scroll-margin-top: 100px; }
 .ranking-player-inline { width: 100%; min-width: 0; text-align: left; }
 html[data-theme] .teams-page-container--rankings .ranking-player-inline .ranking-player-details {
   margin: 0; padding: 0; overflow: visible; scrollbar-gutter: auto;
@@ -39,6 +47,9 @@ html[data-theme] .teams-page-container--rankings .ranking-player-inline .ranking
 .player-ranking-stats > .is-highlighted { background: var(--ranking-tint); color: var(--ranking-accent); }
 .player-ranking-stats dt { font-size: 12px; }
 .player-ranking-stats dd { font-size: 30px; font-weight: 800; margin: 8px 0 0; font-variant-numeric: tabular-nums; }
+.league-ranking-emblem { object-fit: contain; margin-top: 20px; }
+.league-ranking-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.league-ranking-card .player-ranking-detail { text-decoration: none; box-sizing: border-box; }
 .player-ranking-detail { margin-top: auto; min-height: 44px; padding: 10px 20px; border: 1px solid var(--ranking-line); border-radius: 10px; background: var(--ranking-surface); color: var(--ranking-text); font: inherit; cursor: pointer; }
 @media (max-width: 600px) {
   .player-ranking-card { padding: 22px 12px; }
@@ -114,7 +125,7 @@ html[data-theme] .teams-page-container--rankings .ranking-tabs {
   background: var(--ranking-soft); margin-bottom: 24px;
 }
 html[data-theme] .teams-page-container--rankings .ranking-tabs button {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
   min-width: 0; padding: 16px 18px; border-radius: 12px; color: var(--ranking-muted);
   transition: background-color .15s ease, color .15s ease;
 }
@@ -225,4 +236,35 @@ html[data-theme] .teams-page-container--rankings :is(button, a, select, [tabinde
   html[data-theme] .teams-page-container--rankings .ranking-player-details { padding: calc(14 * var(--mobile-unit)); }
   html[data-theme] .teams-page-container--rankings .ranking-player-header { padding: calc(14 * var(--mobile-unit)); gap: calc(14 * var(--mobile-unit)); }
   html[data-theme] .teams-page-container--rankings .ranking-player-photo { width: calc(100 * var(--mobile-unit)); height: calc(120 * var(--mobile-unit)); }
+}
+
+/* Player detail cards: portrait, identity and highlighted season totals. */
+html[data-theme] .teams-page-container--rankings .player-ranking-card--profile {
+  padding: 4px; border: 0; border-radius: 0; background: transparent;
+}
+html[data-theme] .teams-page-container--rankings .player-ranking-card--profile .ranking-player-header {
+  display: flex; flex-direction: column; gap: 10px; margin: 0 0 16px;
+  padding: 20px 16px 16px; border: 1px solid var(--ranking-line); border-radius: 16px;
+  background: var(--ranking-soft); box-shadow: 0 0 16px #00e58a18;
+}
+html[data-theme] .teams-page-container--rankings .player-ranking-card--profile .ranking-player-photo {
+  width: 160px; height: 170px; background: transparent; border-radius: 0;
+}
+.ranking-player-identity { width: 100%; text-align: center; }
+.ranking-player-identity h2 { margin: 0 0 6px; font-size: 24px; }
+.ranking-player-identity p { margin: 4px 0; color: var(--ranking-muted); font-size: 15px; }
+.ranking-player-identity a { display: inline-block; margin-top: 4px; padding: 2px 10px; border-radius: 999px; background: var(--ranking-surface); color: var(--ranking-muted); font-size: 12px; }
+.player-ranking-stats--pills { gap: 12px; margin: 12px 0 0; }
+.player-ranking-stats--pills > div { display: flex; flex-direction: column; justify-content: center; min-height: 150px; padding: 14px 4px; border-radius: 999px; background: var(--ranking-surface); }
+.player-ranking-stats--pills > .is-highlighted { border: 1px solid var(--ranking-accent); box-shadow: 0 0 14px #00e58a30; }
+.player-ranking-stats--pills dt { font-size: 13px; font-weight: 700; }
+.player-ranking-stats--pills dd { font-size: 40px; }
+html[data-theme='dark'] .player-ranking-stats--pills > div { background: #344540; }
+html[data-theme='dark'] .player-ranking-stats--pills > .is-highlighted { background: #20594c; color: #a5ffdc; border-color: #4c9b80; }
+.player-ranking-card--profile .ranking-player-events h3 { text-align: left; }
+@media (max-width: 380px) {
+  .player-ranking-stats--pills { gap: 6px; }
+  .player-ranking-stats--pills > div { min-height: 128px; }
+  .player-ranking-stats--pills dt { font-size: 11px; }
+  .player-ranking-stats--pills dd { font-size: 32px; }
 }

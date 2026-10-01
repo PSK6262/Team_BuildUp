@@ -292,8 +292,8 @@ export function StandingsPage() {
             <button key={id} id={`ranking-tab-${id}`} type="button" role="tab"
               aria-selected={tab === id} aria-controls="ranking-panel" tabIndex={tab === id ? 0 : -1}
               onClick={() => changeTab(id)} onKeyDown={(event) => {
-                const next = event.key === 'ArrowRight' ? (index + 1) % tabs.length
-                  : event.key === 'ArrowLeft' ? (index + tabs.length - 1) % tabs.length
+                const next = ['ArrowRight', 'ArrowDown'].includes(event.key) ? (index + 1) % tabs.length
+                  : ['ArrowLeft', 'ArrowUp'].includes(event.key) ? (index + tabs.length - 1) % tabs.length
                     : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : null;
                 if (next == null) return;
                 event.preventDefault();
@@ -364,8 +364,52 @@ function PlayerRankings({ metric, label }) {
 const playerPhotoCache = new Map();
 
 function PlayerRankingCarousel({ rows, metric, label }) {
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [openedIndex, setOpenedIndex] = useState(null);
+  const [detailKey, setDetailKey] = useState(0);
+  const league = metric === 'league';
+  const listRef = useRef(null);
+  return <div className="ranking-entries">
+    {selectedIndex !== null && <div className="ranking-selected-detail">
+      <button type="button" className="player-ranking-detail" onClick={() => {
+        setSelectedIndex(null);
+        listRef.current?.querySelectorAll('button')[selectedIndex]?.focus();
+      }}>목록으로 돌아가기</button>
+      <RankingDetailCarousel key={detailKey} rows={rows} metric={metric} label={label} initialIndex={openedIndex} onActiveIndexChange={setSelectedIndex} />
+    </div>}
+    <ol className="ranking-entry-list" ref={listRef} aria-label={`${label} 순위 목록`}>
+      {rows.map((row, index) => {
+        const name = league ? row.teamNameKor || getTeamNameKor(row.teamId, row.teamName) : row.playerNameKor || row.playerName || '선수명 미등록';
+        const rank = league ? row.currentRank : row.rank;
+        const value = league ? row.points : metric === 'contributions' ? (row.goals ?? 0) + (row.assists ?? 0) : row[metric];
+        return <li key={league ? row.teamId : row.playerId}>
+          <button type="button" className="ranking-entry-button" aria-expanded={selectedIndex === index} onClick={() => {
+            setSelectedIndex(index);
+            setOpenedIndex(index);
+            setDetailKey(current => current + 1);
+          }}>
+            <span className="ranking-entry-rank">{rank ?? '—'}위</span>
+            <span className="ranking-entry-name"><strong>{name}</strong>{!league && <small>{row.teamNameKor || row.teamName}</small>}</span>
+            <span className="ranking-entry-score">{value ?? '—'}{league ? '점' : ''}</span>
+            <span aria-hidden="true">›</span>
+          </button>
+        </li>;
+      })}
+    </ol>
+  </div>;
+}
+
+function RankingDetailCarousel({ rows, metric, label, initialIndex, onActiveIndexChange }) {
+  const league = metric === 'league';
+  const entryLabel = league ? '구단' : '선수';
   const trackRef = useRef(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(initialIndex);
+  useEffect(() => {
+    const track = trackRef.current;
+    track.scrollLeft = track.children[initialIndex].offsetLeft - track.children[0].offsetLeft;
+    track.closest('section').scrollIntoView({ block: 'start' });
+    track.focus({ preventScroll: true });
+  }, [initialIndex]);
   const move = (direction) => {
     const track = trackRef.current;
     if (!track) return;
@@ -377,13 +421,13 @@ function PlayerRankingCarousel({ rows, metric, label }) {
     });
   };
 
-  return <section className="player-ranking-carousel" aria-label={`${label} 선수 카드`}>
+  return <section className="player-ranking-carousel" aria-label={`${label} ${entryLabel} 카드`}>
     <div className="player-ranking-navigation">
-      <button type="button" aria-label="이전 순위 선수" disabled={activeIndex === 0} onClick={() => move(-1)}>‹</button>
-      <span aria-live="polite">{activeIndex + 1} / {rows.length}명</span>
-      <button type="button" aria-label="다음 순위 선수" disabled={activeIndex === rows.length - 1} onClick={() => move(1)}>›</button>
+      <button type="button" aria-label={`이전 순위 ${entryLabel}`} disabled={activeIndex === 0} onClick={() => move(-1)}>‹</button>
+      <span aria-live="polite">{activeIndex + 1} / {rows.length}</span>
+      <button type="button" aria-label={`다음 순위 ${entryLabel}`} disabled={activeIndex === rows.length - 1} onClick={() => move(1)}>›</button>
     </div>
-    <p className="player-ranking-hint">좌우로 밀거나 화살표를 눌러 다음 선수를 확인하세요</p>
+    <p className="player-ranking-hint">좌우로 밀거나 화살표를 눌러 다음 {entryLabel}을 확인하세요</p>
     <div className="player-ranking-track" ref={trackRef} tabIndex={0}
       role="region" aria-label={`${label}, 순위순으로 좌우 이동`}
       onKeyDown={event => {
@@ -401,18 +445,29 @@ function PlayerRankingCarousel({ rows, metric, label }) {
           if (next < distance) { closest = index; distance = next; }
         });
         setActiveIndex(closest);
+        onActiveIndexChange(closest);
       }}>
       {rows.map((row, index) => {
+        if (league) {
+          const teamName = row.teamNameKor || getTeamNameKor(row.teamId, row.teamName);
+          return <article className="player-ranking-card league-ranking-card" key={row.teamId}
+            aria-label={`${row.currentRank ?? '미정'}위 ${teamName}`} inert={index !== activeIndex}>
+            <span className="player-ranking-position">{row.currentRank == null ? '순위 미정' : `${row.currentRank}위`}</span>
+            {row.emblemUrl && <img className="league-ranking-emblem" src={row.emblemUrl} alt="" width="80" height="80" onError={event => { event.currentTarget.style.visibility = 'hidden'; }} />}
+            <h3>{teamName}</h3>
+            {row.teamName && row.teamName !== teamName && <p className="player-ranking-hint">{row.teamName}</p>}
+            <dl className="player-ranking-stats league-ranking-stats">
+              {standingsColumns.map(([field, title]) => <div key={field} className={field === 'points' ? 'is-highlighted' : undefined}>
+                <dt>{title}</dt>
+                <dd>{row[field] == null ? '—' : field === 'goalDiff' && row[field] > 0 ? `+${row[field]}` : row[field]}</dd>
+              </div>)}
+            </dl>
+            <a className="player-ranking-detail" href={`/plug/team/${row.teamId}`}>{teamName} 상세 보기</a>
+          </article>;
+        }
         const name = row.playerNameKor || row.playerName || '선수명 미등록';
-        const stats = metric === 'cleanSheets'
-          ? [['cleanSheets', '클린시트', row.cleanSheets ?? 0]]
-          : [['goals', '득점', row.goals ?? 0], ['assists', '도움', row.assists ?? 0], ['contributions', '공격포인트', (row.goals ?? 0) + (row.assists ?? 0)]];
-        return <article className="player-ranking-card" key={row.playerId} aria-label={`${row.rank}위 ${name}`}>
-          <span className="player-ranking-position">{row.rank}위</span>
-          <dl className="player-ranking-stats">
-            {stats.map(([field, title, value]) => <div key={field} className={field === metric ? 'is-highlighted' : undefined}><dt>{title}</dt><dd>{value}</dd></div>)}
-          </dl>
-          {Math.abs(index - activeIndex) <= 1 && <RankingPlayerDetails player={row} />}
+        return <article className="player-ranking-card player-ranking-card--profile" key={row.playerId} aria-label={`${row.rank}위 ${name}`} inert={index !== activeIndex}>
+          {Math.abs(index - activeIndex) <= 1 && <RankingPlayerDetails player={row} metric={metric} />}
 
         </article>;
       })}
@@ -420,11 +475,14 @@ function PlayerRankingCarousel({ rows, metric, label }) {
   </section>;
 }
 
-function RankingPlayerDetails({ player }) {
+function RankingPlayerDetails({ player, metric }) {
   const [events, setEvents] = useState({ status: 'loading', rows: [] });
   const [attempt, setAttempt] = useState(0);
   const [photo, setPhoto] = useState({ status: 'loading', url: '' });
   const name = player.playerNameKor || player.playerName || '선수명 미등록';
+  const stats = metric === 'cleanSheets'
+    ? [['cleanSheets', '클린시트', player.cleanSheets ?? 0], ['goals', '득점', player.goals ?? 0], ['assists', '도움', player.assists ?? 0]]
+    : [['goals', '득점', player.goals ?? 0], ['assists', '도움', player.assists ?? 0], ['contributions', '공격포인트', (player.goals ?? 0) + (player.assists ?? 0)]];
 
 
 
@@ -489,10 +547,12 @@ function RankingPlayerDetails({ player }) {
           {photo.status === 'ready' ? <img src={photo.url} alt={`${name} 선수 사진`} onError={() => setPhoto({ status: 'empty', url: '' })} />
             : <span>{photo.status === 'loading' ? '사진 불러오는 중…' : '등록된 선수 사진이 없습니다.'}</span>}
         </div>
-        <div><p>26-27 시즌</p><h2 id={`ranking-player-title-${player.playerId}`}>{name}</h2><p>{player.teamNameKor || player.teamName}</p>
-          <p>득점 {player.goals ?? '—'} · 도움 {player.assists ?? '—'}{(player.mainPosition === 'GK' || (player.cleanSheets ?? 0) > 0) ? ` · 클린시트 ${player.cleanSheets ?? 0}` : ''}</p>
+        <div className="ranking-player-identity"><h2 id={`ranking-player-title-${player.playerId}`}>{name}</h2><p>{player.teamNameKor || player.teamName}</p><p>26-27 시즌 · {player.rank}위</p>
           {photo.status === 'ready' && <a href="https://www.thesportsdb.com/" target="_blank" rel="noreferrer">사진: TheSportsDB</a>}
         </div>
+        <dl className="player-ranking-stats player-ranking-stats--pills">
+          {stats.map(([field, title, value]) => <div key={field} className={field === metric ? 'is-highlighted' : undefined}><dt>{title}</dt><dd>{value}</dd></div>)}
+        </dl>
       </header>
       <p className="standings-note">경기별 상세 기록은 집계된 득점·도움 수와 차이가 있을 수 있습니다. 경기 시작 일시는 한국 시간(KST)입니다.</p>
       {events.status === 'loading' ? <p role="status">득점·도움 기록을 불러오는 중입니다…</p>
@@ -559,36 +619,7 @@ function StandingsTable({ season }) {
         <span><strong>{season}/{String(season + 1).slice(-2)} 시즌</strong> · 총 <strong>{result.rows.length}개 구단</strong></span>
         <span>전체 경기 성적 기준</span>
       </div>
-      <p className="standings-swipe-hint">← 좌우로 밀어 승점·승무패·득실 기록을 확인하세요 →</p>
-      <div className="standings-scroll standings-scroll--league" role="region" aria-label="프리미어리그 순위표, 가로 스크롤 가능" tabIndex={0}>
-        <table className="standings-table standings-table--league">
-          <caption>{season}/{String(season + 1).slice(-2)} 프리미어리그 공식 순위표</caption>
-          <thead><tr>
-            <th scope="col">순위</th><th scope="col">구단명</th>
-            {standingsColumns.map(([ field, label ]) => <th key={field} scope="col">{label}</th>)}
-          </tr></thead>
-          <tbody>{result.rows.map((row) => {
-            const teamKor = row.teamNameKor || getTeamNameKor(row.teamId, row.teamName);
-            return (
-              <tr key={row.teamId}>
-                <td><span className="standings-rank" data-rank={row.currentRank}>{row.currentRank ?? '—'}</span></td>
-                <th scope="row"><a className="standings-team" href={`/plug/team/${row.teamId}`} title={`${teamKor} 상세 정보 보기`}>
-                  {row.emblemUrl && <img src={row.emblemUrl} alt="" width="28" height="28" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} />}
-                  <span style={{ fontWeight: 700 }}>{teamKor}</span>
-                  {row.teamName && teamKor !== row.teamName && (
-                    <span style={{ fontSize: '11px', color: 'var(--ranking-muted, #64748b)', marginLeft: '5px' }}>({row.teamName})</span>
-                  )}
-                </a></th>
-                {standingsColumns.map(([ field ]) => (
-                  <td key={field} className={field === 'points' ? 'standings-points' : undefined}>
-                    {row[ field ] == null ? '—' : field === 'goalDiff' && row[ field ] > 0 ? `+${row[ field ]}` : row[ field ]}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}</tbody>
-        </table>
-      </div>
+      <PlayerRankingCarousel rows={result.rows} metric="league" label="리그 순위" />
       <p className="standings-note">순위 산정 기준: 승점 → 득실차 → 다득점 순입니다. (상위 1~4위 챔피언스리그 진출권 / 18~20위 강등권)</p>
       {updatedAt && <p className="standings-note">최근 순위 갱신 일시: {updatedAt}</p>}
     </>
