@@ -60,13 +60,14 @@ function CommunitySelect({ label, value, options, onChange, disabled = false, wi
               <button
                 type="button"
                 role="option"
+                className={option.favorite ? 'community__favorite-team' : undefined}
                 aria-selected={String(option.value) === String(value)}
                 onClick={() => {
                   onChange(option.value)
                   setOpen(false)
                 }}
               >
-                <span>{option.label}</span>
+                <span>{option.label}{option.favorite && <small className="community__favorite-label">애정팀</small>}</span>
                 {String(option.value) === String(value) && <span aria-hidden="true">✓</span>}
               </button>
             </li>
@@ -78,6 +79,8 @@ function CommunitySelect({ label, value, options, onChange, disabled = false, wi
 }
 
 export default function Community({ selectedTeam = null }) {
+  const favoriteTeamId = useSelector((state) => state.auth.user?.favoriteTeamId)
+  const isFavoriteTeam = (team) => favoriteTeamId != null && String(team.teamId) === String(favoriteTeamId)
   const dispatch = useDispatch()
   const { teams, categories, teamsLoaded, categoriesLoaded } = useSelector((state) => state.team)
   const optionsLoading = !teamsLoaded || !categoriesLoaded
@@ -217,7 +220,7 @@ export default function Community({ selectedTeam = null }) {
             value={teamId}
             disabled={board === 'free' || board === 'showcase'}
             wide
-            options={[{ value: '', label: '전체 팀' }, ...teams.map((team) => ({ value: team.teamId, label: team.teamNameKor || team.teamName }))]}
+            options={[{ value: '', label: '전체 팀' }, ...[...teams].sort((a, b) => Number(isFavoriteTeam(b)) - Number(isFavoriteTeam(a))).map((team) => ({ value: team.teamId, label: team.teamNameKor || team.teamName, favorite: isFavoriteTeam(team) }))]}
             onChange={(nextTeamId) => { setTeamId(nextTeamId); setPage(1) }}
           />}
           <CommunitySelect
