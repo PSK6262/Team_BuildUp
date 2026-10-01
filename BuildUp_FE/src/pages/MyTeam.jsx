@@ -1762,7 +1762,8 @@ export default function MyTeam() {
               className="myteam-name-input"
               value={teamName}
               onChange={(e) => setTeamName(e.target.value)}
-              placeholder="구단명 입력"
+              placeholder="스쿼드명"
+              aria-label="스쿼드명"
               title="팀 이름 변경"
             />
 
@@ -1804,7 +1805,7 @@ export default function MyTeam() {
             {/* 프리셋 포메이션 선택기 */}
             <div className="formation-presets-row">
               <span className="formation-label">⭐ 추천 포메이션:</span>
-              <div className="preset-chip-group">
+              <div className="preset-chip-group" role="group" aria-label="추천 포메이션, 좌우로 넘겨 선택">
                 {FORMATION_PRESETS.map((p) => {
                   const isActive = p.label === (formation.presetLabel ?? `${formation.df}-${formation.mf}-${formation.fw}`);
                   return (
@@ -1821,6 +1822,8 @@ export default function MyTeam() {
                 })}
               </div>
             </div>
+
+            <p className="formation-swipe-hint">← 좌우로 밀어 다른 포메이션 보기 →</p>
 
             {/* 커스텀 포메이션 조작 행 (합계 10명) */}
             <div className="formation-custom-row">

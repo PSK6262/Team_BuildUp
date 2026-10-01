@@ -85,16 +85,25 @@
 
   /* Team builder: keep the pitch and its player slots in the same proportions. */
   .myteam-page .myteam-toolbar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(8 * var(--mobile-unit)); }
-  .myteam-page .myteam-toolbar > * { min-width: 0; width: 100%; }
-  .myteam-page .myteam-name-input { grid-column: 1 / -1; }
+  .myteam-page .myteam-toolbar[hidden] { display: none; }
+  .myteam-page .myteam-toolbar > * { min-width: 0; width: 100%; min-height: 44px; margin: 0; white-space: nowrap; }
+  .myteam-page .myteam-name-input { grid-column: auto; padding: 10px 8px; font-size: 13px; }
   .myteam-page :is(.myteam-btn, .myteam-squad-counter) { padding: calc(12 * var(--mobile-unit)) calc(8 * var(--mobile-unit)); font-size: calc(13 * var(--mobile-unit)); }
   .myteam-page :is(.formation-panel, .myteam-pitch-card, .myteam-roster-panel, .myteam-ai-panel) { min-width: 0; padding: calc(14 * var(--mobile-unit)); border-radius: calc(16 * var(--mobile-unit)); }
   .myteam-page .myteam-main-layout { grid-template-columns: minmax(0, 1fr); gap: calc(20 * var(--mobile-unit)); }
   .myteam-page .myteam-roster-panel { height: auto; }
   .myteam-page .formation-presets-row { align-items: flex-start; flex-direction: column; }
-  .myteam-page .preset-chip-group { display: grid; width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: calc(6 * var(--mobile-unit)); }
-  .myteam-page .preset-chip { padding: calc(10 * var(--mobile-unit)) calc(6 * var(--mobile-unit)); font-size: calc(13 * var(--mobile-unit)); }
-  .myteam-page .custom-steppers { flex-wrap: wrap; gap: calc(6 * var(--mobile-unit)); }
+  .myteam-page .preset-chip-group { display: flex; flex-wrap: nowrap; width: 100%; min-width: 0; gap: 6px; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; touch-action: pan-x pan-y pinch-zoom; padding: 4px 0 10px; scrollbar-width: thin; }
+  .myteam-page .preset-chip { flex: 0 0 calc((100% - 12px) / 3); min-width: 0; min-height: 44px; padding: 10px 4px; font-size: 13px; white-space: nowrap; scroll-snap-align: start; }
+  .myteam-page .formation-custom-row { width: 100%; min-width: 0; gap: 12px; }
+  .myteam-page .custom-steppers { display: grid; grid-template-columns: minmax(0, 1fr); width: 100%; gap: 8px; }
+  .myteam-page .stepper-item { display: grid; grid-template-columns: minmax(0, 1fr) 44px 44px 44px; width: 100%; gap: 6px; padding: 8px; }
+  .myteam-page .stepper-tag { justify-self: start; white-space: nowrap; padding: 4px 6px; letter-spacing: 0; }
+  .myteam-page :is(.stepper-btn, .stepper-input) { width: 44px; height: 44px; }
+  .myteam-page .stepper-gk-info { width: 100%; margin: 0; text-align: center; }
+  .myteam-page .formation-status-indicator { width: 100%; margin: 0; flex-wrap: wrap; justify-content: center; }
+  .myteam-page .formation-status-indicator > * { width: 100%; text-align: center; }
+  .myteam-page .formation-swipe-hint { display: block; margin: 0; font-size: 12px; opacity: .75; }
   .myteam-page .pitch-header-info { flex-direction: column; gap: calc(8 * var(--mobile-unit)); text-align: center; }
   .myteam-page .pitch-formation-display { font-size: calc(14 * var(--mobile-unit)); gap: calc(6 * var(--mobile-unit)); }
   .myteam-page .pitch-formation-display .myteam-btn-mini { margin-left: 0; padding: calc(6 * var(--mobile-unit)); gap: calc(3 * var(--mobile-unit)); font-size: calc(11 * var(--mobile-unit)); }
