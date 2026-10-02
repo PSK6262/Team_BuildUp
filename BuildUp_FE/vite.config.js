@@ -18,8 +18,9 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: process.env.VITE_API_PROXY_TARGET || 'https://psk6262buildup.duckdns.org',
         changeOrigin: true,
+        secure: false,
       },
     },
   },
