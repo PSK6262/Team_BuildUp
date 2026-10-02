@@ -1,0 +1,1 @@
+function e(){let e=window.location.hash||``,t=e.indexOf(`?`);return t===-1?new URLSearchParams(window.location.search):new URLSearchParams(e.slice(t))}export{e as t};
