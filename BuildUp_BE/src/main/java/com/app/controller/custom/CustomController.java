@@ -17,6 +17,7 @@ import com.app.dto.user.Users;
 import com.app.dao.user.UserDAO;
 import com.app.util.JwtProvider;
 import com.app.util.LoginManager;
+import com.app.util.UserActivityLogger;
 
 @RestController
 public class CustomController {
@@ -35,6 +36,7 @@ public class CustomController {
         if (user == null && httpRequest.getHeader("Authorization") != null)
             return ResponseEntity.status(401).body(Map.of("message", "다시 로그인 후 대전해주세요."));
         try {
+            UserActivityLogger.log(httpRequest, "AI 대전", user == null ? "anonymous" : user.getLoginId());
             return ResponseEntity.ok(customService.playAiMatch(request, user == null ? null : user.getUserId()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
@@ -56,6 +58,7 @@ public class CustomController {
         Users user = resolveUser(request);
         if (user == null) return ResponseEntity.status(401).body(Map.of("message", "로그인 후 이용해주세요."));
         try {
+            UserActivityLogger.log(request, "커스텀팀 저장", user.getLoginId());
             return ResponseEntity.ok(customService.save(user.getUserId(), team));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));

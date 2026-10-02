@@ -25,6 +25,7 @@ import com.app.dto.user.Users;
 import com.app.service.prediction.PredictionService;
 import com.app.util.JwtProvider;
 import com.app.util.LoginManager;
+import com.app.util.UserActivityLogger;
 
 @RestController
 @RequestMapping("/api/predictions")
@@ -116,6 +117,7 @@ public class PredictionController {
 			String predictResult = (String) requestBody.get("predictResult");
 
 			Map<String, Object> result = predictionService.betPrediction(user.getUserId(), matchId, predictResult);
+			UserActivityLogger.log(request, "승부예측 투표", user.getLoginId());
 			return ResponseEntity.ok(result);
 
 		} catch (IllegalArgumentException | IllegalStateException e) {

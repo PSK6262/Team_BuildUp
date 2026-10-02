@@ -158,5 +158,20 @@
 			<artifactId>javax.mail</artifactId>
 			<version>1.6.2</version>
 		</dependency>
+		<dependency>
+    <groupId>com.oracle.database.security</groupId>
+	    <artifactId>oraclepki</artifactId>
+	    <version>19.21.0.0</version> <!-- 드라이버 버전과 통일 -->
+	</dependency>
+	<dependency>
+	    <groupId>com.oracle.database.security</groupId>
+	    <artifactId>osdt_cert</artifactId>
+	    <version>19.21.0.0</version>
+	</dependency>
+	<dependency>
+	    <groupId>com.oracle.database.security</groupId>
+	    <artifactId>osdt_core</artifactId>
+	    <version>19.21.0.0</version>
+	</dependency>
 	</dependencies>
 </project>
