@@ -198,7 +198,7 @@ export default function AdminCommunityTab({ showAlert }) {
                       </td>
                       <td data-label="제목" style={{ fontWeight: 600, maxWidth: 300 }}>
                         <a
-                          href={`/plug/community/posts/${p.postId}`}
+                          href={`#/plug/community/posts/${p.postId}`}
                           target="_blank"
                           rel="noreferrer"
                           className="admin-post-title-link"
@@ -303,7 +303,7 @@ export default function AdminCommunityTab({ showAlert }) {
                     <tr key={c.commentId}>
                       <td data-label="댓글ID">{c.commentId}</td>
                       <td data-label="원글ID">
-                        <a href={`/plug/community/posts/${c.postId}`} target="_blank" rel="noreferrer">
+                        <a href={`#/plug/community/posts/${c.postId}`} target="_blank" rel="noreferrer">
                           #{c.postId}
                         </a>
                       </td>
