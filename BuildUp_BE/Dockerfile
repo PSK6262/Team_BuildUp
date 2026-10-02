@@ -1,11 +1,16 @@
-# 1단계: 빌드 환경 설정 (Maven + Java 17)
+# 1단계: 빌드 환경 (Maven + Java 17)
 FROM maven:3.8.5-openjdk-17 AS build
 COPY . /home/app
 WORKDIR /home/app
 RUN mvn clean package -DskipTests
 
-# 2단계: 실행 환경 설정 (Java 17 경량화 버전)
-FROM openjdk:17-jdk-slim
+# 2단계: 실행 환경 (공식 Tomcat 9 + Java 17)
+FROM tomcat:9.0-jdk17-openjdk-slim
+
+# 기본 ROOT 애플리케이션 삭제 후 빌드된 war 파일을 Tomcat 웹 디렉토리로 복사
+RUN rm -rf /usr/local/tomcat/webapps/ROOT
+COPY --from=build /home/app/target/*.war /usr/local/tomcat/webapps/ROOT.war
+
+# 톰캣 기본 포트 개방
 EXPOSE 8080
-COPY --from=build /home/app/target/*.jar app.jar
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+CMD ["catalina.sh", "run"]

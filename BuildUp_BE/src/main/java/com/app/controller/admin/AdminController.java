@@ -36,6 +36,7 @@ import com.app.service.admin.AdminService;
 import com.app.service.api.GeminiApiService;
 import com.app.util.JwtProvider;
 import com.app.util.LoginManager;
+import com.app.util.UserActivityLogger;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -328,6 +329,7 @@ public class AdminController {
 			return ApiResponse.error(ResultCode.FORBIDDEN);
 		}
 		boolean success = adminService.deletePost(postId);
+		if (success) UserActivityLogger.log(request, "관리자 게시글 삭제(postId=" + postId + ")", "admin");
 		return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
 	}
 
@@ -430,6 +432,7 @@ public class AdminController {
 
 		try {
 			boolean success = adminService.adjustUserPoints(userId, amount, finalDescription);
+			if (success) UserActivityLogger.log(request, "관리자 포인트 직권 조정(userId=" + userId + ")", "admin");
 			return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
 		} catch (IllegalStateException | IllegalArgumentException e) {
 			return ApiResponse.error(ResultCode.FAIL, e.getMessage());

@@ -25,6 +25,7 @@ import com.app.service.user.UserService;
 import com.app.service.user.UserMailService;
 import com.app.util.JwtProvider;
 import com.app.util.LoginManager;
+import com.app.util.UserActivityLogger;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -66,6 +67,7 @@ public class AuthController {
 			data.put("token", token);
 			data.put("user", user);
 
+			UserActivityLogger.log(request, "로그인", user.getLoginId());
 			return ApiResponse.success(data);
 
 		} catch (IllegalArgumentException e) {
@@ -137,13 +139,14 @@ public class AuthController {
 	 * 이메일 인증 링크 확인 및 회원가입 최종 완료
 	 */
 	@GetMapping("/confirm-signup")
-	public ApiResponse<Users> confirmSignup(@RequestParam("key") String authKey) {
+	public ApiResponse<Users> confirmSignup(@RequestParam("key") String authKey, HttpServletRequest request) {
 		if (authKey == null || authKey.trim().isEmpty()) {
 			return ApiResponse.error(ResultCode.INVALID_INPUT);
 		}
 		try {
 			Users user = userMailService.confirmSignup(authKey.trim());
 			user.setPassword(null);
+			UserActivityLogger.log(request, "회원가입 완료", user.getLoginId());
 			return ApiResponse.success(user);
 		} catch (IllegalArgumentException e) {
 			return ApiResponse.error(ResultCode.INVALID_AUTH_KEY, e.getMessage());

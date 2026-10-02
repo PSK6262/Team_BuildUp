@@ -26,6 +26,7 @@ import com.app.dto.user.Users;
 import com.app.service.user.UserService;
 import com.app.util.JwtProvider;
 import com.app.util.LoginManager;
+import com.app.util.UserActivityLogger;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -225,6 +226,7 @@ public class UserController {
 
 		try {
 			Map<String, Object> result = userService.purchaseShopItem(user.getUserId(), itemRequest);
+			UserActivityLogger.log(request, "포인트샵 구매(UserCtrl)", loginId);
 			return ApiResponse.success(result);
 		} catch (IllegalArgumentException e) {
 			return ApiResponse.error(ResultCode.INVALID_INPUT, e.getMessage());
@@ -294,6 +296,7 @@ public class UserController {
 			if (request.getSession(false) != null) {
 				request.getSession().setAttribute(CommonCode.SESSION_LOGIN_USER, updated);
 			}
+			UserActivityLogger.log(request, "프로필 수정", loginId);
 			return ApiResponse.success(updated);
 
 		} catch (IllegalArgumentException e) {
@@ -325,6 +328,7 @@ public class UserController {
 		try {
 			boolean success = userService.withdraw(currentUser.getUserId(), currentUser.getEmail());
 			if (success) {
+				UserActivityLogger.log(request, "회원 탈퇴", loginId);
 				LoginManager.logout(request);
 				log.info("[UserController] 회원 탈퇴 완료 -> userId: {}, loginId: {}", currentUser.getUserId(), loginId);
 				return ApiResponse.success();
