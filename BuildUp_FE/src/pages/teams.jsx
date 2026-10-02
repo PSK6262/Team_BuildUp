@@ -560,7 +560,7 @@ function DesktopLeagueRankings({ rows }) {
             return (
               <tr key={row.teamId}>
                 <td><span className="standings-rank" data-rank={row.currentRank}>{row.currentRank ?? '—'}</span></td>
-                <th scope="row"><a className="standings-team" href={`/plug/team/${row.teamId}`} title={`${teamKor} 상세 정보 보기`}>
+                <th scope="row"><a className="standings-team" href={`#/plug/team/${row.teamId}`} title={`${teamKor} 상세 정보 보기`}>
                   {row.emblemUrl && <img src={row.emblemUrl} alt="" width="28" height="28" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} />}
                   <span style={{ fontWeight: 700 }}>{teamKor}</span>
                   {row.teamName && teamKor !== row.teamName && (
@@ -646,7 +646,7 @@ function RankingDetailCarousel({ rows, metric, label, initialIndex, onActiveInde
                 <dd>{row[field] == null ? '—' : field === 'goalDiff' && row[field] > 0 ? `+${row[field]}` : row[field]}</dd>
               </div>)}
             </dl>
-            <a className="player-ranking-detail" href={`/plug/team/${row.teamId}`}>{teamName} 상세 보기</a>
+            <a className="player-ranking-detail" href={`#/plug/team/${row.teamId}`}>{teamName} 상세 보기</a>
           </article>;
         }
         const name = row.playerNameKor || row.playerName || '선수명 미등록';
