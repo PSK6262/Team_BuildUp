@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchTeams, fetchCategories } from '../store/teamSlice.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
+import { getAppSearchParams } from '../utils/searchParams.js'
 import '../css/Community.css'
 
 function WriteSelect({ label, value, options, onChange, disabled, searchable = false }) {
@@ -71,9 +72,10 @@ export default function PostWrite() {
   const isFavoriteTeam = (team) => user?.favoriteTeamId != null && String(team.teamId) === String(user.favoriteTeamId)
   const { teams, categories, teamsLoaded, categoriesLoaded, teamsError, categoriesError } = useSelector((state) => state.team)
 
-  const requestedBoard = new URLSearchParams(window.location.search).get('board')
+  const postWriteSearchParams = getAppSearchParams()
+  const requestedBoard = postWriteSearchParams.get('board')
   const initialBoard = ['team', 'showcase'].includes(requestedBoard) ? requestedBoard : 'free'
-  const requestedCustomTeamId = new URLSearchParams(window.location.search).get('customTeamId')
+  const requestedCustomTeamId = postWriteSearchParams.get('customTeamId')
   const [board, setBoard] = useState(initialBoard)
   const [selectedCategoryId, setCategoryId] = useState('')
   const categoryId = selectedCategoryId || String(categories.find((category) => !isNewsCategory(category))?.categoryId ?? '')

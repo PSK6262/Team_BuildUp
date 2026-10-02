@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
+import { getAppSearchParams } from '../utils/searchParams.js'
 import '../css/Auth.css'
 
 const EMAIL_REGEX = /^[a-zA-Z0-9](?!.*\.\.)[a-zA-Z0-9._-]{2,28}[a-zA-Z0-9]@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -29,9 +30,10 @@ export default function Signup() {
   const [sentEmail, setSentEmail] = useState('')
 
   // URL에서 이메일 인증키 추출 (?key=...)
-  const searchParams = new URLSearchParams(window.location.search)
+  const searchParams = getAppSearchParams()
   const confirmKey = searchParams.get('key')
-  const isConfirmMode = Boolean(confirmKey || window.location.pathname === '/plug/signup/confirm')
+  const currentPath = (window.location.hash.replace(/^#/, '').split('?')[0] || window.location.pathname).replace(/\/$/, '')
+  const isConfirmMode = Boolean(confirmKey || currentPath === '/plug/signup/confirm')
 
   const [confirmStatus, setConfirmStatus] = useState(isConfirmMode ? (confirmKey ? 'loading' : 'error') : 'idle')
   const [confirmMsg, setConfirmMsg] = useState(isConfirmMode && !confirmKey ? '인증키가 존재하지 않거나 누락되었습니다.' : '')

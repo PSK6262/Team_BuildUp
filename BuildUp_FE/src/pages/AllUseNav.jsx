@@ -47,7 +47,27 @@ export default function AllUseNav() {
   const user = useSelector((state) => state.auth.user)
   const currentTheme = useSelector((state) => state.theme?.mode || 'dark')
   const dispatch = useDispatch()
-  const pathname = window.location.pathname.replace(/\/$/, '')
+
+  const getNavPathname = () => {
+    const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
+    let hash = window.location.hash.replace(/^#/, '').split('?')[0]
+    if (hash) {
+      if (base && hash.startsWith(base)) hash = hash.slice(base.length)
+      return hash.replace(/\/$/, '') || '/plug/mainpage'
+    }
+    let path = window.location.pathname.replace(/\/$/, '')
+    if (base && path.startsWith(base)) path = path.slice(base.length)
+    return path || '/plug/mainpage'
+  }
+
+  const [pathname, setPathname] = useState(getNavPathname)
+
+  useEffect(() => {
+    const handleHashChange = () => setPathname(getNavPathname())
+    window.addEventListener('hashchange', handleHashChange)
+    return () => window.removeEventListener('hashchange', handleHashChange)
+  }, [])
+
   const isMainPage = !pathname || pathname === '' || pathname === '/plug' || pathname === '/plug/mainpage' || pathname === '/plug/teams'
   const isAdmin = user && Number(user.roleCode) === 9
   const nickname = user?.nickname?.trim() || '내 계정'

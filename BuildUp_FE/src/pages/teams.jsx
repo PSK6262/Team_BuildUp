@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchTeams } from '../store/teamSlice.js';
 import TeamCard from '../components/team/TeamCard.jsx';
+import { getAppSearchParams } from '../utils/searchParams.js';
 import '../css/teams.css';
 import '../css/rankings.css';
 
@@ -268,16 +269,33 @@ export function StandingsPage() {
     cleanSheets: ['CLEAN SHEETS', '골문을 굳건히 지키는 무실점 수문장들의 기록'],
   };
   const [ tab, setTab ] = useState(() => {
-    const value = new URLSearchParams(window.location.search).get('tab');
+    const value = getAppSearchParams().get('tab');
     return tabs.some(([ id ]) => id === value) ? value : 'league';
   });
   function changeTab(value) {
-    const url = new URL(window.location.href);
-    url.searchParams.set('tab', value);
-    url.searchParams.delete('season');
-    window.history.replaceState(null, '', url);
+    if (window.location.hash) {
+      const [path, query = ''] = window.location.hash.slice(1).split('?');
+      const params = new URLSearchParams(query);
+      params.set('tab', value);
+      params.delete('season');
+      window.location.hash = `${path}?${params.toString()}`;
+    } else {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', value);
+      url.searchParams.delete('season');
+      window.history.replaceState(null, '', url);
+    }
     setTab(value);
   }
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const value = getAppSearchParams().get('tab');
+      if (tabs.some(([ id ]) => id === value)) setTab(value);
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   return (
     <main className="teams-page-container teams-page-container--rankings">

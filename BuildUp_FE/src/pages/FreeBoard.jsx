@@ -102,7 +102,7 @@ export default function FreeBoard() {
           <thead><tr><th scope="col">번호</th><th scope="col">제목</th><th scope="col">작성자</th><th scope="col">작성일</th><th scope="col">조회수</th></tr></thead>
           <tbody>
             {posts.map((post) => <tr key={post.postId}>
-              <td>{post.postId}</td><td className="community__title"><a className="community__post-link" href={`/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.pathname)}`}>{post.title}</a></td><td>{post.nickname}</td>
+              <td>{post.postId}</td><td className="community__title"><a className="community__post-link" href={`/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.hash.replace(/^#/, '').split('?')[0] || window.location.pathname)}`}>{post.title}</a></td><td>{post.nickname}</td>
               <td><time dateTime={post.createdAt}>{post.createdAt?.slice(0, 10).replaceAll('-', '.')}</time></td><td>{post.viewCount}</td>
             </tr>)}
             {!loading && posts.length === 0 && <tr><td colSpan={5} className="community__empty">등록된 게시글이 없습니다.</td></tr>}

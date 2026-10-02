@@ -4,6 +4,7 @@ import { fetchTeams, fetchCategories } from '../store/teamSlice.js'
 import { communityTeams } from '../data/communityTeams.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
 import { useCommunityConfirm } from '../components/CommunityConfirm.jsx'
+import { getAppSearchParams } from '../utils/searchParams.js'
 import '../css/Community.css'
 
 // StrictMode가 개발 환경에서 같은 상세 조회를 두 번 실행해도 서버 요청은 한 번만 보냅니다.
@@ -114,14 +115,15 @@ export default function PostDetail({ postId }) {
   const [pendingImages, setPendingImages] = useState([])
   const [pendingFiles, setPendingFiles] = useState([])
   const [attachmentLoading, setAttachmentLoading] = useState(false)
+  const [unblurredPost, setUnblurredPost] = useState(false)
+  const [unblurredComments, setUnblurredComments] = useState({})
+  const postDetailSearchParams = getAppSearchParams()
   const [attachmentError, setAttachmentError] = useState(
-    new URLSearchParams(window.location.search).get('attachmentError') === '1'
+    postDetailSearchParams.get('attachmentError') === '1'
       ? '게시글은 등록되었지만 일부 첨부파일 업로드에 실패했습니다. 다시 등록해주세요.'
       : '',
   )
-  const [unblurredPost, setUnblurredPost] = useState(false)
-  const [unblurredComments, setUnblurredComments] = useState({})
-  const requestedReturn = new URLSearchParams(window.location.search).get('from')
+  const requestedReturn = postDetailSearchParams.get('from')
   // 외부 주소나 임의의 경로로 이동하지 않도록 실제 목록 경로만 허용합니다.
   const allowedPaths = ['/plug/community', '/plug/community/free', ...communityTeams.map((team) => `/plug/community/teams/${team.slug}`)]
   const backTo = allowedPaths.includes(requestedReturn) ? requestedReturn : '/plug/community'
