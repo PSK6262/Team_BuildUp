@@ -402,7 +402,7 @@ export default function MainPage() {
       {/* 오른쪽 상단 내비바 아래: 애정팀 다음 경기 D-Day 위젯 (오프닝 종료 후 표시, 클릭 시 해당 경기 일정으로 이동 및 포커스) */}
       {isIntroFinished && nextFavoriteMatch && (
         <a
-          href={`/plug/match?matchId=${nextFavoriteMatch.matchId}`}
+          href={`#/plug/match?matchId=${nextFavoriteMatch.matchId}`}
           className="mainpage-next-match"
           aria-label={`내 애정팀 다음 경기 일정: ${nextFavoriteMatch.dDayTag}, VS ${nextFavoriteMatch.opponentName}, ${nextFavoriteMatch.stadiumName} (클릭 시 경기 일정으로 이동)`}
           title="클릭하여 경기 일정 페이지에서 해당 경기 보기"
@@ -525,7 +525,7 @@ export default function MainPage() {
                   >
                     <div className="emblem-rotator">
                       <a
-                        href={`/plug/team/${team.teamId}`}
+                        href={`#/plug/team/${team.teamId}`}
                         className={`emblem-card ${isHovered ? 'is-hovered' : ''} ${isFavorite ? 'is-favorite' : ''}`}
                         style={{
                           '--team-hex': theme.hex,
