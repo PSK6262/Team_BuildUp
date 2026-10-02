@@ -4,6 +4,7 @@ import { getTeams } from '../api/teamApi.js'
 import FcManagerModeModal from '../components/match/FcManagerModeModal.jsx'
 import '../css/match.css'
 import { MatchClubPicker, MatchMonthPicker, MatchRoundPicker } from '../components/match/MatchFilters.jsx'
+import { getAppSearchParams } from '../utils/searchParams.js'
 
 const teamsData = teamDbFallback.teams
 const SEASONS = [2024, 2025, 2026]
@@ -93,7 +94,7 @@ function getMatchOutcome(match) {
 }
 
 export default function Match() {
-  const urlParams = useMemo(() => new URLSearchParams(window.location.search), [])
+  const urlParams = useMemo(() => getAppSearchParams(), [])
   const focusedMatchId = useMemo(() => {
     const id = urlParams.get('matchId')
     return id ? Number(id) : null

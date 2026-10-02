@@ -87,8 +87,20 @@ function renderMessageContent(text) {
 }
 
 export default function ChatbotWidget() {
-  const isMyTeamPage = window.location.pathname.replace(/\/$/, '') === '/plug/myteam'
-  const isRankingPage = window.location.pathname.replace(/\/$/, '') === '/plug/rankpage'
+  const getWidgetPath = () => {
+    const hash = window.location.hash.replace(/^#/, '').split('?')[0]
+    return (hash || window.location.pathname).replace(/\/$/, '')
+  }
+  const [currentPath, setCurrentPath] = useState(getWidgetPath)
+
+  useEffect(() => {
+    const handleHash = () => setCurrentPath(getWidgetPath())
+    window.addEventListener('hashchange', handleHash)
+    return () => window.removeEventListener('hashchange', handleHash)
+  }, [])
+
+  const isMyTeamPage = currentPath === '/plug/myteam'
+  const isRankingPage = currentPath === '/plug/rankpage'
   const pageSuggestions = isMyTeamPage ? MY_TEAM_SUGGESTIONS : isRankingPage ? RANKING_SUGGESTIONS : []
   const [position, setPosition] = useState(initialPosition)
   const [panelOffset, setPanelOffset] = useState({ x: 0, y: 0 })
@@ -224,7 +236,7 @@ export default function ChatbotWidget() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           question: text,
-          pagePath: `${window.location.pathname}${window.location.search}`,
+          pagePath: window.location.hash || `${window.location.pathname}${window.location.search}`,
           scoreContext,
           conversationContext,
           teamContext,
