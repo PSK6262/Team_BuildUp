@@ -311,6 +311,51 @@ public class UserController {
 	}
 
 	/**
+	 * 회원 비밀번호 변경 (현재 비밀번호 검증 + 신규 규격 암호화 적용)
+	 */
+	@PutMapping("/me/password")
+	public ApiResponse<Void> changePassword(
+			@RequestBody Map<String, String> body,
+			HttpServletRequest request) {
+		String loginId = resolveLoginId(request);
+		if (loginId == null) {
+			return ApiResponse.error(ResultCode.UNAUTHORIZED);
+		}
+
+		Users currentUser = userDAO.selectUserByLoginId(loginId);
+		if (currentUser == null) {
+			return ApiResponse.error(ResultCode.USER_NOT_FOUND);
+		}
+
+		String currentPassword = body != null ? body.get("currentPassword") : null;
+		String newPassword = body != null ? body.get("newPassword") : null;
+
+		if (currentPassword == null || currentPassword.trim().isEmpty() ||
+			newPassword == null || newPassword.trim().isEmpty()) {
+			return ApiResponse.error(ResultCode.INVALID_INPUT, "현재 비밀번호와 새 비밀번호를 모두 입력해주세요.");
+		}
+
+		if (newPassword.trim().length() < 8 || newPassword.trim().length() > 20) {
+			return ApiResponse.error(ResultCode.INVALID_PASSWORD, "새 비밀번호는 8자 이상 20자 이하로 입력해주세요.");
+		}
+
+		try {
+			boolean changed = userService.changePassword(currentUser.getUserId(), currentPassword.trim(), newPassword.trim());
+			if (changed) {
+				UserActivityLogger.log(request, "비밀번호 변경", loginId);
+				return ApiResponse.success();
+			} else {
+				return ApiResponse.error(ResultCode.FAIL, "비밀번호 변경에 실패했습니다.");
+			}
+		} catch (IllegalArgumentException e) {
+			return ApiResponse.error(ResultCode.INVALID_PASSWORD, e.getMessage());
+		} catch (Exception e) {
+			log.error("[UserController] 비밀번호 변경 중 예외 발생: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "비밀번호 변경 처리 중 오류가 발생했습니다.");
+		}
+	}
+
+	/**
 	 * 회원 탈퇴 (회원 데이터 및 연관 활동 데이터 영구 삭제)
 	 */
 	@DeleteMapping("/me")
