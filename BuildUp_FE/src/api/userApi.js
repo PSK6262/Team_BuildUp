@@ -84,7 +84,7 @@ export async function getMyPointHistories() {
 }
 
 /**
- * 로그인 회원의 최신 프로필 정보 조회
+ * 로그인 회원의 포인트샵 보유 아이템(USER_INVENTORY) 및 구매 내역(ITEM_ORDERS) 조회
  */
 export async function getMyProfile() {
   const res = await fetch('/api/users/me', {
@@ -148,4 +148,5 @@ export async function purchaseShopItem(item) {
   const json = await res.json();
   return json.data || null;
 }
+
 

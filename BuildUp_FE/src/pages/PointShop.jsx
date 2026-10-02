@@ -47,8 +47,10 @@ export default function PointShop() {
   const [selectedItemForPurchase, setSelectedItemForPurchase] = useState(null);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [insufficientModalData, setInsufficientModalData] = useState(null);
 
   // 1. SHOP_ITEMS 테이블에서 실시간 상품 목록 로드
+  // 마운트 시 USERS 테이블의 최신 POINT 및 DB 인벤토리 데이터 동기화
   useEffect(() => {
     let isMounted = true;
     getShopItems()
@@ -172,7 +174,10 @@ export default function PointShop() {
     }
 
     if (currentPoint < item.price) {
-      alert(`포인트가 부족합니다!\n현재 보유 포인트: ${currentPoint.toLocaleString()} P\n필요 포인트: ${item.price.toLocaleString()} P\n\n승부예측이나 미니게임을 통해 포인트를 모아보세요!`);
+      setInsufficientModalData({
+        item,
+        shortage: item.price - currentPoint,
+      });
       return;
     }
 
@@ -372,7 +377,7 @@ export default function PointShop() {
               </a>
             ) : (
               <div className="point-login-prompt">
-                <span>로그인하고 포인트를 적립해보세요!</span>
+                <span className="point-login-prompt-text">로그인하고 포인트 적립</span>
                 <a href="/plug/login" className="point-login-btn">로그인</a>
               </div>
             )}
@@ -428,33 +433,6 @@ export default function PointShop() {
           </div>
         ) : (
           <div className="point-squad-slider-container">
-            {/* 모바일 반응형 상단 네비게이션 헤더 (2페이지 이상 시 노출) */}
-            {totalPages > 1 && (
-              <div className="point-squad-slider-nav" aria-label="상품 목록 넘기기">
-                <button
-                  type="button"
-                  className="point-squad-arrow-btn point-squad-arrow-prev"
-                  onClick={() => scrollToPage(Math.max(0, currentPage - 1))}
-                  disabled={currentPage === 0}
-                  aria-label="이전 상품 목록 보기"
-                >
-                  ‹
-                </button>
-                <span className="point-squad-page-indicator">
-                  {currentPage + 1} / {totalPages}
-                </span>
-                <button
-                  type="button"
-                  className="point-squad-arrow-btn point-squad-arrow-next"
-                  onClick={() => scrollToPage(Math.min(totalPages - 1, currentPage + 1))}
-                  disabled={currentPage >= totalPages - 1}
-                  aria-label="다음 상품 목록 보기"
-                >
-                  ›
-                </button>
-              </div>
-            )}
-
             <div
               ref={trackRef}
               className="point-squad-slider-track point-items-grid"
@@ -515,7 +493,7 @@ export default function PointShop() {
               ))}
             </div>
 
-            {/* 모바일 반응형 하단 인디케이터 점 & 스와이프 안내 문구 */}
+            {/* 모바일 반응형 하단 인디케이터 점 & 네비게이션 컨트롤 (‹ 1 / 4 ›) */}
             {totalPages > 1 && (
               <div className="point-squad-slider-footer">
                 <div className="point-squad-dots">
@@ -529,7 +507,30 @@ export default function PointShop() {
                     />
                   ))}
                 </div>
-                <span className="point-squad-swipe-hint">스와이프하여 넘겨보기 ↔</span>
+
+                <div className="point-squad-slider-nav" aria-label="상품 목록 넘기기">
+                  <button
+                    type="button"
+                    className="point-squad-arrow-btn point-squad-arrow-prev"
+                    onClick={() => scrollToPage(Math.max(0, currentPage - 1))}
+                    disabled={currentPage === 0}
+                    aria-label="이전 상품 목록 보기"
+                  >
+                    ‹
+                  </button>
+                  <span className="point-squad-page-indicator">
+                    {currentPage + 1} / {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    className="point-squad-arrow-btn point-squad-arrow-next"
+                    onClick={() => scrollToPage(Math.min(totalPages - 1, currentPage + 1))}
+                    disabled={currentPage >= totalPages - 1}
+                    aria-label="다음 상품 목록 보기"
+                  >
+                    ›
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -581,6 +582,84 @@ export default function PointShop() {
           </div>
         )}
 
+        {/* 포인트 부족 커스텀 모달 */}
+        {insufficientModalData && (
+          <div
+            className="point-modal-backdrop"
+            onClick={() => setInsufficientModalData(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="insufficient-modal-title"
+          >
+            <div
+              className="point-modal-card point-insufficient-modal-card"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="point-modal-close-btn"
+                onClick={() => setInsufficientModalData(null)}
+                aria-label="모달 닫기"
+              >
+                ✕
+              </button>
+
+              <h3 id="insufficient-modal-title" className="point-modal-title point-insufficient-title">
+                포인트가 부족합니다
+              </h3>
+
+              <p className="point-insufficient-subtext">
+                승부예측을 통해 포인트를 모아보세요!
+              </p>
+
+              <div className="point-insufficient-detail-box">
+                <div className="point-insufficient-row">
+                  <span className="point-insufficient-row-label">구매 상품</span>
+                  <span className="point-insufficient-row-value point-insufficient-row-item">
+                    {insufficientModalData.item.visual} {insufficientModalData.item.name}
+                  </span>
+                </div>
+                <div className="point-insufficient-row">
+                  <span className="point-insufficient-row-label">상품 가격</span>
+                  <span className="point-insufficient-row-value">
+                    {insufficientModalData.item.price.toLocaleString()} P
+                  </span>
+                </div>
+                <div className="point-insufficient-row">
+                  <span className="point-insufficient-row-label">현재 보유</span>
+                  <span className="point-insufficient-row-value">
+                    {currentPoint.toLocaleString()} P
+                  </span>
+                </div>
+                <div className="point-insufficient-divider" />
+                <div className="point-insufficient-row point-insufficient-row--shortage">
+                  <span className="point-insufficient-row-label">부족한 포인트</span>
+                  <span className="point-insufficient-row-value point-insufficient-shortage-val">
+                    {insufficientModalData.shortage.toLocaleString()} P
+                  </span>
+                </div>
+              </div>
+
+              <div className="point-insufficient-actions">
+                <button
+                  type="button"
+                  className="point-insufficient-btn point-insufficient-btn--cancel"
+                  onClick={() => setInsufficientModalData(null)}
+                >
+                  닫기
+                </button>
+                <a
+                  href="/plug/prediction"
+                  className="point-insufficient-btn point-insufficient-btn--predict"
+                >
+                  <span>승부예측 하러가기</span>
+                  <span aria-hidden="true">⚽</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 성공 안내 토스트 */}
         {toastMessage && (
           <div
@@ -607,3 +686,4 @@ export default function PointShop() {
     </main>
   );
 }
+

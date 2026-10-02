@@ -4,6 +4,52 @@ import { fetchTeams, fetchCategories } from '../store/teamSlice.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
 import '../css/Community.css'
 
+function WriteSelect({ label, value, options, onChange, disabled, searchable = false }) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const root = useRef(null)
+  const trigger = useRef(null)
+  const selected = options.find((option) => String(option.value) === String(value))
+  const filtered = options.filter((option) => option.label.toLowerCase().includes(query.trim().toLowerCase()))
+  useEffect(() => {
+    if (!open) return
+    const closeOutside = (event) => { if (!root.current?.contains(event.target)) setOpen(false) }
+    document.addEventListener('pointerdown', closeOutside)
+    return () => document.removeEventListener('pointerdown', closeOutside)
+  }, [open])
+  useEffect(() => { if (disabled) setOpen(false) }, [disabled])
+  return <div className="community__write-select" ref={root} onBlur={(event) => {
+    if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false)
+  }} onKeyDown={(event) => {
+    if (event.key === 'Escape') { event.preventDefault(); setOpen(false); trigger.current?.focus() }
+    if (open && ['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key) && event.target.tagName !== 'INPUT') {
+      event.preventDefault()
+      const buttons = [...root.current.querySelectorAll('.community__write-option:not(:disabled)')]
+      const index = buttons.indexOf(document.activeElement)
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1
+        : (index + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length
+      buttons[next]?.focus()
+    }
+  }}>
+    <span className="community__write-select-label">{label}</span>
+    <button ref={trigger} type="button" className="community__write-select-trigger" aria-label={`${label}: ${selected?.label || '선택해주세요'}`} aria-expanded={open} disabled={disabled}
+      onClick={() => { setOpen(!open); setQuery('') }}>
+      <span>{selected?.label || '선택해주세요'}</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d={open ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'} /></svg>
+    </button>
+    {open && <div className="community__write-select-menu" role="group" aria-label={`${label} 선택`}>
+      {searchable && <input type="search" aria-label="구단 검색" placeholder="구단 이름 검색" value={query} onChange={(event) => setQuery(event.target.value)} />}
+      <div className="community__write-select-options">
+        {filtered.map((option) => <button key={option.value} type="button" className={`community__write-option${option.favorite ? ' community__favorite-team' : ''}`} disabled={option.disabled} aria-pressed={String(value) === String(option.value)}
+          onClick={() => { onChange(String(option.value)); setOpen(false); trigger.current?.focus() }}>
+          <span>{option.label}{option.favorite && <small className="community__favorite-label">애정팀</small>}</span>{String(value) === String(option.value) && <span aria-hidden="true">✓</span>}
+        </button>)}
+        {!filtered.length && <p>일치하는 구단이 없습니다.</p>}
+      </div>
+    </div>}
+  </div>
+}
+
 const MAX_ATTACHMENT_COUNT = 5
 const POST_TITLE_MAX_LENGTH = 50
 const POST_CONTENT_MAX_LENGTH = 1000
@@ -22,6 +68,7 @@ export default function PostWrite() {
   const dispatch = useDispatch()
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn)
   const user = useSelector((state) => state.auth.user)
+  const isFavoriteTeam = (team) => user?.favoriteTeamId != null && String(team.teamId) === String(user.favoriteTeamId)
   const { teams, categories, teamsLoaded, categoriesLoaded, teamsError, categoriesError } = useSelector((state) => state.team)
 
   const requestedBoard = new URLSearchParams(window.location.search).get('board')
@@ -251,9 +298,18 @@ export default function PostWrite() {
     <form className="community__write-form" onSubmit={handleSubmit}>
       {initialBoard === 'showcase' ? <p className="community__notice">게시판 · <strong>나만의 팀 자랑</strong><br />공유한 스쿼드는 자랑 게시판에 등록됩니다.</p> : <fieldset disabled={loading || submitting}>
         <legend>게시판 선택</legend>
-        <label><input type="radio" name="board" value="free" checked={board === 'free'} onChange={() => { setBoard('free'); setTeamId('') }} /> 자유게시판</label>
-        <label><input type="radio" name="board" value="team" checked={board === 'team'} onChange={() => setBoard('team')} /> 팀별 게시판</label>
-        <label><input type="radio" name="board" value="showcase" checked={board === 'showcase'} onChange={() => { setBoard('showcase'); setTeamId('') }} /> 나만의 팀 자랑</label>
+        {[
+          { value: 'free', title: '자유게시판', description: '모든 팬과 나누는 축구 이야기', icon: <path d="M21 11a8 8 0 0 1-8 8H7l-4 3V7a4 4 0 0 1 4-4h6a8 8 0 0 1 8 8ZM7 8h8M7 12h5" /> },
+          { value: 'team', title: '팀별 게시판', description: '같은 팀을 응원하는 팬들과 함께', icon: <path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Zm-4 9 3 3 5-6" /> },
+          { value: 'showcase', title: '나만의 팀 자랑', description: '직접 만든 스쿼드와 전술 공유', icon: <><path d="M8 3h8v7a4 4 0 0 1-8 0V3Zm0 2H4v3a4 4 0 0 0 4 4m8-7h4v3a4 4 0 0 1-4 4M12 14v6M8 21h8" /></> },
+        ].map((option) => <label className="community__board-choice" key={option.value}>
+          <input type="radio" name="board" value={option.value} checked={board === option.value} onChange={() => { setBoard(option.value); if (option.value !== 'team') setTeamId('') }} />
+          <span className="community__board-card">
+            <span className="community__board-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">{option.icon}</svg></span>
+            <span className="community__board-copy"><strong>{option.title}</strong><small>{option.description}</small></span>
+            <span className="community__board-check" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 4 4L19 6" /></svg></span>
+          </span>
+        </label>)}
       </fieldset>}
 
       {board === 'showcase' && <section className="community__shared-team" aria-label="공유할 나만의 팀">
@@ -265,21 +321,11 @@ export default function PostWrite() {
         {showcaseDraft?.imageDataUrl && <img src={showcaseDraft.imageDataUrl} alt={`${showcaseDraft.teamName || '나만의 팀'} 포메이션 미리보기`} />}
       </section>}
 
-      {board !== 'showcase' && <label>카테고리
-        <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)} disabled={loading || submitting || categories.length === 0}>
-          {categories.length === 0 && <option value="">등록된 카테고리가 없습니다.</option>}
-          {categories.map((category) => <option key={category.categoryId} value={category.categoryId} disabled={isNewsCategory(category)}>
-            {category.categoryType}{isNewsCategory(category) ? ' (작성 준비 중)' : ''}
-          </option>)}
-        </select>
-      </label>}
+      {board !== 'showcase' && <WriteSelect label="카테고리" value={categoryId} onChange={setCategoryId} disabled={loading || submitting || categories.length === 0}
+        options={categories.length ? categories.map((category) => ({ value: category.categoryId, label: `${category.categoryType}${isNewsCategory(category) ? ' (작성 준비 중)' : ''}`, disabled: isNewsCategory(category) })) : [{ value: '', label: '등록된 카테고리가 없습니다.' }]} />}
 
-      {board === 'team' && <label>구단
-        <select value={teamId} onChange={(event) => setTeamId(event.target.value)} disabled={loading || submitting}>
-          <option value="">구단을 선택해주세요.</option>
-          {teams.map((team) => <option key={team.teamId} value={team.teamId}>{team.teamNameKor || team.teamName}</option>)}
-        </select>
-      </label>}
+      {board === 'team' && <WriteSelect label="구단" value={teamId} onChange={setTeamId} disabled={loading || submitting} searchable
+        options={[{ value: '', label: '구단을 선택해주세요.' }, ...[...teams].sort((a, b) => Number(isFavoriteTeam(b)) - Number(isFavoriteTeam(a))).map((team) => ({ value: team.teamId, label: team.teamNameKor || team.teamName, favorite: isFavoriteTeam(team) }))]} />}
 
       <label>제목
         <input type="text" value={title} onChange={(event) => setTitle(limitTitle(event.target.value))} disabled={loading || submitting} />
@@ -291,7 +337,7 @@ export default function PostWrite() {
         <small className="community__character-count">{contentLength(content)} / {POST_CONTENT_MAX_LENGTH}</small>
       </label>
 
-      <label>이미지
+      <label className="community__file-picker">이미지
         <input
           type="file"
           multiple
@@ -299,6 +345,10 @@ export default function PostWrite() {
           onChange={(event) => selectAttachments(event, 'image')}
           disabled={loading || submitting}
         />
+        <span className="community__file-trigger">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="8" cy="8" r="1.5" /><path d="m3 17 6-6 4 4 3-3 5 5" /></svg>
+          <span>이미지 첨부</span><small>{imageAttachments.length ? `${imageAttachments.length}개 선택됨` : 'JPG · PNG · GIF · WEBP'}</small>
+        </span>
         <small>본문 아래 이미지 영역에 미리보기로 표시됩니다.</small>
       </label>
       {imageAttachments.length > 0 && <ul className="community__selected-files">
@@ -308,7 +358,7 @@ export default function PostWrite() {
         </li>)}
       </ul>}
 
-      <label>일반 첨부파일
+      <label className="community__file-picker">일반 첨부파일
         <input
           type="file"
           multiple
@@ -316,6 +366,10 @@ export default function PostWrite() {
           onChange={(event) => selectAttachments(event, 'file')}
           disabled={loading || submitting}
         />
+        <span className="community__file-trigger">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m8 13 7-7a3 3 0 0 1 4 4l-9 9a5 5 0 0 1-7-7l9-9M6 15l8-8" /></svg>
+          <span>파일 첨부</span><small>{fileAttachments.length ? `${fileAttachments.length}개 선택됨` : 'PDF · TXT · DOCX · XLSX · ZIP'}</small>
+        </span>
         <small>다운로드 목록에 표시됩니다. 이미지와 합쳐 최대 5개, 파일당 10MB, 전체 20MB까지 등록할 수 있습니다.</small>
       </label>
       {fileAttachments.length > 0 && <ul className="community__selected-files">

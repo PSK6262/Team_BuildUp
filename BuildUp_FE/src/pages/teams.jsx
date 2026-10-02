@@ -239,9 +239,9 @@ function getTeamNameKor(teamId, teamName) {
 }
 
 const standingsColumns = [
-  [ 'matchesPlayed', '경기' ], [ 'wins', '승' ], [ 'draws', '무' ],
-  [ 'losses', '패' ], [ 'goalsFor', '득점' ], [ 'goalsAgainst', '실점' ],
-  [ 'goalDiff', '득실차' ], [ 'cleanSheets', '클린시트' ], [ 'points', '승점' ],
+  [ 'matchesPlayed', '경기' ], [ 'points', '승점' ],
+  [ 'wins', '승' ], [ 'draws', '무' ], [ 'losses', '패' ],
+  [ 'goalsFor', '득점' ], [ 'goalsAgainst', '실점' ], [ 'goalDiff', '득실차' ], [ 'cleanSheets', '클린시트' ],
 ];
 
 function isStandingRow(row) {
@@ -365,11 +365,7 @@ const playerPhotoCache = new Map();
 
 function PlayerRankingCarousel({ rows, metric, label }) {
   const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 600px)').matches);
-  const [selectedIndex, setSelectedIndex] = useState(null);
-  const [openedIndex, setOpenedIndex] = useState(null);
-  const [detailKey, setDetailKey] = useState(0);
   const league = metric === 'league';
-  const listRef = useRef(null);
   useEffect(() => {
     const query = window.matchMedia('(max-width: 600px)');
     const handleChange = (event) => setIsMobile(event.matches);
@@ -377,42 +373,11 @@ function PlayerRankingCarousel({ rows, metric, label }) {
     return () => query.removeEventListener('change', handleChange);
   }, []);
 
-  if (isMobile && !league) {
+  if (isMobile) {
     return <RankingDetailCarousel rows={rows} metric={metric} label={label} initialIndex={0} mobileInline />;
   }
 
-  if (!isMobile) {
-    return league ? <DesktopLeagueRankings rows={rows} /> : <DesktopPlayerRankings rows={rows} metric={metric} label={label} />;
-  }
-
-  return <div className="ranking-entries">
-    {selectedIndex !== null && <div className="ranking-selected-detail">
-      <button type="button" className="player-ranking-detail" onClick={() => {
-        setSelectedIndex(null);
-        listRef.current?.querySelectorAll('button')[selectedIndex]?.focus();
-      }}>목록으로 돌아가기</button>
-      <RankingDetailCarousel key={detailKey} rows={rows} metric={metric} label={label} initialIndex={openedIndex} onActiveIndexChange={setSelectedIndex} />
-    </div>}
-    <ol className="ranking-entry-list" ref={listRef} aria-label={`${label} 순위 목록`}>
-      {rows.map((row, index) => {
-        const name = league ? row.teamNameKor || getTeamNameKor(row.teamId, row.teamName) : row.playerNameKor || row.playerName || '선수명 미등록';
-        const rank = league ? row.currentRank : row.rank;
-        const value = league ? row.points : metric === 'contributions' ? (row.goals ?? 0) + (row.assists ?? 0) : row[metric];
-        return <li key={league ? row.teamId : row.playerId}>
-          <button type="button" className="ranking-entry-button" aria-expanded={selectedIndex === index} onClick={() => {
-            setSelectedIndex(index);
-            setOpenedIndex(index);
-            setDetailKey(current => current + 1);
-          }}>
-            <span className="ranking-entry-rank">{rank ?? '—'}위</span>
-            <span className="ranking-entry-name"><strong>{name}</strong>{!league && <small>{row.teamNameKor || row.teamName}</small>}</span>
-            <span className="ranking-entry-score">{value ?? '—'}{league ? '점' : ''}</span>
-            <span aria-hidden="true">›</span>
-          </button>
-        </li>;
-      })}
-    </ol>
-  </div>;
+  return league ? <DesktopLeagueRankings rows={rows} /> : <DesktopPlayerRankings rows={rows} metric={metric} label={label} />;
 }
 
 
@@ -823,7 +788,7 @@ function StandingsTable({ season }) {
         <span>전체 경기 성적 기준</span>
       </div>
       <PlayerRankingCarousel rows={result.rows} metric="league" label="리그 순위" />
-      <p className="standings-note">순위 산정 기준: 승점 → 득실차 → 다득점 순입니다. (상위 1~4위 챔피언스리그 진출권 / 18~20위 강등권)</p>
+      <p className="standings-note">순위 산정 기준: 승점 → 득실차 → 다득점 순입니다.<br />상위 1~4위 챔피언스리그 진출권 · 5~6위 유로파리그 · 18~20위 강등권</p>
       {updatedAt && <p className="standings-note">최근 순위 갱신 일시: {updatedAt}</p>}
     </>
   );

@@ -278,6 +278,7 @@ html[data-theme='dark'] body:has(.myteam-page) {
 .myteam-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 10px 16px;
   border-radius: 10px;
@@ -1727,8 +1728,14 @@ html[data-theme='light'] .myteam-player-picker {
 .myteam-ai-actions {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
   gap: 10px;
+  width: 100%;
+}
+
+.myteam-ai-actions .myteam-desktop-start {
+  min-width: 220px;
 }
 
 .myteam-opponent-section {

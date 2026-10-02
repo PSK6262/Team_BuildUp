@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAdminCommunity } from '../../../hooks/useAdminCommunity.js';
 import AdminSelect from '../AdminSelect.jsx';
+import { useCommunityConfirm } from '../../CommunityConfirm.jsx';
 
 /**
  * [관리자 커뮤니티 블라인드 제재 탭 - BuildUp_FE/src/components/admin/tabs/AdminCommunityTab.jsx]
@@ -8,6 +9,7 @@ import AdminSelect from '../AdminSelect.jsx';
  * 커뮤니티 게시글 및 댓글의 모더레이션(블라인드 제재, 강제 삭제, 원문 열람)을 전담하는 컴포넌트입니다.
  */
 export default function AdminCommunityTab({ showAlert }) {
+  const { confirm, confirmation } = useCommunityConfirm();
   const {
     communitySubTab,
     setCommunitySubTab,
@@ -31,13 +33,14 @@ export default function AdminCommunityTab({ showAlert }) {
     handleToggleCommentBlind,
     moderationLoading,
     handleRunAiModeration,
-  } = useAdminCommunity({ showAlert });
+  } = useAdminCommunity({ showAlert, confirm });
 
   const [visiblePosts, setVisiblePosts] = useState(10);
   const [visibleComments, setVisibleComments] = useState(10);
 
   return (
     <div>
+      {confirmation}
       {/* AI 모더레이션 연동 안내 배너 */}
       <div className="ai-moderation-banner">
         <div className="ai-moderation-banner__text">
@@ -204,9 +207,9 @@ export default function AdminCommunityTab({ showAlert }) {
                           {p.title}
                         </a>
                       </td>
-                      <td data-label="작성자">{p.nickname}</td>
-                      <td data-label="추천 / 조회">{p.likeCount} / {p.viewCount}</td>
-                      <td data-label="상태">
+                      <td data-label="작성자" style={{ whiteSpace: 'nowrap' }}>{p.nickname}</td>
+                      <td data-label="추천 / 조회" style={{ whiteSpace: 'nowrap' }}>{p.likeCount} / {p.viewCount}</td>
+                      <td data-label="상태" style={{ whiteSpace: 'nowrap' }}>
                         {p.isDeleted === 'Y' ? (
                           <span className="badge badge--gray">🗑️ 삭제됨</span>
                         ) : p.isBlind === 'Y' ? (
@@ -216,8 +219,8 @@ export default function AdminCommunityTab({ showAlert }) {
                         )}
                       </td>
                       <td data-label="작성일시" style={{ color: '#64748b', fontSize: 13, whiteSpace: 'nowrap' }}>{p.createdAt}</td>
-                      <td data-label="관리 액션">
-                        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <td data-label="관리 액션" style={{ whiteSpace: 'nowrap', width: '1%' }}>
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap' }}>
                           {p.isDeleted === 'Y' ? (
                             <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500, padding: '4px 6px' }}>
                               삭제됨 (증거보존)
@@ -307,8 +310,8 @@ export default function AdminCommunityTab({ showAlert }) {
                       <td data-label="댓글 본문" style={{ maxWidth: 350, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {c.content}
                       </td>
-                      <td data-label="작성자">{c.nickname}</td>
-                      <td data-label="상태">
+                      <td data-label="작성자" style={{ whiteSpace: 'nowrap' }}>{c.nickname}</td>
+                      <td data-label="상태" style={{ whiteSpace: 'nowrap' }}>
                         {c.isDeleted === 'Y' ? (
                           <span className="badge badge--gray">🗑️ 작성자 삭제</span>
                         ) : c.isBlind === 'Y' ? (
@@ -318,7 +321,7 @@ export default function AdminCommunityTab({ showAlert }) {
                         )}
                       </td>
                       <td data-label="작성일시" style={{ color: '#64748b', fontSize: 13, whiteSpace: 'nowrap' }}>{c.createdAt}</td>
-                      <td data-label="관리 액션">
+                      <td data-label="관리 액션" style={{ whiteSpace: 'nowrap', width: '1%' }}>
                         {c.isDeleted === 'Y' ? (
                           <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500, padding: '4px 6px' }}>
                             삭제됨 (증거보존)

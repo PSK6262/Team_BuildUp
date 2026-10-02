@@ -37,7 +37,7 @@ html[data-theme] .teams-page-container--rankings .ranking-player-inline .ranking
   border: 1px solid var(--ranking-line); border-radius: 16px;
   background: var(--ranking-soft); color: var(--ranking-text);
 }
-.player-ranking-position { padding: 8px 18px; border-radius: 999px; background: var(--ranking-tint); color: var(--ranking-accent); font-weight: 800; }
+.player-ranking-position { padding: 8px 20px; border-radius: 999px; background: var(--ranking-tint); color: var(--ranking-accent); font-weight: 800; font-size: 18px; letter-spacing: 0.03em; border: 2px solid var(--ranking-accent); }
 .player-ranking-card h3 { font-size: 24px; margin: 20px 0 12px; overflow-wrap: anywhere; }
 .player-ranking-club { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; }
 .player-ranking-club img { object-fit: contain; flex-shrink: 0; }
@@ -48,9 +48,13 @@ html[data-theme] .teams-page-container--rankings .ranking-player-inline .ranking
 .player-ranking-stats dt { font-size: 12px; }
 .player-ranking-stats dd { font-size: 30px; font-weight: 800; margin: 8px 0 0; font-variant-numeric: tabular-nums; }
 .league-ranking-emblem { object-fit: contain; margin-top: 20px; }
-.league-ranking-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.league-ranking-stats { display: grid; grid-template-columns: repeat(12, 1fr); }
+.league-ranking-stats > div:nth-child(-n+2) { grid-column: span 6; }
+.league-ranking-stats > div:nth-child(n+3):nth-child(-n+5) { grid-column: span 4; }
+.league-ranking-stats > div:nth-child(n+6) { grid-column: span 3; }
 .league-ranking-card .player-ranking-detail { text-decoration: none; box-sizing: border-box; }
-.player-ranking-detail { margin-top: auto; min-height: 44px; padding: 10px 20px; border: 1px solid var(--ranking-line); border-radius: 10px; background: var(--ranking-surface); color: var(--ranking-text); font: inherit; cursor: pointer; }
+.player-ranking-detail { margin-top: auto; min-height: 44px; padding: 10px 24px; border: 1.5px solid var(--ranking-accent); border-radius: 10px; background: var(--ranking-tint); color: var(--ranking-accent); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; transition: background 0.18s, transform 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.player-ranking-detail:hover { background: var(--ranking-accent); color: var(--ranking-on-accent); transform: translateY(-1px); }
 @media (max-width: 600px) {
   .ranking-player-events:is(details) {
     margin-top: 10px;

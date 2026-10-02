@@ -980,6 +980,18 @@
   transition: background-color 0.15s ease;
 }
 
+.admin-table td[data-label="관리 액션"],
+.admin-table td[data-label="관리"],
+.admin-table td[data-label="수정"] {
+  white-space: nowrap;
+  width: 1%;
+}
+
+.admin-table td[data-label="관리 액션"] > div {
+  flex-wrap: nowrap !important;
+  white-space: nowrap;
+}
+
 .admin-dark-mode .admin-table td {
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   color: #e2d9eb;

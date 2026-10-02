@@ -263,3 +263,82 @@
   color: #64748b;
   box-shadow: none;
 }
+
+/* ---------- 모바일 전용 좌우 스와이프 인디케이터 (데스크탑 숨김) ---------- */
+.minigames__swipe-dots {
+  display: none;
+}
+
+/* ---------- 모바일 반응형: 좌우 스와이프 캐러셀 ---------- */
+@media (max-width: 768px) {
+  .minigames-inner {
+    padding: 28px 0 64px;
+    overflow: hidden;
+  }
+
+  .minigames__hero {
+    padding: 0 20px;
+    margin-bottom: 24px;
+  }
+
+  .minigames__grid {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 16px;
+    padding: 8px 10vw 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .minigames__grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .minigames__grid-item {
+    flex: 0 0 80vw;
+    max-width: 360px;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+  }
+
+  .minigames__card {
+    height: 100%;
+    box-sizing: border-box;
+    padding: 36px 20px;
+  }
+
+  .minigames__swipe-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .minigames__swipe-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    border: none;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.25);
+    cursor: pointer;
+    transition: width 0.22s ease, background 0.22s ease;
+  }
+
+  .minigames__swipe-dot.is-active {
+    width: 24px;
+    background: #00ff87;
+  }
+
+  .minigames-page--light .minigames__swipe-dot {
+    background: rgba(56, 0, 60, 0.2);
+  }
+
+  .minigames-page--light .minigames__swipe-dot.is-active {
+    background: #38003c;
+  }
+}
