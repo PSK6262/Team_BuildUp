@@ -57,7 +57,7 @@ const POST_TITLE_MAX_LENGTH = 50
 const POST_CONTENT_MAX_LENGTH = 1000
 const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024
 const MAX_ATTACHMENT_TOTAL_SIZE = 20 * 1024 * 1024
-const IMAGE_ATTACHMENT_PATTERN = /\.(jpe?g|png|gif|webp)$/i
+const IMAGE_ATTACHMENT_PATTERN = /\.(jpe?g|png|gif|webp|heic|heif)$/i
 const FILE_ATTACHMENT_PATTERN = /\.(pdf|txt|docx|xlsx|zip)$/i
 const SHOWCASE_DRAFT_KEY = 'plugin:community:showcase-draft'
 const titleLength = (value) => Array.from(value).length
@@ -344,7 +344,7 @@ export default function PostWrite() {
         <input
           type="file"
           multiple
-          accept="image/jpeg,image/png,image/gif,image/webp"
+          accept="image/*,image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif"
           onChange={(event) => selectAttachments(event, 'image')}
           disabled={loading || submitting}
         />

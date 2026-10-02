@@ -7,7 +7,7 @@ const games = [
     title: '승부차기',
     description: '승부차기로 AI와 대결! 3골 선취 시 승리',
     icon: '⚽',
-    href: '/plug/minigames/shootout',
+    href: '#/plug/minigames/shootout',
     available: true,
   },
   {
