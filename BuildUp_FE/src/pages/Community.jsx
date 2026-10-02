@@ -273,10 +273,19 @@ export default function Community({ selectedTeam = null }) {
           <button type="button" disabled={page === pageCount || postsLoading} onClick={() => setPage(page + 1)}>다음</button>
         </nav>
       </div>
-      {/* 광고 연결 전에도 공간을 확보해 목록 아래 배치가 밀리지 않도록 합니다. */}
+      {/* 커뮤니티 목록 하단 광고 영역 */}
       <aside className="community__ad" aria-label="광고 영역">
         <span className="community__ad-label">광고 · ADVERTISEMENT</span>
-        <div className="community__ad-space"><span>광고 영역</span></div>
+        <div className="community__ad-space" style={{ overflow: 'hidden', padding: 0 }}>
+          <picture style={{ width: '100%', height: '100%', display: 'block' }}>
+            <source media="(max-width: 680px)" srcSet={`${import.meta.env.BASE_URL}je-mobile.png`} />
+            <img
+              src={`${import.meta.env.BASE_URL}je-mobile.png`}
+              alt="제때약 — 내 약을 제때, 더 안전하게."
+              style={{ width: '100%', height: 'auto', maxHeight: '140px', objectFit: 'cover', borderRadius: '8px', display: 'block', margin: '0 auto' }}
+            />
+          </picture>
+        </div>
       </aside>
       {!selectedTeam && board !== 'team' && board !== 'showcase' && <section className="community__showcase" aria-labelledby="showcase-title">
         <div className="community__showcase-heading">

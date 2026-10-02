@@ -394,8 +394,8 @@ export default function PostWrite() {
       <span className="community__ad-label">광고 · ADVERTISEMENT</span>
       <div className="community__vertical-ad">
         <picture>
-          <source media="(max-width: 1000px)" srcSet="/je-mobile.png" width="2172" height="724" />
-          <img src="/je.png" width="300" height="600" alt="제때약 — 내 약을 제때, 더 안전하게." />
+          <source media="(max-width: 1000px)" srcSet={`${import.meta.env.BASE_URL}je-mobile.png`} width="2172" height="724" />
+          <img src={`${import.meta.env.BASE_URL}je.png`} width="300" height="600" alt="제때약 — 내 약을 제때, 더 안전하게." />
         </picture>
       </div>
     </aside>
