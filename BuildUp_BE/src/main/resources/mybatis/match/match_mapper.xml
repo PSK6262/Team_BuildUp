@@ -35,23 +35,23 @@
 		ON (m.MATCH_ID = s.MATCH_ID)
 		WHEN MATCHED THEN
 			UPDATE SET 
-				m.MATCH_DATE = #{matchDate},
+				m.MATCH_DATE = TO_TIMESTAMP(SUBSTR(#{matchDate}, 1, 16), 'YYYY-MM-DD HH24:MI'),
 				m.HOME_SCORE = #{homeScore, jdbcType=NUMERIC},
 				m.AWAY_SCORE = #{awayScore, jdbcType=NUMERIC},
 				m.STATUS = #{status},
-				m.ENDED_AT = #{endedAt, jdbcType=TIMESTAMP}
+				m.ENDED_AT = CASE WHEN #{endedAt} IS NOT NULL THEN TO_TIMESTAMP(SUBSTR(#{endedAt}, 1, 16), 'YYYY-MM-DD HH24:MI') ELSE NULL END
 		WHEN NOT MATCHED THEN
 			INSERT (MATCH_ID, MATCH_DATE, HOME_TEAM_ID, AWAY_TEAM_ID, HOME_SCORE, AWAY_SCORE, STATUS, NOTICE, ENDED_AT)
 			VALUES (
 				#{matchId},
-				#{matchDate},
+				TO_TIMESTAMP(SUBSTR(#{matchDate}, 1, 16), 'YYYY-MM-DD HH24:MI'),
 				#{homeTeamId},
 				#{awayTeamId},
 				#{homeScore, jdbcType=NUMERIC},
 				#{awayScore, jdbcType=NUMERIC},
 				#{status},
 				#{notice, jdbcType=CLOB},
-				#{endedAt, jdbcType=TIMESTAMP}
+				CASE WHEN #{endedAt} IS NOT NULL THEN TO_TIMESTAMP(SUBSTR(#{endedAt}, 1, 16), 'YYYY-MM-DD HH24:MI') ELSE NULL END
 			)
 	</insert>
 
