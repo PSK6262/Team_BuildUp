@@ -840,7 +840,7 @@ export function MemberRankings({ type, refreshKey = 0, mobileCards = false }) {
     <h2>{prediction ? '승부예측 적중' : '나만의 팀 가상 대결 승률'} TOP 10</h2>
     <p>{prediction ? '정산된 예측의 적중 수 → 적중률 순입니다.' : '로그인 후 진행한 가상 대결의 승률 → 승리 수 순입니다. 승률은 전체 대결 중 승리 비율이며, 무승부도 전체 대결에 포함됩니다.'}</p>
     <div className="member-ranking-actions">
-      {prediction && <a href="/plug/prediction">승부예측 참여하기</a>}
+      {prediction && <a href="#/plug/prediction">승부예측 참여하기</a>}
       <button
         type="button"
         disabled={result.status === 'loading'}
