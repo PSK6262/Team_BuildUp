@@ -10,6 +10,25 @@ if (import.meta.env.DEV) {
 }
 
 // -------------------------------------------------------------
+// 배포 환경(GitHub Pages 등)에서의 백엔드 API Base URL 자동 매핑
+// -------------------------------------------------------------
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? 'https://psk6262buildup.duckdns.org' : '');
+
+if (API_BASE_URL) {
+  const originalFetch = window.fetch;
+  window.fetch = function (input, init) {
+    if (typeof input === 'string' && input.startsWith('/api')) {
+      input = `${API_BASE_URL}${input}`;
+    } else if (input instanceof URL && input.pathname.startsWith('/api')) {
+      input = new URL(`${API_BASE_URL}${input.pathname}${input.search}`);
+    } else if (input instanceof Request && input.url.startsWith('/api')) {
+      input = new Request(`${API_BASE_URL}${input.url}`, input);
+    }
+    return originalFetch.call(this, input, init);
+  };
+}
+
+// -------------------------------------------------------------
 // GitHub Pages SPA 환경을 위한 초기 URL 정규화
 // base: /Team_BuildUp/
 // -------------------------------------------------------------
