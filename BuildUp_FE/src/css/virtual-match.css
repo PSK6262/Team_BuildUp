@@ -1,4 +1,10 @@
 .myteam-workspace { min-width: 0; }
+.myteam-ai-marker.is-saving-keeper {
+  transition: none;
+}
+.is-saving-keeper .myteam-ai-marker-inner {
+  animation: none;
+}
 .myteam-page [hidden] { display: none !important; }
 .myteam-workspace-switch {
   display: grid;
@@ -80,6 +86,19 @@ html[data-theme='light'] .myteam-workspace-switch button:focus-visible { outline
 .myteam-ai-result .myteam-ai-event-score { padding: 3px 7px; font-size: 12px; border-radius: 6px; background: var(--match-surface); }
 .myteam-ai-replay-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .myteam-ai-replay-heading h3 { margin: 0; }
+.myteam-free-kick-legend {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--match-border);
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.8;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.myteam-free-kick-legend p { margin: 0; }
+.myteam-free-kick-legend p + p { margin-top: 6px; }
+.myteam-free-kick-legend strong { color: var(--myteam-accent, #00ff87); }
 .myteam-ai-replay-heading > span { font-size: 11px; padding: 3px 8px; border: 1px solid var(--match-border); border-radius: 6px; white-space: nowrap; }
 .myteam-ai-result .myteam-ai-opponent-caption { margin: 4px 0 16px; font-size: 12px; }
 .myteam-ai-current-event { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 12px 0; margin-bottom: 12px; border-block: 1px solid var(--match-border); }

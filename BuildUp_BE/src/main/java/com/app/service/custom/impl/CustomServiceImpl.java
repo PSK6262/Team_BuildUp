@@ -237,12 +237,15 @@ public class CustomServiceImpl implements CustomService {
                     addMatchEvent(result, dismissed, minute, side, goal ? "goal" : "miss", goal ? "골" : "슈팅 실패", description, goal);
                 } else if (kind < 0.21) {
                     addMatchEvent(result, dismissed, minute, side, "penalty", "PK 선언", name + (theirs.getDfMismatchCount() > 0 ? "의 돌파를 저지하던 상대 수비진의 포지션 부적응 파울! 페널티킥이 선언됩니다." : "의 돌파 중 페널티 지역 안에서 파울! 페널티킥이 선언됩니다."), false);
+                    result.getEvents().get(result.getEvents().size() - 1).setPlayerId(shooter.getPlayer().getPlayerId());
                     boolean goal = random.nextDouble() < 0.75 * goalMultiplier;
                     addMatchEvent(result, dismissed, minute, side, goal ? "goal" : "miss", goal ? "PK 성공" : "PK 실패", name + (goal ? "이 침착하게 페널티킥을 성공시킵니다!" : "의 페널티킥이 실축됩니다!"), goal);
+                    result.getEvents().get(result.getEvents().size() - 1).setPlayerId(shooter.getPlayer().getPlayerId());
                 } else if (kind < 0.38) {
                     addMatchEvent(result, dismissed, minute, side, "offside", "오프사이드", name + "의 침투에 오프사이드가 선언되어 공격이 중단됩니다.", false);
                 } else if (kind < 0.54) {
                     addMatchEvent(result, dismissed, minute, side, "free-kick", "프리킥", "좋은 위치에서 얻은 프리킥을 " + name + "이 직접 노립니다.", false);
+                    result.getEvents().get(result.getEvents().size() - 1).setPlayerId(shooter.getPlayer().getPlayerId());
                     boolean goal = random.nextDouble() < 0.11 * goalMultiplier;
                     addMatchEvent(result, dismissed, minute, side, goal ? "goal" : "miss", goal ? "프리킥 골" : "프리킥 실패", name + (goal ? "의 직접 프리킥이 골문 구석으로 빨려들어갑니다!" : "의 프리킥이 수비벽에 막힙니다."), goal);
                 } else if (kind < 0.73) {
@@ -251,6 +254,7 @@ public class CustomServiceImpl implements CustomService {
                     double base = mismatch ? (theirs.getIsAllMismatch() ? 0.10 : 0.22) : 0.85;
                     if (random.nextDouble() < base * theirs.getSaveRateMultiplier()) {
                         addMatchEvent(result, dismissed, minute, other, "save", "선방", playerName(keeper.getPlayer()) + "이 " + name + "의 결정적인 슈팅을 몸을 던져 막아냅니다!", false);
+                        result.getEvents().get(result.getEvents().size() - 1).setPlayerId(keeper.getPlayer().getPlayerId());
                     } else {
                         addMatchEvent(result, dismissed, minute, side, "goal", "골", mismatch ? name + "의 슈팅을 " + playerName(keeper.getPlayer()) + "(전문 GK 아님)이 쳐내지 못하고 실점합니다! (GK 선방 확률 " + theirs.getGkPenaltyPercent() + "% 감소)" : name + "의 날카로운 슈팅이 골키퍼를 뚫고 골이 됩니다!", true);
                     }

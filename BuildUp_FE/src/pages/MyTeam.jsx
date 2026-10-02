@@ -1,7 +1,7 @@
 import { shuffledCopy } from '../utils/shuffle.js';
 import { captureMatchSquads, restoreMatchPlacement, matchPitchPoint } from '../utils/matchPlacement.js';
 import { findOverlappingPitchSlot } from '../utils/pitchCollision.js';
-import { replayAttackingSide, replaySetPiece, replayNextIndex } from '../utils/matchReplay.js';
+import { replayAttackingSide, replaySetPiece, replayNextIndex, replayKicker, replayFreeKickWall, replayFreeKickPosition, replaySavingKeeper, replayPlayerPoint } from '../utils/matchReplay.js';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { getAllPremierLeaguePlayers, getInitialTeams, getTeams } from '../api/teamApi.js';
@@ -171,6 +171,7 @@ function AiMatchTimeline({ match }) {
   const phase = neutral ? '기본 대형' : attacking ? '공격 전개' : '수비 복귀';
   const lineup = match.opponent.lineup.filter(({ player }) => !event.dismissedAiIds.includes(player.playerId));
   const homeLineup = match.home.filter(({ player }) => !(event.dismissedHomeIds || []).includes(player.playerId));
+  const savingKeeper = replaySavingKeeper(event, homeLineup, lineup);
   const selectEvent = (index) => { setSelectedIndex(index); setPlaying(false); };
 
   // 이벤트별 공(Ball) 위치 및 전술 라벨 계산
@@ -245,6 +246,10 @@ function AiMatchTimeline({ match }) {
   const isPk = setPiece === 'penalty';
   const isFreeKick = setPiece === 'free-kick';
   const isSetPiece = isCorner || isPk || isFreeKick;
+  const freeKickAttackers = event.side === 0 ? homeLineup : lineup;
+  const freeKickDefenders = event.side === 0 ? lineup : homeLineup;
+  const kickTaker = isFreeKick || isPk ? replayKicker(freeKickAttackers, event) : null;
+  const freeKickWall = isFreeKick ? replayFreeKickWall(freeKickDefenders) : [];
 
   // 세트피스 전담 키커 (FW 우선, 없으면 MF 첫 번째 선수)
   const setPieceKickerId = useMemo(() => {
@@ -373,7 +378,7 @@ function AiMatchTimeline({ match }) {
               const originalRow = fullLineup.filter((slot) => slot.pos === pos);
               const teamAttacking = !neutral && (event.type === 'save' ? event.side !== side : event.side === side);
               const localBall = side === 1 ? baseBallPos : { ...baseBallPos, x: 360 - baseBallPos.x, y: 440 - baseBallPos.y };
-              const kickerId = side === 1 ? setPieceKickerId : (activeLineup.find((slot) => slot.pos === 'FW')
+              const kickerId = isFreeKick || isPk ? kickTaker?.player.playerId : side === 1 ? setPieceKickerId : (activeLineup.find((slot) => slot.pos === 'FW')
                 || activeLineup.find((slot) => slot.pos === 'MF') || activeLineup[0])?.player.playerId;
               const index = originalRow.findIndex((slot) => slot.player.playerId === player.playerId);
               const rowSize = Math.min(originalRow.length, 5);
@@ -392,8 +397,15 @@ function AiMatchTimeline({ match }) {
 
               // 세트피스(코너킥, PK, 프리킥) 전담 키커 여부
               const isKicker = isSetPiece && player.playerId === kickerId && event.side === side;
+              const wallIndex = event.side !== side ? freeKickWall.findIndex(slot => slot.player.playerId === player.playerId) : -1;
 
-              if (isKicker) {
+              if (isFreeKick) {
+                const support = activeLineup.filter(slot => slot.pos !== 'GK' && slot.player.playerId !== kickerId
+                  && !freeKickWall.some(wall => wall.player.playerId === slot.player.playerId));
+                ({ x, y } = replayFreeKickPosition({ localBall, attacking: event.side === side, isKicker,
+                  pos, wallIndex, wallCount: freeKickWall.length,
+                  supportIndex: Math.max(0, support.findIndex(slot => slot.player.playerId === player.playerId)) }));
+              } else if (isKicker) {
                 // 키커가 공과 함께 정확한 위치로 이동!
                 if (isCorner) {
                   const isLeft = localBall.x < 180;
@@ -403,10 +415,6 @@ function AiMatchTimeline({ match }) {
                   // PK: 공 바로 뒤 중앙 (킥 대기)
                   x = localBall.x;
                   y = localBall.y + 16;
-                } else if (isFreeKick) {
-                  // 프리킥: 공 바로 뒤 대각
-                  x = localBall.x + (localBall.x < 180 ? -8 : 8);
-                  y = localBall.y + 14;
                 }
               } else if (isPk && event.side === side && pos !== 'GK') {
                 // PK 시 나머지 선수들은 페널티 박스 바깥 아크 주위에 도열
@@ -417,13 +425,6 @@ function AiMatchTimeline({ match }) {
                 // 상대가 PK 찰 때: AI 골키퍼가 골문 정중앙 라인에서 선방 대기
                 x = 180;
                 y = 422;
-              } else if (isFreeKick && event.side !== side && pos !== 'GK') {
-                // 상대가 프리킥 찰 때: AI 선수들이 공 앞 30px 지점에 수비벽(Wall) 구축
-                const pIdx = activeLineup.findIndex((s) => s.player.playerId === player.playerId);
-                if (pIdx < 4) {
-                  x = localBall.x - 24 + (pIdx * 16);
-                  y = localBall.y + 28;
-                }
               } else if (isCorner && event.side === side && pos !== 'GK') {
                 // 코너킥 시 나머지 선수들은 박스 안 헤더 쇄도
                 const pIdx = activeLineup.findIndex((s) => s.player.playerId === player.playerId);
@@ -431,8 +432,9 @@ function AiMatchTimeline({ match }) {
                 y = 42 + ((pIdx * 16) % 32);
               }
 
-              if (side === 1) { x = 360 - x; y = 440 - y; }
-              if (isSecondHalf) { x = 360 - x; y = 440 - y; }
+              const isSavingKeeper = savingKeeper?.side === side && savingKeeper.playerId === player.playerId;
+              if (isSavingKeeper) { x = savingKeeper.x; y = savingKeeper.y; }
+              ({ x, y } = replayPlayerPoint({ x, y }, side, isSecondHalf));
 
               // 키커 배지 텍스트
               let kickerBadge = '';
@@ -445,7 +447,7 @@ function AiMatchTimeline({ match }) {
               return (
                 <g
                   key={`${side}-${player.playerId}`}
-                  className={`myteam-ai-marker ${isKicker ? 'is-corner-kicker' : ''}`}
+                  className={`myteam-ai-marker ${isKicker ? 'is-corner-kicker' : ''} ${isSavingKeeper ? 'is-saving-keeper' : ''}`}
                   style={{
                     transform: `translate(${x}px, ${y}px)`,
                   }}
@@ -469,14 +471,21 @@ function AiMatchTimeline({ match }) {
                       strokeWidth={isKicker ? 2 : 1}
                     />
                     <text textAnchor="middle" y="3" fontSize="7" fill="#17212b" fontWeight="800">{pos}</text>
+                    {isSavingKeeper && (
+                      <g transform="translate(13 0)" aria-label="골키퍼가 공을 잡고 있습니다">
+                        <title>선방 · {player.nameKor || player.name} 공 소유</title>
+                        <circle r="6" fill="#fff" stroke="#111827" strokeWidth="1.2" />
+                        <path d="M0 -3 L-3 -1 L-2 2 L2 2 L3 -1 Z" fill="#111827" />
+                      </g>
+                    )}
                     {isBooked && (
                       <rect x={isKicker ? 5 : 4.5} y={isKicker ? -15 : -13.5}
                         width={isKicker ? 7 : 6.3} height={isKicker ? 10 : 9}
                         rx="1" fill="#facc15" stroke="#713f12" strokeWidth="0.7"
                         role="img" aria-label="옐로카드" />
                     )}
-                    <text textAnchor="middle" y="20" fontSize="7.5" fill="#fff" fontWeight={isKicker ? '700' : 'normal'}>
-                      {kickerBadge}{player.nameKor || player.name}
+                    <text textAnchor="middle" y="20" fontSize="7.5" fill="#fff" stroke="#123e30" strokeWidth="3" paintOrder="stroke" strokeLinejoin="round" fontWeight={isKicker ? '700' : 'normal'}>
+                      {isFreeKick && wallIndex >= 0 ? `벽 ${wallIndex + 1}` : `${kickerBadge}${player.nameKor || player.name}`}
                     </text>
                   </g>
                 </g>
@@ -484,7 +493,7 @@ function AiMatchTimeline({ match }) {
             }))}
 
             {/* 필드 위 공(Ball) 마커 - 스핀 회전 및 다이나믹 바운스 */}
-            <g
+            {!savingKeeper && <g
               className="myteam-ai-ball-marker dynamic-ball"
               style={{
                 transform: `translate(${ballPos.x}px, ${ballPos.y}px)`,
@@ -557,8 +566,16 @@ function AiMatchTimeline({ match }) {
               >
                 ⚽ {ballPos.label}
               </text>
-            </g>
+            </g>}
           </svg>
+          {isFreeKick && (
+            <div className="myteam-free-kick-legend">
+              <p><strong>⚡ 프리킥 키커</strong> {kickTaker?.player.nameKor || kickTaker?.player.name}</p>
+              <p><strong>수비벽</strong> {freeKickWall.map(({ player }, index) => `${index + 1}. ${player.nameKor || player.name}`).join(' · ')}</p>
+            </div>
+          )}
+          {isPk && <div className="myteam-free-kick-legend"><p><strong>🎯 PK 키커</strong> {kickTaker?.player.nameKor || kickTaker?.player.name}</p></div>}
+          {savingKeeper && <div className="myteam-free-kick-legend"><p><strong>🧤 선방 · 공 소유</strong> {savingKeeper.name}</p></div>}
         </aside>
       </div>
     </section>
