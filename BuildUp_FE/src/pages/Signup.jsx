@@ -248,7 +248,7 @@ export default function Signup() {
             </p>
             <div>
               <a
-                href="/plug/login"
+                href="#/plug/login"
                 className="auth-submit-btn"
                 style={{
                   display: 'flex',
@@ -282,7 +282,7 @@ export default function Signup() {
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <a
-              href="/plug/signup"
+              href="#/plug/signup"
               className="auth-submit-btn"
               style={{
                 display: 'flex',
@@ -297,7 +297,7 @@ export default function Signup() {
               회원가입 다시 하기
             </a>
             <a
-              href="/plug/login"
+              href="#/plug/login"
               className="auth-secondary-btn"
             >
               로그인 화면으로 이동
@@ -328,7 +328,7 @@ export default function Signup() {
           </p>
           <div style={{ marginTop: '28px' }}>
             <a
-              href="/plug/login"
+              href="#/plug/login"
               className="auth-submit-btn"
               style={{
                 display: 'flex',
@@ -477,7 +477,7 @@ export default function Signup() {
 
         <div className="auth-footer">
           <span>이미 계정이 있으신가요?</span>
-          <a href="/plug/login">로그인</a>
+          <a href="#/plug/login">로그인</a>
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { logout } from '../store/authSlice.js'
 import { toggleTheme } from '../store/themeSlice.js'
+import { navigate } from '../utils/navigation.js'
 import '../css/AllUseNav.css'
 
 function IconSun({ size = 15, color = 'currentColor', className = '' }) {
@@ -118,7 +119,7 @@ export default function AllUseNav() {
   const renderLink = ([label, path]) => (
     <a
       key={path}
-      href={`/plug/${path}`}
+      href={`#/plug/${path}`}
       className={path === 'admin' ? 'user-nav__link--admin' : undefined}
       aria-current={
         pathname === `/plug/${path}`
@@ -141,7 +142,7 @@ export default function AllUseNav() {
       // 서버 통신 실패 시에도 클라이언트 상태는 로그아웃 처리
     }
     dispatch(logout())
-    window.location.assign('/plug/mainpage')
+    navigate('/plug/mainpage')
   }
 
   return (
@@ -150,7 +151,7 @@ export default function AllUseNav() {
       className={`user-nav ${isMainPage ? 'user-nav--mainpage' : 'user-nav--subpage'} ${isMenuOpen ? 'user-nav--menu-open' : ''}`}
     >
       <nav className="user-nav__inner" aria-label="공통 네비게이션">
-        <a className="user-nav__logo" href="/plug/mainpage" aria-label="PL:UG 메인페이지">
+        <a className="user-nav__logo" href="#/plug/mainpage" aria-label="PL:UG 메인페이지">
           <span className="user-nav__logo-pl">PL</span>
           <span className="user-nav__logo-colon">:</span>
           <span className="user-nav__logo-ug">UG</span>
@@ -191,7 +192,7 @@ export default function AllUseNav() {
                 로그아웃
               </button>
               <div className="user-nav__profile">
-                <a className="user-nav__primary user-nav__mypage-top" href="/plug/mypage" aria-label={`${nickname} · 마이페이지`}>
+                <a className="user-nav__primary user-nav__mypage-top" href="#/plug/mypage" aria-label={`${nickname} · 마이페이지`}>
                   <svg className="user-nav__profile-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
                     <circle cx="12" cy="8" r="3.5" />
                     <path d="M5 21v-2a7 7 0 0 1 14 0v2" />
@@ -206,8 +207,8 @@ export default function AllUseNav() {
             </>
           ) : (
             <>
-              <a className="user-nav__login-btn" href="/plug/login">로그인</a>
-              <a className="user-nav__primary" href="/plug/signin">회원가입</a>
+              <a className="user-nav__login-btn" href="#/plug/login">로그인</a>
+              <a className="user-nav__primary" href="#/plug/signin">회원가입</a>
             </>
           )}
 
@@ -246,7 +247,7 @@ export default function AllUseNav() {
               return (
                 <a
                   key={path}
-                  href={`/plug/${path}`}
+                  href={`#/plug/${path}`}
                   onClick={() => setIsMenuOpen(false)}
                   className={`user-nav__mobile-item ${active ? 'is-active' : ''}`}
                 >
@@ -257,7 +258,7 @@ export default function AllUseNav() {
             })}
             {isLoggedIn && (
               <a
-                href="/plug/mypage"
+                href="#/plug/mypage"
                 onClick={() => setIsMenuOpen(false)}
                 className={`user-nav__mobile-item user-nav__mobile-item--mypage ${pathname === '/plug/mypage' ? 'is-active' : ''}`}
               >
@@ -267,7 +268,7 @@ export default function AllUseNav() {
             )}
             {isAdmin && (
               <a
-                href="/plug/admin"
+                href="#/plug/admin"
                 onClick={() => setIsMenuOpen(false)}
                 className={`user-nav__mobile-item user-nav__mobile-item--admin ${pathname === '/plug/admin' ? 'is-active' : ''}`}
               >

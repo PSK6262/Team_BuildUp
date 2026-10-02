@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
+import { navigate } from '../utils/navigation.js';
 import '../css/Prediction.css';
 
 export default function Prediction() {
@@ -1418,7 +1419,7 @@ export default function Prediction() {
                   {!isLoggedIn && !localStorage.getItem('buildup_token') ? (
                     <div className="prediction-my-empty">
                       <p>로그인 후 내가 참여한 승부예측 내역을 확인하실 수 있습니다.</p>
-                      <a href="/plug/login" className="prediction-tab-btn" style={{ display: 'inline-block', marginTop: '12px' }}>
+                      <a href="#/plug/login" className="prediction-tab-btn" style={{ display: 'inline-block', marginTop: '12px' }}>
                         로그인하러 가기
                       </a>
                     </div>
@@ -1886,7 +1887,7 @@ export default function Prediction() {
                   <button
                     type="button"
                     className="prediction-modal__btn is-primary"
-                    onClick={() => window.location.assign('/plug/login')}
+                    onClick={() => navigate('/plug/login')}
                   >
                     로그인하러 가기
                   </button>

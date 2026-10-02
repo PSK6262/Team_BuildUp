@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { loginSuccess, recordUserActivity } from '../store/authSlice.js'
+import { navigate } from '../utils/navigation.js'
 import '../css/Auth.css'
 
 export default function Login() {
@@ -42,7 +43,7 @@ export default function Login() {
         if (user) {
           dispatch(loginSuccess(user))
         }
-        window.location.assign('/plug/mainpage')
+        navigate('/plug/mainpage')
       } else {
         setErrorMsg(data.message || '아이디 또는 비밀번호가 일치하지 않습니다.')
       }
@@ -110,7 +111,7 @@ export default function Login() {
 
         <div className="auth-footer">
           <span>아직 계정이 없으신가요?</span>
-          <a href="/plug/signin">회원가입 하러 가기</a>
+          <a href="#/plug/signin">회원가입 하러 가기</a>
         </div>
       </div>
     </div>
