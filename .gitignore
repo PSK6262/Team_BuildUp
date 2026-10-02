@@ -32,6 +32,7 @@ Desktop.ini
 .factorypath
 .settings/
 .idea/
+.vscode/
 *.iml
 # Local PowerShell launcher
 powershell.bat
