@@ -59,7 +59,7 @@ public class AdminController {
 		HttpSession session = request.getSession(false);
 		if (session != null) {
 			Users sessionUser = (Users) session.getAttribute(CommonCode.SESSION_LOGIN_USER);
-			if (sessionUser != null && CommonCode.ROLE_ADMIN.equals(sessionUser.getRoleCode())) {
+			if (sessionUser != null && (CommonCode.ROLE_ADMIN.equals(sessionUser.getRoleCode()) || CommonCode.ROLE_SUB_ADMIN.equals(sessionUser.getRoleCode()))) {
 				return true;
 			}
 		}
@@ -68,7 +68,7 @@ public class AdminController {
 		String sessionLoginId = LoginManager.getLoginUserId(request);
 		if (sessionLoginId != null && userDAO != null) {
 			Users user = userDAO.selectUserByLoginId(sessionLoginId);
-			if (user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode())) {
+			if (user != null && (CommonCode.ROLE_ADMIN.equals(user.getRoleCode()) || CommonCode.ROLE_SUB_ADMIN.equals(user.getRoleCode()))) {
 				return true;
 			}
 		}
@@ -79,7 +79,7 @@ public class AdminController {
 			String tokenLoginId = JwtProvider.getLoginIdFromToken(token);
 			if (tokenLoginId != null && userDAO != null) {
 				Users user = userDAO.selectUserByLoginId(tokenLoginId);
-				if (user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode())) {
+				if (user != null && (CommonCode.ROLE_ADMIN.equals(user.getRoleCode()) || CommonCode.ROLE_SUB_ADMIN.equals(user.getRoleCode()))) {
 					return true;
 				}
 			}
@@ -88,19 +88,19 @@ public class AdminController {
 		return false;
 	}
 
-	// 현재 접속 중인 관리자 사용자 엔티티 조회 헬퍼
+	// 현재 접속 중인 관리자/부관리자 사용자 엔티티 조회 헬퍼
 	private Users getLoginAdmin(HttpServletRequest request) {
 		HttpSession session = request.getSession(false);
 		if (session != null) {
 			Users sessionUser = (Users) session.getAttribute(CommonCode.SESSION_LOGIN_USER);
-			if (sessionUser != null && CommonCode.ROLE_ADMIN.equals(sessionUser.getRoleCode())) {
+			if (sessionUser != null && (CommonCode.ROLE_ADMIN.equals(sessionUser.getRoleCode()) || CommonCode.ROLE_SUB_ADMIN.equals(sessionUser.getRoleCode()))) {
 				return sessionUser;
 			}
 		}
 		String sessionLoginId = LoginManager.getLoginUserId(request);
 		if (sessionLoginId != null && userDAO != null) {
 			Users user = userDAO.selectUserByLoginId(sessionLoginId);
-			if (user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode())) {
+			if (user != null && (CommonCode.ROLE_ADMIN.equals(user.getRoleCode()) || CommonCode.ROLE_SUB_ADMIN.equals(user.getRoleCode()))) {
 				return user;
 			}
 		}
@@ -109,7 +109,7 @@ public class AdminController {
 			String tokenLoginId = JwtProvider.getLoginIdFromToken(token);
 			if (tokenLoginId != null && userDAO != null) {
 				Users user = userDAO.selectUserByLoginId(tokenLoginId);
-				if (user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode())) {
+				if (user != null && (CommonCode.ROLE_ADMIN.equals(user.getRoleCode()) || CommonCode.ROLE_SUB_ADMIN.equals(user.getRoleCode()))) {
 					return user;
 				}
 			}
@@ -403,6 +403,24 @@ public class AdminController {
 			return ApiResponse.error(ResultCode.INVALID_INPUT);
 		}
 		Long roleCode = Long.valueOf(body.get("roleCode").toString());
+		Users operator = getLoginAdmin(request);
+		if (operator == null) {
+			return ApiResponse.error(ResultCode.UNAUTHORIZED);
+		}
+
+		// 최고관리자(9)가 아닌 부관리자(8)의 경우 제약사항:
+		// 1) 최고관리자(9) 등급을 부여할 수 없음
+		// 2) 최고관리자(9) 등급인 회원의 권한을 변경할 수 없음
+		if (!CommonCode.ROLE_ADMIN.equals(operator.getRoleCode())) {
+			if (CommonCode.ROLE_ADMIN.equals(roleCode)) {
+				return ApiResponse.error(ResultCode.FORBIDDEN, "최고 관리자(매니저)만 관리자 등급을 부여할 수 있습니다.");
+			}
+			Users targetUser = userDAO.selectUserByUserId(userId);
+			if (targetUser != null && CommonCode.ROLE_ADMIN.equals(targetUser.getRoleCode())) {
+				return ApiResponse.error(ResultCode.FORBIDDEN, "부관리자는 최고 관리자의 권한을 변경할 수 없습니다.");
+			}
+		}
+
 		boolean success = adminService.updateUserRole(userId, roleCode);
 		return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
 	}
