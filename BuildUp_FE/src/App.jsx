@@ -207,7 +207,7 @@ function App() {
       {pathname.startsWith('/plug/community/teams/') && !commuTeam && (
         <main className="community">
           <h1>팀을 찾을 수 없습니다.</h1>
-          <a href="/plug/community/teams">팀 선택으로 돌아가기</a>
+          <a href="#/plug/community/teams">팀 선택으로 돌아가기</a>
         </main>
       )}
       </Suspense>

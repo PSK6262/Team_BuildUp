@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fetchTeams, fetchCategories } from '../store/teamSlice.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
 import { getAppSearchParams } from '../utils/searchParams.js'
+import { navigate } from '../utils/navigation.js'
 import '../css/Community.css'
 
 function WriteSelect({ label, value, options, onChange, disabled, searchable = false }) {
@@ -271,7 +272,7 @@ export default function PostWrite() {
 
       const query = new URLSearchParams({ from: '/plug/community' })
       if (attachmentFailed) query.set('attachmentError', '1')
-      window.location.assign(`/plug/community/posts/${createdPostId}?${query.toString()}`)
+      navigate(`/plug/community/posts/${createdPostId}?${query.toString()}`)
     } catch (exception) {
       setError(exception.message || '게시글 등록에 실패했습니다.')
     } finally {
@@ -285,7 +286,7 @@ export default function PostWrite() {
     <p className="community__eyebrow">POST WRITE</p>
     <h1>로그인이 필요합니다.</h1>
     <p className="community__intro">게시글을 작성하려면 먼저 로그인해주세요.</p>
-    <a className="community__main-link" href="/plug/login">로그인 페이지로 이동</a>
+    <a className="community__main-link" href="#/plug/login">로그인 페이지로 이동</a>
   </main>
 
   return <main className="community">
@@ -382,7 +383,7 @@ export default function PostWrite() {
       </ul>}
 
       <div className="community__form-actions">
-        <a className="community__main-link" href="/plug/community">취소</a>
+        <a className="community__main-link" href="#/plug/community">취소</a>
         <button type="submit" className="community__submit" disabled={loading || submitting || categories.length === 0}>
           {submitting ? '등록 중...' : '등록'}
         </button>
