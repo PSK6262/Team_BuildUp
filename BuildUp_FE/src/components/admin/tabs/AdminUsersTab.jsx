@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useAdminUsers } from '../../../hooks/useAdminUsers.js';
 import AdminSelect from '../AdminSelect.jsx';
 
@@ -28,6 +29,8 @@ export default function AdminUsersTab({ showAlert }) {
     handleResolveDummyAndSavePoints,
   } = useAdminUsers({ showAlert });
 
+  const currentUser = useSelector((state) => state.auth?.user);
+  const isSuperAdmin = currentUser && Number(currentUser.roleCode) === 9;
   const [visibleUsers, setVisibleUsers] = useState(10);
 
   return (

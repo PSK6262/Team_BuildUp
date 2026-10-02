@@ -8,7 +8,9 @@ public interface CommonCode {
 
 	// 1. 회원 권한 등급 (USER_ROLES / USERS.ROLE_CODE)
 	public static final Long ROLE_USER = 1L;          // 일반 회원
-	public static final Long ROLE_ADMIN = 9L;         // 관리자
+	public static final Long ROLE_WITHDRAWN = 7L;     // 탈퇴 회원
+	public static final Long ROLE_SUB_ADMIN = 8L;     // 부관리자 (부매니저)
+	public static final Long ROLE_ADMIN = 9L;         // 최고관리자 (매니저)
 
 	// 2. 세션 키 명칭 (Session Attribute Key)
 	public static final String SESSION_LOGIN_USER = "loginUser";
