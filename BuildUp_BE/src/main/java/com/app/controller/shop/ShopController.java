@@ -28,6 +28,7 @@ import com.app.dto.user.Users;
 import com.app.dao.user.UserDAO;
 import com.app.util.JwtProvider;
 import com.app.util.LoginManager;
+import com.app.util.UserActivityLogger;
 
 /**
  * [포인트샵 컨트롤러]
@@ -131,6 +132,7 @@ public class ShopController {
 
         try {
             ShopPurchaseResponse response = shopService.purchaseItem(user.getUserId(), purchaseRequest.getItemId());
+            UserActivityLogger.log(request, "포인트샵 아이템 구매", user.getLoginId());
             return ResponseEntity.ok(ApiResponse.success(response));
         } catch (IllegalStateException e) {
             // 포인트 부족 또는 이미 보유한 아이템 등 비즈니스 예외

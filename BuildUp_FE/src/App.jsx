@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { silentRefresh, logout, isTokenExpired, recordUserActivity } from './store/authSlice.js'
 import AllUseNav from './pages/AllUseNav.jsx'
@@ -29,13 +29,39 @@ const Admin = lazy(() => import('./pages/Admin.jsx'))
 const MiniGames = lazy(() => import('./pages/MiniGames.jsx'))
 const PenaltyKick = lazy(() => import('./pages/PenaltyKick.jsx'))
 
+function getAppPathname() {
+  const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
+  let hash = window.location.hash.replace(/^#/, '').split('?')[0]
+  if (hash) {
+    if (base && hash.startsWith(base)) {
+      hash = hash.slice(base.length)
+    }
+    return hash.replace(/\/$/, '') || '/plug/mainpage'
+  }
+  let path = window.location.pathname.replace(/\/$/, '')
+  if (base && path.startsWith(base)) {
+    path = path.slice(base.length)
+  }
+  return path || '/plug/mainpage'
+}
+
 function App() {
   const dispatch = useDispatch()
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn)
   const lastRefreshTimeRef = useRef(0)
   const lastActivityWriteRef = useRef(0)
 
-  const pathname = window.location.pathname.replace(/\/$/, '')
+  const [pathname, setPathname] = useState(getAppPathname)
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setPathname(getAppPathname())
+      window.scrollTo(0, 0)
+    }
+    window.addEventListener('hashchange', handleHashChange)
+    return () => window.removeEventListener('hashchange', handleHashChange)
+  }, [])
+
   const isMainPage = !pathname || pathname === '' || pathname === '/plug' || pathname === '/plug/mainpage'
   const isTeamsPage = pathname === '/plug/teams'
   const teamMatch = pathname.match(/^\/plug\/team\/(\d+)$/)
@@ -181,7 +207,7 @@ function App() {
       {pathname.startsWith('/plug/community/teams/') && !commuTeam && (
         <main className="community">
           <h1>팀을 찾을 수 없습니다.</h1>
-          <a href="/plug/community/teams">팀 선택으로 돌아가기</a>
+          <a href="#/plug/community/teams">팀 선택으로 돌아가기</a>
         </main>
       )}
       </Suspense>

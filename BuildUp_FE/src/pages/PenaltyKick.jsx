@@ -653,7 +653,7 @@ export default function PenaltyKick() {
       {/* 난이도 선택 */}
       {phase === P.INTRO && (
         <div className="pk__intro">
-          <a className="pk__back" href="/plug/minigames">돌아가기</a>
+          <a className="pk__back" href="#/plug/minigames">돌아가기</a>
           <header className="pk__intro-header">
             <span className="pk__intro-badge">SHOOTOUT</span>
             <h2 className="pk__intro-heading">실력 기반 승부차기 1:1</h2>
@@ -696,7 +696,7 @@ export default function PenaltyKick() {
           <div className="pk__over-score">{score.p} : {score.ai}</div>
           <div className="pk__over-btns">
             <button className="pk__over-btn pk__over-btn--retry" onClick={restartGame}>다시 대결하기</button>
-            <a className="pk__over-btn pk__over-btn--home" href="/plug/minigames">미니게임 목록</a>
+            <a className="pk__over-btn pk__over-btn--home" href="#/plug/minigames">미니게임 목록</a>
           </div>
         </div>
       )}
@@ -707,7 +707,7 @@ export default function PenaltyKick() {
           className={`pk__stadium pk__stadium--phase-${phase.toLowerCase()} ${rareEvent ? `pk__stadium--event-${rareEvent.key}` : ''} ${rareEvent?.didImpact ? 'pk__stadium--event-impact' : ''}`}
           ref={sceneRef}
         >
-          <a className="pk__back pk__back--stadium" href="/plug/minigames">돌아가기</a>
+          <a className="pk__back pk__back--stadium" href="#/plug/minigames">돌아가기</a>
           {/* 관중석 및 조명 */}
           <div className="pk__crowd" aria-hidden="true">
             <div className="pk__stadium-light pk__stadium-light--left" />

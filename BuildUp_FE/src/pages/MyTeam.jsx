@@ -8,6 +8,8 @@ import { getAllPremierLeaguePlayers, getInitialTeams, getTeams } from '../api/te
 import '../css/MyTeam.css';
 import '../css/virtual-match.css';
 import { MemberRankings } from './teams.jsx';
+import { getAppSearchParams } from '../utils/searchParams.js';
+import { navigate } from '../utils/navigation.js';
 
 // 지정 프리셋 포메이션 정의 (DF - MF - FW 합계는 모두 10)
 const FORMATION_PRESETS = [
@@ -589,20 +591,33 @@ export default function MyTeam() {
   // 1. 전체 선수 & 구단 데이터
   const [allPlayers, setAllPlayers] = useState([]);
   const [workspaceView, setWorkspaceView] = useState(() =>
-    new URLSearchParams(window.location.search).get('view') === 'match' ? 'match' : 'builder');
+    getAppSearchParams().get('view') === 'match' ? 'match' : 'builder');
   const changeWorkspaceView = (view) => {
-    const url = new URL(window.location.href);
-    if (view === 'match') url.searchParams.set('view', 'match');
-    else url.searchParams.delete('view');
-    window.history.replaceState(window.history.state, '', url);
+    if (window.location.hash) {
+      const [path, query = ''] = window.location.hash.slice(1).split('?');
+      const params = new URLSearchParams(query);
+      if (view === 'match') params.set('view', 'match');
+      else params.delete('view');
+      const qs = params.toString();
+      window.location.hash = qs ? `${path}?${qs}` : path;
+    } else {
+      const url = new URL(window.location.href);
+      if (view === 'match') url.searchParams.set('view', 'match');
+      else url.searchParams.delete('view');
+      window.history.replaceState(window.history.state, '', url);
+    }
     setWorkspaceView(view);
   };
 
   useEffect(() => {
     const restoreView = () => setWorkspaceView(
-      new URLSearchParams(window.location.search).get('view') === 'match' ? 'match' : 'builder');
+      getAppSearchParams().get('view') === 'match' ? 'match' : 'builder');
     window.addEventListener('popstate', restoreView);
-    return () => window.removeEventListener('popstate', restoreView);
+    window.addEventListener('hashchange', restoreView);
+    return () => {
+      window.removeEventListener('popstate', restoreView);
+      window.removeEventListener('hashchange', restoreView);
+    };
   }, []);
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1741,7 +1756,7 @@ export default function MyTeam() {
         imageDataUrl,
         players: slots.map((slot) => ({ position: slot.pos, name: slot.player.nameKor || slot.player.name })),
       }));
-      window.location.assign(`/plug/community/write?board=showcase&customTeamId=${encodeURIComponent(result.customTeamId)}`);
+      navigate(`/plug/community/write?board=showcase&customTeamId=${encodeURIComponent(result.customTeamId)}`);
     } catch (error) {
       showToast(error.message || '나만의 팀 공유를 시작하지 못했습니다.');
     } finally {
@@ -2423,7 +2438,7 @@ export default function MyTeam() {
             <div className="myteam-ai-result">
               <div className="myteam-ai-result-heading">
                 <div><h2>가상 대결 결과</h2><p>{aiMatch.rankingRecorded ? '랭킹에 반영된 경기입니다.' : '비회원 연습 경기 · 랭킹에 반영되지 않습니다.'}</p></div>
-                <a href="/plug/rankpage?tab=virtual">승률 랭킹 보기 <span aria-hidden="true">↗</span></a>
+                <a href="#/plug/rankpage?tab=virtual">승률 랭킹 보기 <span aria-hidden="true">↗</span></a>
               </div>
               <div className="myteam-ai-score" role="status">
                 <span>{aiMatch.homeName}</span>

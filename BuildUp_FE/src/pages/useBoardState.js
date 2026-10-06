@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 
 // 같은 탭에서 상세를 보고 돌아올 때 목록 상태를 복원합니다.
 export default function useBoardState(field, initialValue) {
-  const key = `plugin:board:${window.location.pathname}:${field}`
+  const currentRoute = (window.location.hash.replace(/^#/, '').split('?')[0] || window.location.pathname).replace(/\/$/, '')
+  const key = `plugin:board:${currentRoute}:${field}`
   const [value, setValue] = useState(() => {
     try {
       const saved = JSON.parse(sessionStorage.getItem(key))

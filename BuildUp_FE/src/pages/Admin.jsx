@@ -91,8 +91,8 @@ export default function Admin() {
             이 페이지는 <strong>PL:UG 관리자(ROLE_ADMIN)</strong> 계정만 이용할 수 있습니다.
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-            <a href="/plug/mainpage" style={{ background: '#64748b' }}>메인으로 이동</a>
-            <a href="/plug/login">로그인 하기</a>
+            <a href="#/plug/mainpage" style={{ background: '#64748b' }}>메인으로 이동</a>
+            <a href="#/plug/login">로그인 하기</a>
           </div>
         </main>
       </div>
