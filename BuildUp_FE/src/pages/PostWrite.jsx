@@ -2,9 +2,26 @@ import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchTeams, fetchCategories } from '../store/teamSlice.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
+import { notifyCommunity } from '../components/CommunityToast.jsx'
 import { getAppSearchParams } from '../utils/searchParams.js'
 import { navigate } from '../utils/navigation.js'
 import '../css/Community.css'
+
+function ImagePreview({ file, onRemove, disabled }) {
+  const [url, setUrl] = useState('')
+  const [failed, setFailed] = useState(false)
+  useEffect(() => {
+    const preview = URL.createObjectURL(file)
+    setUrl(preview)
+    setFailed(false)
+    return () => URL.revokeObjectURL(preview)
+  }, [file])
+  return <li>
+    {failed ? <span className="community__preview-fallback">미리보기 미지원<br />{file.name}</span> : url && <img src={url} alt={file.name} onError={() => setFailed(true)} />}
+    <button type="button" aria-label={`${file.name} 첨부 제거`} onClick={onRemove} disabled={disabled}>×</button>
+    <span className="community__preview-name" title={file.name}>{file.name}</span>
+  </li>
+}
 
 function WriteSelect({ label, value, options, onChange, disabled, searchable = false }) {
   const [open, setOpen] = useState(false)
@@ -102,6 +119,9 @@ export default function PostWrite() {
   const [fileAttachments, setFileAttachments] = useState([])
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
+  const titleInputRef = useRef(null)
+  const contentInputRef = useRef(null)
   const error = submitError || categoriesError || teamsError
   const [customTeam, setCustomTeam] = useState(null)
   const submitRequestRef = useRef(false)
@@ -143,8 +163,14 @@ export default function PostWrite() {
 
   // 이미지와 일반 첨부파일을 각각 검사하여 선택 목록에 저장합니다.
   const selectAttachments = (event, type) => {
-    const selected = Array.from(event.target.files || [])
+    const incoming = Array.from(event.target.files || [])
     event.target.value = ''
+    if (!incoming.length) return
+    const existing = type === 'image' ? imageAttachments : fileAttachments
+    const selected = [...existing]
+    for (const file of incoming) {
+      if (!selected.some((item) => item.name === file.name && item.size === file.size && item.lastModified === file.lastModified)) selected.push(file)
+    }
     const otherFiles = type === 'image' ? fileAttachments : imageAttachments
     const pattern = type === 'image' ? IMAGE_ATTACHMENT_PATTERN : FILE_ATTACHMENT_PATTERN
     const automaticImageCount = board === 'showcase' && showcaseDraft?.imageDataUrl ? 1 : 0
@@ -178,14 +204,22 @@ export default function PostWrite() {
     event.preventDefault()
     if (submitRequestRef.current) return
     setError('')
+    const invalidFields = {}
+    if (!title.trim()) invalidFields.title = '제목을 입력해주세요.'
+    if (!content.trim()) invalidFields.content = '내용을 입력해주세요.'
+    setFieldErrors(invalidFields)
+    if (Object.keys(invalidFields).length) {
+      const input = invalidFields.title ? titleInputRef.current : contentInputRef.current
+      input?.focus({ preventScroll: true })
+      input?.scrollIntoView({ block: 'center', behavior: 'auto' })
+      return
+    }
 
     if (!categoryId) return setError('카테고리를 선택해주세요.')
     if (board === 'team' && !teamId) return setError('팀별 게시글의 구단을 선택해주세요.')
     if (board === 'showcase' && !customTeam?.customTeamId) return setError('먼저 나만의 팀에서 스쿼드를 저장해주세요.')
     if (board === 'showcase' && !showcaseDraft?.imageDataUrl) return setError('공유할 스쿼드 이미지를 확인하지 못했습니다. 나만의 팀에서 다시 공유해주세요.')
-    if (!title.trim()) return setError('제목을 입력해주세요.')
     if (titleLength(title.trim()) > POST_TITLE_MAX_LENGTH) return setError(`제목은 ${POST_TITLE_MAX_LENGTH}자까지 입력할 수 있습니다.`)
-    if (!content.trim()) return setError('내용을 입력해주세요.')
     if (contentLength(content.trim()) > POST_CONTENT_MAX_LENGTH) return setError(`내용은 ${POST_CONTENT_MAX_LENGTH}자까지 입력할 수 있습니다.`)
 
     submitRequestRef.current = true
@@ -282,6 +316,7 @@ export default function PostWrite() {
 
       const query = new URLSearchParams({ from: '/plug/community' })
       if (attachmentFailed) query.set('attachmentError', '1')
+      notifyCommunity(attachmentFailed ? '게시글은 등록됐지만 일부 첨부파일을 올리지 못했어요.' : '게시글을 등록했어요.')
       navigate(`/plug/community/posts/${createdPostId}?${query.toString()}`)
     } catch (exception) {
       setError(exception.message || '게시글 등록에 실패했습니다.')
@@ -341,12 +376,14 @@ export default function PostWrite() {
         options={[{ value: '', label: '구단을 선택해주세요.' }, ...[...teams].sort((a, b) => Number(isFavoriteTeam(b)) - Number(isFavoriteTeam(a))).map((team) => ({ value: team.teamId, label: team.teamNameKor || team.teamName, favorite: isFavoriteTeam(team) }))]} />}
 
       <label>제목
-        <input type="text" value={title} onChange={(event) => setTitle(limitTitle(event.target.value))} disabled={loading || submitting} />
+        <input ref={titleInputRef} type="text" value={title} aria-invalid={Boolean(fieldErrors.title)} aria-describedby={fieldErrors.title ? 'post-title-error' : undefined} onChange={(event) => { setTitle(limitTitle(event.target.value)); if (event.target.value.trim()) setFieldErrors((current) => ({ ...current, title: '' })) }} disabled={loading || submitting} />
+        {fieldErrors.title && <span id="post-title-error" className="community__field-error" role="alert">{fieldErrors.title}</span>}
         <small className="community__character-count">{titleLength(title)} / {POST_TITLE_MAX_LENGTH}</small>
       </label>
 
       <label>내용
-        <textarea rows="14" value={content} onChange={(event) => setContent(limitContent(event.target.value))} disabled={loading || submitting} />
+        <textarea ref={contentInputRef} rows="14" value={content} aria-invalid={Boolean(fieldErrors.content)} aria-describedby={fieldErrors.content ? 'post-content-error' : undefined} onChange={(event) => { setContent(limitContent(event.target.value)); if (event.target.value.trim()) setFieldErrors((current) => ({ ...current, content: '' })) }} disabled={loading || submitting} />
+        {fieldErrors.content && <span id="post-content-error" className="community__field-error" role="alert">{fieldErrors.content}</span>}
         <small className="community__character-count">{contentLength(content)} / {POST_CONTENT_MAX_LENGTH}</small>
       </label>
 
@@ -364,11 +401,8 @@ export default function PostWrite() {
         </span>
         <small>본문 아래 이미지 영역에 미리보기로 표시됩니다.</small>
       </label>
-      {imageAttachments.length > 0 && <ul className="community__selected-files">
-        {imageAttachments.map((file, index) => <li key={`${file.name}-${file.lastModified}-${index}`}>
-          <span>{file.name} ({(file.size / 1024).toFixed(1)}KB)</span>
-          <button type="button" onClick={() => setImageAttachments((current) => current.filter((_, itemIndex) => itemIndex !== index))} disabled={submitting}>제거</button>
-        </li>)}
+      {imageAttachments.length > 0 && <ul className="community__image-previews" aria-label="선택한 이미지 미리보기">
+        {imageAttachments.map((file, index) => <ImagePreview key={`${file.name}-${file.lastModified}-${index}`} file={file} onRemove={() => setImageAttachments((current) => current.filter((_, itemIndex) => itemIndex !== index))} disabled={submitting} />)}
       </ul>}
 
       <label className="community__file-picker">일반 첨부파일
