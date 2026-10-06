@@ -984,7 +984,6 @@ export default function PostDetail({ postId }) {
     </div>
     <aside className="community__reading-ad" aria-label="광고 영역">
       <div className="community__reading-ad-sticky">
-      <span className="community__ad-label">광고 · ADVERTISEMENT</span>
       <div className="community__vertical-ad">
         <picture>
           <source media="(max-width: 1000px)" srcSet={`${import.meta.env.BASE_URL}je-mobile.png`} width="2172" height="724" />

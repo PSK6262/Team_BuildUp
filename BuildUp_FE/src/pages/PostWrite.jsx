@@ -489,7 +489,6 @@ export default function PostWrite() {
     </form>
     </div>
     <aside className="community__write-ad" aria-label="광고 영역">
-      <span className="community__ad-label">광고 · ADVERTISEMENT</span>
       <div className="community__vertical-ad">
         <picture>
           <source media="(max-width: 1000px)" srcSet={`${import.meta.env.BASE_URL}je-mobile.png`} width="2172" height="724" />

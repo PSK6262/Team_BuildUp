@@ -279,14 +279,13 @@ export default function Community({ selectedTeam = null }) {
       </div>
       {/* 커뮤니티 목록 하단 광고 영역 */}
       <aside className="community__ad" aria-label="광고 영역">
-        <span className="community__ad-label">광고 · ADVERTISEMENT</span>
         <div className="community__ad-space" style={{ overflow: 'hidden', padding: 0 }}>
           <picture style={{ width: '100%', height: '100%', display: 'block' }}>
             <source media="(max-width: 680px)" srcSet={`${import.meta.env.BASE_URL}je-mobile.png`} />
             <img
-              src={`${import.meta.env.BASE_URL}je-mobile.png`}
+              src={`${import.meta.env.BASE_URL}je-pc.png`}
               alt="제때약 — 내 약을 제때, 더 안전하게."
-              style={{ width: '100%', height: 'auto', maxHeight: '140px', objectFit: 'cover', borderRadius: '8px', display: 'block', margin: '0 auto' }}
+              style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block', margin: '0 auto' }}
             />
           </picture>
         </div>

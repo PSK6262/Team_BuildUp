@@ -1700,7 +1700,6 @@ export default function Prediction() {
                 className={`prediction-ad-card ${rankings.length > 0 ? 'is-compact' : ''}`}
                 style={{ '--ranking-count': Math.min(rankings.length, 5) }}
               >
-                <div className="prediction-ad-badge">ADVERTISEMENT</div>
                 <div className="prediction-ad-box">
                   {/* 실제 구글 애드센스 광고 단위 */}
                   <ins

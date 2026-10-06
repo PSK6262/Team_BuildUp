@@ -25,7 +25,6 @@ export default function GlobalFooter() {
       <div className="global-footer__inner">
         {/* 광고 영역 */}
         <section className="global-footer__ad-section" aria-label="광고 영역">
-          <div className="global-footer__ad-badge">ADVERTISEMENT</div>
           <div className="global-footer__ad-box">
             {/* 실제 애드센스 단위 */}
             <ins
