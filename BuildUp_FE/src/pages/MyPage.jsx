@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateUser, logout } from '../store/authSlice.js'
-import { getMyActivities, getMyPosts, getMyComments, getMyLikedPosts, getMyPointHistories, getMyShopData } from '../api/userApi.js'
+import { getMyActivities, getMyPosts, getMyComments, getMyLikedPosts, getMyPointHistories, getMyShopData, changePassword } from '../api/userApi.js'
 import { SHOP_ITEMS } from '../api/shopApi.js'
 import { navigate } from '../utils/navigation.js'
 import '../css/MyPage.css'
@@ -280,6 +280,58 @@ export default function MyPage() {
   const [showPointModal, setShowPointModal] = useState(false)
   const [pointHistories, setPointHistories] = useState([])
   const [pointHistoriesLoading, setPointHistoriesLoading] = useState(false)
+
+  // 비밀번호 변경 모달 상태
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [pwCurrent, setPwCurrent] = useState('')
+  const [pwNew, setPwNew] = useState('')
+  const [pwConfirm, setPwConfirm] = useState('')
+  const [pwMsg, setPwMsg] = useState('')
+  const [pwSuccess, setPwSuccess] = useState(false)
+  const [pwSubmitting, setPwSubmitting] = useState(false)
+
+  const handlePasswordChangeSubmit = async (e) => {
+    e.preventDefault()
+    setPwMsg('')
+    setPwSuccess(false)
+
+    if (!pwCurrent) {
+      setPwMsg('현재 비밀번호를 입력해주세요.')
+      return
+    }
+    if (!pwNew || pwNew.length < 8 || pwNew.length > 20) {
+      setPwMsg('새 비밀번호는 8자 이상 20자 이하로 입력해주세요.')
+      return
+    }
+    if (pwNew !== pwConfirm) {
+      setPwMsg('새 비밀번호와 비밀번호 확인이 일치하지 않습니다.')
+      return
+    }
+    if (pwCurrent === pwNew) {
+      setPwMsg('현재 비밀번호와 다른 새 비밀번호를 입력해주세요.')
+      return
+    }
+
+    try {
+      setPwSubmitting(true)
+      await changePassword(pwCurrent, pwNew)
+      setPwSuccess(true)
+      setPwMsg('비밀번호가 안전하게 변경되었습니다!')
+      setTimeout(() => {
+        setShowPasswordModal(false)
+        setPwCurrent('')
+        setPwNew('')
+        setPwConfirm('')
+        setPwMsg('')
+        setPwSuccess(false)
+      }, 1500)
+    } catch (err) {
+      setPwSuccess(false)
+      setPwMsg(err.message || '비밀번호 변경에 실패했습니다.')
+    } finally {
+      setPwSubmitting(false)
+    }
+  }
 
   const handleOpenPointModal = async () => {
     setShowPointModal(true)
@@ -1329,21 +1381,37 @@ export default function MyPage() {
                         프로필 정보 관리
                       </h2>
                       {!isEditing && (
-                        <button
-                          type="button"
-                          className="mypage-action-outline-btn"
-                          onClick={() => {
-                            setIsEditing(true)
-                            setNicknameChecked(true)
-                            setNicknameCheckMsg('')
-                            setEmailVerified(true)
-                            setEmailVerifyMsg('')
-                            setEmailCodeSent(false)
-                            setEmailAuthCode('')
-                          }}
-                        >
-                          프로필 수정하기
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <button
+                            type="button"
+                            className="mypage-action-outline-btn"
+                            onClick={() => {
+                              setShowPasswordModal(true)
+                              setPwCurrent('')
+                              setPwNew('')
+                              setPwConfirm('')
+                              setPwMsg('')
+                              setPwSuccess(false)
+                            }}
+                          >
+                            🔒 비밀번호 변경
+                          </button>
+                          <button
+                            type="button"
+                            className="mypage-action-outline-btn"
+                            onClick={() => {
+                              setIsEditing(true)
+                              setNicknameChecked(true)
+                              setNicknameCheckMsg('')
+                              setEmailVerified(true)
+                              setEmailVerifyMsg('')
+                              setEmailCodeSent(false)
+                              setEmailAuthCode('')
+                            }}
+                          >
+                            프로필 수정하기
+                          </button>
+                        </div>
                       )}
                     </div>
                     <p>기본 회원 정보 및 응원하는 구단을 수정할 수 있습니다.</p>
@@ -2525,6 +2593,114 @@ export default function MyPage() {
           </div>,
           document.body
         )}
+
+      {/* 회원 비밀번호 변경 모달 */}
+      {showPasswordModal && typeof document !== 'undefined' && createPortal(
+        <div
+          className="point-modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !pwSubmitting) setShowPasswordModal(false)
+          }}
+          style={{ zIndex: 99999 }}
+        >
+          <div className="point-modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px', padding: '28px' }}>
+            <div className="point-modal-header" style={{ marginBottom: '20px' }}>
+              <div className="point-modal-header-left">
+                <h3 className="point-modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px', fontWeight: 'bold' }}>
+                  🔒 비밀번호 변경
+                </h3>
+              </div>
+              <button
+                type="button"
+                className="point-modal-close-btn"
+                onClick={() => !pwSubmitting && setShowPasswordModal(false)}
+                title="닫기"
+              >
+                <IconX size={20} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '13px', color: '#8e7a9c', marginBottom: '20px', lineHeight: '1.5' }}>
+              현재 사용 중인 비밀번호를 확인한 후, 새 비밀번호(8~20자)로 안전하게 변경합니다.
+            </p>
+
+            <form onSubmit={handlePasswordChangeSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>현재 비밀번호</label>
+                <input
+                  type="password"
+                  value={pwCurrent}
+                  onChange={(e) => { setPwCurrent(e.target.value); setPwMsg(''); }}
+                  placeholder="현재 비밀번호를 입력하세요"
+                  required
+                  className="mypage-form-input"
+                  style={{ width: '100%', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>새 비밀번호</label>
+                <input
+                  type="password"
+                  value={pwNew}
+                  onChange={(e) => { setPwNew(e.target.value); setPwMsg(''); }}
+                  placeholder="새 비밀번호 (8~20자)"
+                  required
+                  className="mypage-form-input"
+                  style={{ width: '100%', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>새 비밀번호 확인</label>
+                <input
+                  type="password"
+                  value={pwConfirm}
+                  onChange={(e) => { setPwConfirm(e.target.value); setPwMsg(''); }}
+                  placeholder="새 비밀번호를 한 번 더 입력하세요"
+                  required
+                  className="mypage-form-input"
+                  style={{ width: '100%', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              {pwMsg && (
+                <div style={{
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  backgroundColor: pwSuccess ? 'rgba(0, 255, 135, 0.1)' : 'rgba(255, 77, 79, 0.1)',
+                  color: pwSuccess ? '#00ff87' : '#ff4d4f',
+                  border: pwSuccess ? '1px solid rgba(0, 255, 135, 0.3)' : '1px solid rgba(255, 77, 79, 0.3)',
+                }}>
+                  {pwMsg}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  className="mypage-action-outline-btn"
+                  style={{ flex: 1, padding: '12px' }}
+                  disabled={pwSubmitting}
+                  onClick={() => setShowPasswordModal(false)}
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  className="mypage-action-primary-btn"
+                  style={{ flex: 1, padding: '12px' }}
+                  disabled={pwSubmitting}
+                >
+                  {pwSubmitting ? '변경 중...' : '비밀번호 변경'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }
