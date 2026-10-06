@@ -30,6 +30,33 @@ public class UserMailServiceImpl implements UserMailService {
 
 	/** 배포 도메인(기본: GitHub Pages) 또는 설정된 프론트엔드 주소 반환 */
 	private String getFrontendBaseUrl() {
+		try {
+			org.springframework.web.context.request.RequestAttributes attrs = 
+				org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+			if (attrs instanceof org.springframework.web.context.request.ServletRequestAttributes) {
+				javax.servlet.http.HttpServletRequest req = 
+					((org.springframework.web.context.request.ServletRequestAttributes) attrs).getRequest();
+				String origin = req.getHeader("Origin");
+				if (origin == null || origin.trim().isEmpty()) {
+					origin = req.getHeader("Referer");
+				}
+				if (origin != null && !origin.trim().isEmpty()) {
+					origin = origin.trim();
+					if (origin.contains("localhost:5173") || origin.contains("127.0.0.1:5173")) {
+						return origin.replaceAll("/+$", "");
+					}
+					if (origin.contains("github.io")) {
+						if (!origin.contains("Team_BuildUp")) {
+							return origin.replaceAll("/+$", "") + "/Team_BuildUp";
+						}
+						return origin.replaceAll("/+$", "");
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.debug("[UserMailServiceImpl] RequestContext origin 감지 생략: {}", e.getMessage());
+		}
+
 		if (frontendUrl != null && !frontendUrl.trim().isEmpty()) {
 			return frontendUrl.trim().replaceAll("/+$", "");
 		}
@@ -212,6 +239,19 @@ public class UserMailServiceImpl implements UserMailService {
 		if (isExpiredObj instanceof Number) {
 			isExpired = ((Number) isExpiredObj).intValue() == 1;
 		}
+
+		// 타임존 변환 오차 대비 Java 측 이중 검증: 생성 시각(CREATED_AT) 기준 30분 이내라면 유효한 것으로 보정
+		if (isExpired) {
+			Object createdAtObj = record.get("CREATED_AT");
+			if (createdAtObj instanceof java.util.Date) {
+				long elapsed = System.currentTimeMillis() - ((java.util.Date) createdAtObj).getTime();
+				if (elapsed >= 0 && elapsed <= 30 * 60 * 1000L) {
+					log.info("[UserMailServiceImpl] 타임존 보정 적용: 생성된 지 {}초 경과 -> 정상 유효 인증키로 처리", elapsed / 1000);
+					isExpired = false;
+				}
+			}
+		}
+
 		if (isExpired) {
 			throw new IllegalArgumentException("인증 링크 유효시간(30분)이 만료되었습니다. 회원가입을 다시 진행해주세요.");
 		}
