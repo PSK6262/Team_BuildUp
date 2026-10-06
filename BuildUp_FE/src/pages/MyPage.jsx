@@ -1265,7 +1265,6 @@ export default function MyPage() {
 
             {/* 좌측 사이드바: 애드센스 스폰서 배너 카드 (300x250) */}
             <div className="mypage-card-surface mypage-ad-card">
-              <div className="mypage-ad-badge">ADVERTISEMENT</div>
               <div className="mypage-ad-box">
                 {/* 실제 애드센스 단위 */}
                 <ins

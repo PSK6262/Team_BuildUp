@@ -212,14 +212,46 @@
 .sample-sports-ad__art small { font: 900 12px/1.3 Arial, sans-serif; color: #e9eedc; }
 .sample-sports-ad__disclosure { position: absolute; bottom: 10px; right: 16px; font-size: 10px; color: #bbc9b8; }
 .global-footer__ad-box:has(ins[data-ad-status='filled']) .sample-sports-ad { display: none; }
-@media(max-width: 680px) {
-  .global-footer__ad-box:has(.sample-sports-ad) { min-height: 180px; }
-  .global-footer__ad-placeholder.sample-sports-ad { padding: 14px 18px 24px; flex-wrap: wrap; gap: 8px; }
-  .sample-sports-ad__brand { width: 100%; font-size: 17px; }
-  .sample-sports-ad__brand span { display: none; }
-  .sample-sports-ad__eyebrow { display: none; }
-  .sample-sports-ad__copy strong { font-size: 24px; margin: 0; }
-  .sample-sports-ad__copy p { max-width: 180px; font-size: 11px; }
-  .sample-sports-ad__art > span { font-size: 64px; letter-spacing: -7px; }
-  .sample-sports-ad__art small { display: none; }
+@media (max-width: 680px) {
+  .global-footer__ad-box:has(.sample-sports-ad) {
+    min-height: 156px;
+  }
+  .global-footer__ad-placeholder.sample-sports-ad {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    text-align: center;
+    padding: 16px 16px 26px;
+    gap: 6px;
+  }
+  .sample-sports-ad__brand {
+    width: auto;
+    font-size: 16px;
+  }
+  .sample-sports-ad__brand span,
+  .sample-sports-ad__eyebrow,
+  .sample-sports-ad__art {
+    display: none;
+  }
+  .sample-sports-ad__copy {
+    flex: 0 1 auto;
+    max-width: 100%;
+  }
+  .sample-sports-ad__copy strong {
+    font-size: clamp(19px, 5.2vw, 23px);
+    margin: 0;
+    line-height: 1.25;
+  }
+  .sample-sports-ad__copy p {
+    max-width: none;
+    margin: 8px 0 0;
+    font-size: 11.5px;
+    word-break: keep-all;
+  }
+  .sample-sports-ad__disclosure {
+    bottom: 8px;
+    right: 12px;
+    font-size: 9.5px;
+  }
 }
