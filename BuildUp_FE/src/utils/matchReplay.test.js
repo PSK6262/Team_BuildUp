@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { replayAttackingSide, replaySetPiece, replayNextIndex, replayKicker, replayFreeKickWall, replayFreeKickPosition, replaySavingKeeper, replayPlayerPoint } from './matchReplay.js';
+import { replayAttackingSide, replaySetPiece, replayNextIndex, replayKicker, replayFreeKickWall, replayFreeKickPosition, replayCornerPosition, replaySavingKeeper, replayPlayerPoint } from './matchReplay.js';
 
 test('saves attach possession to the defending keeper in both halves, including custom placement', () => {
   const home = [{ pos: 'GK', player: { playerId: 10 }, x: 25, y: 90 }];
@@ -105,4 +105,128 @@ test('replay reaches the final event without advancing past it', () => {
   assert.equal(replayNextIndex(2, 4), 3);
   assert.equal(replayNextIndex(3, 4), 3);
   assert.equal(replayNextIndex(0, 1), 0);
+});
+
+test('corner kick identifies the actual corner kicker from the timeline description instead of the default first forward', () => {
+  for (const side of [0, 1]) {
+    const lineup = [
+      { pos: 'FW', player: { playerId: side * 10 + 1, nameKor: '엘링 홀란', name: 'Erling Haaland' } },
+      { pos: 'MF', player: { playerId: side * 10 + 2, nameKor: '케빈 더 브라위너', name: 'Kevin De Bruyne' } },
+      { pos: 'DF', player: { playerId: side * 10 + 3, nameKor: '트렌트 알렉산더-아놀드', name: 'Trent Alexander-Arnold' } },
+    ];
+    // Full name match in standard description
+    assert.equal(replayKicker(lineup, { type: 'corner', side, description: '케빈 더 브라위너의 코너킥 크로스를 상대 수비가 걷어냅니다.' }).player.playerId, side * 10 + 2);
+    // Partial name match in standard description
+    assert.equal(replayKicker(lineup, { type: 'corner', side, description: '더 브라위너의 코너킥 크로스가 날카롭게 올라왔습니다.' }).player.playerId, side * 10 + 2);
+    // Defender corner kicker
+    assert.equal(replayKicker(lineup, { type: 'corner', side, description: '알렉산더-아놀드의 코너킥 크로스를 수비가 차단합니다.' }).player.playerId, side * 10 + 3);
+  }
+});
+
+test('free-kick support players are positioned tactically for attack and defense', () => {
+  const localBall = { x: 180, y: 95 };
+
+  // 1. 공격팀 FW: 페널티 박스 안 골문 앞 헤더 경합 지점 (y: 42~68)
+  for (let i = 0; i < 3; i++) {
+    const atkFw = replayFreeKickPosition({ localBall, attacking: true, pos: 'FW', supportIndex: i });
+    assert.ok(atkFw.y >= 42 && atkFw.y <= 68, `Attacking FW y=${atkFw.y} should be in box header area`);
+    assert.ok(atkFw.x >= 120 && atkFw.x <= 240, `Attacking FW x=${atkFw.x} should be centered`);
+  }
+
+  // 2. 공격팀 MF: 박스 바깥 아크 서클 주변 세컨드볼 대기 (y: 65~78)
+  for (let i = 0; i < 4; i++) {
+    const atkMf = replayFreeKickPosition({ localBall, attacking: true, pos: 'MF', supportIndex: i });
+    assert.ok(atkMf.y >= 65 && atkMf.y <= 78, `Attacking MF y=${atkMf.y} should be around the arc`);
+    assert.ok(atkMf.x >= 65 && atkMf.x <= 295, `Attacking MF x=${atkMf.x} should be spread across the arc`);
+  }
+
+  // 3. 공격팀 DF: 후방/하프라인 라인 형성 (y: 198~235)
+  for (let i = 0; i < 4; i++) {
+    const atkDf = replayFreeKickPosition({ localBall, attacking: true, pos: 'DF', supportIndex: i });
+    assert.ok(atkDf.y >= 198 && atkDf.y <= 235, `Attacking DF y=${atkDf.y} should be near halfway line`);
+  }
+
+  // 4. 수비팀 DF: 골문 앞 대인 마크 맨마킹 (y: 382~398)
+  for (let i = 0; i < 3; i++) {
+    const defDf = replayFreeKickPosition({ localBall, attacking: false, pos: 'DF', wallIndex: -1, supportIndex: i });
+    assert.ok(defDf.y >= 382 && defDf.y <= 398, `Defending DF y=${defDf.y} should be in own box marking`);
+    assert.ok(defDf.x >= 120 && defDf.x <= 240, `Defending DF x=${defDf.x} should be in box`);
+  }
+
+  // 5. 수비팀 MF: 박스 정면 컷백 방어 (y: 362~374)
+  for (let i = 0; i < 3; i++) {
+    const defMf = replayFreeKickPosition({ localBall, attacking: false, pos: 'MF', wallIndex: -1, supportIndex: i });
+    assert.ok(defMf.y >= 362 && defMf.y <= 374, `Defending MF y=${defMf.y} should be in front of box`);
+  }
+
+  // 6. 수비팀 FW: 전방 역습 대기 (y: 205~235)
+  for (let i = 0; i < 3; i++) {
+    const defFw = replayFreeKickPosition({ localBall, attacking: false, pos: 'FW', wallIndex: -1, supportIndex: i });
+    assert.ok(defFw.y >= 205 && defFw.y <= 235, `Defending FW y=${defFw.y} should be waiting near halfway`);
+  }
+});
+
+test('only the free kicker is close to the ball on free kicks', () => {
+  for (const ballX of [135, 165, 195, 225]) {
+    const localBall = { x: ballX, y: 95 };
+    const kicker = replayFreeKickPosition({ localBall, attacking: true, isKicker: true });
+    assert.equal(kicker.x, ballX);
+    assert.equal(kicker.y, 137);
+    const kickerDist = Math.hypot(kicker.x - localBall.x, kicker.y - localBall.y);
+    assert.equal(kickerDist, 42);
+
+    // 공격팀 서포트 선수들 (FW, MF, DF)
+    for (const pos of ['FW', 'MF', 'DF']) {
+      for (let i = 0; i < 4; i++) {
+        const support = replayFreeKickPosition({ localBall, attacking: true, pos, supportIndex: i });
+        const dist = Math.hypot(support.x - localBall.x, support.y - localBall.y);
+        assert.ok(dist >= 35, `Attacking ${pos} ${i} (dist=${dist.toFixed(1)}) should not crowd the ball`);
+      }
+    }
+
+    // 수비팀 비수비벽 서포트 선수들 (DF, MF, FW)
+    for (const pos of ['DF', 'MF', 'FW']) {
+      for (let i = 0; i < 3; i++) {
+        const defSupport = replayFreeKickPosition({ localBall: { x: 360 - ballX, y: 345 }, attacking: false, pos, wallIndex: -1, supportIndex: i });
+        // Flipped to pitch coordinates
+        const pitchDef = { x: 360 - defSupport.x, y: 440 - defSupport.y };
+        const dist = Math.hypot(pitchDef.x - ballX, pitchDef.y - 95);
+        assert.ok(dist >= 35, `Defending ${pos} ${i} (dist=${dist.toFixed(1)}) should not crowd the ball`);
+      }
+    }
+  }
+});
+
+test('corner kick defending team tightly man-marks attacking players in the penalty box', () => {
+  // Test both left and right corners, and both halves
+  for (const cornerX of [24, 336]) {
+    for (const secondHalf of [false, true]) {
+      // Home team (side 0) attacking, Away team (side 1) defending
+      const localBallAtk = { x: cornerX, y: 24 };
+      const localBallDef = { x: 360 - cornerX, y: 440 - 24 };
+
+      for (let idx = 0; idx < 7; idx++) {
+        const atkLocal = replayCornerPosition({ localBall: localBallAtk, attacking: true, isKicker: false, pos: 'FW', outfieldIndex: idx });
+        const defLocal = replayCornerPosition({ localBall: localBallDef, attacking: false, isKicker: false, pos: 'DF', outfieldIndex: idx });
+
+        const atkPitch = replayPlayerPoint(atkLocal, 0, secondHalf);
+        const defPitch = replayPlayerPoint(defLocal, 1, secondHalf);
+
+        const dist = Math.hypot(atkPitch.x - defPitch.x, atkPitch.y - defPitch.y);
+        assert.ok(dist <= 12, `Box runner ${idx} should be man-marked within 12px (actual=${dist.toFixed(1)}px)`);
+      }
+
+      // Away team (side 1) attacking, Home team (side 0) defending
+      for (let idx = 0; idx < 7; idx++) {
+        const atkLocal = replayCornerPosition({ localBall: localBallAtk, attacking: true, isKicker: false, pos: 'FW', outfieldIndex: idx });
+        const defLocal = replayCornerPosition({ localBall: localBallDef, attacking: false, isKicker: false, pos: 'DF', outfieldIndex: idx });
+
+        const atkPitch = replayPlayerPoint(atkLocal, 1, secondHalf);
+        const defPitch = replayPlayerPoint(defLocal, 0, secondHalf);
+
+        const dist = Math.hypot(atkPitch.x - defPitch.x, atkPitch.y - defPitch.y);
+        assert.ok(dist <= 12, `Box runner ${idx} should be man-marked within 12px (actual=${dist.toFixed(1)}px)`);
+      }
+    }
+  }
 });
