@@ -795,7 +795,7 @@ export default function TeamQuizModal({ isOpen, onClose, teams = EMPTY_TEAMS }) 
                   const commuTeam =
                     communityTeams.find((item) => Number(item.teamId) === targetTeamId) ||
                     communityTeams.find((item) => item.name === matchResult.bestClub.name);
-                  const communityUrl = commuTeam ? `/plug/community/teams/${commuTeam.slug}` : '/plug/community/teams';
+                  const communityUrl = commuTeam ? `#/plug/community/teams/${commuTeam.slug}` : '#/plug/community/teams';
                   const hasFavoriteTeam = Boolean(currentUser?.favoriteTeamId);
                   const isCurrentClubMyFavorite = hasFavoriteTeam && Number(currentUser.favoriteTeamId) === targetTeamId;
                   const showSetFavoriteBtn = isLoggedIn && !hasFavoriteTeam;
@@ -804,7 +804,7 @@ export default function TeamQuizModal({ isOpen, onClose, teams = EMPTY_TEAMS }) 
                     <div className="team-quiz-action-group">
                       {/* 상세 페이지 이동 */}
                       <a
-                        href={`/plug/team/${matchResult.bestClub.teamId}`}
+                        href={`#/plug/team/${matchResult.bestClub.teamId}`}
                         className="team-quiz-btn team-quiz-btn--primary"
                       >
                         ⚽ {matchResult.bestClub.name} 상세 페이지 보러가기

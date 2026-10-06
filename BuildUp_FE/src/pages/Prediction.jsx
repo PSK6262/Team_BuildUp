@@ -1708,7 +1708,6 @@ export default function Prediction() {
                     data-ad-client="ca-pub-6961977480009285"
                     data-ad-format="rectangle"
                     data-full-width-responsive="true"
-                    data-ad-test="on"
                   />
 
                   {/* 광고 로드 전 / 로컬 개발 환경용 플레이스홀더 */}

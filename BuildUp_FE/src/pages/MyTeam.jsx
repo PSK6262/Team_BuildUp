@@ -633,6 +633,15 @@ export default function MyTeam() {
   const aiMatchIdRef = useRef(0);
   const [opponentMode, setOpponentMode] = useState('RANDOM');
   const [opponentClubId, setOpponentClubId] = useState('');
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => (prev > 1 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   // 2. 팀 및 포메이션 상태
   const [teamName, setTeamName] = useState('나만의 드림 스쿼드');
@@ -1770,6 +1779,10 @@ export default function MyTeam() {
   const selectedOpponentClub = teams.find((team) => String(team.teamId) === opponentClubId);
 
   const handleAiMatch = async (mode = opponentMode) => {
+    if (cooldown > 0) {
+      showToast(`AI 대전 재시작까지 ${cooldown}초 남았습니다.`);
+      return;
+    }
     if (matchRequestRef.current) return;
     if (loading || slots.length !== 11 || filledCount !== 11 ||
       new Set(slots.map((slot) => String(slot.player?.playerId))).size !== 11) {
@@ -1810,6 +1823,7 @@ export default function MyTeam() {
       }
       if (matchRequestRef.current === controller && !controller.signal.aborted) {
         setAiMatch({ ...result, home: restoreMatchPlacement(result.home, submittedSquads), replayId: ++aiMatchIdRef.current });
+        setCooldown(30);
       }
     } catch (error) {
       if (matchRequestRef.current === controller) {
@@ -2365,8 +2379,8 @@ export default function MyTeam() {
                 </button>
                 <button type="button" className="myteam-btn myteam-btn-primary myteam-mobile-start"
                   aria-label="랜덤 AI 대전 시작" onClick={() => handleAiMatch('RANDOM')}
-                  disabled={loading || matching || filledCount !== 11}>
-                  {matching && opponentMode === 'RANDOM' ? '준비 중...' : '대전 시작'}
+                  disabled={cooldown > 0 || loading || matching || filledCount !== 11}>
+                  {cooldown > 0 ? `쿨타임 (${cooldown}초)` : matching && opponentMode === 'RANDOM' ? '준비 중...' : '대전 시작'}
                 </button>
                 </div>
                 <div className="myteam-opponent-row">
@@ -2376,8 +2390,8 @@ export default function MyTeam() {
                 </button>
                 <button type="button" className="myteam-btn myteam-btn-primary myteam-mobile-start"
                   aria-label="선택한 구단과 대전 시작" onClick={() => handleAiMatch('CLUB')}
-                  disabled={loading || matching || filledCount !== 11 || !selectedOpponentClub}>
-                  {matching && opponentMode === 'CLUB' ? '준비 중...' : '대전 시작'}
+                  disabled={cooldown > 0 || loading || matching || filledCount !== 11 || !selectedOpponentClub}>
+                  {cooldown > 0 ? `쿨타임 (${cooldown}초)` : matching && opponentMode === 'CLUB' ? '준비 중...' : '대전 시작'}
                 </button>
                 </div>
               </div>
@@ -2422,8 +2436,8 @@ export default function MyTeam() {
                 </button>
               )}
               <button type="button" className="myteam-btn myteam-btn-primary myteam-desktop-start"
-                onClick={() => handleAiMatch()} disabled={loading || matching || filledCount !== 11 || (opponentMode === 'CLUB' && !opponentClubId)}>
-                {matching ? 'AI 대전 준비 중...' : opponentMode === 'CLUB' ? (selectedOpponentClub ? `${selectedOpponentClub.teamNameKor || selectedOpponentClub.teamName} 상대 대전 시작` : '상대 구단을 먼저 선택해주세요') : (aiMatch ? '새 AI 팀과 다시 대전' : 'AI 대전 시작')}
+                onClick={() => handleAiMatch()} disabled={cooldown > 0 || loading || matching || filledCount !== 11 || (opponentMode === 'CLUB' && !opponentClubId)}>
+                {cooldown > 0 ? `⏳ AI 대전 쿨타임 (${cooldown}초)` : matching ? 'AI 대전 준비 중...' : opponentMode === 'CLUB' ? (selectedOpponentClub ? `${selectedOpponentClub.teamNameKor || selectedOpponentClub.teamName} 상대 대전 시작` : '상대 구단을 먼저 선택해주세요') : (aiMatch ? '새 AI 팀과 다시 대전' : 'AI 대전 시작')}
               </button>
             </div>
           </div>

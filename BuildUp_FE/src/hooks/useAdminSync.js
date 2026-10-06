@@ -48,8 +48,14 @@ export function useAdminSync({ showAlert, setSyncStatus }) {
         if (json.data?.syncedMatches !== undefined) detailMsg = ` (${json.data.syncedMatches}건)`;
         else if (json.data?.syncedEvents !== undefined) detailMsg = ` (${json.data.syncedEvents}건)`;
         else if (json.data?.syncedPlayers !== undefined) detailMsg = ` (${json.data.syncedPlayers}명)`;
+        else if (json.data?.syncedPlayersKorean !== undefined) detailMsg = ` (${json.data.syncedPlayersKorean}명 번역 완료)`;
+        else if (json.data?.syncedTeamsKorean !== undefined) detailMsg = ` (${json.data.syncedTeamsKorean}개 구단 완료)`;
+        else if (json.data?.syncedStaffsKorean !== undefined) detailMsg = ` (${json.data.syncedStaffsKorean}명 완료)`;
+        else if (json.data?.syncedPositions !== undefined) detailMsg = ` (${json.data.syncedPositions}명 적재 완료)`;
         else if (json.data?.syncedScorers !== undefined) detailMsg = ` (${json.data.syncedScorers}명)`;
         else if (json.data?.syncedStandings !== undefined) detailMsg = ` (${json.data.syncedStandings}개 구단)`;
+        else if (json.data?.updatedCount !== undefined) detailMsg = ` (${json.data.updatedCount}건 갱신)`;
+        else if (json.data?.message) detailMsg = ` (${json.data.message})`;
         else if (json.data?.fixedMatches !== undefined) {
           detailMsg = ` (보정 ${json.data.fixedMatches}경기, 취소골 ${json.data.deletedEvents || 0}건 삭제)`;
         }

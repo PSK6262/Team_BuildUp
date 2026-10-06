@@ -13,7 +13,7 @@ export default function TeamCard({ team }) {
 
   return (
     <a
-      href={`/plug/team/${team.teamId}`}
+      href={`#/plug/team/${team.teamId}`}
       className="team-grid-card"
       style={{
         '--team-hex': theme.hex,

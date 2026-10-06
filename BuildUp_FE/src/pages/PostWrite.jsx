@@ -57,7 +57,7 @@ const POST_TITLE_MAX_LENGTH = 50
 const POST_CONTENT_MAX_LENGTH = 1000
 const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024
 const MAX_ATTACHMENT_TOTAL_SIZE = 20 * 1024 * 1024
-const IMAGE_ATTACHMENT_PATTERN = /\.(jpe?g|png|gif|webp)$/i
+const IMAGE_ATTACHMENT_PATTERN = /\.(jpe?g|png|gif|webp|heic|heif)$/i
 const FILE_ATTACHMENT_PATTERN = /\.(pdf|txt|docx|xlsx|zip)$/i
 const SHOWCASE_DRAFT_KEY = 'plugin:community:showcase-draft'
 const titleLength = (value) => Array.from(value).length
@@ -152,18 +152,21 @@ export default function PostWrite() {
       setError(`스쿼드 이미지를 포함해 첨부파일은 최대 ${MAX_ATTACHMENT_COUNT}개까지 선택할 수 있습니다.`)
       return
     }
-    if (selected.some((file) => file.size <= 0 || file.size > MAX_ATTACHMENT_SIZE)) {
-      setError('파일 하나의 크기는 10MB 이하여야 합니다.')
+    if (selected.some((file) => file.size <= 0 || file.size > 30 * 1024 * 1024)) {
+      setError('파일 하나의 크기는 30MB 이하여야 합니다.')
       return
     }
-    if ([...selected, ...otherFiles].reduce((sum, file) => sum + file.size, 0) > MAX_ATTACHMENT_TOTAL_SIZE) {
-      setError('첨부파일 전체 크기는 20MB 이하여야 합니다.')
+    if ([...selected, ...otherFiles].reduce((sum, file) => sum + file.size, 0) > 50 * 1024 * 1024) {
+      setError('첨부파일 전체 크기는 50MB 이하여야 합니다.')
       return
     }
-    if (selected.some((file) => !pattern.test(file.name))) {
-      setError(type === 'image'
-        ? 'JPG, PNG, GIF, WEBP 이미지만 등록할 수 있습니다.'
-        : 'PDF, TXT, DOCX, XLSX, ZIP 파일만 첨부할 수 있습니다.')
+    const isImageFile = (file) => (file.type && file.type.startsWith('image/')) || pattern.test(file.name)
+    if (type === 'image' && selected.some((file) => !isImageFile(file))) {
+      setError('이미지 파일만 등록할 수 있습니다. (JPG, PNG, GIF, WEBP, HEIC 등)')
+      return
+    }
+    if (type === 'file' && selected.some((file) => !pattern.test(file.name))) {
+      setError('PDF, TXT, DOCX, XLSX, ZIP 파일만 첨부할 수 있습니다.')
       return
     }
     setError('')
@@ -254,7 +257,14 @@ export default function PostWrite() {
         // 게시글 저장 후 업로드 실패는 글 재등록 대신 상세 화면에서 복구합니다.
         try {
           const formData = new FormData()
-          attachments.forEach((file) => formData.append('files', file))
+          attachments.forEach((file, idx) => {
+            let uploadFile = file
+            if (!file.name || !file.name.includes('.')) {
+              const ext = file.type?.includes('png') ? '.png' : file.type?.includes('gif') ? '.gif' : file.type?.includes('webp') ? '.webp' : '.jpg'
+              uploadFile = new File([file], `mobile-upload-${Date.now()}-${idx}${ext}`, { type: file.type || 'image/jpeg' })
+            }
+            formData.append('files', uploadFile)
+          })
           const uploadResponse = await fetch(`/api/communities/${createdPostId}/attachments`, {
             method: 'POST',
             headers: uploadHeaders,
@@ -344,7 +354,7 @@ export default function PostWrite() {
         <input
           type="file"
           multiple
-          accept="image/jpeg,image/png,image/gif,image/webp"
+          accept="image/*,image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif"
           onChange={(event) => selectAttachments(event, 'image')}
           disabled={loading || submitting}
         />
@@ -394,8 +404,8 @@ export default function PostWrite() {
       <span className="community__ad-label">광고 · ADVERTISEMENT</span>
       <div className="community__vertical-ad">
         <picture>
-          <source media="(max-width: 1000px)" srcSet="/je-mobile.png" width="2172" height="724" />
-          <img src="/je.png" width="300" height="600" alt="제때약 — 내 약을 제때, 더 안전하게." />
+          <source media="(max-width: 1000px)" srcSet={`${import.meta.env.BASE_URL}je-mobile.png`} width="2172" height="724" />
+          <img src={`${import.meta.env.BASE_URL}je.png`} width="300" height="600" alt="제때약 — 내 약을 제때, 더 안전하게." />
         </picture>
       </div>
     </aside>

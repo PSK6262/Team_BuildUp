@@ -35,7 +35,6 @@ export default function GlobalFooter() {
               data-ad-client="ca-pub-6961977480009285"
               data-ad-format="auto"
               data-full-width-responsive="true"
-              data-ad-test="on"
             />
 
             {/* 광고 로드 대기/로컬 테스트용 플레이스홀더 */}
