@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { getFlagUrl } from '../../utils/flagUtils.js';
 import { getPlayerPhoto } from '../../utils/playerPhotoUtils.js';
 
@@ -32,12 +33,21 @@ const DETAIL_POS_DESC = {
 
 export default function PlayerStatsModal({ player, stats, loading, onClose }) {
   const [photo, setPhoto] = useState({ status: 'loading', url: '' });
+  const onCloseRef = useRef(onClose);
 
-  // ESC 키를 누르면 모달창 닫기
   useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  const isOpen = Boolean(player);
+
+  // ESC 키를 누르면 모달창 닫기 (모달이 열려 있을 때만 배경 스크롤 잠금)
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
     function handleKeyDown(e) {
       if (e.key === 'Escape') {
-        onClose();
+        onCloseRef.current?.();
       }
     }
     window.addEventListener('keydown', handleKeyDown);
@@ -50,7 +60,7 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = originalOverflow;
     };
-  }, [onClose]);
+  }, [isOpen]);
 
   // 랭킹 페이지와 동일하게 TheSportsDB API를 통해 선수 사진 조회 및 캐싱
   const playerId = player?.playerId || player?.id;
@@ -121,7 +131,7 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
     ? (DETAIL_POS_DESC[detailPos] || `${detailPos}-상세 포지션`)
     : null;
 
-  return (
+  const modalContent = (
     <div
       className="player-stats-modal-backdrop"
       onClick={onClose}
@@ -241,5 +251,10 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
       </div>
     </div>
   );
+
+  if (typeof document !== 'undefined') {
+    return createPortal(modalContent, document.body);
+  }
+  return modalContent;
 }
 

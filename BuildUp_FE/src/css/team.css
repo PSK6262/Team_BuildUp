@@ -7,14 +7,16 @@ body:has(.team-container) {
 }
 
 .team-container {
-  height: 89vh;
-  max-height: 89vh;
+  min-height: 89vh;
+  height: auto;
+  max-height: none;
   background: linear-gradient(90deg, #18001E 0%, #18001E 42%, #1E0026 72%, #22002A 100%);
   display: grid;
   grid-template-columns: 32% 68%;
+  align-items: start;
   padding: 0;
   margin: 0;
-  overflow: hidden;
+  overflow-x: clip;
   font-family: var(--font-plug);
   color: #ffffff;
   position: relative;
@@ -24,19 +26,23 @@ body:has(.team-container) {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 89vh;
+  min-height: calc(100vh - 98px);
   background: linear-gradient(135deg, #18001E 0%, #22002A 100%);
   color: #cbd5e1;
   font-size: clamp(1rem, 1.1vw, 1.25rem);
 }
 
+body:has(.team-container--loading) .global-footer {
+  visibility: hidden;
+}
+
 /* 좌측 구단 고유 컬러가 우측 다크 배경으로 끊김 없이 스며드는 앰비언트 블러 글로우 */
 .team-ambient-bleed {
-  position: absolute;
-  top: 5%;
+  position: fixed;
+  top: 13vh;
   left: 8%;
   width: 46%;
-  height: 90%;
+  height: 80vh;
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
@@ -50,7 +56,8 @@ body:has(.team-container) {
    Left Panel (32%): Fixed Visual Area with Seamless Right Bleed
    -------------------------------------------------------- */
 .team-left {
-  position: relative;
+  position: sticky;
+  top: 98px;
   z-index: 1;
   background: #18001E;
   border-radius: 0;
@@ -59,7 +66,7 @@ body:has(.team-container) {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: calc(100vh - 98px);
   min-height: 0;
 }
 
@@ -360,14 +367,10 @@ body:has(.team-container) {
   padding: 5vh 5.5% 7vh;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+  height: auto;
+  min-height: calc(100vh - 98px);
+  overflow: visible;
   box-sizing: border-box;
-  scroll-behavior: smooth;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(232, 24, 228, 0.4) transparent;
 }
 
 .team-right::-webkit-scrollbar {
@@ -523,6 +526,7 @@ body:has(.team-container) {
 }
 
 .team-squad-loading {
+  min-height: 50vh;
   padding: 4vh 0;
   text-align: center;
   color: #94A3B8;
@@ -921,6 +925,8 @@ body:has(.team-container) {
   }
 
   .team-left {
+    position: relative !important;
+    top: auto !important;
     width: 100%;
     height: auto !important;
     min-height: 52vh;
@@ -1199,7 +1205,7 @@ body:has(.team-container) {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 10000;
   padding: 2vh 4vw;
   box-sizing: border-box;
   animation: playerModalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
