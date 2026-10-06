@@ -11,8 +11,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
+import com.app.dao.admin.AdminDAO;
 import com.app.dao.shop.ShopDAO;
 import com.app.service.shop.ShopService;
+import com.app.dto.match.Matches;
 import com.app.dto.shop.ShopItem;
 import com.app.dto.shop.UserInventory;
 import com.app.dto.shop.ItemOrder;
@@ -26,6 +28,9 @@ public class ShopServiceImpl implements ShopService {
 
     @Autowired
     private ShopDAO shopDAO;
+
+    @Autowired
+    private AdminDAO adminDAO;
 
     @Override
     public List<ShopItem> getShopItems(String itemType) {
@@ -56,6 +61,14 @@ public class ShopServiceImpl implements ShopService {
         }
         if (itemId == null) {
             throw new IllegalArgumentException("구매할 아이템을 선택해주세요.");
+        }
+
+        // 0. 테스트용 임시(더미) 경기가 존재하는 동안에는 포인트샵 아이템 구매 차단 (포인트 정합성 보호)
+        List<Matches> dummyMatches = adminDAO.selectDummyMatches();
+        if (dummyMatches != null && !dummyMatches.isEmpty()) {
+            log.warn("[포인트샵 구매 차단] 임시(더미) 경기 {}건 존재 중 -> 아이템 구매 금지 (userId={}, itemId={})",
+                    dummyMatches.size(), userId, itemId);
+            throw new IllegalStateException("현재 테스트용 임시(더미) 경기가 진행 중입니다. 포인트 정합성 오류를 방지하기 위해 임시 경기가 존재하는 동안에는 포인트샵 아이템 구매가 제한됩니다.");
         }
 
         // 1. 아이템 정보 검증

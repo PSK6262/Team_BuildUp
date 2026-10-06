@@ -50,9 +50,10 @@ export default function PointShop() {
   const [toastMessage, setToastMessage] = useState('');
   const [insufficientModalData, setInsufficientModalData] = useState(null);
   const [loginRequiredModalData, setLoginRequiredModalData] = useState(null);
+  const [hasDummyMatches, setHasDummyMatches] = useState(false);
+  const [dummyLockModalData, setDummyLockModalData] = useState(null);
 
-  // 1. SHOP_ITEMS 테이블에서 실시간 상품 목록 로드
-  // 마운트 시 USERS 테이블의 최신 POINT 및 DB 인벤토리 데이터 동기화
+  // 1. SHOP_ITEMS 테이블에서 실시간 상품 목록 로드 및 임시(더미) 경기 존재 여부 확인
   useEffect(() => {
     let isMounted = true;
     getShopItems()
@@ -75,6 +76,18 @@ export default function PointShop() {
       .catch((err) => {
         console.warn('DB 상품 목록 조회 실패 (기본 목록 유지):', err);
       });
+
+    fetch('/api/matches')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((list) => {
+        if (!isMounted || !Array.isArray(list)) return;
+        const dummyExists = list.some((m) => {
+          const mid = Number(m?.matchId);
+          return mid >= 999901 && mid <= 999910;
+        });
+        setHasDummyMatches(dummyExists);
+      })
+      .catch(() => {});
 
     return () => {
       isMounted = false;
@@ -173,6 +186,11 @@ export default function PointShop() {
       return;
     }
 
+    if (hasDummyMatches) {
+      setDummyLockModalData(true);
+      return;
+    }
+
     if (currentPoint < item.price) {
       setInsufficientModalData({
         item,
@@ -264,7 +282,14 @@ export default function PointShop() {
         }).catch(() => {});
       }
     } catch (err) {
-      alert(err.message || '아이템 구매에 실패했습니다.');
+      const msg = err?.message || '아이템 구매에 실패했습니다.';
+      if (msg.includes('임시') || msg.includes('더미') || msg.includes('테스트')) {
+        setHasDummyMatches(true);
+        setSelectedItemForPurchase(null);
+        setDummyLockModalData(true);
+      } else {
+        alert(msg);
+      }
     } finally {
       setIsPurchasing(false);
     }
@@ -741,6 +766,50 @@ export default function PointShop() {
                 >
                   <span>로그인 하러가기</span>
                 </a>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 임시(더미) 경기 존재 시 포인트샵 구매 제한 모달 */}
+        {dummyLockModalData && (
+          <div
+            className="point-modal-backdrop"
+            onClick={() => setDummyLockModalData(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="dummy-lock-modal-title"
+          >
+            <div
+              className="point-modal-card point-insufficient-modal-card"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="point-modal-close-btn"
+                onClick={() => setDummyLockModalData(null)}
+                aria-label="모달 닫기"
+              >
+                ✕
+              </button>
+
+              <h3 id="dummy-lock-modal-title" className="point-modal-title point-insufficient-title">
+                🔒 포인트샵 구매 제한
+              </h3>
+
+              <p className="point-insufficient-subtext" style={{ marginBottom: '22px' }}>
+                현재 테스트용 경기가 생성되어 있어 구매할 수 없습니다.
+              </p>
+
+              <div className="point-insufficient-actions">
+                <button
+                  type="button"
+                  className="point-insufficient-btn point-insufficient-btn--cancel"
+                  style={{ width: '100%' }}
+                  onClick={() => setDummyLockModalData(null)}
+                >
+                  닫기
+                </button>
               </div>
             </div>
           </div>
