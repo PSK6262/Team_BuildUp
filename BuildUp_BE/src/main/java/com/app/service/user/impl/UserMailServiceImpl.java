@@ -28,45 +28,12 @@ public class UserMailServiceImpl implements UserMailService {
 	@org.springframework.beans.factory.annotation.Value("${app.frontend.url:https://psk6262.github.io/Team_BuildUp}")
 	private String frontendUrl;
 
-	/** 배포 도메인(기본: GitHub Pages) 또는 설정된 프론트엔드 주소 반환 */
+	/** 배포 도메인(기본: GitHub Pages) 프론트엔드 주소 반환 */
 	private String getFrontendBaseUrl() {
-		try {
-			org.springframework.web.context.request.RequestAttributes attrs = 
-				org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
-			if (attrs instanceof org.springframework.web.context.request.ServletRequestAttributes) {
-				javax.servlet.http.HttpServletRequest req = 
-					((org.springframework.web.context.request.ServletRequestAttributes) attrs).getRequest();
-				String origin = req.getHeader("Origin");
-				if (origin == null || origin.trim().isEmpty()) {
-					origin = req.getHeader("Referer");
-				}
-				if (origin != null && !origin.trim().isEmpty()) {
-					origin = origin.trim();
-					if (origin.contains("localhost:5173") || origin.contains("127.0.0.1:5173")) {
-						return origin.replaceAll("/+$", "");
-					}
-					if (origin.contains("github.io")) {
-						if (!origin.contains("Team_BuildUp")) {
-							return origin.replaceAll("/+$", "") + "/Team_BuildUp";
-						}
-						return origin.replaceAll("/+$", "");
-					}
-				}
-			}
-		} catch (Exception e) {
-			log.debug("[UserMailServiceImpl] RequestContext origin 감지 생략: {}", e.getMessage());
-		}
-
 		if (frontendUrl != null && !frontendUrl.trim().isEmpty()) {
 			return frontendUrl.trim().replaceAll("/+$", "");
 		}
-		try {
-			String ip = InetAddress.getLocalHost().getHostAddress();
-			return "http://" + ip + ":5173";
-		} catch (UnknownHostException e) {
-			log.warn("서버 IP 감지 실패, localhost로 대체");
-			return "http://localhost:5173";
-		}
+		return "https://psk6262.github.io/Team_BuildUp";
 	}
 
 	@Autowired

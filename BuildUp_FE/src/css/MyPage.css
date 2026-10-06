@@ -3716,8 +3716,115 @@
 }
 
 .mypage-light-mode .mypage-subwidget-card.is-clickable-match-card:hover .mypage-next-match-teams,
-[data-theme='light'] .mypage-dashboard-bg .mypage-subwidget-card.is-clickable-match-card:hover .mypage-next-match-teams {
+[data-theme='light'] .mypage-dashboard-bg .mypage-next-match-teams:hover {
   border-color: #d8c2df;
   background: #f3e8f8;
 }
 
+.mypage-light-mode .mypage-dark-input:disabled,
+[data-theme='light'] .mypage-dashboard-bg .mypage-dark-input:disabled {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+
+/* ========================================================
+   비밀번호 변경 모달 (다크 모드 & 라이트 모드 완벽 지원)
+   ======================================================== */
+.pw-modal-content {
+  max-width: 440px;
+  padding: 26px 26px 24px;
+}
+
+.pw-modal-icon-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(0, 255, 135, 0.12);
+  border: 1px solid rgba(0, 255, 135, 0.32);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(0, 255, 135, 0.18);
+}
+
+.pw-modal-desc-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(235, 175, 255, 0.16);
+  border-radius: 12px;
+  padding: 13px 16px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #c5b4d1;
+  line-height: 1.55;
+  word-break: keep-all;
+}
+
+.pw-modal-desc-box strong {
+  color: #00ff87;
+  font-weight: 700;
+}
+
+.pw-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pw-modal-alert {
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pw-modal-alert.is-success {
+  background: rgba(0, 255, 135, 0.12);
+  border: 1px solid rgba(0, 255, 135, 0.38);
+  color: #00ff87;
+}
+
+.pw-modal-alert.is-error {
+  background: rgba(255, 51, 119, 0.12);
+  border: 1px solid rgba(255, 51, 119, 0.38);
+  color: #ff5c93;
+}
+
+/* 라이트 모드 오버라이드 */
+.mypage-light-mode .pw-modal-icon-badge,
+[data-theme='light'] .mypage-dashboard-bg .pw-modal-icon-badge {
+  background: #f3e8f8;
+  border: 1px solid #d8c2df;
+  box-shadow: none;
+}
+
+.mypage-light-mode .pw-modal-desc-box,
+[data-theme='light'] .mypage-dashboard-bg .pw-modal-desc-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.mypage-light-mode .pw-modal-desc-box strong,
+[data-theme='light'] .mypage-dashboard-bg .pw-modal-desc-box strong {
+  color: #38003c;
+}
+
+.mypage-light-mode .pw-modal-alert.is-success,
+[data-theme='light'] .mypage-dashboard-bg .pw-modal-alert.is-success {
+  background: #ecfdf5;
+  border: 1px solid #6ee7b7;
+  color: #047857;
+}
+
+.mypage-light-mode .pw-modal-alert.is-error,
+[data-theme='light'] .mypage-dashboard-bg .pw-modal-alert.is-error {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #e11d48;
+}
