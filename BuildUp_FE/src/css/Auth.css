@@ -52,27 +52,30 @@
   background: #27062c;
 }
 
-/* ── 배경 장식 EPL 사자 엠블럼 (다크모드 기본: 우측 황금 사자) ── */
+/* ── 배경 장식 트로피 엠블럼 (다크모드 기본: 우측 황금 엠블럼) ── */
 .auth-lion-bg {
   position: fixed;
   top: 130px;
   right: max(-40px, calc(50% - 760px));
   left: auto;
-  width: 440px;
-  max-width: 32vw;
+  width: 612px;
+  max-width: 44vw;
+  aspect-ratio: 1024 / 765;
   pointer-events: none;
   z-index: 0;
   opacity: 0.16;
   transform: translateX(-15%);
   filter: drop-shadow(0 0 35px rgba(245, 158, 11, 0.4));
-  transition: opacity 0.3s ease, right 0.3s ease, left 0.3s ease, transform 0.3s ease, width 0.3s ease;
-}
-
-.auth-lion-svg {
-  width: 100%;
-  height: auto;
-  display: block;
-  fill: url(#eplChampionGold);
+  transition: opacity 0.4s ease, right 0.5s ease, left 0.5s ease, transform 0.5s ease, width 0.4s ease, background 0.4s ease;
+  background: linear-gradient(135deg, #fff3a8 0%, #f59e0b 35%, #d97706 70%, #92400e 100%);
+  -webkit-mask-image: var(--trophy-mask-url, url('/trophy-emblem.png'));
+  mask-image: var(--trophy-mask-url, url('/trophy-emblem.png'));
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
 }
 
 .auth-card {
@@ -369,19 +372,15 @@
   background: #f8fafc;
 }
 
-/* 라이트모드 배경 장식 EPL 사자 엠블럼 (일반모드: 좌측 보라색 사자) */
+/* 라이트모드 배경 장식 트로피 엠블럼 (일반모드: 좌측 보라색 엠블럼) */
 .auth-container.auth-light-mode .auth-lion-bg,
 [data-theme='light'] .auth-lion-bg {
   right: auto;
   left: max(-40px, calc(50% - 760px));
   opacity: 0.12;
   transform: translateX(10%);
+  background: #38003c;
   filter: drop-shadow(0 0 25px rgba(56, 0, 60, 0.22));
-}
-
-.auth-container.auth-light-mode .auth-lion-svg,
-[data-theme='light'] .auth-lion-svg {
-  fill: #38003c;
 }
 
 .auth-container.auth-light-mode .auth-card,
@@ -608,7 +607,7 @@
 @media (max-width: 1400px) {
   .auth-lion-bg {
     opacity: 0.14;
-    width: 360px;
+    width: 500px;
   }
   .auth-container.auth-light-mode .auth-lion-bg,
   [data-theme='light'] .auth-lion-bg {
@@ -618,7 +617,7 @@
 
 @media (max-width: 1100px) {
   .auth-lion-bg {
-    width: 280px;
+    width: 390px;
     top: 130px;
     right: -30px;
     left: auto;
@@ -634,7 +633,7 @@
 
 @media (max-width: 768px) {
   .auth-lion-bg {
-    width: 210px;
+    width: 292px;
     top: 115px;
     right: -25px;
     left: auto;
@@ -654,7 +653,7 @@
   }
 
   .auth-lion-bg {
-    width: 145px;
+    width: 202px;
     top: 95px;
     right: -20px;
     left: auto;

@@ -401,14 +401,14 @@ export default function AdminCommunityTab({ showAlert }) {
                     ⚠️ 민감한 단어(욕설/비속어)가 포함되어 블라인드(블러) 처리된 본문입니다.
                   </p>
                   <p style={{ color: '#64748b', fontSize: 13, margin: '0 0 16px 0' }}>
-                    관리자 확인을 위해 블러를 해제하시겠습니까?
+                    관리자 확인을 위해 블라인드를 해제하시겠습니까?
                   </p>
                   <button
                     type="button"
                     className="btn-action btn-action--warning"
                     onClick={() => setViewPostModal({ ...viewPostModal, unblurred: true })}
                   >
-                    블러 해제하고 내용 보기
+                    블라인드 해제하고 내용 보기
                   </button>
                   <div style={{
                     filter: 'blur(5px)',

@@ -228,6 +228,17 @@ public class UserServiceImpl implements UserService {
 		String encryptedNew = SHA256Encryptor.encrypt(newPassword, user.getLoginId());
 		userDAO.updatePassword(userId, encryptedNew);
 		log.info("[비밀번호 변경 완료] userId={}, loginId={}", user.getUserId(), user.getLoginId());
+
+		// 3단계: 비밀번호 변경 안내 메일 발송
+		if (user.getEmail() != null && !user.getEmail().trim().isEmpty()) {
+			try {
+				userMailService.sendPasswordChangedMail(user.getEmail().trim(), user.getNickname());
+				log.info("[UserServiceImpl] 비밀번호 변경 안내 메일 발송 완료 -> email: {}", user.getEmail());
+			} catch (Exception e) {
+				log.warn("[UserServiceImpl] 비밀번호 변경 메일 발송 실패 (비밀번호 변경 자체는 완료됨): {}", e.getMessage());
+			}
+		}
+
 		return true;
 	}
 

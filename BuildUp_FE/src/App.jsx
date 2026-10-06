@@ -28,6 +28,7 @@ const Match = lazy(() => import('./pages/Match.jsx'))
 const Admin = lazy(() => import('./pages/Admin.jsx'))
 const MiniGames = lazy(() => import('./pages/MiniGames.jsx'))
 const PenaltyKick = lazy(() => import('./pages/PenaltyKick.jsx'))
+const TrappingGame = lazy(() => import('./pages/TrappingGame.jsx'))
 
 function getAppPathname() {
   const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
@@ -221,6 +222,7 @@ function App() {
 
       {/* 미니게임 */}
       {pathname === '/plug/minigames' && <MiniGames />}
+      {pathname === '/plug/minigames/trapping' && <TrappingGame />}
       {(pathname === '/plug/minigames/shootout' || pathname === '/plug/minigames/penaltykick') && <PenaltyKick />}
 
       {/* 커뮤니티 */}

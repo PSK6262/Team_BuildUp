@@ -1276,17 +1276,16 @@ export default function MyPage() {
                   data-full-width-responsive="true"
                 />
 
-                {/* 광고 로드 전 / 로컬 개발 환경용 플레이스홀더 */}
-                <div className="mypage-ad-placeholder" aria-hidden="true">
-                  <span className="mypage-ad-icon">
-                    <IconBall size={30} color={currentTheme === 'light' ? '#38003c' : '#00ff87'} />
-                  </span>
-                  <div className="mypage-ad-text">
-                    <strong>PLUGIN SIDEBAR AD BANNER</strong>
-                    <p>프리미어리그 실시간 분석 & 팬 커뮤니티 PL:UG</p>
-                  </div>
-                  <span className="mypage-ad-subtag">Official Partner</span>
-                </div>
+                {/* 광고 로드 전 / 로컬 환경용 폴백 제때약 배너 (모바일 반응형 포함) */}
+                <picture className="mypage-ad-picture" aria-hidden="true">
+                  <source media="(max-width: 960px)" srcSet={`${import.meta.env.BASE_URL}je-mobile.png`} />
+                  <img
+                    src={`${import.meta.env.BASE_URL}je-square.png`}
+                    alt="제때약 — 내 약을 제때, 더 안전하게."
+                    className="mypage-ad-fallback-img"
+                    loading="lazy"
+                  />
+                </picture>
               </div>
             </div>
           </aside>

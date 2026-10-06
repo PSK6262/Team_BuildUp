@@ -163,6 +163,22 @@ export default function PostWrite() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState({})
+
+  // 글작성 페이지 사이드바 애드센스 Ref 및 푸시 처리
+  const writeAdRef = useRef(null)
+  const isWriteAdPushed = useRef(false)
+
+  useEffect(() => {
+    if (isWriteAdPushed.current) return
+    try {
+      if (typeof window !== 'undefined' && writeAdRef.current) {
+        ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+        isWriteAdPushed.current = true
+      }
+    } catch (e) {
+      console.debug('[PostWrite] AdSense init:', e)
+    }
+  }, [])
   const titleInputRef = useRef(null)
   const contentInputRef = useRef(null)
   const error = submitError || categoriesError || teamsError
@@ -489,10 +505,19 @@ export default function PostWrite() {
     </form>
     </div>
     <aside className="community__write-ad" aria-label="광고 영역">
-      <div className="community__vertical-ad">
-        <picture>
+      <div className="community__vertical-ad" style={{ position: 'relative', padding: 0, overflow: 'hidden' }}>
+        <ins
+          ref={writeAdRef}
+          className="adsbygoogle"
+          style={{ display: 'block', width: '100%', minHeight: '300px', position: 'relative', zIndex: 2 }}
+          data-ad-client="ca-pub-6961977480009285"
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        />
+        {/* 애드센스 로드 전 / 로컬 개발 환경용 폴백 제때약 배너 */}
+        <picture style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', zIndex: 1 }}>
           <source media="(max-width: 1000px)" srcSet={`${import.meta.env.BASE_URL}je-mobile.png`} width="2172" height="724" />
-          <img src={`${import.meta.env.BASE_URL}je.png`} width="300" height="600" alt="제때약 — 내 약을 제때, 더 안전하게." />
+          <img src={`${import.meta.env.BASE_URL}je.png`} width="300" height="600" alt="제때약 — 내 약을 제때, 더 안전하게." style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         </picture>
       </div>
     </aside>
