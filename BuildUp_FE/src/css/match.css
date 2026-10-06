@@ -444,11 +444,8 @@
 .match-page-container .match-team,
 .match-page-container .match-team__info,
 .match-page-container .match-card__ground { min-width: 0; }
-.match-page-container .match-team__name-kor {
-  max-width: 100%; min-width: 0; flex-wrap: nowrap; white-space: nowrap;
-}
-.match-team__name-text {
-  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+.match-team__name-kor-text {
+  max-width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;
 }
 .match-page-container .match-team__name-eng {
   display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -456,12 +453,14 @@
 .match-page-container .match-ground-pill {
   display: block; box-sizing: border-box; line-height: 1.5;
 }
-.match-page-container .match-team__name-kor :is(.match-team-rank-badge, .match-win-badge) { flex-shrink: 0; }
+.match-team__badges :is(.match-team-rank-badge, .match-win-badge) { flex-shrink: 0; }
 
-/* 경기 시간/날짜 정보 */
+/* 경기 시간/날짜 정보 (오른쪽 3열) */
 .match-card__datetime {
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
   gap: 4px;
 }
 
@@ -500,8 +499,9 @@
 .match-team {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   flex: 1;
+  min-width: 0;
 }
 
 .match-team--home {
@@ -518,23 +518,24 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .match-team--home .match-team__info {
   align-items: flex-end;
+  text-align: right;
 }
 
 .match-team--away .match-team__info {
   align-items: flex-start;
+  text-align: left;
 }
 
-.match-team__name-kor {
+.match-team__name-kor-text {
   font-size: 15px;
   font-weight: 800;
   color: #0f172a;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   line-height: 1.3;
 }
 
@@ -543,6 +544,29 @@
   font-weight: 600;
   color: #64748b;
   line-height: 1.2;
+}
+
+/* 엠블럼 옆 등수(위) + 승/무/패(아래) 2단 뱃지 영역 */
+.match-team__badges {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.match-team__badges .match-team-rank-badge {
+  margin: 0;
+}
+
+.match-team__badges .match-win-badge {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1;
 }
 
 .match-team__emblem-wrap {
@@ -654,12 +678,12 @@
   }
 }
 
-/* 경기장 정보 및 감독모드 버튼 */
+/* 경기장 정보 (왼쪽 1열) */
 .match-card__ground {
-  text-align: right;
+  text-align: left;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 8px;
 }
 
@@ -751,6 +775,17 @@
     text-align: center;
   }
 
+  .match-team--home .match-team__info,
+  .match-team--away .match-team__info {
+    align-items: center;
+    text-align: center;
+  }
+
+  .match-team__badges {
+    flex-direction: row;
+    gap: 6px;
+  }
+
   .match-card__ground {
     text-align: center;
   }
@@ -805,7 +840,7 @@
   line-height: 1;
   padding: 3px 6px;
   border-radius: 4px;
-  margin-right: 6px;
+  margin-right: 0;
   letter-spacing: -0.2px;
   vertical-align: middle;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -902,7 +937,7 @@
 
 .match-win-badge {
   display: inline-block;
-  margin-left: 6px;
+  margin: 0;
   font-size: 11px;
   font-weight: 800;
   padding: 1px 6px;
@@ -917,9 +952,21 @@
   color: #be123c;
 }
 
+.match-win-badge.match-draw-badge {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
 html[data-theme='dark'] .match-win-badge.match-loss-badge {
   background: #4c1d2b;
   color: #fda4af;
+}
+
+html[data-theme='dark'] .match-win-badge.match-draw-badge {
+  background: #2a2235;
+  color: #cbd5e1;
+  border: 1px solid #4a3e5c;
 }
 
 /* 로딩 스피너 */
@@ -963,7 +1010,7 @@ html[data-theme='dark'] .match-page-container {
   color: #f4f1fa;
 }
 
-html[data-theme='dark'] .match-page-container :is(.match-page-title, .match-card__date, .match-team__name-kor, .match-team__name, .match-score, .match-score--large) {
+html[data-theme='dark'] .match-page-container :is(.match-page-title, .match-card__date, .match-team__name-kor, .match-team__name-kor-text, .match-team__name, .match-score, .match-score--large) {
   color: #f4f1fa;
 }
 
