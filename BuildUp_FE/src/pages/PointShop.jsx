@@ -49,6 +49,7 @@ export default function PointShop() {
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [insufficientModalData, setInsufficientModalData] = useState(null);
+  const [loginRequiredModalData, setLoginRequiredModalData] = useState(null);
 
   // 1. SHOP_ITEMS 테이블에서 실시간 상품 목록 로드
   // 마운트 시 USERS 테이블의 최신 POINT 및 DB 인벤토리 데이터 동기화
@@ -168,9 +169,7 @@ export default function PointShop() {
     const token = localStorage.getItem('buildup_token');
     const currentUid = user?.userId ?? user?.user_id ?? user?.id;
     if ((!isLoggedIn && !token) || (!currentUid && !token)) {
-      if (window.confirm('로그인이 필요한 서비스입니다. 로그인 페이지로 이동하시겠습니까?')) {
-        navigate('/plug/login');
-      }
+      setLoginRequiredModalData({ item });
       return;
     }
 
@@ -190,7 +189,9 @@ export default function PointShop() {
     if (!selectedItemForPurchase) return;
     const token = localStorage.getItem('buildup_token');
     if (!isLoggedIn && !token) {
-      alert('로그인이 필요한 서비스입니다.');
+      const targetItem = selectedItemForPurchase;
+      setSelectedItemForPurchase(null);
+      setLoginRequiredModalData({ item: targetItem });
       return;
     }
 
@@ -655,6 +656,90 @@ export default function PointShop() {
                 >
                   <span>승부예측 하러가기</span>
                   <span aria-hidden="true">⚽</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 로그인 필요 커스텀 모달 */}
+        {loginRequiredModalData && (
+          <div
+            className="point-modal-backdrop"
+            onClick={() => setLoginRequiredModalData(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="login-required-modal-title"
+          >
+            <div
+              className="point-modal-card point-insufficient-modal-card"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="point-modal-close-btn"
+                onClick={() => setLoginRequiredModalData(null)}
+                aria-label="모달 닫기"
+              >
+                ✕
+              </button>
+
+              <h3 id="login-required-modal-title" className="point-modal-title point-insufficient-title">
+                로그인이 필요합니다
+              </h3>
+
+              <p className="point-insufficient-subtext">
+                로그인 후 포인트를 모아 아이템을 구매해보세요!
+              </p>
+
+              {loginRequiredModalData.item && (
+                <div className="point-insufficient-detail-box">
+                  <div className="point-insufficient-row">
+                    <span className="point-insufficient-row-label">구매 상품</span>
+                    <span className="point-insufficient-row-value point-insufficient-row-item">
+                      {loginRequiredModalData.item.visual} {loginRequiredModalData.item.name}
+                    </span>
+                  </div>
+                  <div className="point-insufficient-row">
+                    <span className="point-insufficient-row-label">상품 가격</span>
+                    <span className="point-insufficient-row-value">
+                      {loginRequiredModalData.item.price.toLocaleString()} P
+                    </span>
+                  </div>
+                  <div className="point-insufficient-row">
+                    <span className="point-insufficient-row-label">현재 상태</span>
+                    <span className="point-insufficient-row-value">
+                      비로그인
+                    </span>
+                  </div>
+                  <div className="point-insufficient-divider" />
+                  <div className="point-insufficient-row point-insufficient-row--shortage">
+                    <span className="point-insufficient-row-label">이용 안내</span>
+                    <span className="point-insufficient-row-value point-insufficient-shortage-val">
+                      로그인 후 구매 가능
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div className="point-insufficient-actions">
+                <button
+                  type="button"
+                  className="point-insufficient-btn point-insufficient-btn--cancel"
+                  onClick={() => setLoginRequiredModalData(null)}
+                >
+                  닫기
+                </button>
+                <a
+                  href="#/plug/login"
+                  className="point-insufficient-btn point-insufficient-btn--login"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setLoginRequiredModalData(null);
+                    navigate('/plug/login');
+                  }}
+                >
+                  <span>로그인 하러가기</span>
                 </a>
               </div>
             </div>
