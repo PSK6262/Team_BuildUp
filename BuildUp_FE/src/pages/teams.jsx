@@ -840,8 +840,19 @@ export function MemberRankings({ type, refreshKey = 0, mobileCards = false }) {
     <h2>{prediction ? '승부예측 적중' : '나만의 팀 가상 대결 승률'} TOP 10</h2>
     <p>{prediction ? '정산된 예측의 적중 수 → 적중률 순입니다.' : '로그인 후 진행한 가상 대결의 승률 → 승리 수 순입니다. 승률은 전체 대결 중 승리 비율이며, 무승부도 전체 대결에 포함됩니다.'}</p>
     <div className="member-ranking-actions">
-      <a href={prediction ? '/plug/prediction' : '/plug/myteam'}>{prediction ? '승부예측 참여하기' : '나만의 팀 대결하기'}</a>
-      <button type="button" disabled={result.status === 'loading'} onClick={() => setAttempt((value) => value + 1)}>새로고침</button>
+      {prediction && <a href="/plug/prediction">승부예측 참여하기</a>}
+      <button
+        type="button"
+        disabled={result.status === 'loading'}
+        onClick={() => setAttempt((value) => value + 1)}
+        title="랭킹 새로고침"
+        aria-label="랭킹 새로고침"
+        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '8px 12px' }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+        </svg>
+      </button>
     </div>
     {result.status === 'loading' ? <p role="status">랭킹을 불러오는 중입니다...</p>
       : result.status === 'error' ? <p role="alert">랭킹을 불러오지 못했습니다. 새로고침으로 다시 시도해주세요.</p>
