@@ -18,6 +18,9 @@ public interface UserMailService {
 	// 비밀번호 재설정 메일 발송
 	void sendPasswordReset(String userEmail);
 
+	// 비밀번호 변경 완료 안내 메일 발송
+	void sendPasswordChangedMail(String userEmail, String nickname);
+
 	// 비밀번호 재설정 인증키 유효성 검사
 	boolean verifyResetAuthKey(String email, String authKey);
 
