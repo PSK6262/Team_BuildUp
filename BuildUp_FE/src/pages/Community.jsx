@@ -295,15 +295,24 @@ export default function Community({ selectedTeam = null }) {
       </div>
       {/* 커뮤니티 목록 하단 광고 영역 */}
       <aside className="community__ad" aria-label="광고 영역">
-        <div className="community__ad-space" style={{ overflow: 'hidden', padding: 0 }}>
+        <div className="community__ad-space" style={{ position: 'relative', overflow: 'hidden', padding: 0 }}>
           <ins
             ref={bottomAdRef}
             className="adsbygoogle"
-            style={{ display: 'block', width: '100%', minHeight: '100px' }}
+            style={{ display: 'block', width: '100%', minHeight: '100px', position: 'relative', zIndex: 2 }}
             data-ad-client="ca-pub-6961977480009285"
             data-ad-format="horizontal"
             data-full-width-responsive="true"
           />
+          {/* 애드센스 로드 전 / 로컬 개발 환경용 폴백 제때약 배너 */}
+          <picture style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', zIndex: 1 }}>
+            <source media="(max-width: 680px)" srcSet={`${import.meta.env.BASE_URL}je-mobile.png`} />
+            <img
+              src={`${import.meta.env.BASE_URL}je-pc.png`}
+              alt="제때약 — 내 약을 제때, 더 안전하게."
+              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', display: 'block' }}
+            />
+          </picture>
         </div>
       </aside>
       {!selectedTeam && board !== 'team' && board !== 'showcase' && <section className="community__showcase" aria-labelledby="showcase-title">
