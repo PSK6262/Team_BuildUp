@@ -1566,12 +1566,46 @@ html[data-theme='light'] body:has(.team-container) {
 
 .team-container--light .team-emblem-bg-overlay,
 [data-theme='light'] .team-emblem-bg-overlay {
-  background: linear-gradient(
-    180deg,
-    rgba(38, 14, 54, 0.72) 0%,
-    rgba(38, 14, 54, 0.14) 40%,
-    rgba(38, 14, 54, 0.88) 100%
-  );
+  background:
+    linear-gradient(
+      180deg,
+      #F4F6FA 0%,
+      rgba(244, 246, 250, 0.45) 0.6%,
+      transparent 1.4%
+    ),
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      transparent 94%,
+      rgba(244, 246, 250, 0.5) 97.5%,
+      #F4F6FA 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(38, 14, 54, 0.72) 0%,
+      rgba(38, 14, 54, 0.14) 40%,
+      rgba(38, 14, 54, 0.88) 100%
+    );
+}
+
+@media (max-width: 64rem) {
+  .team-container--light .team-emblem-bg-overlay,
+  [data-theme='light'] .team-emblem-bg-overlay {
+    background:
+      linear-gradient(
+        180deg,
+        #F4F6FA 0%,
+        rgba(244, 246, 250, 0.45) 0.7%,
+        transparent 1.5%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(38, 14, 54, 0.72) 0%,
+        rgba(38, 14, 54, 0.14) 40%,
+        rgba(38, 14, 54, 0.88) 94%,
+        #F4F6FA 100%
+      );
+  }
 }
 
 .team-container--light .team-right,
