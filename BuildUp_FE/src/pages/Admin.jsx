@@ -114,7 +114,7 @@ export default function Admin() {
         </p>
         <div className="admin-header__user">
           <span className="admin-header__user-text">
-            접속 등급: <strong>{isSuperAdmin ? '매니저(최고관리자)' : '부매니저(부관리자)'}</strong> · <strong>{user?.nickname}</strong> <span className="admin-user-id">({user?.loginId})</span>
+            접속 등급: <strong>{isSuperAdmin ? '매니저' : '부매니저'}</strong> · <strong>{user?.nickname}</strong> <span className="admin-user-id">({user?.loginId})</span>
           </span>
           <button
             type="button"

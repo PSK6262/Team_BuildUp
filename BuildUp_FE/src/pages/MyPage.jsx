@@ -1159,7 +1159,7 @@ export default function MyPage() {
           </div>
           <div className="mypage-top-meta-badge">
             <span className="dot"></span>
-            <span>{Number(profile.roleCode) === 9 ? '매니저 (최고관리자)' : Number(profile.roleCode) === 8 ? '부매니저 (부관리자)' : (profile.roleName || '정규 회원')}</span>
+            <span>{Number(profile.roleCode) === 9 ? '매니저' : Number(profile.roleCode) === 8 ? '부매니저' : (profile.roleName || '정규 회원')}</span>
           </div>
         </header>
 

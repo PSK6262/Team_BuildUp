@@ -50,8 +50,8 @@ export default function AdminUsersTab({ showAlert }) {
             >
               <option value="">전체 회원</option>
               <option value="1">일반회원</option>
-              <option value="8">부매니저 (부관리자)</option>
-              <option value="9">매니저 (최고관리자)</option>
+              <option value="8">부매니저</option>
+              <option value="9">매니저</option>
               <option value="7">탈퇴회원</option>
             </AdminSelect>
             <input
@@ -103,9 +103,9 @@ export default function AdminUsersTab({ showAlert }) {
                       <td data-label="이메일" style={{ color: '#64748b' }}>{u.email}</td>
                       <td data-label="권한 등급">
                         {isSuperAdminRole ? (
-                          <span className="badge badge--purple">매니저 (최고관리자)</span>
+                          <span className="badge badge--purple">매니저</span>
                         ) : isSubAdminRole ? (
-                          <span className="badge badge--blue" style={{ background: 'rgba(14, 165, 233, 0.15)', color: '#0284c7', border: '1px solid rgba(14, 165, 233, 0.35)' }}>부매니저 (부관리자)</span>
+                          <span className="badge badge--blue" style={{ background: 'rgba(14, 165, 233, 0.15)', color: '#0284c7', border: '1px solid rgba(14, 165, 233, 0.35)' }}>부매니저</span>
                         ) : isWithdrawn ? (
                           <span className="badge badge--gray">탈퇴회원</span>
                         ) : (
@@ -145,7 +145,7 @@ export default function AdminUsersTab({ showAlert }) {
                                 isRootManager
                                   ? 'BUILDUP62 최고 매니저 계정의 권한은 변경할 수 없습니다.'
                                   : cannotEditRole
-                                  ? '부매니저는 최고관리자(매니저)의 권한을 변경할 수 없습니다.'
+                                  ? '부매니저는 매니저의 권한을 변경할 수 없습니다.'
                                   : undefined
                               }
                               onClick={() => {
@@ -203,12 +203,12 @@ export default function AdminUsersTab({ showAlert }) {
                   onChange={(e) => setRoleModal({ ...roleModal, roleCode: e.target.value })}
                 >
                   <option value="1">일반회원</option>
-                  <option value="8">부매니저 (부관리자)</option>
-                  {isSuperAdmin && <option value="9">매니저 (최고관리자)</option>}
+                  <option value="8">부매니저</option>
+                  {isSuperAdmin && <option value="9">매니저</option>}
                 </AdminSelect>
                 {!isSuperAdmin && (
                   <small style={{ color: '#64748b', fontSize: 12, marginTop: 6, display: 'block' }}>
-                    * 부매니저(부관리자)는 일반회원 및 부매니저 등급까지만 권한을 변경할 수 있습니다.
+                    * 부매니저는 일반회원 및 부매니저 등급까지만 권한을 변경할 수 있습니다.
                   </small>
                 )}
               </div>
