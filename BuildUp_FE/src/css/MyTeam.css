@@ -2272,23 +2272,45 @@ html[data-theme='light'] .myteam-match-rules summary span { color: #637083; }
   margin-top: 16px;
 }
 
+.myteam-ai-result {
+  scroll-margin-top: 80px;
+}
+
+/* FMM(Football Manager Mobile) 2D 엔진 스타일: 가속/감속 물리 관성 및 개별 질주 모션 */
 .myteam-ai-marker {
-  transition: transform 1.6s cubic-bezier(0.45, 0, 0.25, 1);
+  transition: transform 0.95s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
+  cursor: pointer;
+  pointer-events: auto;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
 }
 
 .myteam-ai-marker-inner {
-  animation: playerAliveSway 3.6s ease-in-out infinite alternate;
+  animation: playerFmmRunBob 2s ease-in-out infinite;
   transform-origin: 0 0;
   will-change: transform;
 }
 
 .myteam-ai-mini-pitch[data-playing='false'] .myteam-ai-marker-inner {
-  animation-play-state: paused;
+  animation: playerAliveSway 3.6s ease-in-out infinite alternate;
 }
 
-.myteam-ai-mini-pitch[data-playing='false'] :is(.myteam-ai-marker, .myteam-ai-ball-marker) {
-  transition: none;
+@keyframes playerFmmRunBob {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(-0.8px, -1px) scale(1.02);
+  }
+  50% {
+    transform: translate(0, 0) scale(1);
+  }
+  75% {
+    transform: translate(0.8px, -1px) scale(1.02);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
 }
 
 @keyframes playerAliveSway {
@@ -2301,10 +2323,38 @@ html[data-theme='light'] .myteam-match-rules summary span { color: #637083; }
 }
 
 .myteam-ai-ball-marker {
-  transition: transform 1.45s cubic-bezier(0.45, 0, 0.25, 1);
+  transition: transform 0.78s cubic-bezier(0.18, 0.9, 0.28, 1);
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.65));
   cursor: default;
   will-change: transform;
+}
+
+/* 밀집 상황 선수 마커 및 이름표 호버(Hover) 시인성 극대화 */
+.myteam-ai-marker:hover {
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 16px rgba(0, 255, 135, 0.85));
+}
+
+.myteam-ai-marker:hover circle,
+.myteam-ai-marker:hover .myteam-ai-marker-circle {
+  stroke: #ffffff !important;
+  stroke-width: 2.8px !important;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.95));
+}
+
+.myteam-ai-marker .myteam-ai-marker-name,
+.myteam-ai-marker text:last-child {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), fill 0.2s ease, font-size 0.2s ease;
+  transform-origin: 0 20px;
+}
+
+.myteam-ai-marker:hover .myteam-ai-marker-name,
+.myteam-ai-marker:hover text:last-child {
+  transform: scale(1.3);
+  font-weight: 900 !important;
+  fill: #00ff87 !important;
+  stroke: #061a12 !important;
+  stroke-width: 3.8px !important;
+  filter: drop-shadow(0 0 8px rgba(0, 255, 135, 1));
 }
 
 .myteam-ai-marker.is-corner-kicker {
@@ -2316,6 +2366,14 @@ html[data-theme='light'] .myteam-match-rules summary span { color: #637083; }
   filter: drop-shadow(0 0 6px rgba(0, 255, 135, 0.6));
   pointer-events: none;
 }
+
+/* 피치 위 골대 스타일링 */
+.myteam-ai-goalpost-top,
+.myteam-ai-goalpost-bottom {
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.6)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.8));
+  pointer-events: none;
+}
+
 
 @media (prefers-reduced-motion: reduce) {
 
