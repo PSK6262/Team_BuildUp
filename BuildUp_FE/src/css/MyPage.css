@@ -388,70 +388,49 @@
 
 .mypage-ad-box {
   width: 100%;
-  min-height: 250px;
+  aspect-ratio: 1 / 1;
   position: relative;
-  background: linear-gradient(145deg, rgba(38, 7, 46, 0.6) 0%, rgba(18, 3, 22, 0.8) 100%);
-  border: 1px dashed rgba(220, 150, 245, 0.3);
+  background: #f1e9de;
+  border: 1px solid rgba(220, 150, 245, 0.25);
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
 .mypage-ad-ins {
   width: 100%;
-  min-height: 250px;
+  height: 100%;
   position: relative;
   z-index: 2;
 }
 
-.mypage-ad-placeholder {
+.mypage-ad-picture {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 20px;
-  box-sizing: border-box;
-  gap: 10px;
-  z-index: 1;
-}
-
-.mypage-ad-icon {
-  font-size: 30px;
-  filter: drop-shadow(0 0 12px rgba(0, 255, 135, 0.4));
-}
-
-.mypage-ad-text strong {
+  width: 100%;
+  height: 100%;
   display: block;
-  font-size: 13px;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: 0.5px;
-  margin-bottom: 4px;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #f1e9de;
 }
 
-.mypage-ad-text p {
-  margin: 0;
-  font-size: 11.5px;
-  color: #a795b5;
-  line-height: 1.4;
+.mypage-ad-fallback-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  border-radius: 14px;
+  transition: transform 0.3s ease;
 }
 
-.mypage-ad-subtag {
-  display: inline-block;
-  font-size: 10px;
-  font-weight: 700;
-  color: #00ff87;
-  background: rgba(0, 255, 135, 0.08);
-  border: 1px solid rgba(0, 255, 135, 0.25);
-  padding: 3px 10px;
-  border-radius: 999px;
-  margin-top: 2px;
+.mypage-ad-card:hover .mypage-ad-fallback-img {
+  transform: scale(1.02);
 }
 
 /* 프로필 정보 관리 패널 우측 맨 아래: 회원탈퇴 버튼 */
@@ -1986,6 +1965,24 @@
   .mypage-ad-card {
     order: 5;
   }
+
+  .mypage-ad-box {
+    min-height: unset;
+    height: auto;
+    aspect-ratio: 3 / 1;
+    max-height: 200px;
+    border-radius: 14px;
+  }
+
+  .mypage-ad-ins {
+    min-height: unset;
+    height: 100%;
+  }
+
+  .mypage-ad-fallback-img {
+    object-fit: cover;
+    object-position: center center;
+  }
 }
 
 @media (max-width: 768px) {
@@ -2640,17 +2637,6 @@
 .mypage-light-mode .mypage-ad-badge,
 [data-theme='light'] .mypage-dashboard-bg .mypage-ad-badge {
   color: #94a3b8;
-}
-
-.mypage-light-mode .mypage-ad-placeholder,
-[data-theme='light'] .mypage-dashboard-bg .mypage-ad-placeholder {
-  background: #f8fafc;
-  border: 1px dashed #cbd5e1;
-}
-
-.mypage-light-mode .mypage-ad-text,
-[data-theme='light'] .mypage-dashboard-bg .mypage-ad-text {
-  color: #64748b;
 }
 
 /* 회원 탈퇴 트리거 */
@@ -3342,31 +3328,9 @@
 /* 사이드바 애드센스 광고 카드 (라이트 모드) */
 .mypage-light-mode .mypage-ad-box,
 [data-theme='light'] .mypage-dashboard-bg .mypage-ad-box {
-  background: #f8fafc;
-  border: 1.5px dashed #cbd5e1;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   box-shadow: none;
-}
-
-.mypage-light-mode .mypage-ad-icon,
-[data-theme='light'] .mypage-dashboard-bg .mypage-ad-icon {
-  filter: none !important;
-}
-
-.mypage-light-mode .mypage-ad-text strong,
-[data-theme='light'] .mypage-dashboard-bg .mypage-ad-text strong {
-  color: #0f172a !important;
-}
-
-.mypage-light-mode .mypage-ad-text p,
-[data-theme='light'] .mypage-dashboard-bg .mypage-ad-text p {
-  color: #64748b !important;
-}
-
-.mypage-light-mode .mypage-ad-subtag,
-[data-theme='light'] .mypage-dashboard-bg .mypage-ad-subtag {
-  color: #38003c !important;
-  background: #f3e8f8 !important;
-  border-color: #d8c2df !important;
 }
 
 

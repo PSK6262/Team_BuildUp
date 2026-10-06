@@ -28,27 +28,30 @@
   z-index: -1;
 }
 
-/* ── 배경 장식 EPL 사자 엠블럼 (다크모드 기본: 우측 황금 사자) ── */
+/* ── 배경 장식 트로피 엠블럼 (다크모드 기본: 우측 황금 엠블럼) ── */
 .prediction-lion-bg {
   position: fixed;
   top: 130px;
   right: max(-40px, calc(50% - 760px));
   left: auto;
-  width: 440px;
-  max-width: 32vw;
+  width: 612px;
+  max-width: 44vw;
+  aspect-ratio: 1024 / 765;
   pointer-events: none;
   z-index: 0;
   opacity: 0.16;
   transform: translateX(-15%);
   filter: drop-shadow(0 0 35px rgba(245, 158, 11, 0.4));
-  transition: opacity 0.3s ease, right 0.3s ease, left 0.3s ease, transform 0.3s ease, width 0.3s ease;
-}
-
-.prediction-lion-svg {
-  width: 100%;
-  height: auto;
-  display: block;
-  fill: url(#eplChampionGold);
+  transition: opacity 0.4s ease, right 0.5s ease, left 0.5s ease, transform 0.5s ease, width 0.4s ease, background 0.4s ease;
+  background: linear-gradient(135deg, #fff3a8 0%, #f59e0b 35%, #d97706 70%, #92400e 100%);
+  -webkit-mask-image: var(--trophy-mask-url, url('/trophy-emblem.png'));
+  mask-image: var(--trophy-mask-url, url('/trophy-emblem.png'));
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
 }
 
 .prediction-page-wrapper {
@@ -553,146 +556,93 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 22px;
+  flex-shrink: 0;
 }
 
-/* ── 사이드바 광고 카드 (다크모드 기본 & 랭킹 수에 따른 자동 높이 조절) ── */
+/* ── 사이드바 광고 카드 (다크모드 기본) ── */
 .prediction-ad-card {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  padding: 24px 20px 26px;
+  padding: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
+  gap: 8px;
+  box-sizing: border-box;
   position: relative;
   overflow: hidden;
-  transition: padding 0.25s ease;
-}
-
-.prediction-ad-card.is-compact {
-  padding: 16px 18px 18px;
-}
-
-.prediction-ad-badge {
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  color: #a795b5;
-  background: rgba(255, 255, 255, 0.06);
-  padding: 4px 12px;
-  border-radius: 12px;
-  margin-bottom: 16px;
-}
-
-.prediction-ad-card.is-compact .prediction-ad-badge {
-  margin-bottom: 10px;
+  width: 100%;
 }
 
 .prediction-ad-box {
   width: 100%;
+  aspect-ratio: 1 / 1;
   position: relative;
-  min-height: max(150px, calc(320px - (var(--ranking-count, 0) * 34px)));
+  background: #f1e9de;
+  border: 1px solid rgba(220, 150, 245, 0.25);
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
   overflow: hidden;
-  transition: min-height 0.25s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
 .prediction-ad-ins {
   width: 100%;
-  min-height: max(150px, calc(320px - (var(--ranking-count, 0) * 34px)));
+  height: 100%;
   position: relative;
   z-index: 2;
 }
 
-.prediction-ad-placeholder {
+.prediction-ad-picture {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 24px 16px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px dashed rgba(255, 255, 255, 0.12);
-  transition: all 0.2s ease;
+  width: 100%;
+  height: 100%;
+  display: block;
   z-index: 1;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #f1e9de;
 }
 
-.prediction-ad-card.is-compact .prediction-ad-placeholder {
-  gap: 4px;
-  padding: 14px 12px;
+.prediction-ad-fallback-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  border-radius: 14px;
+  transition: transform 0.3s ease;
 }
 
-.prediction-ad-placeholder:hover {
-  background: rgba(0, 255, 135, 0.05);
-  border-color: rgba(0, 255, 135, 0.3);
+.prediction-ad-card:hover .prediction-ad-fallback-img {
+  transform: scale(1.02);
 }
 
-.prediction-ad-icon {
-  font-size: 2.6rem;
-  margin-bottom: 6px;
-}
+@media (max-width: 960px) {
+  .prediction-ad-box {
+    aspect-ratio: 3 / 1;
+    max-height: 200px;
+    height: auto;
+    border-radius: 14px;
+    min-height: unset;
+  }
 
-.prediction-ad-card.is-compact .prediction-ad-icon {
-  font-size: 1.75rem;
-  margin-bottom: 2px;
-}
+  .prediction-ad-ins {
+    height: 100%;
+    min-height: unset;
+  }
 
-.prediction-ad-title {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #ffffff;
-}
-
-.prediction-ad-card.is-compact .prediction-ad-title {
-  font-size: 0.95rem;
-}
-
-.prediction-ad-desc {
-  font-size: 0.85rem;
-  color: #baa8c2;
-  margin: 0;
-  line-height: 1.5;
-}
-
-.prediction-ad-card.is-compact .prediction-ad-desc {
-  font-size: 0.78rem;
-  line-height: 1.4;
-}
-
-.prediction-ad-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 14px;
-  padding: 8px 18px;
-  border-radius: 20px;
-  font-size: 0.82rem;
-  font-weight: 800;
-  background: rgba(0, 255, 135, 0.14);
-  border: 1px solid rgba(0, 255, 135, 0.35);
-  color: #00ff87;
-  transition: all 0.2s ease;
-}
-
-.prediction-ad-card.is-compact .prediction-ad-cta {
-  margin-top: 8px;
-  padding: 6px 14px;
-  font-size: 0.76rem;
-}
-
-.prediction-ad-placeholder:hover .prediction-ad-cta {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 255, 135, 0.25);
+  .prediction-ad-fallback-img {
+    object-fit: cover;
+    object-position: center center;
+  }
 }
 
 .prediction-ranking-card__title {
@@ -828,19 +778,15 @@
   background: #f8fafc;
 }
 
-/* 라이트모드 배경 장식 EPL 사자 엠블럼 (일반모드: 좌측 보라색 사자) */
+/* 라이트모드 배경 장식 트로피 엠블럼 (일반모드: 좌측 보라색 엠블럼) */
 .prediction-page-container.is-light .prediction-lion-bg,
 [data-theme='light'] .prediction-lion-bg {
   right: auto;
   left: max(-40px, calc(50% - 760px));
   opacity: 0.12;
   transform: translateX(10%);
+  background: #38003c;
   filter: drop-shadow(0 0 25px rgba(56, 0, 60, 0.22));
-}
-
-.prediction-page-container.is-light .prediction-lion-svg,
-[data-theme='light'] .prediction-lion-svg {
-  fill: #38003c;
 }
 
 /* 헤더 영역 */
@@ -1223,54 +1169,18 @@
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
 }
 
-.prediction-page-container.is-light .prediction-ad-badge,
-[data-theme='light'] .prediction-ad-badge {
-  color: #94a3b8;
-  background: #f1f5f9;
+.prediction-page-container.is-light .prediction-ad-box,
+[data-theme='light'] .prediction-ad-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: none;
 }
 
-.prediction-page-container.is-light .prediction-ad-placeholder,
-[data-theme='light'] .prediction-ad-placeholder {
-  background: #f8fafc;
-  border: 1px dashed #cbd5e1;
-}
-
-.prediction-page-container.is-light .prediction-ad-placeholder:hover,
-[data-theme='light'] .prediction-ad-placeholder:hover {
-  background: #f3e8f8;
-  border-color: #38003c;
-}
-
-.prediction-page-container.is-light .prediction-ad-title,
-[data-theme='light'] .prediction-ad-title {
-  color: #0f172a;
-}
-
-.prediction-page-container.is-light .prediction-ad-desc,
-[data-theme='light'] .prediction-ad-desc {
-  color: #64748b;
-}
-
-.prediction-page-container.is-light .prediction-ad-cta,
-[data-theme='light'] .prediction-ad-cta {
-  background: #f3e8f8;
-  border: 1px solid #e2d2e4;
-  color: #38003c;
-}
-
-.prediction-page-container.is-light .prediction-ad-placeholder:hover .prediction-ad-cta,
-[data-theme='light'] .prediction-ad-placeholder:hover .prediction-ad-cta {
-  background: #38003c;
-  color: #ffffff;
-  border-color: #38003c;
-  box-shadow: 0 4px 12px rgba(56, 0, 60, 0.25);
-}
-
-/* ── EPL 사자 엠블럼 반응형 (화면이 작아져도 다크=우측 / 일반=좌측 사자 선명하게 유지) ── */
+/* ── 트로피 엠블럼 반응형 (화면이 작아져도 다크=우측 / 일반=좌측 엠블럼 선명하게 유지) ── */
 @media (max-width: 1400px) {
   .prediction-lion-bg {
     opacity: 0.14;
-    width: 360px;
+    width: 500px;
   }
   .prediction-page-container.is-light .prediction-lion-bg,
   [data-theme='light'] .prediction-lion-bg {
@@ -1280,7 +1190,7 @@
 
 @media (max-width: 1100px) {
   .prediction-lion-bg {
-    width: 280px;
+    width: 390px;
     top: 130px;
     right: -30px;
     left: auto;
@@ -1296,7 +1206,7 @@
 
 @media (max-width: 768px) {
   .prediction-lion-bg {
-    width: 210px;
+    width: 292px;
     top: 115px;
     right: -25px;
     left: auto;
@@ -1322,9 +1232,9 @@
     padding: 24px 10px 60px;
   }
 
-  /* 모바일(<= 425px)에서도 사자 엠블럼 가시성 확보 (다크모드: 우측 / 일반모드: 좌측) */
+  /* 모바일(<= 425px)에서도 트로피 엠블럼 가시성 확보 (다크모드: 우측 / 일반모드: 좌측) */
   .prediction-lion-bg {
-    width: 145px;
+    width: 202px;
     top: 95px;
     right: -20px;
     left: auto;

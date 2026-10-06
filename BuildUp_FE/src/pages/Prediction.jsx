@@ -696,6 +696,13 @@ export default function Prediction() {
 
   return (
     <div className={`prediction-page-container ${isLight ? 'is-light' : ''}`}>
+      {/* 배경 장식 트로피 엠블럼 (다크모드: 우측 황금 엠블럼 / 일반모드: 좌측 보라 엠블럼) */}
+      <div
+        className="prediction-lion-bg"
+        aria-hidden="true"
+        style={{ '--trophy-mask-url': `url(${import.meta.env.BASE_URL}trophy-emblem.png)` }}
+      />
+
       <div className="prediction-page-wrapper">
         {/* 상단 헤더 */}
         <header className="prediction-header">
@@ -1641,14 +1648,14 @@ export default function Prediction() {
               )}
             </main>
 
-            {/* 우측 사이드바: 명예의 전당 Top 5 (다승 및 승률 순) & 광고 영역 */}
+            {/* 우측 사이드바: 명예의 전당 Top 3 (다승 및 승률 순) & 광고 영역 */}
             <aside className="prediction-sidebar">
               <div className="prediction-ranking-card">
                 <h2 className="prediction-ranking-card__title">
                   🏆 승부예측 랭킹
                 </h2>
                 <p className="prediction-ranking-card__sub">
-                  이변과 승리를 맞춘 명예의 전당 (Top 5)
+                  이변과 승리를 맞춘 명예의 전당 (Top 3)
                 </p>
 
                 <div className="prediction-ranking-list">
@@ -1657,7 +1664,7 @@ export default function Prediction() {
                       아직 등록된 랭킹 기록이 없습니다.
                     </div>
                   ) : (
-                    rankings.slice(0, 5).map((user, idx) => (
+                    rankings.slice(0, 3).map((user, idx) => (
                       <div key={user.userId || idx} className="prediction-ranking-item">
                         <div className="prediction-ranking-item__left">
                           <span className="prediction-ranking-item__rank">{idx + 1}</span>
@@ -1680,10 +1687,7 @@ export default function Prediction() {
               </div>
 
               {/* 랭킹 하단 스폰서 광고 카드 */}
-              <div
-                className={`prediction-ad-card ${rankings.length > 0 ? 'is-compact' : ''}`}
-                style={{ '--ranking-count': Math.min(rankings.length, 5) }}
-              >
+              <div className="prediction-ad-card">
                 <div className="prediction-ad-box">
                   {/* 실제 구글 애드센스 광고 단위 */}
                   <ins
@@ -1695,15 +1699,16 @@ export default function Prediction() {
                     data-full-width-responsive="true"
                   />
 
-                  {/* 광고 로드 전 / 로컬 개발 환경용 플레이스홀더 */}
-                  <div className="prediction-ad-placeholder" aria-hidden="true">
-                    <span className="prediction-ad-icon">📢</span>
-                    <strong className="prediction-ad-title">PL:UG 공식 승부예측 스폰서</strong>
-                    <p className="prediction-ad-desc">
-                      프리미어리그 정품 유니폼 & MD 굿즈 특별 기획전
-                    </p>
-                    <span className="prediction-ad-cta">스토어 바로가기 →</span>
-                  </div>
+                  {/* 광고 로드 전 / 로컬 환경용 폴백 제때약 배너 (모바일 반응형 포함) */}
+                  <picture className="prediction-ad-picture" aria-hidden="true">
+                    <source media="(max-width: 960px)" srcSet={`${import.meta.env.BASE_URL}je-mobile.png`} />
+                    <img
+                      src={`${import.meta.env.BASE_URL}je-square.png`}
+                      alt="제때약 — 내 약을 제때, 더 안전하게."
+                      className="prediction-ad-fallback-img"
+                      loading="lazy"
+                    />
+                  </picture>
                 </div>
               </div>
             </aside>

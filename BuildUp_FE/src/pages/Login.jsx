@@ -56,6 +56,13 @@ export default function Login() {
 
   return (
     <div className={`auth-container ${currentTheme === 'light' ? 'auth-light-mode' : 'auth-dark-mode'}`}>
+      {/* 배경 장식 트로피 엠블럼 (다크모드: 우측 황금 엠블럼 / 일반모드: 좌측 보라 엠블럼) */}
+      <div
+        className="auth-lion-bg"
+        aria-hidden="true"
+        style={{ '--trophy-mask-url': `url(${import.meta.env.BASE_URL}trophy-emblem.png)` }}
+      />
+
       <header className="auth-header">
         <span className="auth-brand-badge">PL:UG FOOTBALL</span>
         <h2>로그인</h2>

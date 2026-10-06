@@ -197,7 +197,13 @@ export default function Signup() {
     }
   }
 
-  const lionBg = null
+  const lionBg = (
+    <div
+      className="auth-lion-bg"
+      aria-hidden="true"
+      style={{ '--trophy-mask-url': `url(${import.meta.env.BASE_URL}trophy-emblem.png)` }}
+    />
+  )
 
   // 1. 이메일 인증 링크로 접근했을 때의 화면
   if (isConfirmMode) {
