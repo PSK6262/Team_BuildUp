@@ -83,13 +83,16 @@ export default function FcManagerModeModal({ isOpen, onClose, match, homeTeam = 
 
     // 1. 경기 시작 휘슬 (항상 맨 처음)
     list.push({
-      id: 'whistle-start',
+      id: 'whistle-ko',
       time: 0,
       timeDisplay: "00'",
       type: 'WHISTLE',
       category: 'WHISTLE',
       icon: '📢',
+      badgeLabel: '경기 개시',
       title: '전반전 킥오프 휘슬',
+      playerName: '',
+      assistName: '',
       desc: `주심의 힘찬 휘슬과 함께 ${homeName} vs ${awayName}의 경기가 시작되었습니다.`,
     })
 
@@ -105,61 +108,73 @@ export default function FcManagerModeModal({ isOpen, onClose, match, homeTeam = 
         const aName = evt.assistPlayerNameKor || evt.assistPlayerName
 
         let category = 'OTHER'
-        let icon = '⚽'
-        let title = '이벤트 발생'
+        let icon = '⚡'
+        let badgeLabel = '경기 상황'
+        let playerName = pName
+        let assistName = ''
+        let title = ''
         let desc = ''
 
         switch (typeCode) {
           case 1: // 필드골
             category = 'GOAL'
             icon = '⚽'
-            title = `GOAL! ${pName} (${teamName})`
+            badgeLabel = 'GOAL'
+            playerName = pName
+            assistName = aName || ''
             desc = aName
-              ? `환상적인 패스를 받은 ${pName}의 깔끔한 마무리 득점! (도움: ${aName})`
+              ? `환상적인 패스를 받은 ${pName}의 깔끔한 마무리 득점!`
               : `${pName}의 날카로운 슈팅이 그대로 골망을 흔듭니다!`
             break
           case 2: // 페널티킥 골
             category = 'GOAL'
             icon = '⚽'
-            title = `PK GOAL! ${pName} (${teamName})`
+            badgeLabel = 'PK GOAL'
+            playerName = pName
             desc = `${pName} 선수가 침착하게 페널티킥을 성공시켰습니다.`
             break
           case 3: // 자책골
             category = 'GOAL'
             icon = '⚽'
-            title = `자책골 (OG) - ${pName}`
+            badgeLabel = '자책골'
+            playerName = `${pName} (OG)`
             desc = `수비 경합 중 굴절되어 골문 안으로 들어갔습니다.`
             break
           case 4: // 옐로카드
             category = 'CARD'
             icon = '🟨'
-            title = `경고 (옐로카드) - ${pName}`
+            badgeLabel = '경고'
+            playerName = pName
             desc = `${teamName} ${pName} 선수의 거친 태클로 주심이 경고를 선언합니다.`
             break
           case 5: // 경고 누적 퇴장
           case 6: // 다이렉트 레드카드
             category = 'CARD'
             icon = '🟥'
-            title = `퇴장 (레드카드) - ${pName}`
+            badgeLabel = '퇴장'
+            playerName = pName
             desc = `결정적인 파울로 인해 ${pName} 선수가 다이렉트 퇴장 조치되었습니다.`
             break
           case 7: // 교체
             category = 'SUB'
             icon = '🔄'
-            title = `선수 교체 (${teamName})`
+            badgeLabel = '선수 교체'
+            playerName = pName
             desc = `IN: ${pName} 🔺 / OUT: 교체 선수 🔻`
             break
           case 8: // 페널티킥 실축
             category = 'GOAL'
             icon = '❌'
-            title = `페널티킥 실축 - ${pName}`
+            badgeLabel = 'PK 실축'
+            playerName = pName
             desc = `${pName} 선수의 슈팅이 골키퍼 선방에 막히거나 빗나갔습니다.`
             break
           default:
             category = 'OTHER'
             icon = '⚡'
-            title = `${teamName} 주요 공격 전개`
-            desc = `${pName}의 위협적인 플레이`
+            badgeLabel = '공격 전개'
+            playerName = pName
+            desc = `${teamName} ${pName}의 위협적인 플레이`
         }
 
         list.push({
@@ -169,6 +184,9 @@ export default function FcManagerModeModal({ isOpen, onClose, match, homeTeam = 
           type: typeCode,
           category,
           icon,
+          badgeLabel,
+          playerName,
+          assistName,
           title,
           desc,
           teamName,
@@ -192,7 +210,10 @@ export default function FcManagerModeModal({ isOpen, onClose, match, homeTeam = 
           type: 1,
           category: 'GOAL',
           icon: '⚽',
-          title: `GOAL! ${homeName} 득점 성공!`,
+          badgeLabel: 'GOAL',
+          playerName: `${homeName} 득점`,
+          assistName: '',
+          title: '',
           desc: `정교한 빌드업에 이은 환상적인 슈팅으로 골문을 갈랐습니다. [${homeName} 리드]`,
           teamName: homeName,
           teamEmblem: homeTeam.emblemUrl,
@@ -211,7 +232,10 @@ export default function FcManagerModeModal({ isOpen, onClose, match, homeTeam = 
           type: 1,
           category: 'GOAL',
           icon: '⚽',
-          title: `GOAL! ${awayName} 득점 성공!`,
+          badgeLabel: 'GOAL',
+          playerName: `${awayName} 득점`,
+          assistName: '',
+          title: '',
           desc: `빠른 역습 찬스를 놓치지 않고 침착하게 골망을 흔듭니다!`,
           teamName: awayName,
           teamEmblem: awayTeam.emblemUrl,
@@ -227,7 +251,10 @@ export default function FcManagerModeModal({ isOpen, onClose, match, homeTeam = 
         type: 'WHISTLE',
         category: 'WHISTLE',
         icon: '⏸',
+        badgeLabel: '하프타임',
         title: '전반전 종료 휘슬',
+        playerName: '',
+        assistName: '',
         desc: `치열한 접전 끝에 전반전 경기가 마무리되고 하프타임에 돌입합니다.`,
       })
       list.push({
@@ -237,7 +264,10 @@ export default function FcManagerModeModal({ isOpen, onClose, match, homeTeam = 
         type: 'WHISTLE',
         category: 'WHISTLE',
         icon: '📢',
+        badgeLabel: '후반 킥오프',
         title: '후반전 시작 휘슬',
+        playerName: '',
+        assistName: '',
         desc: `양 팀 진영을 바꾸고 승부를 결정지을 후반전이 시작됩니다.`,
       })
     }
@@ -252,7 +282,10 @@ export default function FcManagerModeModal({ isOpen, onClose, match, homeTeam = 
         type: 'WHISTLE',
         category: 'WHISTLE',
         icon: '🏁',
+        badgeLabel: '경기 종료',
         title: '경기 종료 (Full Time)',
+        playerName: '',
+        assistName: '',
         desc: `주심의 종료 휘슬이 울리며 최종 스코어 [${match.homeScore ?? 0} : ${match.awayScore ?? 0}]로 경기가 종료되었습니다.`,
       })
     }
@@ -552,10 +585,15 @@ export default function FcManagerModeModal({ isOpen, onClose, match, homeTeam = 
 
                       {/* 이벤트 상세 설명 카드 */}
                       <div className={`fcm-event-card ${cardClass}`}>
-                        <div className="fcm-event-headline">
-                          <span className="fcm-event-title">{evt.title}</span>
+                        {/* 카드 상단: 이벤트 타입 뱃지 + 팀 엠블럼 뱃지 */}
+                        <div className="fcm-event-meta-row">
+                          <span className="fcm-event-type-badge">
+                            <span className="fcm-event-type-badge__icon">{evt.icon}</span>
+                            <span className="fcm-event-type-badge__text">{evt.badgeLabel || evt.category}</span>
+                          </span>
+
                           {evt.teamName && (
-                            <span className="fcm-event-team">
+                            <span className="fcm-event-team" title={evt.teamName}>
                               {evt.teamEmblem && (
                                 <img
                                   src={evt.teamEmblem}
@@ -564,11 +602,29 @@ export default function FcManagerModeModal({ isOpen, onClose, match, homeTeam = 
                                   onError={(e) => { e.currentTarget.style.visibility = 'hidden' }}
                                 />
                               )}
-                              {evt.teamName}
+                              <span className="fcm-event-team__name">{evt.teamName}</span>
                             </span>
                           )}
                         </div>
-                        <p className="fcm-event-desc">{evt.desc}</p>
+
+                        {/* 카드 본문: 선수명 또는 휘슬 타이틀 */}
+                        {evt.playerName ? (
+                          <div className="fcm-event-player-row">
+                            <span className="fcm-event-player-name">{evt.playerName}</span>
+                            {evt.assistName && (
+                              <span className="fcm-event-assist">
+                                <span className="fcm-event-assist__label">도움:</span> {evt.assistName}
+                              </span>
+                            )}
+                          </div>
+                        ) : evt.title ? (
+                          <div className="fcm-event-player-row">
+                            <span className="fcm-event-player-name">{evt.title}</span>
+                          </div>
+                        ) : null}
+
+                        {/* 카드 하단: 해설 코멘트 */}
+                        {evt.desc && <p className="fcm-event-desc">{evt.desc}</p>}
                       </div>
                     </article>
                   )
