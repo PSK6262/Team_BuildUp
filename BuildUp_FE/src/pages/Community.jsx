@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fetchTeams, fetchCategories } from '../store/teamSlice.js'
 import useBoardState from './useBoardState.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
+import CommunityLoading from '../components/CommunityLoading.jsx'
 import '../css/Community.css'
 
 const PAGE_SIZE = 10
@@ -242,11 +243,12 @@ export default function Community({ selectedTeam = null }) {
       </div>
       {(error || teamMatchMissing) && <p className="community__form-error" role="alert">{error || '선택한 구단을 DB에서 찾을 수 없습니다.'}</p>}
       <div className="community__table-wrap">
-        <table className="community__table community__integrated-table">
+        <table className="community__table community__integrated-table community__post-list">
           <caption className="community__sr-only">자유, 팀별 및 나만의 팀 자랑 게시글 목록</caption>
-          <thead><tr><th scope="col" className="community__number">번호</th><th scope="col">분류·팀</th><th scope="col">제목</th><th scope="col">작성자</th><th scope="col">조회수</th><th scope="col">추천수</th></tr></thead>
+          <thead><tr><th scope="col" className="community__number">번호</th><th scope="col">분류·팀</th><th scope="col">제목</th><th scope="col">작성자</th><th scope="col">작성일</th><th scope="col">조회수</th><th scope="col">추천수</th></tr></thead>
           <tbody>
-            {posts.map((post) => <tr key={post.postId}>
+            {(postsLoading || optionsLoading) && <tr><td colSpan={7} className="community__loading-cell"><CommunityLoading /></td></tr>}
+            {!postsLoading && !optionsLoading && posts.map((post) => <tr key={post.postId}>
               <td className="community__number">{post.postId}</td>
               <td><span className={`community__badge ${post.teamId != null || post.showcaseImageId != null ? 'community__badge--team' : ''}`}>{post.showcaseImageId != null ? '자랑' : post.teamName || post.categoryType}</span></td>
               <td className="community__title">
@@ -260,10 +262,11 @@ export default function Community({ selectedTeam = null }) {
                 </a>
               </td>
               <td className="community__author"><span title={post.nickname || '알 수 없음'}>{post.nickname || '알 수 없음'}</span></td>
-              <td>{post.viewCount}</td>
-              <td>{post.likeCount}</td>
+              <td className="community__date"><time dateTime={post.createdAt}>{post.createdAt?.slice(0, 10).replaceAll('-', '.')}</time></td>
+              <td className="community__views">{post.viewCount}</td>
+              <td className="community__likes">{post.likeCount}</td>
             </tr>)}
-            {!postsLoading && !posts.length && <tr><td colSpan={6} className="community__empty">등록된 게시글이 없습니다.</td></tr>}
+            {!postsLoading && !optionsLoading && !error && !teamMatchMissing && !posts.length && <tr><td colSpan={7} className="community__empty"><strong>{keyword || teamId ? '조건에 맞는 게시글이 없어요.' : '아직 등록된 게시글이 없어요.'}</strong><p>{keyword || teamId ? '다른 검색어나 구단으로 찾아보세요.' : '첫 번째 이야기를 남겨보세요.'}</p>{(keyword || teamId) && <button type="button" onClick={() => { setInput(''); setKeyword(''); setTeamId(''); setPage(1) }}>검색·팀 필터 초기화</button>}</td></tr>}
           </tbody>
         </table>
       </div>
@@ -304,6 +307,7 @@ export default function Community({ selectedTeam = null }) {
             <h3 title={post.title}>{formatPostTitle(post.title, post.commentCount)}</h3>
             <strong>추천 {post.likeCount || 0} · 조회 {post.viewCount || 0}</strong>
           </a>)}
+          {showcaseLoading && <CommunityLoading />}
           {!showcaseLoading && !showcasePosts.length && !showcaseError && <p className="community__showcase-empty">아직 등록된 나만의 팀 자랑글이 없습니다.</p>}
         </div>
       </section>}

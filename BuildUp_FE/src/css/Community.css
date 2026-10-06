@@ -1480,3 +1480,133 @@ html[data-theme='dark'] .community__vertical-ad { background: #16111f; color: #b
 .community .community__card.community__favorite-team { border-color: color-mix(in srgb, #c39a58 35%, var(--community-line)); }
 .community .community__favorite-label { display: inline-block; margin-left: 8px; color: var(--community-muted); font-size: 11px; font-weight: 500; white-space: nowrap; }
 .community .community__card > .community__favorite-label { margin: 2px 0 0; }
+
+/* 목록은 제목을 중심으로, 작성자·기록은 보조 정보로 정돈합니다. */
+.community .community__post-list { width: 100%; table-layout: fixed; }
+.community .community__post-list th { padding: 14px 12px; font-size: 12px; font-weight: 600; color: var(--community-muted); background: color-mix(in srgb, var(--community-line) 20%, var(--community-panel)); }
+.community .community__post-list td { padding: 20px 12px; color: var(--community-muted); border-color: var(--community-line); font-size: 13px; }
+.community .community__post-list tbody tr:hover { background: color-mix(in srgb, var(--community-purple) 3%, var(--community-panel)); }
+.community .community__post-list th:first-child { width: 56px; }
+.community .community__integrated-table th:nth-child(2) { width: 145px; }
+.community .community__post-list th:nth-last-child(-n+2) { width: 68px; }
+.community .community__post-list .community__title { text-align: left; font-size: 15px; font-weight: 600; color: var(--community-text); }
+.community .community__post-list .community__post-link { display: flex; align-items: center; min-height: 32px; text-decoration: none; color: var(--community-text); }
+.community .community__post-list .community__post-link:hover { color: var(--community-purple); }
+.community .community__post-list .community__author { width: auto; }
+.community .community__post-list .community__author span { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--community-text); font-size: 12px; font-weight: 500; }
+.community__post-list .community__author time { display: block; margin-top: 4px; color: var(--community-muted); font-size: 11px; }
+.community .community__post-list .community__badge { max-width: 100%; white-space: normal; word-break: keep-all; font-size: 11px; }
+.community .community__post-list .community__views, .community .community__post-list .community__likes { font-variant-numeric: tabular-nums; }
+.community .community__free-list th:nth-child(2) { width: 48%; }
+.community .community__free-list th:nth-child(4) { width: 104px; }
+
+.community .community__article-header { padding-bottom: 24px; border-bottom: 1px solid var(--community-line); }
+.community .community__article-header h1 { margin: 18px 0 22px; font-size: clamp(22px, 2.4vw, 32px); line-height: 1.45; font-weight: 750; letter-spacing: -.035em; text-align: left; color: var(--community-text); }
+.community .community__article-header .community__post-meta { margin: 0; padding: 0; border: 0; gap: 12px 20px; align-items: center; }
+.community .community__post-meta > div { min-width: 0; align-items: baseline; gap: 6px; }
+.community__meta-author dd { font-weight: 700; }
+.community__meta-stat dd { font-variant-numeric: tabular-nums; font-weight: 600; }
+.community .community__detail .community__post-body { font-size: 16px; line-height: 1.9; padding-block: 28px; overflow-wrap: anywhere; }
+
+@media (max-width: 760px) {
+  .community .community__post-list, .community .community__post-list tbody { display: block; min-width: 0; width: 100%; }
+  .community .community__post-list thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .community .community__post-list tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px 12px; padding: 18px 16px; border-bottom: 1px solid var(--community-line); }
+  .community .community__post-list td { border: 0; padding: 0; min-width: 0; width: auto; text-align: left; align-self: center; font-size: 12px; }
+  .community .community__post-list .community__number { display: none; }
+  .community .community__post-list .community__title { grid-column: 1 / -1; font-size: 15px; }
+  .community .community__integrated-table td:nth-child(2) { grid-column: 1 / -1; }
+  .community .community__post-list .community__author { grid-column: 1; }
+  .community .community__post-list .community__views::before { content: '조회 '; }
+  .community .community__post-list .community__likes::before { content: '추천 '; }
+  .community .community__post-list .community__empty { grid-column: 1 / -1; padding: 32px 0; text-align: center; }
+  .community .community__article-header .community__post-meta { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 18px; }
+  .community .community__meta-author, .community .community__meta-date { grid-column: 1 / -1; }
+  .community .community__article-header h1 { margin: 16px 0 20px; }
+}
+@media (max-width: 380px) {
+  .community .community__post-list tbody tr { padding: 16px 12px; gap: 10px 8px; }
+  .community .community__free-list .community__date { grid-column: 1; }
+  .community .community__free-list .community__views { grid-column: 2 / -1; }
+  .community .community__article-header .community__post-meta { font-size: 12px; }
+  .community .community__detail .community__post-body { font-size: 15px; padding-block: 24px; }
+}
+
+/* 헤더의 기존 보라색 선을 제거하고 본문·목록 구분선의 농도를 통일 */
+.community .community__post-list th,
+.community .community__post-list td,
+.community .community__post-list tbody tr,
+.community .community__article-header,
+.community .community__detail .community__post-body,
+html[data-theme='dark'] .community .community__post-list th,
+html[data-theme='dark'] .community .community__post-list td,
+html[data-theme='dark'] .community .community__detail .community__post-body {
+  border-bottom-color: color-mix(in srgb, var(--community-line) 65%, var(--community-panel));
+}
+.community .community__field-error { color: #b42342; font-size: 13px; font-weight: 500; line-height: 1.5; }
+.community .community__write-form [aria-invalid='true'] { border-color: #c94561; }
+html[data-theme='dark'] .community .community__field-error { color: #ff9bb0; }
+html[data-theme='dark'] .community .community__write-form [aria-invalid='true'] { border-color: #ff809e; }
+
+.community .community__integrated-table th:nth-child(5) { width: 96px; }
+.community .community__body-image { margin: 24px 0 0; padding: 0; white-space: normal; }
+.community__body-image a { display: block; width: fit-content; max-width: 100%; }
+.community__body-image img { display: block; max-width: 100%; height: auto; border-radius: 8px; }
+@media (max-width: 760px) {
+  .community .community__integrated-table tbody tr { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .community .community__integrated-table .community__author { grid-column: 1; }
+  .community .community__integrated-table .community__date { grid-column: 2 / -1; text-align: right; }
+  .community .community__integrated-table .community__views { grid-column: 2; }
+  .community .community__integrated-table .community__likes { grid-column: 3; }
+  .community .community__integrated-table .community__date::before { content: none; }
+  .community .community__integrated-table .community__views::before { content: '조회 '; }
+  .community .community__integrated-table .community__likes::before { content: '추천 '; }
+}
+
+.community__image-previews { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin: -8px 0 0; padding: 0; list-style: none; }
+.community__image-previews li { position: relative; min-width: 0; border: 1px solid var(--community-line); border-radius: 12px; overflow: hidden; background: var(--community-panel); }
+.community__image-previews img { display: block; width: 100%; aspect-ratio: 1; object-fit: contain; background: color-mix(in srgb, var(--community-line) 25%, var(--community-panel)); }
+.community .community__image-previews button { position: absolute; top: 4px; right: 4px; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid var(--community-line); background: var(--community-panel); color: var(--community-text); font-size: 24px; box-shadow: 0 2px 8px #0002; }
+.community__preview-name { display: block; padding: 9px 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--community-muted); }
+.community__preview-fallback { display: grid; place-content: center; aspect-ratio: 1; padding: 12px; box-sizing: border-box; overflow-wrap: anywhere; text-align: center; color: var(--community-muted); font-size: 12px; }
+.community-toast { position: fixed; bottom: calc(24px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: max-content; max-width: min(480px, calc(100% - 32px)); z-index: 1000; pointer-events: none; }
+.community-toast__body { display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 18px; border: 1px solid #ded7e5; border-radius: 14px; background: #fff; color: #243047; box-shadow: 0 8px 32px #19062326; font-family: var(--font-plug, sans-serif); font-size: 14px; line-height: 1.5; pointer-events: auto; }
+.community-toast__body > span:first-child { color: #00834f; font-weight: 700; }
+.community-toast__body > span:nth-child(2) { min-width: 0; overflow-wrap: anywhere; }
+.community-toast button { flex-shrink: 0; width: 44px; height: 44px; border: 0; border-radius: 8px; background: transparent; color: inherit; font-size: 23px; cursor: pointer; }
+html[data-theme='dark'] .community-toast__body { background: #281b33; border-color: #554160; color: #f4f1fa; }
+html[data-theme='dark'] .community-toast__body > span:first-child { color: #00e58a; }
+@media(max-width: 480px) { .community-toast { bottom: calc(84px + env(safe-area-inset-bottom)); } }
+
+.community .community__loading-cell { padding: 12px 16px; }
+.community__loading { width: 100%; min-width: 0; }
+.community__loading-row { display: grid; gap: 10px; padding: 18px 0; }
+.community__loading-row span { display: block; height: 14px; width: 72%; border-radius: 5px; background: color-mix(in srgb, var(--community-muted) 13%, var(--community-panel)); animation: communityLoadingPulse 1.6s ease-in-out infinite alternate; }
+.community__loading-row span:last-child { width: 35%; height: 10px; }
+.community__loading--detail { padding: 24px; box-sizing: border-box; border-radius: 14px; background: var(--community-panel); }
+.community__loading--detail .community__loading-row:first-of-type span:first-child { height: 28px; }
+.community .community__empty strong { color: var(--community-text); font-size: 15px; }
+.community .community__empty p { margin: 8px 0 18px; color: var(--community-muted); font-size: 13px; }
+.community .community__empty button { min-height: 44px; }
+@keyframes communityLoadingPulse { from { opacity: .5; } to { opacity: 1; } }
+@media(prefers-reduced-motion: reduce) { .community__loading-row span { animation: none; } }
+@media(max-width: 760px) {
+  .community .community__post-list .community__loading-cell { grid-column: 1 / -1; width: 100%; }
+  .community .community__post-list .community__loading-cell::before { content: none; }
+  .community__more-posts { min-width: 0; }
+  .community__more-posts header { flex-wrap: wrap; gap: 12px; }
+  .community__attachment-list strong, .community__image-grid strong { overflow-wrap: anywhere; }
+  .community .community__detail-actions { gap: 8px; }
+  .community .community__detail-actions > :first-child { margin-right: auto; }
+  .community .community__detail-actions button, .community .community__detail-actions a { min-height: 44px; }
+}
+@media(max-width: 380px) {
+  .community .community__detail-actions > :first-child { flex-basis: 100%; text-align: center; }
+  .community .community__detail-actions button { flex: 1; }
+  .community .community__pagination { flex-wrap: wrap; }
+  .community .community__comment { padding: 14px 10px; }
+  .community .community__comment header { gap: 6px 10px; }
+  .community .community__comment header strong { max-width: 100%; overflow-wrap: anywhere; }
+  .community .community__image-previews { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .community .community__attachment-actions { justify-content: flex-start; }
+}

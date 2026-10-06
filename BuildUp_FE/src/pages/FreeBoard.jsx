@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import useBoardState from './useBoardState.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
+import CommunityLoading from '../components/CommunityLoading.jsx'
 import '../css/Community.css'
 
 const PAGE_SIZE = 10
@@ -97,15 +98,16 @@ export default function FreeBoard() {
 
       {error && <p className="community__form-error" role="alert">{error}</p>}
       <div className="community__table-wrap">
-        <table className="community__table">
+        <table className="community__table community__post-list community__free-list">
           <caption className="community__sr-only">자유게시판 게시글 목록</caption>
           <thead><tr><th scope="col">번호</th><th scope="col">제목</th><th scope="col">작성자</th><th scope="col">작성일</th><th scope="col">조회수</th></tr></thead>
           <tbody>
-            {posts.map((post) => <tr key={post.postId}>
-              <td>{post.postId}</td><td className="community__title"><a className="community__post-link" href={`#/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.hash.replace(/^#/, '').split('?')[0] || window.location.pathname)}`}>{post.title}</a></td><td>{post.nickname}</td>
-              <td><time dateTime={post.createdAt}>{post.createdAt?.slice(0, 10).replaceAll('-', '.')}</time></td><td>{post.viewCount}</td>
+            {loading && <tr><td colSpan={5} className="community__loading-cell"><CommunityLoading /></td></tr>}
+            {!loading && posts.map((post) => <tr key={post.postId}>
+              <td className="community__number">{post.postId}</td><td className="community__title"><a className="community__post-link" title={post.title} href={`#/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.hash.replace(/^#/, '').split('?')[0] || window.location.pathname)}`}><span className="community__title-with-comments"><span className="community__title-text">{Array.from(post.title || '').slice(0, 30).join('')}{Array.from(post.title || '').length > 30 ? '…' : ''}</span>{Number(post.commentCount) > 0 && <span className="community__comment-count" aria-label={`댓글 ${post.commentCount}개`}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6 4V6a2 2 0 0 1 2-2Z" /></svg>{post.commentCount}</span>}</span></a></td><td className="community__author"><span title={post.nickname || '알 수 없음'}>{post.nickname || '알 수 없음'}</span></td>
+              <td className="community__date"><time dateTime={post.createdAt}>{post.createdAt?.slice(0, 10).replaceAll('-', '.')}</time></td><td className="community__views">{post.viewCount}</td>
             </tr>)}
-            {!loading && posts.length === 0 && <tr><td colSpan={5} className="community__empty">등록된 게시글이 없습니다.</td></tr>}
+            {!loading && !error && posts.length === 0 && <tr><td colSpan={5} className="community__empty"><strong>{keyword ? '검색 결과가 없어요.' : '아직 등록된 게시글이 없어요.'}</strong><p>{keyword ? '다른 검색어로 다시 찾아보세요.' : '첫 번째 이야기를 남겨보세요.'}</p>{keyword && <button type="button" onClick={() => { setInput(''); setKeyword(''); setPage(1) }}>검색 초기화</button>}</td></tr>}
           </tbody>
         </table>
       </div>

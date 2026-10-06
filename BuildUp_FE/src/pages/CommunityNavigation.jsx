@@ -1,6 +1,8 @@
+import CommunityToast from '../components/CommunityToast.jsx'
 // 커뮤니티 화면마다 같은 위치에 현재 경로와 상위 화면 이동을 제공합니다.
 export default function CommunityNavigation({ section = 'main', teamName = '' }) {
   return <div className="community__navigation">
+    <CommunityToast />
     <nav className="community__breadcrumbs" aria-label="현재 위치">
       {section === 'main' ? <span aria-current="page">커뮤니티 메인</span> : <a href="#/plug/community">커뮤니티 메인</a>}
       {section === 'teams' && <>
