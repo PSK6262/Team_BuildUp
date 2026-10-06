@@ -2221,7 +2221,7 @@ html[data-theme='light'] .myteam-match-rules summary span { color: #637083; }
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.85fr);
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .myteam-ai-event-select {
