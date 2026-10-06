@@ -1381,37 +1381,21 @@ export default function MyPage() {
                         프로필 정보 관리
                       </h2>
                       {!isEditing && (
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <button
-                            type="button"
-                            className="mypage-action-outline-btn"
-                            onClick={() => {
-                              setShowPasswordModal(true)
-                              setPwCurrent('')
-                              setPwNew('')
-                              setPwConfirm('')
-                              setPwMsg('')
-                              setPwSuccess(false)
-                            }}
-                          >
-                            🔒 비밀번호 변경
-                          </button>
-                          <button
-                            type="button"
-                            className="mypage-action-outline-btn"
-                            onClick={() => {
-                              setIsEditing(true)
-                              setNicknameChecked(true)
-                              setNicknameCheckMsg('')
-                              setEmailVerified(true)
-                              setEmailVerifyMsg('')
-                              setEmailCodeSent(false)
-                              setEmailAuthCode('')
-                            }}
-                          >
-                            프로필 수정하기
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          className="mypage-action-outline-btn"
+                          onClick={() => {
+                            setIsEditing(true)
+                            setNicknameChecked(true)
+                            setNicknameCheckMsg('')
+                            setEmailVerified(true)
+                            setEmailVerifyMsg('')
+                            setEmailCodeSent(false)
+                            setEmailAuthCode('')
+                          }}
+                        >
+                          프로필 수정하기
+                        </button>
                       )}
                     </div>
                     <p>기본 회원 정보 및 응원하는 구단을 수정할 수 있습니다.</p>
@@ -1827,6 +1811,34 @@ export default function MyPage() {
                             {emailVerifyMsg}
                           </span>
                         )}
+                      </div>
+
+                      {/* 비밀번호 변경 필드 */}
+                      <div className="mypage-form-field">
+                        <label>비밀번호</label>
+                        <div className="mypage-input-with-btn">
+                          <input
+                            type="password"
+                            className="mypage-dark-input"
+                            value="••••••••"
+                            disabled
+                            style={{ letterSpacing: '2px', cursor: 'default' }}
+                          />
+                          <button
+                            type="button"
+                            className="mypage-action-outline-btn"
+                            onClick={() => {
+                              setShowPasswordModal(true)
+                              setPwCurrent('')
+                              setPwNew('')
+                              setPwConfirm('')
+                              setPwMsg('')
+                              setPwSuccess(false)
+                            }}
+                          >
+                            🔒 비밀번호 변경
+                          </button>
+                        </div>
                       </div>
 
                       {/* ★ 핵심: 엠블럼이 포함된 커스텀 구단 드롭다운 셀렉트 UI ★ */}
