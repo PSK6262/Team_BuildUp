@@ -50,7 +50,8 @@ export default function AdminUsersTab({ showAlert }) {
             >
               <option value="">전체 회원</option>
               <option value="1">일반회원</option>
-              <option value="9">관리자</option>
+              <option value="8">부매니저 (부관리자)</option>
+              <option value="9">매니저 (최고관리자)</option>
               <option value="7">탈퇴회원</option>
             </AdminSelect>
             <input
@@ -87,8 +88,13 @@ export default function AdminUsersTab({ showAlert }) {
                 <tr><td colSpan="8" style={{ textAlign: 'center', padding: 24, color: '#94a3b8' }}>일치하는 회원이 없습니다.</td></tr>
               ) : (
                 users.slice(0, visibleUsers).map((u) => {
-                  const isWithdrawn = Number(u.roleCode) === 7;
-                  const isAdminRole = Number(u.roleCode) === 9;
+                  const uRole = Number(u.roleCode);
+                  const isWithdrawn = uRole === 7;
+                  const isSuperAdminRole = uRole === 9;
+                  const isSubAdminRole = uRole === 8;
+                  const isRootManager = String(u.loginId || '').toUpperCase() === 'BUILDUP62';
+                  const cannotEditRole = (!isSuperAdmin && isSuperAdminRole) || isRootManager;
+
                   return (
                     <tr key={u.userId} style={isWithdrawn ? { opacity: 0.65, background: '#f8fafc' } : {}}>
                       <td data-label="회원ID">{u.userId}</td>
@@ -96,8 +102,10 @@ export default function AdminUsersTab({ showAlert }) {
                       <td data-label="닉네임">{u.nickname}</td>
                       <td data-label="이메일" style={{ color: '#64748b' }}>{u.email}</td>
                       <td data-label="권한 등급">
-                        {isAdminRole ? (
-                          <span className="badge badge--purple">관리자</span>
+                        {isSuperAdminRole ? (
+                          <span className="badge badge--purple">매니저 (최고관리자)</span>
+                        ) : isSubAdminRole ? (
+                          <span className="badge badge--blue" style={{ background: 'rgba(14, 165, 233, 0.15)', color: '#0284c7', border: '1px solid rgba(14, 165, 233, 0.35)' }}>부매니저 (부관리자)</span>
                         ) : isWithdrawn ? (
                           <span className="badge badge--gray">탈퇴회원</span>
                         ) : (
@@ -132,15 +140,24 @@ export default function AdminUsersTab({ showAlert }) {
                             <button
                               type="button"
                               className="btn-action btn-action--warning"
+                              disabled={cannotEditRole}
+                              title={
+                                isRootManager
+                                  ? 'BUILDUP62 최고 매니저 계정의 권한은 변경할 수 없습니다.'
+                                  : cannotEditRole
+                                  ? '부매니저는 최고관리자(매니저)의 권한을 변경할 수 없습니다.'
+                                  : undefined
+                              }
                               onClick={() => {
+                                if (cannotEditRole) return;
                                 setRoleModal({
                                   userId: u.userId,
                                   nickname: u.nickname,
-                                  roleCode: u.roleCode,
+                                  roleCode: String(u.roleCode),
                                 });
                               }}
                             >
-                              권한 변경
+                              {isRootManager ? '고정 매니저' : cannotEditRole ? '변경 불가' : '권한 변경'}
                             </button>
                           </div>
                         )}
@@ -182,12 +199,18 @@ export default function AdminUsersTab({ showAlert }) {
                 <AdminSelect
                   className="admin-select"
                   style={{ width: '100%' }}
-                  value={roleModal.roleCode}
+                  value={String(roleModal.roleCode)}
                   onChange={(e) => setRoleModal({ ...roleModal, roleCode: e.target.value })}
                 >
                   <option value="1">일반회원</option>
-                  <option value="9">관리자</option>
+                  <option value="8">부매니저 (부관리자)</option>
+                  {isSuperAdmin && <option value="9">매니저 (최고관리자)</option>}
                 </AdminSelect>
+                {!isSuperAdmin && (
+                  <small style={{ color: '#64748b', fontSize: 12, marginTop: 6, display: 'block' }}>
+                    * 부매니저(부관리자)는 일반회원 및 부매니저 등급까지만 권한을 변경할 수 있습니다.
+                  </small>
+                )}
               </div>
             </div>
             <div className="admin-modal__footer">

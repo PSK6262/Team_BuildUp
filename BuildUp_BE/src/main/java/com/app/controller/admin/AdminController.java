@@ -408,16 +408,26 @@ public class AdminController {
 			return ApiResponse.error(ResultCode.UNAUTHORIZED);
 		}
 
+		Users targetUser = userDAO.selectUserByUserId(userId);
+		if (targetUser == null) {
+			return ApiResponse.error(ResultCode.INVALID_INPUT, "대상 회원을 찾을 수 없습니다.");
+		}
+
+		// 고정 최고관리자(BUILDUP62)의 권한은 누구도 강등/변경할 수 없음
+		if (targetUser.getLoginId() != null && "BUILDUP62".equalsIgnoreCase(targetUser.getLoginId())
+				&& !CommonCode.ROLE_ADMIN.equals(roleCode)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN, "고정 매니저(BUILDUP62) 계정의 권한은 변경할 수 없습니다.");
+		}
+
 		// 최고관리자(9)가 아닌 부관리자(8)의 경우 제약사항:
 		// 1) 최고관리자(9) 등급을 부여할 수 없음
 		// 2) 최고관리자(9) 등급인 회원의 권한을 변경할 수 없음
 		if (!CommonCode.ROLE_ADMIN.equals(operator.getRoleCode())) {
 			if (CommonCode.ROLE_ADMIN.equals(roleCode)) {
-				return ApiResponse.error(ResultCode.FORBIDDEN, "최고 관리자(매니저)만 관리자 등급을 부여할 수 있습니다.");
+				return ApiResponse.error(ResultCode.FORBIDDEN, "최고 관리자(매니저)만 매니저 등급을 부여할 수 있습니다.");
 			}
-			Users targetUser = userDAO.selectUserByUserId(userId);
-			if (targetUser != null && CommonCode.ROLE_ADMIN.equals(targetUser.getRoleCode())) {
-				return ApiResponse.error(ResultCode.FORBIDDEN, "부관리자는 최고 관리자의 권한을 변경할 수 없습니다.");
+			if (CommonCode.ROLE_ADMIN.equals(targetUser.getRoleCode())) {
+				return ApiResponse.error(ResultCode.FORBIDDEN, "부매니저는 최고 관리자(매니저)의 권한을 변경할 수 없습니다.");
 			}
 		}
 

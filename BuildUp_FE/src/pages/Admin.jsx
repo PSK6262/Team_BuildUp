@@ -18,8 +18,10 @@ export default function Admin() {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const currentTheme = useSelector((state) => state.theme?.mode || 'dark');
 
-  // 관리자 권한 여부 판별 (ROLE_ADMIN = 9)
-  const isAdmin = user && (Number(user.roleCode) === 9);
+  // 관리자 권한 여부 판별 (매니저 = 9, 부매니저 = 8)
+  const roleCode = Number(user?.roleCode);
+  const isSuperAdmin = Boolean(user) && roleCode === 9;
+  const isAdmin = Boolean(user) && (roleCode === 9 || roleCode === 8);
 
   // 현재 활성 탭 ('overview' | 'matches' | 'community' | 'users' | 'sync')
   const [activeTab, setActiveTab] = useState('overview');
@@ -112,7 +114,7 @@ export default function Admin() {
         </p>
         <div className="admin-header__user">
           <span className="admin-header__user-text">
-            접속 관리자: <strong>{user?.nickname}</strong> <span className="admin-user-id">({user?.loginId})</span>
+            접속 등급: <strong>{isSuperAdmin ? '매니저(최고관리자)' : '부매니저(부관리자)'}</strong> · <strong>{user?.nickname}</strong> <span className="admin-user-id">({user?.loginId})</span>
           </span>
           <button
             type="button"
