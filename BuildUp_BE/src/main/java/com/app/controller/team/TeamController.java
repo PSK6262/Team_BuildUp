@@ -53,6 +53,10 @@ public class TeamController {
 	 * 3. Authorization Bearer JWT 토큰 검증 후 DB 조회
 	 * 데이터 동기화와 같은 중요한 상태 변경 API는 반드시 관리자(ROLE_ADMIN) 권한을 요구합니다.
 	 */
+	private boolean isAdminRole(Long roleCode) {
+		return CommonCode.ROLE_ADMIN.equals(roleCode) || CommonCode.ROLE_SUB_ADMIN.equals(roleCode);
+	}
+
 	private boolean isAdmin(HttpServletRequest request) {
 		if (request == null) {
 			return false;
@@ -62,7 +66,7 @@ public class TeamController {
 		HttpSession session = request.getSession(false);
 		if (session != null) {
 			Users sessionUser = (Users) session.getAttribute(CommonCode.SESSION_LOGIN_USER);
-			if (sessionUser != null && CommonCode.ROLE_ADMIN.equals(sessionUser.getRoleCode())) {
+			if (sessionUser != null && isAdminRole(sessionUser.getRoleCode())) {
 				return true;
 			}
 		}
@@ -71,7 +75,7 @@ public class TeamController {
 		String sessionLoginId = LoginManager.getLoginUserId(request);
 		if (sessionLoginId != null && userDAO != null) {
 			Users user = userDAO.selectUserByLoginId(sessionLoginId);
-			if (user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode())) {
+			if (user != null && isAdminRole(user.getRoleCode())) {
 				return true;
 			}
 		}
@@ -82,7 +86,7 @@ public class TeamController {
 			String tokenLoginId = JwtProvider.getLoginIdFromToken(token);
 			if (tokenLoginId != null && userDAO != null) {
 				Users user = userDAO.selectUserByLoginId(tokenLoginId);
-				if (user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode())) {
+				if (user != null && isAdminRole(user.getRoleCode())) {
 					return true;
 				}
 			}

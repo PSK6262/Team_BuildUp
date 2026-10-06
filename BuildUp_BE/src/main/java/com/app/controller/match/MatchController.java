@@ -63,6 +63,10 @@ public class MatchController {
 	 * 3. Authorization Bearer JWT 토큰 검증 후 DB 조회
 	 * 경기 데이터 동기화와 같은 대량 DB 변경 작업은 관리자(ROLE_ADMIN) 권한을 요구합니다.
 	 */
+	private boolean isAdminRole(Long roleCode) {
+		return CommonCode.ROLE_ADMIN.equals(roleCode) || CommonCode.ROLE_SUB_ADMIN.equals(roleCode);
+	}
+
 	private boolean isAdmin(HttpServletRequest request) {
 		if (request == null) {
 			return false;
@@ -72,7 +76,7 @@ public class MatchController {
 		HttpSession session = request.getSession(false);
 		if (session != null) {
 			Users sessionUser = (Users) session.getAttribute(CommonCode.SESSION_LOGIN_USER);
-			if (sessionUser != null && CommonCode.ROLE_ADMIN.equals(sessionUser.getRoleCode())) {
+			if (sessionUser != null && isAdminRole(sessionUser.getRoleCode())) {
 				return true;
 			}
 		}
@@ -81,7 +85,7 @@ public class MatchController {
 		String sessionLoginId = LoginManager.getLoginUserId(request);
 		if (sessionLoginId != null && userDAO != null) {
 			Users user = userDAO.selectUserByLoginId(sessionLoginId);
-			if (user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode())) {
+			if (user != null && isAdminRole(user.getRoleCode())) {
 				return true;
 			}
 		}
@@ -92,7 +96,7 @@ public class MatchController {
 			String tokenLoginId = JwtProvider.getLoginIdFromToken(token);
 			if (tokenLoginId != null && userDAO != null) {
 				Users user = userDAO.selectUserByLoginId(tokenLoginId);
-				if (user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode())) {
+				if (user != null && isAdminRole(user.getRoleCode())) {
 					return true;
 				}
 			}

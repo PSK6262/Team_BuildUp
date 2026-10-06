@@ -9,6 +9,8 @@ export default function Prediction() {
   const isLoggedIn = useSelector((state) => state.auth?.isLoggedIn);
   const authUser = useSelector((state) => state.auth?.user);
   const isAdmin =
+    Number(authUser?.roleCode) === 9 ||
+    Number(authUser?.roleCode) === 8 ||
     authUser?.role === 'ADMIN' ||
     authUser?.userRole === 'ADMIN' ||
     authUser?.authority === 'ROLE_ADMIN';

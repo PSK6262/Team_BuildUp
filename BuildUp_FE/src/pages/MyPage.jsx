@@ -1159,7 +1159,7 @@ export default function MyPage() {
           </div>
           <div className="mypage-top-meta-badge">
             <span className="dot"></span>
-            <span>{profile.roleName || (profile.roleCode === 9 ? '최고 관리자' : '정규 회원')}</span>
+            <span>{Number(profile.roleCode) === 9 ? '매니저' : Number(profile.roleCode) === 8 ? '부매니저' : (profile.roleName || '정규 회원')}</span>
           </div>
         </header>
 
@@ -1186,7 +1186,7 @@ export default function MyPage() {
 
               <div className="mypage-badge-group">
                 <span className="mypage-role-badge">
-                  {profile.roleName || (profile.roleCode === 9 ? 'ADMIN' : 'MEMBER')}
+                  {Number(profile.roleCode) === 9 ? 'MANAGER' : Number(profile.roleCode) === 8 ? 'SUB MANAGER' : (profile.roleName || 'MEMBER')}
                 </span>
                 {profileFavoriteTeam && (
                   <span className="mypage-fav-team-badge">

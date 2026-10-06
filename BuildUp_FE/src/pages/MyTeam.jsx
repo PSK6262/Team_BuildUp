@@ -1,7 +1,7 @@
 import { shuffledCopy } from '../utils/shuffle.js';
 import { captureMatchSquads, restoreMatchPlacement, matchPitchPoint } from '../utils/matchPlacement.js';
 import { findOverlappingPitchSlot } from '../utils/pitchCollision.js';
-import { replayAttackingSide, replaySetPiece, replayNextIndex, replayKicker, replayFreeKickWall, replayFreeKickPosition, replaySavingKeeper, replayPlayerPoint } from '../utils/matchReplay.js';
+import { replayAttackingSide, replaySetPiece, replayNextIndex, replayKicker, replayFreeKickWall, replayFreeKickPosition, replayCornerPosition, replaySavingKeeper, replayPlayerPoint } from '../utils/matchReplay.js';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { getAllPremierLeaguePlayers, getInitialTeams, getTeams } from '../api/teamApi.js';
@@ -10,6 +10,7 @@ import '../css/virtual-match.css';
 import { MemberRankings } from './teams.jsx';
 import { getAppSearchParams } from '../utils/searchParams.js';
 import { navigate } from '../utils/navigation.js';
+import MatchEventOverlay from '../components/MatchEventOverlay.jsx';
 
 // 지정 프리셋 포메이션 정의 (DF - MF - FW 합계는 모두 10)
 const FORMATION_PRESETS = [
@@ -250,7 +251,7 @@ function AiMatchTimeline({ match }) {
   const isSetPiece = isCorner || isPk || isFreeKick;
   const freeKickAttackers = event.side === 0 ? homeLineup : lineup;
   const freeKickDefenders = event.side === 0 ? lineup : homeLineup;
-  const kickTaker = isFreeKick || isPk ? replayKicker(freeKickAttackers, event) : null;
+  const kickTaker = isSetPiece ? replayKicker(freeKickAttackers, event) : null;
   const freeKickWall = isFreeKick ? replayFreeKickWall(freeKickDefenders) : [];
 
   // 세트피스 전담 키커 (FW 우선, 없으면 MF 첫 번째 선수)
@@ -336,11 +337,52 @@ function AiMatchTimeline({ match }) {
             <button type="button" className="myteam-btn myteam-btn-secondary myteam-ai-step" disabled={selectedIndex >= match.events.length - 1} onClick={() => selectEvent(selectedIndex + 1)}>다음 <span aria-hidden="true">›</span></button>
           </div>
           <p>{isSecondHalf ? '후반' : '전반'} · <span style={{ color: 'var(--myteam-home, #60a5fa)' }}>● {match.homeName} {homeLineup.length}명 · {isSecondHalf ? '↓' : '↑'} 공격</span>{' / '}<span style={{ color: 'var(--myteam-danger, #f87171)' }}>● {match.opponentName} {lineup.length}명 · {isSecondHalf ? '↑' : '↓'} 공격</span></p>
-          <svg ref={replaySvgRef} className="myteam-ai-mini-pitch" data-playing={playing} viewBox="0 0 360 440" role="img" aria-label={`양 팀 선수 배치: ${match.homeName} ${homeLineup.length}명, ${match.opponentName} ${lineup.length}명`}>
+          <div className="myteam-ai-pitch-wrapper" style={{ position: 'relative' }}>
+            <MatchEventOverlay
+              currentEvent={event}
+              homeName={match.homeName}
+              opponentName={match.opponentName}
+              isFinalEvent={selectedIndex === match.events.length - 1}
+            />
+            <svg ref={replaySvgRef} className="myteam-ai-mini-pitch" data-playing={playing} viewBox="0 0 360 440" role="img" aria-label={`양 팀 선수 배치: ${match.homeName} ${homeLineup.length}명, ${match.opponentName} ${lineup.length}명`}>
+            <defs>
+              <pattern id="myteam-goal-net" width="4" height="4" patternUnits="userSpaceOnUse">
+                <path d="M 0 0 L 4 4 M 4 0 L 0 4" fill="none" stroke="rgba(255, 255, 255, 0.45)" strokeWidth="0.6" />
+              </pattern>
+            </defs>
+
+            {/* 축구장 피치 잔디 및 기본 라인 */}
             <rect x="10" y="10" width="340" height="420" rx="8" fill="#123e30" stroke="#a7c9ba" />
             <path d="M10 220H350 M100 10V70H260V10 M100 430V370H260V430" fill="none" stroke="#a7c9ba" />
+            {/* 골 에어리어(6야드 박스) & 페널티 아크 & 스팟 */}
+            <path d="M138 10V34H222V10 M138 430V406H222V430" fill="none" stroke="#a7c9ba" strokeWidth="0.9" />
+            <path d="M 152 70 A 28 28 0 0 0 208 70 M 152 370 A 28 28 0 0 1 208 370" fill="none" stroke="#a7c9ba" strokeWidth="0.9" />
+            <circle cx="180" cy="54" r="2" fill="#a7c9ba" />
+            <circle cx="180" cy="386" r="2" fill="#a7c9ba" />
             <circle cx="180" cy="220" r="45" fill="none" stroke="#a7c9ba" />
-            <text x="180" y="30" textAnchor="middle" fill="#d1fae5" fontSize="12">{isSecondHalf ? '↑' : '↓'} AI 공격 방향</text>
+            <circle cx="180" cy="220" r="2.5" fill="#a7c9ba" />
+
+            {/* 상단 골대 (Top Goalpost & Net) */}
+            <g className="myteam-ai-goalpost-top" role="presentation">
+              <rect x="148" y="2" width="64" height="8" rx="1" fill="url(#myteam-goal-net)" stroke="rgba(255, 255, 255, 0.35)" strokeWidth="0.8" />
+              <rect x="148" y="2" width="64" height="2" fill="rgba(0, 0, 0, 0.35)" />
+              <path d="M 148 10 L 148 2 L 212 2 L 212 10" fill="none" stroke="#ffffff" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+              <line x1="148" y1="10" x2="212" y2="10" stroke="#ffffff" strokeWidth="2.2" />
+              <circle cx="148" cy="10" r="2.4" fill="#ffffff" />
+              <circle cx="212" cy="10" r="2.4" fill="#ffffff" />
+            </g>
+
+            {/* 하단 골대 (Bottom Goalpost & Net) */}
+            <g className="myteam-ai-goalpost-bottom" role="presentation">
+              <rect x="148" y="430" width="64" height="8" rx="1" fill="url(#myteam-goal-net)" stroke="rgba(255, 255, 255, 0.35)" strokeWidth="0.8" />
+              <rect x="148" y="436" width="64" height="2" fill="rgba(0, 0, 0, 0.35)" />
+              <path d="M 148 430 L 148 438 L 212 438 L 212 430" fill="none" stroke="#ffffff" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+              <line x1="148" y1="430" x2="212" y2="430" stroke="#ffffff" strokeWidth="2.2" />
+              <circle cx="148" cy="430" r="2.4" fill="#ffffff" />
+              <circle cx="212" cy="430" r="2.4" fill="#ffffff" />
+            </g>
+
+            <text x="180" y="214" textAnchor="middle" fill="#a7c9ba" fontSize="10" fontWeight="600" opacity="0.6" pointerEvents="none">{isSecondHalf ? '↑' : '↓'} AI 공격 방향</text>
 
             {/* 세트피스(코너킥/PK/프리킥) 궤적 곡선/직선 점선 */}
             {setPieceTrajectoryPath && (
@@ -380,8 +422,9 @@ function AiMatchTimeline({ match }) {
               const originalRow = fullLineup.filter((slot) => slot.pos === pos);
               const teamAttacking = !neutral && (event.type === 'save' ? event.side !== side : event.side === side);
               const localBall = side === 1 ? baseBallPos : { ...baseBallPos, x: 360 - baseBallPos.x, y: 440 - baseBallPos.y };
-              const kickerId = isFreeKick || isPk ? kickTaker?.player.playerId : side === 1 ? setPieceKickerId : (activeLineup.find((slot) => slot.pos === 'FW')
-                || activeLineup.find((slot) => slot.pos === 'MF') || activeLineup[0])?.player.playerId;
+              const kickerId = isSetPiece
+                ? (kickTaker?.player.playerId ?? (side === 1 ? setPieceKickerId : (activeLineup.find((slot) => slot.pos === 'FW') || activeLineup.find((slot) => slot.pos === 'MF') || activeLineup[0])?.player.playerId))
+                : (activeLineup.find((slot) => slot.pos === 'FW') || activeLineup.find((slot) => slot.pos === 'MF') || activeLineup[0])?.player.playerId;
               const index = originalRow.findIndex((slot) => slot.player.playerId === player.playerId);
               const rowSize = Math.min(originalRow.length, 5);
               const subRow = Math.floor(index / 5);
@@ -407,13 +450,18 @@ function AiMatchTimeline({ match }) {
                 ({ x, y } = replayFreeKickPosition({ localBall, attacking: event.side === side, isKicker,
                   pos, wallIndex, wallCount: freeKickWall.length,
                   supportIndex: Math.max(0, support.findIndex(slot => slot.player.playerId === player.playerId)) }));
+              } else if (isCorner) {
+                const outfieldList = activeLineup.filter(slot => slot.pos !== 'GK' && slot.player.playerId !== kickerId);
+                const outfieldIndex = outfieldList.findIndex(slot => slot.player.playerId === player.playerId);
+                ({ x, y } = replayCornerPosition({
+                  localBall,
+                  attacking: event.side === side,
+                  isKicker,
+                  pos,
+                  outfieldIndex: Math.max(0, outfieldIndex),
+                }));
               } else if (isKicker) {
-                // 키커가 공과 함께 정확한 위치로 이동!
-                if (isCorner) {
-                  const isLeft = localBall.x < 180;
-                  x = isLeft ? localBall.x + 12 : localBall.x - 12;
-                  y = localBall.y + (localBall.y < 220 ? 12 : -12);
-                } else if (isPk) {
+                if (isPk) {
                   // PK: 공 바로 뒤 중앙 (킥 대기)
                   x = localBall.x;
                   y = localBall.y + 16;
@@ -427,11 +475,6 @@ function AiMatchTimeline({ match }) {
                 // 상대가 PK 찰 때: AI 골키퍼가 골문 정중앙 라인에서 선방 대기
                 x = 180;
                 y = 422;
-              } else if (isCorner && event.side === side && pos !== 'GK') {
-                // 코너킥 시 나머지 선수들은 박스 안 헤더 쇄도
-                const pIdx = activeLineup.findIndex((s) => s.player.playerId === player.playerId);
-                x = 135 + ((pIdx * 35) % 100);
-                y = 42 + ((pIdx * 16) % 32);
               }
 
               const isSavingKeeper = savingKeeper?.side === side && savingKeeper.playerId === player.playerId;
@@ -446,12 +489,18 @@ function AiMatchTimeline({ match }) {
                 else if (isFreeKick) kickerBadge = '⚡ ';
               }
 
+              // FMM 스타일: 키커와 선방 키퍼는 0초 즉시 반응, 나머지 필드 플레이어는 0.02초~0.12초 인간적인 미세 반응 시차 부여
+              const reactionDelay = isKicker || isSavingKeeper
+                ? 0
+                : ((((player.playerId || index) * 7) % 5) * 0.025 + 0.02);
+
               return (
                 <g
                   key={`${side}-${player.playerId}`}
                   className={`myteam-ai-marker ${isKicker ? 'is-corner-kicker' : ''} ${isSavingKeeper ? 'is-saving-keeper' : ''}`}
                   style={{
                     transform: `translate(${x}px, ${y}px)`,
+                    transitionDelay: `${reactionDelay.toFixed(2)}s`,
                   }}
                 >
                   <g
@@ -467,6 +516,7 @@ function AiMatchTimeline({ match }) {
                       {isKicker ? (isCorner ? ' (코너킥 전담)' : isPk ? ' (PK 전담)' : ' (프리킥 전담)') : ''}
                     </title>
                     <circle
+                      className="myteam-ai-marker-circle"
                       r={isKicker ? 10 : 9}
                       fill={side === 0 ? '#60a5fa' : '#f87171'}
                       stroke={isKicker ? '#00ff87' : pos === 'GK' ? '#facc15' : '#fff'}
@@ -486,8 +536,8 @@ function AiMatchTimeline({ match }) {
                         rx="1" fill="#facc15" stroke="#713f12" strokeWidth="0.7"
                         role="img" aria-label="옐로카드" />
                     )}
-                    <text textAnchor="middle" y="20" fontSize="7.5" fill="#fff" stroke="#123e30" strokeWidth="3" paintOrder="stroke" strokeLinejoin="round" fontWeight={isKicker ? '700' : 'normal'}>
-                      {isFreeKick && wallIndex >= 0 ? `벽 ${wallIndex + 1}` : `${kickerBadge}${player.nameKor || player.name}`}
+                    <text className="myteam-ai-marker-name" textAnchor="middle" y="20" fontSize="7.5" fill="#fff" stroke="#123e30" strokeWidth="3" paintOrder="stroke" strokeLinejoin="round" fontWeight={isKicker ? '700' : 'normal'}>
+                      {`${kickerBadge}${player.nameKor || player.name}`}
                     </text>
                   </g>
                 </g>
@@ -570,10 +620,16 @@ function AiMatchTimeline({ match }) {
               </text>
             </g>}
           </svg>
+        </div>
           {isFreeKick && (
             <div className="myteam-free-kick-legend">
               <p><strong>⚡ 프리킥 키커</strong> {kickTaker?.player.nameKor || kickTaker?.player.name}</p>
               <p><strong>수비벽</strong> {freeKickWall.map(({ player }, index) => `${index + 1}. ${player.nameKor || player.name}`).join(' · ')}</p>
+            </div>
+          )}
+          {isCorner && (
+            <div className="myteam-free-kick-legend">
+              <p><strong>🚩 코너킥 키커</strong> {kickTaker?.player.nameKor || kickTaker?.player.name}</p>
             </div>
           )}
           {isPk && <div className="myteam-free-kick-legend"><p><strong>🎯 PK 키커</strong> {kickTaker?.player.nameKor || kickTaker?.player.name}</p></div>}
@@ -628,12 +684,29 @@ export default function MyTeam() {
   const savePendingRef = useRef(false);
   const accountVersionRef = useRef(0);
   const [aiMatch, setAiMatch] = useState(null);
+  const matchTimelineSectionRef = useRef(null);
   const [matching, setMatching] = useState(false);
   const matchRequestRef = useRef(null);
   const aiMatchIdRef = useRef(0);
   const [opponentMode, setOpponentMode] = useState('RANDOM');
   const [opponentClubId, setOpponentClubId] = useState('');
   const [cooldown, setCooldown] = useState(0);
+
+  // AI 대전 시작 후 결과가 로드되면 타임라인 및 경기중계 창으로 자동 부드럽게 스크롤
+  useEffect(() => {
+    if (aiMatch?.replayId) {
+      if (workspaceView !== 'match') {
+        changeWorkspaceView('match');
+      }
+      const timer = setTimeout(() => {
+        matchTimelineSectionRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }, 120);
+      return () => clearTimeout(timer);
+    }
+  }, [aiMatch?.replayId]);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -2449,7 +2522,7 @@ export default function MyTeam() {
           </details>
           <MemberRankings type="virtual" refreshKey={aiMatch?.replayId ?? 0} mobileCards />
           {aiMatch && (
-            <div className="myteam-ai-result">
+            <div ref={matchTimelineSectionRef} className="myteam-ai-result">
               <div className="myteam-ai-result-heading">
                 <div><h2>가상 대결 결과</h2><p>{aiMatch.rankingRecorded ? '랭킹에 반영된 경기입니다.' : '비회원 연습 경기 · 랭킹에 반영되지 않습니다.'}</p></div>
                 <a href="#/plug/rankpage?tab=virtual">승률 랭킹 보기 <span aria-hidden="true">↗</span></a>

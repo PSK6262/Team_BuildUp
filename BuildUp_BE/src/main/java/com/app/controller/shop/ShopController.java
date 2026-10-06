@@ -135,12 +135,18 @@ public class ShopController {
             UserActivityLogger.log(request, "포인트샵 아이템 구매", user.getLoginId());
             return ResponseEntity.ok(ApiResponse.success(response));
         } catch (IllegalStateException e) {
-            // 포인트 부족 또는 이미 보유한 아이템 등 비즈니스 예외
-            ResultCode code = e.getMessage() != null && e.getMessage().contains("포인트가 부족")
-                    ? ResultCode.SHOP_INSUFFICIENT_POINT
-                    : ResultCode.SHOP_ALREADY_OWNED;
+            // 포인트 부족, 임시(더미) 경기 진행 중, 또는 이미 보유한 아이템 등 비즈니스 예외
+            String msg = e.getMessage() != null ? e.getMessage() : "";
+            ResultCode code;
+            if (msg.contains("포인트가 부족")) {
+                code = ResultCode.SHOP_INSUFFICIENT_POINT;
+            } else if (msg.contains("임시") || msg.contains("더미")) {
+                code = ResultCode.FAIL;
+            } else {
+                code = ResultCode.SHOP_ALREADY_OWNED;
+            }
             return ResponseEntity.badRequest()
-                    .body(ApiResponse.error(code, e.getMessage()));
+                    .body(ApiResponse.error(code, msg));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error(ResultCode.INVALID_INPUT, e.getMessage()));

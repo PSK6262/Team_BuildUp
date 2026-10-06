@@ -47,7 +47,20 @@ export function useAdminOverview({ showAlert }) {
         return;
       }
       if (json.code === 'SUC_001' && json.data) {
-        setSummary(json.data);
+        let nextSummary = { ...json.data };
+        try {
+          const misRes = await adminApi.getAdminMatches({ status: 'MISMATCH', sort: 'ASC' });
+          const misJson = await misRes.json();
+          if (misJson.code === 'SUC_001' && Array.isArray(misJson.data)) {
+            const realMismatchCount = misJson.data.filter(
+              (m) => !(Number(m.matchId) >= 999901 && Number(m.matchId) <= 999910)
+            ).length;
+            nextSummary.MISMATCH_MATCHES = realMismatchCount;
+          }
+        } catch {
+          // ignore
+        }
+        setSummary(nextSummary);
       }
     } catch (e) {
       console.warn('요약 통계 조회 실패', e);

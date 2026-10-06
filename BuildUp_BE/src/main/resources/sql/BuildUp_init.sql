@@ -491,11 +491,11 @@ CREATE INDEX IDX_PLAYERS_TEAM_ID    ON PLAYERS (TEAM_ID ASC);
 -- ※ 외래키(FK) 무결성 보장을 위해 반드시 최초 1회 실행되어야 하는 기본 레코드
 -- --------------------------------------------------------------------
 
--- 1. USER_ROLES (회원 등급 마스터: 1 일반, 7 탈퇴회원, 8 기자, 9 관리자)
+-- 1. USER_ROLES (회원 등급 마스터: 1 일반, 7 탈퇴회원, 8 부관리자, 9 최고관리자)
 INSERT INTO USER_ROLES (ROLE_CODE, ROLE_NAME) VALUES (1, '일반');
 INSERT INTO USER_ROLES (ROLE_CODE, ROLE_NAME) VALUES (7, '탈퇴회원');
-INSERT INTO USER_ROLES (ROLE_CODE, ROLE_NAME) VALUES (8, '기자');
-INSERT INTO USER_ROLES (ROLE_CODE, ROLE_NAME) VALUES (9, '관리자');
+INSERT INTO USER_ROLES (ROLE_CODE, ROLE_NAME) VALUES (8, '부관리자');
+INSERT INTO USER_ROLES (ROLE_CODE, ROLE_NAME) VALUES (9, '최고관리자');
 
 -- 2. STAFF_ROLES (스태프 직책 마스터)
 INSERT INTO STAFF_ROLES (STAFF_ROLE_ID, ROLE_NAME) VALUES (1, '감독');

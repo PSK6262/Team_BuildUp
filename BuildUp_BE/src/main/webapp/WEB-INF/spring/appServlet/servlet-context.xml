@@ -36,6 +36,29 @@
 	<context:component-scan base-package="com.app.util"/>
 	<context:component-scan base-package="com.app.service"/>
 	<context:component-scan base-package="com.app.dao"/>
+	<context:component-scan base-package="com.app.interceptor"/>
+
+	<!-- 관리자 권한 및 로그인 인증 인터셉터 설정 -->
+	<interceptors>
+		<interceptor>
+			<mapping path="/api/admin/**" />
+			<mapping path="/api/matches/sync-season" />
+			<mapping path="/api/matches/sync-today" />
+			<mapping path="/matches/sync-season" />
+			<mapping path="/matches/sync-today" />
+			<mapping path="/api/teams/sync-*" />
+			<mapping path="/teams/sync-*" />
+			<mapping path="/api/predictions/matches/*/settle" />
+			<beans:ref bean="adminAuthInterceptor" />
+		</interceptor>
+		<interceptor>
+			<mapping path="/api/users/me/**" />
+			<mapping path="/api/shop/purchase" />
+			<mapping path="/api/shop/inventory/**" />
+			<mapping path="/api/shop/orders" />
+			<beans:ref bean="loginAuthInterceptor" />
+		</interceptor>
+	</interceptors>
 
 	<!-- Servlet multipart 설정으로 게시글 첨부파일을 받습니다. -->
 	<beans:bean id="multipartResolver" class="org.springframework.web.multipart.support.StandardServletMultipartResolver" />
