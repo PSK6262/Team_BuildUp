@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateUser } from '../store/authSlice.js';
 import { fetchTeams } from '../store/teamSlice.js';
@@ -44,6 +44,111 @@ export default function MainPage() {
     }
   });
   const [ isQuizOpen, setIsQuizOpen ] = useState(false);
+  const sectionRef = useRef(null);
+  const videoRef = useRef(null);
+  const [ hasAutoPlayed, setHasAutoPlayed ] = useState(false);
+  const [ isShrunk, setIsShrunk ] = useState(false);
+  const [ isVideoMuted, setIsVideoMuted ] = useState(true);
+
+  // 1. 초기 볼륨 설정 및 메인페이지 진입 시 무조건 스크롤 최상단 고정
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.volume = 0.25;
+      videoRef.current.muted = true;
+    }
+
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+
+    const resetScroll = () => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+
+    resetScroll();
+    const rafId = requestAnimationFrame(resetScroll);
+    const timer = setTimeout(resetScroll, 60);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(timer);
+    };
+  }, []);
+
+  // 2. 화면 스크롤 진입 감지:
+  // 처음 상단에 머무는 동안에는 절대 실행되지 않으며, 사용자가 실제로 스크롤을 내려 비디오 영역에 도달했을 때 1회 무음 자동 재생
+  useEffect(() => {
+    if (!sectionRef.current) return;
+
+    let isUserScrolled = false;
+    const handleScroll = () => {
+      if (window.scrollY > 80 || document.documentElement.scrollTop > 80) {
+        isUserScrolled = true;
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        // 유저가 실제로 스크롤을 내렸고 비디오 섹션이 화면에 35% 이상 들어왔을 때만 실행
+        if (entry.isIntersecting && isUserScrolled && !hasAutoPlayed && videoRef.current) {
+          videoRef.current.muted = true;
+          videoRef.current.volume = 0.25;
+          videoRef.current.play().then(() => {
+            setHasAutoPlayed(true);
+          }).catch(() => {});
+        }
+      },
+      { threshold: 0.35 }
+    );
+
+    // 초기 마운트 시 레이아웃 시프트 오탐지 방지를 위해 400ms 지연 후 관찰 시작
+    const timer = setTimeout(() => {
+      if (sectionRef.current) {
+        observer.observe(sectionRef.current);
+      }
+    }, 400);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('scroll', handleScroll);
+      observer.disconnect();
+    };
+  }, [ hasAutoPlayed ]);
+
+  // 3. 비디오 1회 재생 종료 시 -> 25% 크기로 축소
+  const handleVideoEnded = () => {
+    setIsShrunk(true);
+    setIsVideoMuted(true);
+  };
+
+  // 4. 비디오 클릭 핸들러 (축소 상태면 원래 크기로 커지면서 소리와 함께 재생 / 원래 크기면 소리 토글)
+  const handleClickVideo = () => {
+    if (!videoRef.current) return;
+
+    if (isShrunk) {
+      // 25% 축소된 상태에서 클릭: 부드럽게 원래 크기로 커지면서 소리와 함께 처음부터 재생!
+      setIsShrunk(false);
+      setIsVideoMuted(false);
+      videoRef.current.currentTime = 0;
+      videoRef.current.muted = false;
+      videoRef.current.volume = 0.25;
+      videoRef.current.play().catch(() => {});
+    } else {
+      // 확대 상태에서 클릭: 소리 음소거 토글
+      if (videoRef.current.muted) {
+        videoRef.current.muted = false;
+        videoRef.current.volume = 0.25;
+        setIsVideoMuted(false);
+      } else {
+        videoRef.current.muted = true;
+        setIsVideoMuted(true);
+      }
+    }
+  };
 
   // 로그인 상태일 때 최신 회원 정보(애정 구단 ID 포함) 동기화
   useEffect(() => {
@@ -554,6 +659,81 @@ export default function MainPage() {
           </section>
         )}
       </main>
+
+      {/* 메인 페이지 하단(광고 바로 위) 가로 꽉 차는 풀와이드 비디오 섹션 */}
+      {isIntroFinished && (
+        <section
+          ref={sectionRef}
+          className={`mainpage-video-section ${isShrunk ? 'has-shrunk' : ''}`}
+          aria-label="PL:UG 커뮤니티 영상"
+        >
+          <div
+            className={`mainpage-video-container ${isShrunk ? 'is-shrunk' : ''}`}
+            onClick={handleClickVideo}
+            title={
+              isShrunk
+                ? "클릭하여 소리와 함께 원래 크기로 다시 보기"
+                : isVideoMuted
+                  ? "클릭하여 소리 켜기 (25% 볼륨)"
+                  : "클릭하여 음소거"
+            }
+          >
+            <video
+              ref={videoRef}
+              src={`${import.meta.env.BASE_URL}plug-comm.mp4`}
+              className="mainpage-video-player"
+              playsInline
+              onEnded={handleVideoEnded}
+            />
+
+            {/* AI 생성 광고 영상 안내 뱃지 (작게 표시) */}
+            {!isShrunk && (
+              <div className="mainpage-video-ai-badge">
+                <span className="ai-badge-sparkle">✦</span>
+                <span className="ai-badge-text">AI를 활용하여 제작된 광고 영상입니다</span>
+              </div>
+            )}
+
+            {/* 축소 상태(25%) 안내 오버레이 (클릭하여 원래 크기로 확대 및 사운드 재생) */}
+            {isShrunk && (
+              <div className="mainpage-video-replay-overlay">
+                <div className="replay-badge">
+                  <span className="replay-icon">▶</span>
+                  <span className="replay-text">클릭하여 확대 재생</span>
+                  <span className="replay-sub">(사운드 ON)</span>
+                </div>
+              </div>
+            )}
+
+            {/* 확대 상태일 때 사운드 토글 뱃지 */}
+            {!isShrunk && (
+              <div className="mainpage-video-sound-badge">
+                <button
+                  type="button"
+                  className={`video-sound-btn ${isVideoMuted ? 'is-muted' : 'is-unmuted'}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleClickVideo();
+                  }}
+                  aria-label={isVideoMuted ? '소리 켜기 (25% 볼륨)' : '음소거하기'}
+                >
+                  {isVideoMuted ? (
+                    <>
+                      <span className="sound-icon">🔇</span>
+                      <span className="sound-text">소리 켜기 (클릭)</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="sound-icon">🔊</span>
+                      <span className="sound-text">소리 켜짐 (25%)</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* 퀴즈 모달 (DB TEAMS 테이블 연동 구단 데이터 전달) */}
       <TeamQuizModal

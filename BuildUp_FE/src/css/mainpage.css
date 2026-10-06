@@ -17,7 +17,7 @@
   background-color: #240428;
   color: #ffffff;
   font-family: var(--font-plug);
-  overflow: hidden;
+  overflow-x: hidden;
   box-sizing: border-box;
 }
 
@@ -29,7 +29,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100vh;
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
@@ -1079,6 +1079,263 @@ html[data-theme='light'] body:has(.mainpage-container) {
 .mainpage--light .mainpage-next-match__stadium,
 [data-theme='light'] .mainpage-next-match__stadium {
   color: #705584;
+}
+
+/* ========================================================
+   MainPage Video Showcase (광고 바로 위, 90% 프레임 뷰)
+   ======================================================== */
+.mainpage-video-section {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  background: linear-gradient(180deg, #240428 0%, #17031a 50%, #121217 100%);
+  padding: 40px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* 비디오 프레임 컨테이너 (최대 90% 유지 및 모니터/시네마틱 디스플레이 프레임) */
+.mainpage-video-container {
+  position: relative;
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #09090d;
+  border-radius: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 35px rgba(110, 231, 183, 0.12);
+  transition:
+    width 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    max-width 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    margin 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    border-radius 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.4s ease,
+    transform 0.4s ease,
+    box-shadow 0.65s ease;
+}
+
+/* 1회 재생 후 25% 크기로 축소된 미니 플레이어 카드 상태 */
+.mainpage-video-container.is-shrunk {
+  width: clamp(250px, 25%, 340px);
+  max-width: 90vw;
+  margin: 20px auto 30px;
+  border-radius: 18px;
+  border: 2px solid rgba(0, 255, 135, 0.65);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75), 0 0 30px rgba(0, 255, 135, 0.3);
+  transform: scale(0.98);
+}
+
+.mainpage-video-container.is-shrunk:hover {
+  transform: scale(1.04);
+  border-color: #00ff87;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.85), 0 0 45px rgba(0, 255, 135, 0.55);
+}
+
+.mainpage-video-player {
+  width: 100%;
+  height: auto;
+  max-height: 75vh;
+  object-fit: cover;
+  display: block;
+}
+
+/* AI 제작 광고 영상 안내 뱃지 (작고 은은하게 표시) */
+.mainpage-video-ai-badge {
+  position: absolute;
+  bottom: 16px;
+  left: 18px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(10, 10, 14, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 11px;
+  font-weight: 500;
+  color: #94a3b8;
+  letter-spacing: -0.2px;
+  pointer-events: none;
+  user-select: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.ai-badge-sparkle {
+  color: #38bdf8;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.ai-badge-text {
+  line-height: 1;
+}
+
+/* 25% 축소 상태 안내 오버레이 */
+.mainpage-video-replay-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  transition: background 0.3s ease;
+}
+
+.mainpage-video-container.is-shrunk:hover .mainpage-video-replay-overlay {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.replay-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: rgba(18, 18, 23, 0.88);
+  border: 1.5px solid rgba(0, 255, 135, 0.7);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 255, 135, 0.35);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  user-select: none;
+}
+
+.mainpage-video-container.is-shrunk:hover .replay-badge {
+  transform: scale(1.08);
+  border-color: #00ff87;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 255, 135, 0.6);
+}
+
+.replay-icon {
+  font-size: 22px;
+  line-height: 1;
+  color: #00ff87;
+  margin-left: 2px;
+}
+
+.replay-text {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+}
+
+.replay-sub {
+  font-size: 11px;
+  font-weight: 700;
+  color: #34d399;
+}
+
+/* 사운드 토글 뱃지 */
+.mainpage-video-sound-badge {
+  position: absolute;
+  bottom: 16px;
+  right: 18px;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.video-sound-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(18, 18, 23, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.video-sound-btn:hover {
+  background: rgba(0, 255, 135, 0.2);
+  border-color: #00ff87;
+  color: #00ff87;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(0, 255, 135, 0.45);
+}
+
+.video-sound-btn.is-unmuted {
+  background: rgba(0, 255, 135, 0.16);
+  border-color: #00ff87;
+  color: #00ff87;
+}
+
+.video-sound-btn .sound-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.video-sound-btn .sound-text {
+  letter-spacing: -0.2px;
+}
+
+@media (max-width: 768px) {
+  .mainpage-video-section {
+    padding: 24px 12px 16px;
+  }
+
+  .mainpage-video-container {
+    width: 94%;
+    border-radius: 14px;
+  }
+
+  .mainpage-video-ai-badge {
+    bottom: 10px;
+    left: 10px;
+    padding: 3px 7px;
+    font-size: 9.5px;
+  }
+
+  .mainpage-video-sound-badge {
+    bottom: 10px;
+    right: 10px;
+  }
+
+  .video-sound-btn {
+    padding: 5px 11px;
+    font-size: 10.5px;
+    gap: 4px;
+  }
+
+  .video-sound-btn .sound-icon {
+    font-size: 12px;
+  }
+
+  .replay-badge {
+    padding: 10px 16px;
+  }
+
+  .replay-icon {
+    font-size: 18px;
+  }
+
+  .replay-text {
+    font-size: 12px;
+  }
 }
 
 

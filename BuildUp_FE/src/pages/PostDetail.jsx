@@ -753,7 +753,7 @@ export default function PostDetail({ postId }) {
               style={{ fontSize: 12, marginTop: 4 }}
               onClick={() => setUnblurredComments((prev) => ({ ...prev, [comment.commentId]: false }))}
             >
-              블러 다시 적용
+              블라인드 다시 적용
             </button>
           )}
         </div>
@@ -902,7 +902,7 @@ export default function PostDetail({ postId }) {
                 className="community__blind-toggle-btn"
                 onClick={() => setUnblurredPost(true)}
               >
-                블러 해제하고 내용 보기
+                블라인드 해제하고 내용 보기
               </button>
             </div>
           </div>
@@ -925,7 +925,7 @@ export default function PostDetail({ postId }) {
                 className="community__blind-reblur-btn"
                 onClick={() => setUnblurredPost(false)}
               >
-                블러 다시 적용하기
+                블라인드 다시 적용하기
               </button>
             </div>
           )}
