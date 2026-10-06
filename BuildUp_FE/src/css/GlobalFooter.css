@@ -6,7 +6,7 @@
   color: #a0a0aa;
   border-top: 1px solid #27272f;
   margin-top: auto;
-  padding: 40px 20px 32px;
+  padding: 24px 20px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   box-sizing: border-box;
 }
@@ -17,7 +17,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 32px;
+  gap: 20px;
 }
 
 /* 광고 섹션 */
@@ -196,4 +196,30 @@
     font-size: 11.5px;
     color: #71717a;
   }
+}
+
+/* 실제 광고가 채워지기 전 표시하는 가상 스포츠 브랜드 시안 */
+.global-footer__ad-box:has(.sample-sports-ad) { min-height: 180px; border: 1px solid #3f5444; }
+.global-footer__ad-placeholder.sample-sports-ad { justify-content: space-between; gap: 24px; padding: 16px 30px 24px; color: #f5f5e9; background: radial-gradient(ellipse at 85% 40%, #395532 0, transparent 45%), linear-gradient(115deg, #111e18, #1e3425); }
+.sample-sports-ad__brand { font: italic 900 23px/1.1 Arial, sans-serif; letter-spacing: -1px; color: #d9fa78; }
+.sample-sports-ad__brand span { display: block; margin-top: 9px; font: 10px/1.5 Arial, sans-serif; letter-spacing: 2px; color: #d0dacb; }
+.sample-sports-ad__copy { flex: 1; max-width: 420px; }
+.sample-sports-ad__eyebrow { font-size: 10px; letter-spacing: 2px; color: #d9fa78; }
+.sample-sports-ad__copy strong { display: block; margin-top: 10px; font-size: clamp(22px, 3vw, 34px); line-height: 1.2; letter-spacing: -1px; color: #f5f5e9; }
+.sample-sports-ad__copy p { margin: 12px 0 0; font-size: 12px; color: #c4d0c1; }
+.sample-sports-ad__art { display: flex; align-items: center; gap: 12px; transform: rotate(-8deg); }
+.sample-sports-ad__art > span { font: italic 900 110px/.9 Arial, sans-serif; letter-spacing: -12px; color: #d9fa78; }
+.sample-sports-ad__art small { font: 900 12px/1.3 Arial, sans-serif; color: #e9eedc; }
+.sample-sports-ad__disclosure { position: absolute; bottom: 10px; right: 16px; font-size: 10px; color: #bbc9b8; }
+.global-footer__ad-box:has(ins[data-ad-status='filled']) .sample-sports-ad { display: none; }
+@media(max-width: 680px) {
+  .global-footer__ad-box:has(.sample-sports-ad) { min-height: 180px; }
+  .global-footer__ad-placeholder.sample-sports-ad { padding: 14px 18px 24px; flex-wrap: wrap; gap: 8px; }
+  .sample-sports-ad__brand { width: 100%; font-size: 17px; }
+  .sample-sports-ad__brand span { display: none; }
+  .sample-sports-ad__eyebrow { display: none; }
+  .sample-sports-ad__copy strong { font-size: 24px; margin: 0; }
+  .sample-sports-ad__copy p { max-width: 180px; font-size: 11px; }
+  .sample-sports-ad__art > span { font-size: 64px; letter-spacing: -7px; }
+  .sample-sports-ad__art small { display: none; }
 }
