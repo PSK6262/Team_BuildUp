@@ -634,6 +634,93 @@ public class AdminController {
 		}
 	}
 
+	// [Gemini AI] 23-1. 전체 구단 역사 및 한글명 일괄 자동 적재 (비동기 백그라운드)
+	@PostMapping("/sync/ai-korean")
+	public ApiResponse<Map<String, Object>> syncAiKorean(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		try {
+			Map<String, Object> result = geminiApiService.syncAllKoreanDataAsync();
+			return ApiResponse.success(result);
+		} catch (Exception e) {
+			log.error("[AdminController] 전체 AI 한글화 일괄 실행 실패: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "전체 AI 한글화 실행 중 오류가 발생했습니다: " + e.getMessage());
+		}
+	}
+
+	// [Gemini AI] 23-2. 전체 선수단 한글 번역 단독 실행
+	@PostMapping("/sync/ai-players")
+	public ApiResponse<Map<String, Object>> syncAiPlayers(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		try {
+			int count = geminiApiService.syncAllPlayersKorean();
+			Map<String, Object> data = new HashMap<>();
+			data.put("syncedPlayersKorean", count);
+			data.put("updatedCount", count);
+			return ApiResponse.success(data);
+		} catch (Exception e) {
+			log.error("[AdminController] 선수단 한글 번역 실패: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "선수단 한글 번역 중 오류가 발생했습니다: " + e.getMessage());
+		}
+	}
+
+	// [Gemini AI] 23-3. 20개 구단 한글명, 홈구장, 역사 동기화 단독 실행
+	@PostMapping("/sync/ai-teams")
+	public ApiResponse<Map<String, Object>> syncAiTeams(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		try {
+			int count = geminiApiService.syncTeamsKoreanAndHistory();
+			Map<String, Object> data = new HashMap<>();
+			data.put("syncedTeamsKorean", count);
+			data.put("updatedCount", count);
+			return ApiResponse.success(data);
+		} catch (Exception e) {
+			log.error("[AdminController] 구단 한글명 동기화 실패: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "구단 한글명 동기화 중 오류가 발생했습니다: " + e.getMessage());
+		}
+	}
+
+	// [Gemini AI] 23-4. 코칭스태프(감독) 한글명 번역 단독 실행
+	@PostMapping("/sync/ai-staffs")
+	public ApiResponse<Map<String, Object>> syncAiStaffs(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		try {
+			int count = geminiApiService.syncStaffsKorean();
+			Map<String, Object> data = new HashMap<>();
+			data.put("syncedStaffsKorean", count);
+			data.put("updatedCount", count);
+			return ApiResponse.success(data);
+		} catch (Exception e) {
+			log.error("[AdminController] 코칭스태프 한글 번역 실패: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "코칭스태프 한글 번역 중 오류가 발생했습니다: " + e.getMessage());
+		}
+	}
+
+	// [Gemini AI] 23-5. 전체 선수 세부 포지션(CB, LB, CDM, ST 등) AI 판별 및 DB 적재
+	@PostMapping("/sync/ai-positions")
+	public ApiResponse<Map<String, Object>> syncAiPositions(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		try {
+			int count = geminiApiService.syncAllPlayersDetailPositions();
+			Map<String, Object> data = new HashMap<>();
+			data.put("syncedPositions", count);
+			data.put("updatedCount", count);
+			return ApiResponse.success(data);
+		} catch (Exception e) {
+			log.error("[AdminController] 세부 포지션 AI 적재 실패: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "세부 포지션 AI 적재 중 오류가 발생했습니다: " + e.getMessage());
+		}
+	}
+
 	// 24. [승부예측 테스트용] 더미 경기 10개 생성 (현재시간 + N분 뒤 시작)
 	@PostMapping("/matches/dummy")
 	public ApiResponse<Map<String, Object>> createDummyMatches(
