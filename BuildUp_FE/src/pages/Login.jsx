@@ -85,7 +85,9 @@ export default function Login() {
             <label htmlFor="loginId">아이디</label>
             <input
               id="loginId"
+              name="username"
               type="text"
+              autoComplete="username"
               placeholder="아이디를 입력하세요"
               value={loginId}
               onChange={(e) => setLoginId(e.target.value)}
@@ -97,7 +99,9 @@ export default function Login() {
             <label htmlFor="password">비밀번호</label>
             <input
               id="password"
+              name="password"
               type="password"
+              autoComplete="current-password"
               placeholder="비밀번호를 입력하세요"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

@@ -404,12 +404,14 @@ export default function TeamSquadSection({ teamId }) {
       </section>
 
       {/* 선수 시즌 스탯 모달창 */}
-      <PlayerStatsModal
-        player={activePlayer}
-        stats={playerStats}
-        loading={statsLoading}
-        onClose={handleCloseModal}
-      />
+      {activePlayer && (
+        <PlayerStatsModal
+          player={activePlayer}
+          stats={playerStats}
+          loading={statsLoading}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 }

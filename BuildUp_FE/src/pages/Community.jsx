@@ -3,9 +3,11 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fetchTeams, fetchCategories } from '../store/teamSlice.js'
 import useBoardState from './useBoardState.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
+import CommunityLoading from '../components/CommunityLoading.jsx'
 import '../css/Community.css'
 
 const PAGE_SIZE = 10
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? 'https://psk6262buildup.duckdns.org' : '')
 
 // 목록에서는 제목을 30자까지 표시합니다.
 function formatPostTitle(title, commentCount) {
@@ -241,11 +243,12 @@ export default function Community({ selectedTeam = null }) {
       </div>
       {(error || teamMatchMissing) && <p className="community__form-error" role="alert">{error || '선택한 구단을 DB에서 찾을 수 없습니다.'}</p>}
       <div className="community__table-wrap">
-        <table className="community__table community__integrated-table">
+        <table className="community__table community__integrated-table community__post-list">
           <caption className="community__sr-only">자유, 팀별 및 나만의 팀 자랑 게시글 목록</caption>
-          <thead><tr><th scope="col" className="community__number">번호</th><th scope="col">분류·팀</th><th scope="col">제목</th><th scope="col">작성자</th><th scope="col">조회수</th><th scope="col">추천수</th></tr></thead>
+          <thead><tr><th scope="col" className="community__number">번호</th><th scope="col">분류·팀</th><th scope="col">제목</th><th scope="col">작성자</th><th scope="col">작성일</th><th scope="col">조회수</th><th scope="col">추천수</th></tr></thead>
           <tbody>
-            {posts.map((post) => <tr key={post.postId}>
+            {(postsLoading || optionsLoading) && <tr><td colSpan={7} className="community__loading-cell"><CommunityLoading /></td></tr>}
+            {!postsLoading && !optionsLoading && posts.map((post) => <tr key={post.postId}>
               <td className="community__number">{post.postId}</td>
               <td><span className={`community__badge ${post.teamId != null || post.showcaseImageId != null ? 'community__badge--team' : ''}`}>{post.showcaseImageId != null ? '자랑' : post.teamName || post.categoryType}</span></td>
               <td className="community__title">
@@ -259,10 +262,11 @@ export default function Community({ selectedTeam = null }) {
                 </a>
               </td>
               <td className="community__author"><span title={post.nickname || '알 수 없음'}>{post.nickname || '알 수 없음'}</span></td>
-              <td>{post.viewCount}</td>
-              <td>{post.likeCount}</td>
+              <td className="community__date"><time dateTime={post.createdAt}>{post.createdAt?.slice(0, 10).replaceAll('-', '.')}</time></td>
+              <td className="community__views">{post.viewCount}</td>
+              <td className="community__likes">{post.likeCount}</td>
             </tr>)}
-            {!postsLoading && !posts.length && <tr><td colSpan={6} className="community__empty">등록된 게시글이 없습니다.</td></tr>}
+            {!postsLoading && !optionsLoading && !error && !teamMatchMissing && !posts.length && <tr><td colSpan={7} className="community__empty"><strong>{keyword || teamId ? '조건에 맞는 게시글이 없어요.' : '아직 등록된 게시글이 없어요.'}</strong><p>{keyword || teamId ? '다른 검색어나 구단으로 찾아보세요.' : '첫 번째 이야기를 남겨보세요.'}</p>{(keyword || teamId) && <button type="button" onClick={() => { setInput(''); setKeyword(''); setTeamId(''); setPage(1) }}>검색·팀 필터 초기화</button>}</td></tr>}
           </tbody>
         </table>
       </div>
@@ -273,10 +277,18 @@ export default function Community({ selectedTeam = null }) {
           <button type="button" disabled={page === pageCount || postsLoading} onClick={() => setPage(page + 1)}>다음</button>
         </nav>
       </div>
-      {/* 광고 연결 전에도 공간을 확보해 목록 아래 배치가 밀리지 않도록 합니다. */}
+      {/* 커뮤니티 목록 하단 광고 영역 */}
       <aside className="community__ad" aria-label="광고 영역">
-        <span className="community__ad-label">광고 · ADVERTISEMENT</span>
-        <div className="community__ad-space"><span>광고 영역</span></div>
+        <div className="community__ad-space" style={{ overflow: 'hidden', padding: 0 }}>
+          <picture style={{ width: '100%', height: '100%', display: 'block' }}>
+            <source media="(max-width: 680px)" srcSet={`${import.meta.env.BASE_URL}je-mobile.png`} />
+            <img
+              src={`${import.meta.env.BASE_URL}je-pc.png`}
+              alt="제때약 — 내 약을 제때, 더 안전하게."
+              style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block', margin: '0 auto' }}
+            />
+          </picture>
+        </div>
       </aside>
       {!selectedTeam && board !== 'team' && board !== 'showcase' && <section className="community__showcase" aria-labelledby="showcase-title">
         <div className="community__showcase-heading">
@@ -288,12 +300,13 @@ export default function Community({ selectedTeam = null }) {
         <div className="community__cards">
           {showcasePosts.map((post) => <a className="community__card community__showcase-card" href={`#/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.hash.replace(/^#/, '').split('?')[0] || window.location.pathname)}`} key={post.postId}>
             {post.showcaseImageId
-              ? <img className="community__showcase-thumbnail" src={`/api/communities/attachments/${post.showcaseImageId}/content`} alt="나만의 팀 포메이션" />
+              ? <img className="community__showcase-thumbnail" src={`${API_BASE_URL}/api/communities/attachments/${post.showcaseImageId}/content`} alt="나만의 팀 포메이션" />
               : <span className="community__pitch" aria-hidden="true">⚽</span>}
             <small>작성자 {post.nickname}</small>
             <h3 title={post.title}>{formatPostTitle(post.title, post.commentCount)}</h3>
             <strong>추천 {post.likeCount || 0} · 조회 {post.viewCount || 0}</strong>
           </a>)}
+          {showcaseLoading && <CommunityLoading />}
           {!showcaseLoading && !showcasePosts.length && !showcaseError && <p className="community__showcase-empty">아직 등록된 나만의 팀 자랑글이 없습니다.</p>}
         </div>
       </section>}

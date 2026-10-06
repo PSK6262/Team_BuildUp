@@ -3,21 +3,65 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fetchTeams, fetchCategories } from '../store/teamSlice.js'
 import { communityTeams } from '../data/communityTeams.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
+import CommunityLoading from '../components/CommunityLoading.jsx'
+import { notifyCommunity } from '../components/CommunityToast.jsx'
 import { useCommunityConfirm } from '../components/CommunityConfirm.jsx'
 import { getAppSearchParams } from '../utils/searchParams.js'
 import { navigate } from '../utils/navigation.js'
 import '../css/Community.css'
 
 // StrictMode가 개발 환경에서 같은 상세 조회를 두 번 실행해도 서버 요청은 한 번만 보냅니다.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? 'https://psk6262buildup.duckdns.org' : '')
 const pendingPostRequests = new Map()
 const COMMENT_MAX_LENGTH = 100
 const POST_TITLE_MAX_LENGTH = 50
 const POST_CONTENT_MAX_LENGTH = 1000
-const MAX_ATTACHMENT_COUNT = 5
-const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024
-const MAX_ATTACHMENT_TOTAL_SIZE = 20 * 1024 * 1024
-const IMAGE_ATTACHMENT_PATTERN = /\.(jpe?g|png|gif|webp)$/i
+const MAX_ATTACHMENT_COUNT = 3
+const MAX_IMAGE_ATTACHMENT_SIZE = 1 * 1024 * 1024
+const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024
+const MAX_ATTACHMENT_TOTAL_SIZE = 10 * 1024 * 1024
+const IMAGE_ATTACHMENT_PATTERN = /\.(jpe?g|png|gif|webp|heic|heif)$/i
 const FILE_ATTACHMENT_PATTERN = /\.(pdf|txt|docx|xlsx|zip)$/i
+
+async function compressImageUnderLimit(file, maxBytes = MAX_IMAGE_ATTACHMENT_SIZE) {
+  if (file.size > 0 && file.size < maxBytes) return file
+  return new Promise((resolve) => {
+    const objectUrl = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = async () => {
+      URL.revokeObjectURL(objectUrl)
+      const maxDims = [1600, 1280, 1024, 800, 640, 480]
+      const qualities = [0.82, 0.68, 0.54, 0.4]
+      const origW = img.naturalWidth || img.width || 1280
+      const origH = img.naturalHeight || img.height || 720
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+
+      for (const maxDim of maxDims) {
+        const scale = Math.min(1, maxDim / Math.max(origW, origH))
+        canvas.width = Math.max(1, Math.round(origW * scale))
+        canvas.height = Math.max(1, Math.round(origH * scale))
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+        for (const q of qualities) {
+          const blob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', q))
+          if (blob && blob.size > 0 && blob.size < maxBytes) {
+            const baseName = (file.name || 'image').replace(/\.[^.]+$/, '')
+            resolve(new File([blob], `${baseName}.jpg`, { type: 'image/jpeg', lastModified: Date.now() }))
+            return
+          }
+        }
+      }
+      resolve(file)
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      resolve(file)
+    }
+    img.src = objectUrl
+  })
+}
 
 const commentLength = (value) => Array.from(value).length
 const limitComment = (value) => Array.from(value).slice(0, COMMENT_MAX_LENGTH).join('')
@@ -104,6 +148,7 @@ export default function PostDetail({ postId }) {
   const commentRequestRef = useRef(false)
   const [likeLoading, setLikeLoading] = useState(false)
   const [comments, setComments] = useState([])
+  const [commentsFetching, setCommentsFetching] = useState(true)
   const [commentContent, setCommentContent] = useState('')
   const [replyTarget, setReplyTarget] = useState(null)
   const [replyContent, setReplyContent] = useState('')
@@ -201,6 +246,7 @@ export default function PostDetail({ postId }) {
   useEffect(() => {
     let active = true
     const fetchComments = async () => {
+      setCommentsFetching(true)
       try {
         const response = await fetch(`/api/communities/${encodeURIComponent(postId)}/comments`)
         const isJson = response.headers.get('content-type')?.includes('application/json')
@@ -211,6 +257,8 @@ export default function PostDetail({ postId }) {
         if (active) setComments(result.data)
       } catch (exception) {
         if (active) setCommentsError(exception.message || '댓글을 불러오지 못했습니다.')
+      } finally {
+        if (active) setCommentsFetching(false)
       }
     }
     fetchComments()
@@ -274,6 +322,7 @@ export default function PostDetail({ postId }) {
       }
       setPost(result.data)
       setEditing(false)
+      notifyCommunity('게시글을 수정했어요.')
     } catch (exception) {
       setActionError(exception.message || '게시글 수정에 실패했습니다.')
     } finally {
@@ -296,6 +345,7 @@ export default function PostDetail({ postId }) {
       if (!response.ok) {
         throw new Error(result.message || '게시글 삭제에 실패했습니다.')
       }
+      notifyCommunity('게시글을 삭제했어요.')
       navigate(backTo)
     } catch (exception) {
       setActionError(exception.message || '게시글 삭제에 실패했습니다.')
@@ -332,6 +382,7 @@ export default function PostDetail({ postId }) {
       }
       setPost(result.data)
       setLiked(!liked)
+      notifyCommunity(liked ? '추천을 취소했어요.' : '게시글을 추천했어요.')
     } catch (exception) {
       setActionError(exception.message || '추천 처리에 실패했습니다.')
     } finally {
@@ -382,6 +433,7 @@ export default function PostDetail({ postId }) {
         throw new Error(result?.message || '댓글 등록에 실패했습니다.')
       }
       setComments((current) => [...current, result.data])
+      notifyCommunity('댓글을 등록했어요.')
       if (parentComment) {
         setReplyContent('')
         setReplyTarget(null)
@@ -435,6 +487,7 @@ export default function PostDetail({ postId }) {
         Number(comment.commentId) === Number(commentId) ? result.data : comment))
       setEditingCommentId(null)
       setEditCommentContent('')
+      notifyCommunity('댓글을 수정했어요.')
     } catch (exception) {
       setCommentsError(exception.message || '댓글 수정에 실패했습니다.')
     } finally {
@@ -470,12 +523,14 @@ export default function PostDetail({ postId }) {
           : comment)
       })
       if (Number(editingCommentId) === Number(commentId)) {
+        // 수정 중인 댓글을 삭제한 경우 편집 상태도 정리합니다.
         setEditingCommentId(null)
         setEditCommentContent('')
       }
       if (Number(replyTarget?.commentId) === Number(commentId)) {
         setReplyTarget(null)
       }
+      notifyCommunity('댓글을 삭제했어요.')
     } catch (exception) {
       setCommentsError(exception.message || '댓글 삭제에 실패했습니다.')
     } finally {
@@ -484,33 +539,51 @@ export default function PostDetail({ postId }) {
   }
 
   // 게시글에 추가할 이미지와 일반 파일을 각각 검사합니다.
-  const selectAttachments = (event, type) => {
-    const selected = Array.from(event.target.files || [])
+  const selectAttachments = async (event, type) => {
+    const incoming = Array.from(event.target.files || [])
     event.target.value = ''
+    if (!incoming.length) return
+    const existing = type === 'image' ? pendingImages : pendingFiles
+    const selected = [...existing]
+    for (const file of incoming) {
+      if (!selected.some((item) => item.name === file.name && item.size === file.size && item.lastModified === file.lastModified)) selected.push(file)
+    }
     const otherPending = type === 'image' ? pendingFiles : pendingImages
     const pattern = type === 'image' ? IMAGE_ATTACHMENT_PATTERN : FILE_ATTACHMENT_PATTERN
     if (attachments.length + otherPending.length + selected.length > MAX_ATTACHMENT_COUNT) {
       setAttachmentError(`첨부파일은 게시글당 최대 ${MAX_ATTACHMENT_COUNT}개까지 등록할 수 있습니다.`)
       return
     }
-    if (selected.some((file) => file.size <= 0 || file.size > MAX_ATTACHMENT_SIZE)) {
-      setAttachmentError('파일 하나의 크기는 10MB 이하여야 합니다.')
+    const isImageFile = (file) => (file.type && file.type.startsWith('image/')) || pattern.test(file.name)
+    if (type === 'image' && selected.some((file) => !isImageFile(file))) {
+      setAttachmentError('JPG, PNG, GIF, WEBP, HEIC 이미지만 등록할 수 있습니다.')
+      return
+    }
+    if (type === 'file' && selected.some((file) => !pattern.test(file.name))) {
+      setAttachmentError('PDF, TXT, DOCX, XLSX, ZIP 파일만 첨부할 수 있습니다.')
+      return
+    }
+    if (type === 'file' && selected.some((file) => file.size <= 0 || file.size > MAX_ATTACHMENT_SIZE)) {
+      setAttachmentError('일반 첨부파일 하나의 크기는 5MB 이하여야 합니다.')
+      return
+    }
+
+    const processed = type === 'image'
+      ? await Promise.all(selected.map((file) => compressImageUnderLimit(file, MAX_IMAGE_ATTACHMENT_SIZE)))
+      : selected
+
+    if (type === 'image' && processed.some((file) => file.size <= 0 || file.size >= MAX_IMAGE_ATTACHMENT_SIZE)) {
+      setAttachmentError('이미지 파일은 1MB 미만이어야 합니다.')
       return
     }
     const savedSize = attachments.reduce((sum, attachment) => sum + Number(attachment.fileSize || 0), 0)
-    if (savedSize + [...selected, ...otherPending].reduce((sum, file) => sum + file.size, 0) > MAX_ATTACHMENT_TOTAL_SIZE) {
-      setAttachmentError('게시글의 이미지와 첨부파일 전체 크기는 20MB 이하여야 합니다.')
-      return
-    }
-    if (selected.some((file) => !pattern.test(file.name))) {
-      setAttachmentError(type === 'image'
-        ? 'JPG, PNG, GIF, WEBP 이미지만 등록할 수 있습니다.'
-        : 'PDF, TXT, DOCX, XLSX, ZIP 파일만 첨부할 수 있습니다.')
+    if (savedSize + [...processed, ...otherPending].reduce((sum, file) => sum + file.size, 0) > MAX_ATTACHMENT_TOTAL_SIZE) {
+      setAttachmentError('게시글의 이미지와 첨부파일 전체 크기는 10MB 이하여야 합니다.')
       return
     }
     setAttachmentError('')
-    if (type === 'image') setPendingImages(selected)
-    else setPendingFiles(selected)
+    if (type === 'image') setPendingImages(processed)
+    else setPendingFiles(processed)
   }
 
   // 로그인한 작성자의 게시글에 선택한 첨부파일을 등록합니다.
@@ -525,7 +598,14 @@ export default function PostDetail({ postId }) {
       const token = localStorage.getItem('buildup_token')
       const headers = token ? { Authorization: `Bearer ${token}` } : {}
       const formData = new FormData()
-      selectedFiles.forEach((file) => formData.append('files', file))
+      selectedFiles.forEach((file, idx) => {
+        let uploadFile = file
+        if (!file.name || !file.name.includes('.')) {
+          const ext = file.type?.includes('png') ? '.png' : file.type?.includes('gif') ? '.gif' : file.type?.includes('webp') ? '.webp' : '.jpg'
+          uploadFile = new File([file], `mobile-upload-${Date.now()}-${idx}${ext}`, { type: file.type || 'image/jpeg' })
+        }
+        formData.append('files', uploadFile)
+      })
       const response = await fetch(`/api/communities/${encodeURIComponent(postId)}/attachments`, {
         method: 'POST',
         headers,
@@ -537,6 +617,7 @@ export default function PostDetail({ postId }) {
         throw new Error(result?.message || '첨부파일 등록에 실패했습니다.')
       }
       setAttachments(result.data)
+      notifyCommunity('첨부파일을 등록했어요.')
       clearSelection([])
     } catch (exception) {
       setAttachmentError(exception.message || '첨부파일 등록에 실패했습니다.')
@@ -567,6 +648,7 @@ export default function PostDetail({ postId }) {
       const result = isJson ? await response.json() : null
       if (!response.ok) throw new Error(result?.message || '첨부파일 삭제에 실패했습니다.')
       setAttachments((current) => current.filter((attachment) => Number(attachment.attachmentId) !== Number(attachmentId)))
+      notifyCommunity('첨부파일을 삭제했어요.')
     } catch (exception) {
       setAttachmentError(exception.message || '첨부파일 삭제에 실패했습니다.')
     } finally {
@@ -576,7 +658,7 @@ export default function PostDetail({ postId }) {
 
   if (loading) return <main className="community">
     <CommunityNavigation />
-    <p className="community__intro" role="status">게시글을 불러오는 중입니다.</p>
+    <CommunityLoading detail />
   </main>
 
   if (error || !post) return <main className="community">
@@ -682,36 +764,34 @@ export default function PostDetail({ postId }) {
 
   // 상세 화면은 조회만, 수정 화면은 첨부파일 추가·삭제 기능까지 표시합니다.
   const renderAttachments = (manageAttachments) => {
-    const displayedImages = manageAttachments || !featuredSquadImage
-      ? imageAttachments
-      : imageAttachments.filter((attachment) => attachment.attachmentId !== featuredSquadImage.attachmentId)
+    const displayedImages = manageAttachments ? imageAttachments : []
     const displayedCount = displayedImages.length + fileAttachments.length
     if (!manageAttachments && displayedCount === 0 && !attachmentError) return null
 
     return <section className="community__attachments" aria-labelledby="community-attachments-title">
     <h2 id="community-attachments-title">첨부파일 <span>{displayedCount}</span></h2>
     {attachmentError && <p className="community__form-error" role="alert">{attachmentError}</p>}
-    <div className="community__attachment-section">
+    {manageAttachments && <div className="community__attachment-section">
       <h3>이미지 <span>{imageAttachments.length}</span></h3>
       {displayedImages.length === 0
         ? <p className="community__attachment-empty">등록된 이미지가 없습니다.</p>
         : <ul className="community__image-grid">
           {displayedImages.map((attachment) => <li key={attachment.attachmentId}>
-            <img src={`/api/communities/attachments/${attachment.attachmentId}/content`} alt={attachment.originalName} />
+            <img src={`${API_BASE_URL}/api/communities/attachments/${attachment.attachmentId}/content`} alt={attachment.originalName} />
             <div><strong>{attachment.originalName}</strong><small>{(Number(attachment.fileSize) / 1024).toFixed(1)}KB</small></div>
             <div className="community__attachment-actions">
-              <a href={`/api/communities/attachments/${attachment.attachmentId}/download`}>다운로드</a>
+              <a href={`${API_BASE_URL}/api/communities/attachments/${attachment.attachmentId}/download`}>다운로드</a>
               {manageAttachments && <button type="button" className="community__danger" onClick={() => deleteAttachment(attachment.attachmentId)} disabled={attachmentLoading}>삭제</button>}
             </div>
           </li>)}
         </ul>}
       {manageAttachments && attachments.length < MAX_ATTACHMENT_COUNT && <div className="community__attachment-upload">
         <strong>이미지 추가</strong>
-        <input type="file" multiple accept="image/jpeg,image/png,image/gif,image/webp" onChange={(event) => selectAttachments(event, 'image')} disabled={attachmentLoading} />
+        <input type="file" multiple accept="image/*,image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif" onChange={(event) => selectAttachments(event, 'image')} disabled={attachmentLoading} />
         {pendingImages.length > 0 && <span>{pendingImages.length}개 이미지 선택</span>}
         <button type="button" onClick={() => uploadAttachments(pendingImages, setPendingImages)} disabled={attachmentLoading || pendingImages.length === 0}>{attachmentLoading ? '처리 중...' : '이미지 등록'}</button>
       </div>}
-    </div>
+    </div>}
 
     <div className="community__attachment-section">
       <h3>일반 첨부파일 <span>{fileAttachments.length}</span></h3>
@@ -720,7 +800,7 @@ export default function PostDetail({ postId }) {
         : <ul className="community__attachment-list">
           {fileAttachments.map((attachment) => <li key={attachment.attachmentId}>
             <div><strong>{attachment.originalName}</strong><small>{(Number(attachment.fileSize) / 1024).toFixed(1)}KB</small></div>
-            <a href={`/api/communities/attachments/${attachment.attachmentId}/download`}>다운로드</a>
+            <a href={`${API_BASE_URL}/api/communities/attachments/${attachment.attachmentId}/download`}>다운로드</a>
             {manageAttachments && <button type="button" className="community__danger" onClick={() => deleteAttachment(attachment.attachmentId)} disabled={attachmentLoading}>삭제</button>}
           </li>)}
         </ul>}
@@ -773,7 +853,7 @@ export default function PostDetail({ postId }) {
         <button type="submit" className="community__submit" disabled={actionLoading}>{actionLoading ? '수정 중...' : '수정 완료'}</button>
       </div>
     </form> : <article className="community__detail">
-      <header>
+      <header className="community__article-header">
         <span className={`community__badge ${isTeamPost || isShowcasePost ? 'community__badge--team' : ''}`}>{isShowcasePost ? '자랑' : post.teamName || post.categoryType || '자유게시판'}</span>
         {post.isBlind === 'Y' && (
           <span className="community__badge community__badge--blind" style={{ marginLeft: 6 }}>
@@ -782,14 +862,14 @@ export default function PostDetail({ postId }) {
         )}
         <h1>{post.title}</h1>
         <dl className="community__post-meta">
-          <div><dt>작성자</dt><dd>{post.nickname}</dd></div>
-          <div><dt>작성일</dt><dd><time dateTime={post.createdAt}>{post.createdAt?.replace('T', ' ').slice(0, 16)}</time></dd></div>
-          <div><dt>조회수</dt><dd>{post.viewCount}</dd></div>
-          <div><dt>추천수</dt><dd>{post.likeCount}</dd></div>
+          <div className="community__meta-author"><dt>작성자</dt><dd>{post.nickname || '알 수 없음'}</dd></div>
+          <div className="community__meta-date"><dt>작성일</dt><dd><time dateTime={post.createdAt}>{post.createdAt?.replace('T', ' ').slice(0, 16)}</time></dd></div>
+          <div className="community__meta-stat"><dt>조회</dt><dd>{post.viewCount}</dd></div>
+          <div className="community__meta-stat"><dt>추천</dt><dd>{post.likeCount}</dd></div>
         </dl>
       </header>
       {featuredSquadImage && <figure className="community__featured-squad">
-        <img src={`/api/communities/attachments/${featuredSquadImage.attachmentId}/content`} alt={`${post.title} 포메이션`} />
+        <img src={`${API_BASE_URL}/api/communities/attachments/${featuredSquadImage.attachmentId}/content`} alt={`${post.title} 포메이션`} />
         <figcaption>{post.title}</figcaption>
       </figure>}
       {post.isBlind === 'Y' && !unblurredPost ? (
@@ -817,6 +897,11 @@ export default function PostDetail({ postId }) {
       ) : (
         <div className="community__post-body">
           {post.content}
+          {imageAttachments.filter((attachment) => attachment.attachmentId !== featuredSquadImage?.attachmentId).map((attachment) => <figure className="community__body-image" key={attachment.attachmentId}>
+            <a href={`${API_BASE_URL}/api/communities/attachments/${attachment.attachmentId}/content`} target="_blank" rel="noreferrer" aria-label={`${attachment.originalName} 원본 보기`}>
+              <img src={`${API_BASE_URL}/api/communities/attachments/${attachment.attachmentId}/content`} alt={attachment.originalName} loading="lazy" />
+            </a>
+          </figure>)}
           {post.isBlind === 'Y' && (
             <div style={{ marginTop: 16 }}>
               <button
@@ -862,7 +947,8 @@ export default function PostDetail({ postId }) {
       {commentsError && <p className="community__form-error" role="alert">{commentsError}</p>}
 
       <div className="community__comment-list">
-        {rootComments.length === 0 && !commentsError && <p className="community__comment-empty">첫 댓글을 작성해보세요.</p>}
+        {commentsFetching && <CommunityLoading />}
+        {!commentsFetching && rootComments.length === 0 && !commentsError && <p className="community__comment-empty">아직 댓글이 없어요. 첫 의견을 남겨보세요.</p>}
         {rootComments.map((comment) => <div className="community__comment-group" key={comment.commentId}>
           <article className="community__comment">
             {renderComment(comment, true)}
@@ -898,11 +984,10 @@ export default function PostDetail({ postId }) {
     </div>
     <aside className="community__reading-ad" aria-label="광고 영역">
       <div className="community__reading-ad-sticky">
-      <span className="community__ad-label">광고 · ADVERTISEMENT</span>
       <div className="community__vertical-ad">
         <picture>
-          <source media="(max-width: 1000px)" srcSet="/je-mobile.png" width="2172" height="724" />
-          <img src="/je.png" width="300" height="600" loading="lazy" alt="제때약 — 내 약을 제때, 더 안전하게." />
+          <source media="(max-width: 1000px)" srcSet={`${import.meta.env.BASE_URL}je-mobile.png`} width="2172" height="724" />
+          <img src={`${import.meta.env.BASE_URL}je.png`} width="300" height="600" loading="lazy" alt="제때약 — 내 약을 제때, 더 안전하게." />
         </picture>
       </div>
       </div>
@@ -912,7 +997,7 @@ export default function PostDetail({ postId }) {
         <h2 id="community-more-title">{moreKeyword ? '게시글 검색 결과' : '다른 게시글도 둘러보세요'}</h2>
         <a className="community__main-link" href="#/plug/community">전체 목록</a>
       </div>
-      {morePostsLoading ? <p role="status">게시글을 불러오는 중입니다.</p>
+      {morePostsLoading ? <CommunityLoading />
         : morePostsError ? <p role="status">{morePostsError}</p>
           : morePosts.length === 0 ? <p role="status">{moreKeyword ? '검색어에 맞는 다른 게시글이 없습니다.' : '아직 다른 게시글이 없습니다.'}</p>
             : <ul className="community__more-list">

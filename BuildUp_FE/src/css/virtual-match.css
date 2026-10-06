@@ -144,12 +144,21 @@ html[data-theme='light'] .myteam-ai-panel {
   background: color-mix(in srgb, var(--myteam-accent, #00ff87) 10%, transparent);
 }
 .myteam-ai-panel .myteam-ai-events {
-  max-height: 660px;
+  box-sizing: border-box;
+  contain: size;
+  height: 100%;
+  max-height: none;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--match-muted) transparent;
   scrollbar-gutter: stable;
-  padding: 4px 6px 4px 0;
+  padding: 14px;
+  border: 1px solid var(--match-border);
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.28);
+}
+html[data-theme='light'] .myteam-ai-panel .myteam-ai-events {
+  background: var(--match-surface);
 }
 .myteam-ai-panel .myteam-ai-event {
   margin-bottom: 8px;
@@ -223,6 +232,13 @@ html[data-theme] .myteam-ai-result .myteam-ai-step:hover:not(:disabled) {
 .myteam-ai-squad-details > summary::after { content: '+'; }
 .myteam-ai-squad-details[open] > summary::after { content: '−'; }
 .myteam-ai-squad-details > summary:focus-visible { outline: 2px solid var(--myteam-accent, #00ff87); outline-offset: 4px; }
+@media (max-width: 800px) {
+  .myteam-ai-panel .myteam-ai-events {
+    contain: none;
+    height: auto;
+    max-height: 360px;
+  }
+}
 @media (max-width: 640px) {
   .myteam-ai-result { margin-top: 24px; padding-top: 20px; }
   .myteam-ai-result .myteam-ai-result-heading h2 { font-size: 18px; }
@@ -230,7 +246,7 @@ html[data-theme] .myteam-ai-result .myteam-ai-step:hover:not(:disabled) {
   .myteam-ai-result .myteam-ai-event-description { font-size: 12px; }
   .myteam-ai-panel .myteam-ai-replay { display: flex; flex-direction: column; gap: 16px; }
   .myteam-ai-panel .myteam-ai-movement { order: -1; width: 100%; box-sizing: border-box; position: static; padding: 12px; }
-  .myteam-ai-panel .myteam-ai-events { width: 100%; box-sizing: border-box; max-height: 340px; }
+  .myteam-ai-panel .myteam-ai-events { width: 100%; box-sizing: border-box; contain: none; height: auto; max-height: 340px; }
   .myteam-ai-panel .myteam-ai-score { padding: 20px 10px; gap: 10px; }
   .myteam-ai-panel .myteam-ai-score > span { font-size: 13px; }
   .myteam-ai-panel .myteam-ai-score > strong { font-size: 28px; }

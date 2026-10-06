@@ -25,7 +25,6 @@ export default function GlobalFooter() {
       <div className="global-footer__inner">
         {/* 광고 영역 */}
         <section className="global-footer__ad-section" aria-label="광고 영역">
-          <div className="global-footer__ad-badge">ADVERTISEMENT</div>
           <div className="global-footer__ad-box">
             {/* 실제 애드센스 단위 */}
             <ins
@@ -35,22 +34,14 @@ export default function GlobalFooter() {
               data-ad-client="ca-pub-6961977480009285"
               data-ad-format="auto"
               data-full-width-responsive="true"
-              data-ad-test="on"
             />
 
             {/* 광고 로드 대기/로컬 테스트용 플레이스홀더 */}
-            <div className="global-footer__ad-placeholder" aria-hidden="true">
-              <span className="global-footer__ad-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00ff87" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
-                  <path d="M18 8a3 3 0 0 1 0 6" />
-                  <path d="M21 5a6 6 0 0 1 0 12" />
-                  <path d="M11 5L6 9H2v6h4l5 4V5z" />
-                </svg>
-              </span>
-              <div className="global-footer__ad-text">
-                <strong>PLUGIN FOOTER AD BANNER</strong>
-                <p>프리미어리그 모든 순간을 함께하는 스마트한 축구 플랫폼</p>
-              </div>
+            <div className="global-footer__ad-placeholder sample-sports-ad" aria-label="가상 스포츠 브랜드 터치라인 샘플 광고">
+              <div className="sample-sports-ad__brand">TOUCHLINE<span>FOOTBALL ESSENTIALS</span></div>
+              <div className="sample-sports-ad__copy"><span className="sample-sports-ad__eyebrow">FROM THE STANDS TO THE PITCH</span><strong>주말의 킥오프,<br />준비는 끝났다.</strong><p>풋볼 웨어 · 트레이닝 기어 · 매치데이 컬렉션</p></div>
+              <div className="sample-sports-ad__art" aria-hidden="true"><span>90</span><small>MINUTES.<br />ALL IN.</small></div>
+              <span className="sample-sports-ad__disclosure">가상 브랜드 · 샘플 광고</span>
             </div>
           </div>
         </section>

@@ -48,6 +48,13 @@ function getAppPathname() {
 function App() {
   const dispatch = useDispatch()
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn)
+  const authUser = useSelector((state) => state.auth.user)
+  const isAdminUser =
+    Number(authUser?.roleCode) === 9 ||
+    Number(authUser?.roleCode) === 8 ||
+    authUser?.role === 'ADMIN' ||
+    authUser?.userRole === 'ADMIN' ||
+    authUser?.authority === 'ROLE_ADMIN'
   const lastRefreshTimeRef = useRef(0)
   const lastActivityWriteRef = useRef(0)
 
@@ -61,6 +68,25 @@ function App() {
     window.addEventListener('hashchange', handleHashChange)
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
+
+  // [라우트 가드 인터셉터] 비로그인/일반유저가 관리자 페이지(/plug/admin) 진입 시도 시 즉시 튕겨냄
+  useEffect(() => {
+    if (pathname !== '/plug/admin') return
+
+    const token = localStorage.getItem('buildup_token')
+    if (!isLoggedIn || !token || isTokenExpired(token)) {
+      alert('관리자 페이지는 관리자 로그인 후 이용할 수 있습니다.')
+      window.location.replace('#/plug/login')
+      setPathname('/plug/login')
+      return
+    }
+
+    if (!isAdminUser) {
+      alert('접근 권한이 없습니다. 매니저 또는 부매니저만 관리자 페이지에 접근할 수 있습니다.')
+      window.location.replace('#/plug/mainpage')
+      setPathname('/plug/mainpage')
+    }
+  }, [pathname, isLoggedIn, isAdminUser])
 
   const isMainPage = !pathname || pathname === '' || pathname === '/plug' || pathname === '/plug/mainpage'
   const isTeamsPage = pathname === '/plug/teams'
@@ -191,7 +217,7 @@ function App() {
       {pathname === '/plug/login' && <Login />}
       {(pathname === '/plug/signin' || pathname === '/plug/signup' || pathname === '/plug/signup/confirm') && <Signup />}
       {pathname === '/plug/mypage' && <MyPage />}
-      {pathname === '/plug/admin' && <Admin />}
+      {pathname === '/plug/admin' && isLoggedIn && isAdminUser && <Admin />}
 
       {/* 미니게임 */}
       {pathname === '/plug/minigames' && <MiniGames />}

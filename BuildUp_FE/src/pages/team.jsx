@@ -55,6 +55,7 @@ export default function Team({ teamId }) {
       }
     }
 
+    window.scrollTo(0, 0);
     loadTeamData();
 
     return () => {
@@ -68,13 +69,7 @@ export default function Team({ teamId }) {
     document.body.style.overflow = '';
   }, []);
 
-  // 데스크톱(> 1024px) 좌우 분할 레이아웃에서만 좌측 패널 휠을 우측 스크롤 영역과 연동
-  const handleLeftWheel = (e) => {
-    if (window.innerWidth <= 1024) return;
-    if (rightPanelRef.current) {
-      rightPanelRef.current.scrollTop += e.deltaY;
-    }
-  };
+  const handleLeftWheel = () => {};
 
   if (loading) {
     return (

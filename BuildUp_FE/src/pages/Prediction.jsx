@@ -9,6 +9,8 @@ export default function Prediction() {
   const isLoggedIn = useSelector((state) => state.auth?.isLoggedIn);
   const authUser = useSelector((state) => state.auth?.user);
   const isAdmin =
+    Number(authUser?.roleCode) === 9 ||
+    Number(authUser?.roleCode) === 8 ||
     authUser?.role === 'ADMIN' ||
     authUser?.userRole === 'ADMIN' ||
     authUser?.authority === 'ROLE_ADMIN';
@@ -1698,7 +1700,6 @@ export default function Prediction() {
                 className={`prediction-ad-card ${rankings.length > 0 ? 'is-compact' : ''}`}
                 style={{ '--ranking-count': Math.min(rankings.length, 5) }}
               >
-                <div className="prediction-ad-badge">ADVERTISEMENT</div>
                 <div className="prediction-ad-box">
                   {/* 실제 구글 애드센스 광고 단위 */}
                   <ins
@@ -1708,7 +1709,6 @@ export default function Prediction() {
                     data-ad-client="ca-pub-6961977480009285"
                     data-ad-format="rectangle"
                     data-full-width-responsive="true"
-                    data-ad-test="on"
                   />
 
                   {/* 광고 로드 전 / 로컬 개발 환경용 플레이스홀더 */}

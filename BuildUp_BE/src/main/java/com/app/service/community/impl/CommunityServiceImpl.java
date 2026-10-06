@@ -36,22 +36,25 @@ public class CommunityServiceImpl implements CommunityService {
     private static final int POST_TITLE_MAX_LENGTH = 50;
     private static final int POST_CONTENT_MAX_LENGTH = 1000;
     private static final int COMMENT_MAX_LENGTH = 100;
-    private static final int POST_ATTACHMENT_MAX_COUNT = 5;
-    private static final long POST_ATTACHMENT_MAX_SIZE = 10L * 1024 * 1024;
-    private static final long POST_ATTACHMENT_MAX_TOTAL_SIZE = 20L * 1024 * 1024;
+    private static final int POST_ATTACHMENT_MAX_COUNT = 3;
+    private static final long POST_IMAGE_MAX_SIZE = 1L * 1024 * 1024;
+    private static final long POST_ATTACHMENT_MAX_SIZE = 5L * 1024 * 1024;
+    private static final long POST_ATTACHMENT_MAX_TOTAL_SIZE = 10L * 1024 * 1024;
     private static final String SHOWCASE_STORED_NAME_PREFIX = "showcase-";
     private static final String LEGACY_SHOWCASE_ORIGINAL_NAME_PREFIX = "plugin-squad-";
-    private static final Map<String, Set<String>> ALLOWED_ATTACHMENT_TYPES = Map.of(
-        ".jpg", Set.of("image/jpeg", "image/jpg", "application/octet-stream"),
-        ".jpeg", Set.of("image/jpeg", "image/jpg", "application/octet-stream"),
-        ".png", Set.of("image/png", "application/octet-stream"),
-        ".gif", Set.of("image/gif", "application/octet-stream"),
-        ".webp", Set.of("image/webp", "application/octet-stream"),
-        ".pdf", Set.of("application/pdf", "application/octet-stream"),
-        ".txt", Set.of("text/plain", "application/octet-stream"),
-        ".docx", Set.of("application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/octet-stream"),
-        ".xlsx", Set.of("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/octet-stream"),
-        ".zip", Set.of("application/zip", "application/x-zip-compressed", "application/octet-stream")
+    private static final Map<String, Set<String>> ALLOWED_ATTACHMENT_TYPES = Map.ofEntries(
+        Map.entry(".jpg", Set.of("image/jpeg", "image/jpg", "application/octet-stream")),
+        Map.entry(".jpeg", Set.of("image/jpeg", "image/jpg", "application/octet-stream")),
+        Map.entry(".png", Set.of("image/png", "application/octet-stream")),
+        Map.entry(".gif", Set.of("image/gif", "application/octet-stream")),
+        Map.entry(".webp", Set.of("image/webp", "application/octet-stream")),
+        Map.entry(".heic", Set.of("image/heic", "image/heif", "application/octet-stream")),
+        Map.entry(".heif", Set.of("image/heic", "image/heif", "application/octet-stream")),
+        Map.entry(".pdf", Set.of("application/pdf", "application/octet-stream")),
+        Map.entry(".txt", Set.of("text/plain", "application/octet-stream")),
+        Map.entry(".docx", Set.of("application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/octet-stream")),
+        Map.entry(".xlsx", Set.of("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/octet-stream")),
+        Map.entry(".zip", Set.of("application/zip", "application/x-zip-compressed", "application/octet-stream"))
     );
     private final CommunityDAO communityDAO;
     private final UserDAO userDAO;
@@ -403,6 +406,10 @@ public class CommunityServiceImpl implements CommunityService {
             totalSize += file.getSize();
             String originalName = safeOriginalName(file.getOriginalFilename());
             String extension = fileExtension(originalName);
+            boolean isImageExt = Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic", ".heif").contains(extension);
+            if (isImageExt && file.getSize() >= POST_IMAGE_MAX_SIZE) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image attachment must be under 1MB");
+            }
             if (showcaseImage && (!".png".equals(extension)
                     || !"image/png".equals(normalizeContentType(file.getContentType())))) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");
@@ -455,6 +462,7 @@ public class CommunityServiceImpl implements CommunityService {
             case ".png" -> "image/png";
             case ".gif" -> "image/gif";
             case ".webp" -> "image/webp";
+            case ".heic", ".heif" -> "image/heic";
             case ".pdf" -> "application/pdf";
             case ".txt" -> "text/plain";
             case ".docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document";

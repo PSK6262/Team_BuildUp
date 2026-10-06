@@ -367,7 +367,9 @@ export default function Signup() {
             <div className="auth-input-group">
               <input
                 id="signupId"
+                name="username"
                 type="text"
+                autoComplete="username"
                 placeholder="4~20자 영문 소문자·숫자"
                 maxLength={20}
                 value={loginId}
@@ -398,7 +400,9 @@ export default function Signup() {
             <label htmlFor="signupPassword">비밀번호</label>
             <input
               id="signupPassword"
+              name="password"
               type="password"
+              autoComplete="new-password"
               placeholder="비밀번호를 입력하세요"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -410,7 +414,9 @@ export default function Signup() {
             <label htmlFor="signupPasswordConfirm">비밀번호 확인</label>
             <input
               id="signupPasswordConfirm"
+              name="passwordConfirm"
               type="password"
+              autoComplete="new-password"
               placeholder="비밀번호를 다시 한 번 입력하세요"
               value={passwordConfirm}
               onChange={(e) => setPasswordConfirm(e.target.value)}
@@ -428,7 +434,9 @@ export default function Signup() {
             <div className="auth-input-group">
               <input
                 id="signupNickname"
+                name="nickname"
                 type="text"
+                autoComplete="nickname"
                 placeholder="2~20자 한글·영문·숫자"
                 maxLength={20}
                 value={nickname}
@@ -458,7 +466,9 @@ export default function Signup() {
             <label htmlFor="signupEmail">이메일</label>
             <input
               id="signupEmail"
+              name="email"
               type="email"
+              autoComplete="email"
               placeholder="example@domain.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

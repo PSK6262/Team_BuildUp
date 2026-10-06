@@ -1,5 +1,7 @@
-  import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { getFlagUrl } from '../../utils/flagUtils.js';
+import { getPlayerPhoto } from '../../utils/playerPhotoUtils.js';
 
 // 메인 포지션 한글 설명 매핑
 const MAIN_POS_DESC = {
@@ -30,13 +32,22 @@ const DETAIL_POS_DESC = {
 };
 
 export default function PlayerStatsModal({ player, stats, loading, onClose }) {
-  const [isPosHovered, setIsPosHovered] = useState(false);
+  const [photo, setPhoto] = useState({ status: 'loading', url: '' });
+  const onCloseRef = useRef(onClose);
 
-  // ESC 키를 누르면 모달창 닫기
   useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  const isOpen = Boolean(player);
+
+  // ESC 키를 누르면 모달창 닫기 (모달이 열려 있을 때만 배경 스크롤 잠금)
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
     function handleKeyDown(e) {
       if (e.key === 'Escape') {
-        onClose();
+        onCloseRef.current?.();
       }
     }
     window.addEventListener('keydown', handleKeyDown);
@@ -49,7 +60,42 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = originalOverflow;
     };
-  }, [onClose]);
+  }, [isOpen]);
+
+  // 랭킹 페이지와 동일하게 TheSportsDB API를 통해 선수 사진 조회 및 캐싱
+  const playerId = player?.playerId || player?.id;
+  const searchName = player?.playerName || player?.name || stats?.playerName;
+
+  useEffect(() => {
+    if (!player || !searchName) {
+      setPhoto({ status: 'empty', url: '' });
+      return;
+    }
+
+    const controller = new AbortController();
+    let active = true;
+
+    async function loadPhoto() {
+      setPhoto({ status: 'loading', url: '' });
+      try {
+        const url = await getPlayerPhoto(playerId, searchName, controller.signal);
+        if (active) {
+          setPhoto({ status: url ? 'ready' : 'empty', url });
+        }
+      } catch (err) {
+        if (active && err?.name !== 'AbortError') {
+          setPhoto({ status: 'empty', url: '' });
+        }
+      }
+    }
+
+    loadPhoto();
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [player, playerId, searchName]);
 
   if (!player) return null;
 
@@ -85,7 +131,7 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
     ? (DETAIL_POS_DESC[detailPos] || `${detailPos}-상세 포지션`)
     : null;
 
-  return (
+  const modalContent = (
     <div
       className="player-stats-modal-backdrop"
       onClick={onClose}
@@ -113,7 +159,7 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
           {isSuspended && <span className="player-status-badge badge-suspended">출장정지</span>}
         </div>
 
-        {/* 상단 영역: [선수 한국어/영어 이름 + 포지션 배지 및 호버 안내] (좌)  vs  [국적표기 / 국적아이콘] (우) */}
+        {/* 상단 영역: [선수 이름 + 포지션 배지] (좌)  vs  [선수 사진 + 그 아래 국기(가운데 정렬)] (우) */}
         <div className="player-stats-modal-header">
           <div className="player-stats-name-col">
             <h2 id="player-modal-title" className="player-stats-name-kor">
@@ -125,39 +171,16 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
               </div>
             )}
             {positionText && (
-              <div
-                className="player-stats-position-group"
-                onMouseEnter={() => {
-                  if (window.innerWidth > 1024) setIsPosHovered(true);
-                }}
-                onMouseLeave={() => {
-                  if (window.innerWidth > 1024) setIsPosHovered(false);
-                }}
-              >
-                <div
-                  className={`player-stats-position-pill ${posBadgeClass}`}
-                  onClick={() => setIsPosHovered((prev) => !prev)}
-                  tabIndex={0}
-                  role="button"
-                  title="포지션 설명 보기"
-                >
+              <div className="player-stats-position-group">
+                <div className={`player-stats-position-pill ${posBadgeClass}`}>
                   {positionText}
                 </div>
 
-                {/* 태그 밑 안내 문구 / 호버·클릭 시 포지션 설명 전환 영역 */}
-                <div className="player-stats-position-guide">
-                  {isPosHovered ? (
-                    <div className="position-desc-box">
-                      <div className="position-desc-line">{mainPosDesc}</div>
-                      {detailPosDesc && (
-                        <div className="position-desc-line">{detailPosDesc}</div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="position-guide-hint">
-                      <span className="position-guide-hint--desktop">태그에 마우스를 올려보세요</span>
-                      <span className="position-guide-hint--mobile">태그를 클릭해보세요</span>
-                    </div>
+                {/* 포지션 상세 정보 상시 노출 */}
+                <div className="position-desc-box">
+                  {mainPosDesc && <div className="position-desc-line">{mainPosDesc}</div>}
+                  {detailPosDesc && (
+                    <div className="position-desc-line">{detailPosDesc}</div>
                   )}
                 </div>
               </div>
@@ -165,15 +188,43 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
           </div>
 
           <div className="player-stats-nat-col">
-            <span className="player-stats-nat-name">{nationalityKor}</span>
-            {flagUrl && (
-              <img
-                src={flagUrl}
-                alt={nationalityKor || nationalityEn}
-                className="player-stats-flag-icon"
-                loading="lazy"
-              />
-            )}
+            {/* 1. 선수 사진 (랭킹페이지와 동일한 TheSportsDB Cutout/Thumb 연동) */}
+            <div className="player-stats-photo-wrap">
+              {photo.status === 'ready' ? (
+                <img
+                  src={photo.url}
+                  alt={`${nameKor} 선수 사진`}
+                  className="player-stats-photo-img"
+                  onError={() => setPhoto({ status: 'empty', url: '' })}
+                />
+              ) : photo.status === 'loading' ? (
+                <div className="player-stats-photo-placeholder is-loading">
+                  <div className="player-stats-photo-spinner" aria-hidden="true" />
+                </div>
+              ) : (
+                <div className="player-stats-photo-placeholder is-empty" title="선수 사진 미등록">
+                  <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" opacity="0.38">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                </div>
+              )}
+            </div>
+
+            {/* 2. 국기 (선수 사진 아래 위치, 선수 사진 기준으로 가운데 정렬) */}
+            <div className="player-stats-flag-wrap">
+              {flagUrl && (
+                <img
+                  src={flagUrl}
+                  alt={nationalityKor || nationalityEn}
+                  className="player-stats-flag-icon"
+                  loading="lazy"
+                />
+              )}
+              {nationalityKor && (
+                <span className="player-stats-nat-name">{nationalityKor}</span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -200,5 +251,10 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
       </div>
     </div>
   );
+
+  if (typeof document !== 'undefined') {
+    return createPortal(modalContent, document.body);
+  }
+  return modalContent;
 }
 

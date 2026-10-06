@@ -7,14 +7,16 @@ body:has(.team-container) {
 }
 
 .team-container {
-  height: 89vh;
-  max-height: 89vh;
+  min-height: 89vh;
+  height: auto;
+  max-height: none;
   background: linear-gradient(90deg, #18001E 0%, #18001E 42%, #1E0026 72%, #22002A 100%);
   display: grid;
   grid-template-columns: 32% 68%;
+  align-items: start;
   padding: 0;
   margin: 0;
-  overflow: hidden;
+  overflow-x: clip;
   font-family: var(--font-plug);
   color: #ffffff;
   position: relative;
@@ -24,19 +26,23 @@ body:has(.team-container) {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 89vh;
+  min-height: calc(100vh - 98px);
   background: linear-gradient(135deg, #18001E 0%, #22002A 100%);
   color: #cbd5e1;
   font-size: clamp(1rem, 1.1vw, 1.25rem);
 }
 
+body:has(.team-container--loading) .global-footer {
+  visibility: hidden;
+}
+
 /* 좌측 구단 고유 컬러가 우측 다크 배경으로 끊김 없이 스며드는 앰비언트 블러 글로우 */
 .team-ambient-bleed {
-  position: absolute;
-  top: 5%;
+  position: fixed;
+  top: 13vh;
   left: 8%;
   width: 46%;
-  height: 90%;
+  height: 80vh;
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
@@ -50,7 +56,8 @@ body:has(.team-container) {
    Left Panel (32%): Fixed Visual Area with Seamless Right Bleed
    -------------------------------------------------------- */
 .team-left {
-  position: relative;
+  position: sticky;
+  top: 98px;
   z-index: 1;
   background: #18001E;
   border-radius: 0;
@@ -59,7 +66,7 @@ body:has(.team-container) {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: calc(100vh - 98px);
   min-height: 0;
 }
 
@@ -360,14 +367,10 @@ body:has(.team-container) {
   padding: 5vh 5.5% 7vh;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+  height: auto;
+  min-height: calc(100vh - 98px);
+  overflow: visible;
   box-sizing: border-box;
-  scroll-behavior: smooth;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(232, 24, 228, 0.4) transparent;
 }
 
 .team-right::-webkit-scrollbar {
@@ -523,6 +526,7 @@ body:has(.team-container) {
 }
 
 .team-squad-loading {
+  min-height: 50vh;
   padding: 4vh 0;
   text-align: center;
   color: #94A3B8;
@@ -921,6 +925,8 @@ body:has(.team-container) {
   }
 
   .team-left {
+    position: relative !important;
+    top: auto !important;
     width: 100%;
     height: auto !important;
     min-height: 52vh;
@@ -1096,14 +1102,6 @@ body:has(.team-container) {
   .team-player-card {
     border-radius: 1.8vw;
   }
-
-  .position-guide-hint--desktop {
-    display: none;
-  }
-
-  .position-guide-hint--mobile {
-    display: inline;
-  }
 }
 
 @media (max-width: 32rem) {
@@ -1207,7 +1205,7 @@ body:has(.team-container) {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 10000;
   padding: 2vh 4vw;
   box-sizing: border-box;
   animation: playerModalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1219,8 +1217,8 @@ body:has(.team-container) {
   backdrop-filter: blur(20px);
   border-radius: 1.4vw;
   width: 92%;
-  max-width: 32vw;
-  min-width: min(26rem, 92vw);
+  max-width: clamp(28rem, 36vw, 36rem);
+  min-width: min(27rem, 92vw);
   padding: 3.2vh 3.5%;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.65);
   position: relative;
@@ -1337,13 +1335,8 @@ body:has(.team-container) {
   font-weight: 800;
   letter-spacing: 0.03vw;
   width: fit-content;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  cursor: default;
   user-select: none;
-}
-
-.player-stats-position-pill:hover {
-  transform: translateY(-0.15vh);
 }
 
 .player-stats-position-pill.badge-fw {
@@ -1370,79 +1363,97 @@ body:has(.team-container) {
   border: 1px solid rgba(168, 85, 247, 0.5);
 }
 
-.player-stats-position-guide {
-  min-height: 3.8vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.position-guide-hint {
-  font-size: clamp(0.68rem, 0.76vw, 0.82rem);
-  color: #94A3B8;
-  font-weight: 600;
-  user-select: none;
-}
-
-.position-guide-hint--mobile {
-  display: none;
-}
-
-@media (max-width: 64rem) {
-  .position-guide-hint--desktop {
-    display: none;
-  }
-
-  .position-guide-hint--mobile {
-    display: inline;
-  }
-}
-
 .position-desc-box {
   display: flex;
   flex-direction: column;
-  gap: 0.2vh;
-  animation: positionFadeIn 0.16s ease-out forwards;
+  gap: 0.3vh;
+  margin-top: 0.3vh;
 }
 
 .position-desc-line {
-  font-size: clamp(0.7rem, 0.78vw, 0.85rem);
+  font-size: clamp(0.72rem, 0.8vw, 0.88rem);
   font-weight: 700;
   color: #CBD5E1;
-  line-height: 1.35;
-}
-
-@keyframes positionFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(0.2vh);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  line-height: 1.4;
 }
 
 .player-stats-nat-col {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 0.6vh;
+  align-items: center; /* 선수 사진 기준으로 하위 국기/국적 가로 정중앙 정렬 */
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.player-stats-nat-name {
-  font-size: clamp(0.8rem, 0.92vw, 1rem);
-  font-weight: 700;
-  color: #CBD5E1;
+.player-stats-photo-wrap {
+  width: clamp(92px, 7.8vw, 116px);
+  height: clamp(108px, 9.2vw, 134px);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.player-stats-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+}
+
+.player-stats-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94A3B8;
+}
+
+.player-stats-photo-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #00FF85;
+  border-radius: 50%;
+  animation: playerPhotoSpin 0.8s linear infinite;
+}
+
+@keyframes playerPhotoSpin {
+  to { transform: rotate(360deg); }
+}
+
+.player-stats-flag-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* 선수 사진 기준 가로 정중앙 정렬 */
+  gap: 4px;
+  text-align: center;
 }
 
 .player-stats-flag-icon {
-  width: clamp(2.2rem, 2.8vw, 3rem);
+  width: clamp(28px, 2.3vw, 34px);
   aspect-ratio: 3 / 2;
   object-fit: cover;
-  border-radius: 0.3vw;
-  box-shadow: 0 0.2vh 0.6vw rgba(0, 0, 0, 0.35);
+  border-radius: 3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  display: block;
+}
+
+.player-stats-nat-name {
+  font-family: var(--font-plug, sans-serif);
+  font-size: clamp(0.76rem, 0.85vw, 0.92rem);
+  font-weight: 700;
+  color: #CBD5E1;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .player-stats-modal-divider {
@@ -1555,12 +1566,46 @@ html[data-theme='light'] body:has(.team-container) {
 
 .team-container--light .team-emblem-bg-overlay,
 [data-theme='light'] .team-emblem-bg-overlay {
-  background: linear-gradient(
-    180deg,
-    rgba(38, 14, 54, 0.72) 0%,
-    rgba(38, 14, 54, 0.14) 40%,
-    rgba(38, 14, 54, 0.88) 100%
-  );
+  background:
+    linear-gradient(
+      180deg,
+      #F4F6FA 0%,
+      rgba(244, 246, 250, 0.45) 0.6%,
+      transparent 1.4%
+    ),
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      transparent 94%,
+      rgba(244, 246, 250, 0.5) 97.5%,
+      #F4F6FA 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(38, 14, 54, 0.72) 0%,
+      rgba(38, 14, 54, 0.14) 40%,
+      rgba(38, 14, 54, 0.88) 100%
+    );
+}
+
+@media (max-width: 64rem) {
+  .team-container--light .team-emblem-bg-overlay,
+  [data-theme='light'] .team-emblem-bg-overlay {
+    background:
+      linear-gradient(
+        180deg,
+        #F4F6FA 0%,
+        rgba(244, 246, 250, 0.45) 0.7%,
+        transparent 1.5%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(38, 14, 54, 0.72) 0%,
+        rgba(38, 14, 54, 0.14) 40%,
+        rgba(38, 14, 54, 0.88) 94%,
+        #F4F6FA 100%
+      );
+  }
 }
 
 .team-container--light .team-right,
@@ -1886,6 +1931,26 @@ html[data-theme='light'] body:has(.team-container) {
 
 [data-theme='light'] .stat-item-assist .stat-value {
   color: #9333ea;
+}
+
+[data-theme='light'] .player-stats-photo-wrap {
+  background: #FFFFFF;
+  border: 1px solid #CEBFE0;
+  box-shadow: 0 6px 20px rgba(107, 94, 122, 0.16);
+}
+
+[data-theme='light'] .player-stats-photo-spinner {
+  border-color: rgba(0, 0, 0, 0.1);
+  border-top-color: #E90052;
+}
+
+[data-theme='light'] .player-stats-photo-placeholder {
+  color: #705584;
+}
+
+[data-theme='light'] .player-stats-flag-icon {
+  border-color: #CEBFE0;
+  box-shadow: 0 2px 6px rgba(107, 94, 122, 0.2);
 }
 
 
