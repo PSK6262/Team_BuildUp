@@ -6,6 +6,7 @@ import CommunityNavigation from './CommunityNavigation.jsx'
 import '../css/Community.css'
 
 const PAGE_SIZE = 10
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? 'https://psk6262buildup.duckdns.org' : '')
 
 // 목록에서는 제목을 30자까지 표시합니다.
 function formatPostTitle(title, commentCount) {
@@ -297,7 +298,7 @@ export default function Community({ selectedTeam = null }) {
         <div className="community__cards">
           {showcasePosts.map((post) => <a className="community__card community__showcase-card" href={`#/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.hash.replace(/^#/, '').split('?')[0] || window.location.pathname)}`} key={post.postId}>
             {post.showcaseImageId
-              ? <img className="community__showcase-thumbnail" src={`/api/communities/attachments/${post.showcaseImageId}/content`} alt="나만의 팀 포메이션" />
+              ? <img className="community__showcase-thumbnail" src={`${API_BASE_URL}/api/communities/attachments/${post.showcaseImageId}/content`} alt="나만의 팀 포메이션" />
               : <span className="community__pitch" aria-hidden="true">⚽</span>}
             <small>작성자 {post.nickname}</small>
             <h3 title={post.title}>{formatPostTitle(post.title, post.commentCount)}</h3>

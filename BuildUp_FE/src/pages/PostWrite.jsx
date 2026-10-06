@@ -52,14 +52,57 @@ function WriteSelect({ label, value, options, onChange, disabled, searchable = f
   </div>
 }
 
-const MAX_ATTACHMENT_COUNT = 5
+const MAX_ATTACHMENT_COUNT = 3
 const POST_TITLE_MAX_LENGTH = 50
 const POST_CONTENT_MAX_LENGTH = 1000
-const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024
-const MAX_ATTACHMENT_TOTAL_SIZE = 20 * 1024 * 1024
+const MAX_IMAGE_ATTACHMENT_SIZE = 1 * 1024 * 1024
+const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024
+const MAX_ATTACHMENT_TOTAL_SIZE = 10 * 1024 * 1024
 const IMAGE_ATTACHMENT_PATTERN = /\.(jpe?g|png|gif|webp|heic|heif)$/i
 const FILE_ATTACHMENT_PATTERN = /\.(pdf|txt|docx|xlsx|zip)$/i
 const SHOWCASE_DRAFT_KEY = 'plugin:community:showcase-draft'
+
+async function compressImageUnderLimit(file, maxBytes = MAX_IMAGE_ATTACHMENT_SIZE, forcePng = false) {
+  if (file.size > 0 && file.size < maxBytes) return file
+  return new Promise((resolve) => {
+    const objectUrl = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = async () => {
+      URL.revokeObjectURL(objectUrl)
+      const maxDims = [1600, 1280, 1024, 800, 640, 480]
+      const qualities = forcePng ? [1] : [0.82, 0.68, 0.54, 0.4]
+      const origW = img.naturalWidth || img.width || 1280
+      const origH = img.naturalHeight || img.height || 720
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+
+      for (const maxDim of maxDims) {
+        const scale = Math.min(1, maxDim / Math.max(origW, origH))
+        canvas.width = Math.max(1, Math.round(origW * scale))
+        canvas.height = Math.max(1, Math.round(origH * scale))
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+        for (const q of qualities) {
+          const mime = forcePng ? 'image/png' : 'image/jpeg'
+          const blob = await new Promise((r) => canvas.toBlob(r, mime, q))
+          if (blob && blob.size > 0 && blob.size < maxBytes) {
+            const baseName = (file.name || 'image').replace(/\.[^.]+$/, '')
+            const ext = forcePng ? '.png' : '.jpg'
+            resolve(new File([blob], `${baseName}${ext}`, { type: mime, lastModified: Date.now() }))
+            return
+          }
+        }
+      }
+      resolve(file)
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      resolve(file)
+    }
+    img.src = objectUrl
+  })
+}
 const titleLength = (value) => Array.from(value).length
 const limitTitle = (value) => Array.from(value).slice(0, POST_TITLE_MAX_LENGTH).join('')
 const contentLength = (value) => Array.from(value).length
@@ -142,22 +185,15 @@ export default function PostWrite() {
   }, [board, isLoggedIn, requestedCustomTeamId])
 
   // 이미지와 일반 첨부파일을 각각 검사하여 선택 목록에 저장합니다.
-  const selectAttachments = (event, type) => {
+  const selectAttachments = async (event, type) => {
     const selected = Array.from(event.target.files || [])
     event.target.value = ''
+    if (selected.length === 0) return
     const otherFiles = type === 'image' ? fileAttachments : imageAttachments
     const pattern = type === 'image' ? IMAGE_ATTACHMENT_PATTERN : FILE_ATTACHMENT_PATTERN
     const automaticImageCount = board === 'showcase' && showcaseDraft?.imageDataUrl ? 1 : 0
     if (selected.length + otherFiles.length + automaticImageCount > MAX_ATTACHMENT_COUNT) {
       setError(`스쿼드 이미지를 포함해 첨부파일은 최대 ${MAX_ATTACHMENT_COUNT}개까지 선택할 수 있습니다.`)
-      return
-    }
-    if (selected.some((file) => file.size <= 0 || file.size > 30 * 1024 * 1024)) {
-      setError('파일 하나의 크기는 30MB 이하여야 합니다.')
-      return
-    }
-    if ([...selected, ...otherFiles].reduce((sum, file) => sum + file.size, 0) > 50 * 1024 * 1024) {
-      setError('첨부파일 전체 크기는 50MB 이하여야 합니다.')
       return
     }
     const isImageFile = (file) => (file.type && file.type.startsWith('image/')) || pattern.test(file.name)
@@ -169,9 +205,26 @@ export default function PostWrite() {
       setError('PDF, TXT, DOCX, XLSX, ZIP 파일만 첨부할 수 있습니다.')
       return
     }
+    if (type === 'file' && selected.some((file) => file.size <= 0 || file.size > MAX_ATTACHMENT_SIZE)) {
+      setError('일반 첨부파일 하나의 크기는 5MB 이하여야 합니다.')
+      return
+    }
+
+    const processed = type === 'image'
+      ? await Promise.all(selected.map((file) => compressImageUnderLimit(file, MAX_IMAGE_ATTACHMENT_SIZE, false)))
+      : selected
+
+    if (type === 'image' && processed.some((file) => file.size <= 0 || file.size >= MAX_IMAGE_ATTACHMENT_SIZE)) {
+      setError('이미지 파일은 1MB 미만이어야 합니다.')
+      return
+    }
+    if ([...processed, ...otherFiles].reduce((sum, file) => sum + file.size, 0) > MAX_ATTACHMENT_TOTAL_SIZE) {
+      setError('첨부파일 전체 크기는 10MB 이하여야 합니다.')
+      return
+    }
     setError('')
-    if (type === 'image') setImageAttachments(selected)
-    else setFileAttachments(selected)
+    if (type === 'image') setImageAttachments(processed)
+    else setFileAttachments(processed)
   }
 
   const handleSubmit = async (event) => {
@@ -223,8 +276,10 @@ export default function PostWrite() {
           const imageResponse = await fetch(showcaseDraft.imageDataUrl)
           if (!imageResponse.ok) throw new Error('스쿼드 이미지를 읽지 못했습니다.')
           const squadImageBlob = await imageResponse.blob()
+          const rawSquadFile = new File([squadImageBlob], `plugin-squad-${createdPostId}.png`, { type: 'image/png' })
+          const compressedSquadFile = await compressImageUnderLimit(rawSquadFile, MAX_IMAGE_ATTACHMENT_SIZE, true)
           const showcaseFormData = new FormData()
-          showcaseFormData.append('files', new File([squadImageBlob], `plugin-squad-${createdPostId}.png`, { type: 'image/png' }))
+          showcaseFormData.append('files', compressedSquadFile)
           showcaseFormData.append('showcaseImage', 'true')
           const showcaseResponse = await fetch(`/api/communities/${createdPostId}/attachments`, {
             method: 'POST',
@@ -362,7 +417,7 @@ export default function PostWrite() {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="8" cy="8" r="1.5" /><path d="m3 17 6-6 4 4 3-3 5 5" /></svg>
           <span>이미지 첨부</span><small>{imageAttachments.length ? `${imageAttachments.length}개 선택됨` : 'JPG · PNG · GIF · WEBP'}</small>
         </span>
-        <small>본문 아래 이미지 영역에 미리보기로 표시됩니다.</small>
+        <small>본문 아래 이미지 영역에 미리보기로 표시됩니다. (1MB 미만, 초과 시 자동 압축)</small>
       </label>
       {imageAttachments.length > 0 && <ul className="community__selected-files">
         {imageAttachments.map((file, index) => <li key={`${file.name}-${file.lastModified}-${index}`}>
@@ -383,7 +438,7 @@ export default function PostWrite() {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m8 13 7-7a3 3 0 0 1 4 4l-9 9a5 5 0 0 1-7-7l9-9M6 15l8-8" /></svg>
           <span>파일 첨부</span><small>{fileAttachments.length ? `${fileAttachments.length}개 선택됨` : 'PDF · TXT · DOCX · XLSX · ZIP'}</small>
         </span>
-        <small>다운로드 목록에 표시됩니다. 이미지와 합쳐 최대 5개, 파일당 10MB, 전체 20MB까지 등록할 수 있습니다.</small>
+        <small>다운로드 목록에 표시됩니다. 이미지와 합쳐 최대 3개, 일반 파일당 5MB 이하(이미지 1MB 미만), 전체 10MB 이하까지 등록할 수 있습니다.</small>
       </label>
       {fileAttachments.length > 0 && <ul className="community__selected-files">
         {fileAttachments.map((file, index) => <li key={`${file.name}-${file.lastModified}-${index}`}>
