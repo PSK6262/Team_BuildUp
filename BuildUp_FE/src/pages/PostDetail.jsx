@@ -158,6 +158,22 @@ export default function PostDetail({ postId }) {
   const [editCommentContent, setEditCommentContent] = useState('')
   const [commentActionId, setCommentActionId] = useState(null)
   const [attachments, setAttachments] = useState([])
+
+  // 상세페이지 사이드바 애드센스 Ref 및 푸시 처리
+  const readingAdRef = useRef(null)
+  const isReadingAdPushed = useRef(false)
+
+  useEffect(() => {
+    if (isReadingAdPushed.current) return
+    try {
+      if (typeof window !== 'undefined' && readingAdRef.current) {
+        ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+        isReadingAdPushed.current = true
+      }
+    } catch (e) {
+      console.debug('[PostDetail] AdSense init:', e)
+    }
+  }, [])
   const [pendingImages, setPendingImages] = useState([])
   const [pendingFiles, setPendingFiles] = useState([])
   const [attachmentLoading, setAttachmentLoading] = useState(false)
@@ -984,12 +1000,16 @@ export default function PostDetail({ postId }) {
     </div>
     <aside className="community__reading-ad" aria-label="광고 영역">
       <div className="community__reading-ad-sticky">
-      <div className="community__vertical-ad">
-        <picture>
-          <source media="(max-width: 1000px)" srcSet={`${import.meta.env.BASE_URL}je-mobile.png`} width="2172" height="724" />
-          <img src={`${import.meta.env.BASE_URL}je.png`} width="300" height="600" loading="lazy" alt="제때약 — 내 약을 제때, 더 안전하게." />
-        </picture>
-      </div>
+        <div className="community__vertical-ad" style={{ padding: 0, overflow: 'hidden' }}>
+          <ins
+            ref={readingAdRef}
+            className="adsbygoogle"
+            style={{ display: 'block', width: '100%', minHeight: '300px' }}
+            data-ad-client="ca-pub-6961977480009285"
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          />
+        </div>
       </div>
     </aside>
     <section className="community__more-posts" aria-labelledby="community-more-title">
