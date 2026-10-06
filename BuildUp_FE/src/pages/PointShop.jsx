@@ -9,6 +9,7 @@ import {
   getUserPoint,
 } from '../api/shopApi.js';
 import { getMyProfile } from '../api/userApi.js';
+import { navigate } from '../utils/navigation.js';
 import '../css/PointShop.css';
 
 export default function PointShop() {
@@ -168,7 +169,7 @@ export default function PointShop() {
     const currentUid = user?.userId ?? user?.user_id ?? user?.id;
     if ((!isLoggedIn && !token) || (!currentUid && !token)) {
       if (window.confirm('로그인이 필요한 서비스입니다. 로그인 페이지로 이동하시겠습니까?')) {
-        window.location.assign('/plug/login');
+        navigate('/plug/login');
       }
       return;
     }
@@ -371,14 +372,14 @@ export default function PointShop() {
 
           <div className="point-balance-right">
             {isLoggedIn ? (
-              <a href="/plug/mypage" className="point-history-link" title="마이페이지에서 포인트 변동 이력 보기">
+              <a href="#/plug/mypage" className="point-history-link" title="마이페이지에서 포인트 변동 이력 보기">
                 <span>포인트 내역 보기</span>
                 <span aria-hidden="true">→</span>
               </a>
             ) : (
               <div className="point-login-prompt">
                 <span className="point-login-prompt-text">로그인하고 포인트 적립</span>
-                <a href="/plug/login" className="point-login-btn">로그인</a>
+                <a href="#/plug/login" className="point-login-btn">로그인</a>
               </div>
             )}
           </div>
@@ -649,7 +650,7 @@ export default function PointShop() {
                   닫기
                 </button>
                 <a
-                  href="/plug/prediction"
+                  href="#/plug/prediction"
                   className="point-insufficient-btn point-insufficient-btn--predict"
                 >
                   <span>승부예측 하러가기</span>

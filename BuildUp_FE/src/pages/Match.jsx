@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useSelector } from 'react-redux'
 import teamDbFallback from '../data/teamDbFallback.json'
 import { getTeams } from '../api/teamApi.js'
 import FcManagerModeModal from '../components/match/FcManagerModeModal.jsx'
 import '../css/match.css'
 import { MatchClubPicker, MatchMonthPicker, MatchRoundPicker } from '../components/match/MatchFilters.jsx'
+import { getAppSearchParams } from '../utils/searchParams.js'
 
 const teamsData = teamDbFallback.teams
 const SEASONS = [2024, 2025, 2026]
@@ -93,7 +95,7 @@ function getMatchOutcome(match) {
 }
 
 export default function Match() {
-  const urlParams = useMemo(() => new URLSearchParams(window.location.search), [])
+  const urlParams = useMemo(() => getAppSearchParams(), [])
   const focusedMatchId = useMemo(() => {
     const id = urlParams.get('matchId')
     return id ? Number(id) : null
@@ -122,12 +124,19 @@ export default function Match() {
   const [ reload, setReload ] = useState(0)
   const [ activeMatchForModal, setActiveMatchForModal ] = useState(null)
 
+  const user = useSelector((state) => state.auth?.user)
+  const isAdmin = user && (Number(user.roleCode) === 9 || Number(user.roleCode) === 8)
+
   const handleSyncMatches = async () => {
     if (syncing) return
+    if (!isAdmin) {
+      alert('관리자 권한이 필요합니다.')
+      return
+    }
     if (!window.confirm('외부 축구 API에서 2026 시즌 전체 380경기 일정을 DB(MATCHES)로 동기화하시겠습니까?')) return
     try {
       setSyncing(true)
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('buildup_token')
       const res = await fetch('/api/matches/sync-season?season=2026', {
         method: 'POST',
         headers: {
@@ -569,15 +578,17 @@ export default function Match() {
               >
                 🔄 DB 다시 연결
               </button>
-              <button
-                type="button"
-                className="team-filter-reset-btn"
-                style={{ backgroundColor: '#38003c', color: '#00ff87', fontSize: '12px', padding: '5px 12px', borderRadius: '6px' }}
-                disabled={syncing}
-                onClick={handleSyncMatches}
-              >
-                {syncing ? '동기화 중...' : '⚡ 외부 API 경기 데이터 DB 동기화'}
-              </button>
+              {isAdmin && (
+                <button
+                  type="button"
+                  className="team-filter-reset-btn"
+                  style={{ backgroundColor: '#38003c', color: '#00ff87', fontSize: '12px', padding: '5px 12px', borderRadius: '6px' }}
+                  disabled={syncing}
+                  onClick={handleSyncMatches}
+                >
+                  {syncing ? '동기화 중...' : '⚡ 외부 API 경기 데이터 DB 동기화'}
+                </button>
+              )}
             </div>
           </div>
         )}

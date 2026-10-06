@@ -149,4 +149,21 @@ export async function purchaseShopItem(item) {
   return json.data || null;
 }
 
+/**
+ * 회원 비밀번호 변경 (현재 비밀번호 검증 + 신규 보안 규격 암호화 적용)
+ */
+export async function changePassword(currentPassword, newPassword) {
+  const res = await fetch('/api/users/me/password', {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  const json = await res.json();
+  if (!res.ok || json.code !== 'SUCCESS') {
+    throw new Error(json.message || '비밀번호 변경에 실패했습니다.');
+  }
+  return json;
+}
+
+
 

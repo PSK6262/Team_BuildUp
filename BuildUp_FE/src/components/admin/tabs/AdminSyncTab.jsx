@@ -382,6 +382,125 @@ export default function AdminSyncTab({ showAlert, setSyncStatus }) {
             </button>
           </div>
         </div>
+
+        {/* 8. [Gemini AI] 전체 구단 및 선수단 한국어 번역 & 역사 일괄 자동 적재 */}
+        <div className="sync-card" style={{ borderColor: '#86efac', background: '#f0fdf4' }}>
+          <div>
+            <div className="sync-card__title" style={{ color: '#166534', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span>🤖</span> Gemini AI 전체 한국어 번역 일괄 실행 (백그라운드)
+            </div>
+            <div className="sync-card__desc" style={{ color: '#15803d' }}>
+              20개 구단 한글명, 홈 경기장, 구단 역사와 코칭스태프, 500여 명 선수단의 한글 이름 및 국적을 Gemini AI가 일괄 번역하여 DB에 적재합니다. (비동기 백그라운드 파이프라인 가동)
+            </div>
+          </div>
+          <div className="sync-card__actions">
+            <button
+              type="button"
+              className="btn-action btn-action--success"
+              style={{ background: '#16a34a', borderColor: '#16a34a', color: '#ffffff', fontWeight: 700 }}
+              disabled={syncLoading}
+              onClick={() => {
+                if (!window.confirm('전체 20개 구단 정보, 코칭스태프 및 500여 명 선수단의 한글 번역 일괄 작업을 백그라운드에서 시작하시겠습니까?\n(서버 콘솔에서 단계별 진행 로그가 출력됩니다.)')) return;
+                handleTriggerSync('ai-korean', null, null, '전체 AI 한국어 번역 일괄');
+              }}
+            >
+              전체 AI 한글화 일괄 실행
+            </button>
+          </div>
+        </div>
+
+        {/* 9. [Gemini AI] 선수단 한글 번역 단독 실행 */}
+        <div className="sync-card" style={{ borderColor: '#bbf7d0' }}>
+          <div>
+            <div className="sync-card__title">🏃 선수단 한글명 번역 (단독 실행)</div>
+            <div className="sync-card__desc">
+              20개 구단 500여 명 선수들의 영문 이름을 공식 국문 표기법에 맞춰 Gemini AI가 한글명과 국적으로 번역하여 PLAYERS 테이블을 갱신합니다.
+            </div>
+          </div>
+          <div className="sync-card__actions">
+            <button
+              type="button"
+              className="btn-action btn-action--primary"
+              disabled={syncLoading}
+              onClick={() => {
+                if (!window.confirm('전체 선수단 한글명 및 국적 번역을 실행하시겠습니까? (약 10~20초 소요)')) return;
+                handleTriggerSync('ai-players', null, null, '선수단 한글 번역');
+              }}
+            >
+              선수단 한글화 실행
+            </button>
+          </div>
+        </div>
+
+        {/* 10. [Gemini AI] 20개 구단 한글명 및 구단 역사 생성 */}
+        <div className="sync-card" style={{ borderColor: '#bbf7d0' }}>
+          <div>
+            <div className="sync-card__title">🛡️ 20개 구단 한글명 & 구단 역사 생성</div>
+            <div className="sync-card__desc">
+              20개 구단의 공식 한글 구단명, 홈 경기장 한글명, 3~4문장의 역사 요약을 생성하여 TEAMS 테이블에 적재합니다.
+            </div>
+          </div>
+          <div className="sync-card__actions">
+            <button
+              type="button"
+              className="btn-action btn-action--primary"
+              disabled={syncLoading}
+              onClick={() => {
+                if (!window.confirm('20개 구단 한글명 및 역사 생성을 실행하시겠습니까?')) return;
+                handleTriggerSync('ai-teams', null, null, '구단 한글명 및 역사');
+              }}
+            >
+              구단 정보 한글화 실행
+            </button>
+          </div>
+        </div>
+
+        {/* 11. [Gemini AI] 감독 및 코칭스태프 한글 번역 */}
+        <div className="sync-card" style={{ borderColor: '#bbf7d0' }}>
+          <div>
+            <div className="sync-card__title">👔 감독 및 코칭스태프 한글 번역</div>
+            <div className="sync-card__desc">
+              20개 구단 감독 및 주요 코칭스태프의 한글 이름과 국적을 번역하여 STAFFS 테이블을 갱신합니다.
+            </div>
+          </div>
+          <div className="sync-card__actions">
+            <button
+              type="button"
+              className="btn-action btn-action--primary"
+              disabled={syncLoading}
+              onClick={() => {
+                if (!window.confirm('코칭스태프(감독) 한글명 번역을 실행하시겠습니까?')) return;
+                handleTriggerSync('ai-staffs', null, null, '코칭스태프 한글 번역');
+              }}
+            >
+              스태프 한글화 실행
+            </button>
+          </div>
+        </div>
+
+        {/* 12. [Gemini AI] 선수 세부 포지션(CB, LB, CDM, ST 등) AI 판별 및 DB 적재 */}
+        <div className="sync-card" style={{ borderColor: '#c7d2fe' }}>
+          <div>
+            <div className="sync-card__title">📍 선수 20개 구단 세부 포지션 AI 판별</div>
+            <div className="sync-card__desc">
+              선수들의 주 활동 영역과 역할을 Gemini AI가 분석하여 4대 대분류 외 세부 포지션(CB, LB, RB, CDM, CAM, CM, ST, LW, RW 등)을 정밀 판별하여 DB에 적재합니다.
+            </div>
+          </div>
+          <div className="sync-card__actions">
+            <button
+              type="button"
+              className="btn-action btn-action--primary"
+              style={{ background: '#4f46e5', borderColor: '#4f46e5' }}
+              disabled={syncLoading}
+              onClick={() => {
+                if (!window.confirm('20개 구단 전체 선수의 세부 포지션 AI 판별 및 DB 적재를 실행하시겠습니까?')) return;
+                handleTriggerSync('ai-positions', null, null, '선수 세부 포지션');
+              }}
+            >
+              세부 포지션 AI 적재 실행
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -4,6 +4,8 @@ import { fetchTeams, fetchCategories } from '../store/teamSlice.js'
 import { communityTeams } from '../data/communityTeams.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
 import { useCommunityConfirm } from '../components/CommunityConfirm.jsx'
+import { getAppSearchParams } from '../utils/searchParams.js'
+import { navigate } from '../utils/navigation.js'
 import '../css/Community.css'
 
 // StrictMode가 개발 환경에서 같은 상세 조회를 두 번 실행해도 서버 요청은 한 번만 보냅니다.
@@ -114,14 +116,15 @@ export default function PostDetail({ postId }) {
   const [pendingImages, setPendingImages] = useState([])
   const [pendingFiles, setPendingFiles] = useState([])
   const [attachmentLoading, setAttachmentLoading] = useState(false)
+  const [unblurredPost, setUnblurredPost] = useState(false)
+  const [unblurredComments, setUnblurredComments] = useState({})
+  const postDetailSearchParams = getAppSearchParams()
   const [attachmentError, setAttachmentError] = useState(
-    new URLSearchParams(window.location.search).get('attachmentError') === '1'
+    postDetailSearchParams.get('attachmentError') === '1'
       ? '게시글은 등록되었지만 일부 첨부파일 업로드에 실패했습니다. 다시 등록해주세요.'
       : '',
   )
-  const [unblurredPost, setUnblurredPost] = useState(false)
-  const [unblurredComments, setUnblurredComments] = useState({})
-  const requestedReturn = new URLSearchParams(window.location.search).get('from')
+  const requestedReturn = postDetailSearchParams.get('from')
   // 외부 주소나 임의의 경로로 이동하지 않도록 실제 목록 경로만 허용합니다.
   const allowedPaths = ['/plug/community', '/plug/community/free', ...communityTeams.map((team) => `/plug/community/teams/${team.slug}`)]
   const backTo = allowedPaths.includes(requestedReturn) ? requestedReturn : '/plug/community'
@@ -293,7 +296,7 @@ export default function PostDetail({ postId }) {
       if (!response.ok) {
         throw new Error(result.message || '게시글 삭제에 실패했습니다.')
       }
-      window.location.assign(backTo)
+      navigate(backTo)
     } catch (exception) {
       setActionError(exception.message || '게시글 삭제에 실패했습니다.')
       setActionLoading(false)
@@ -304,7 +307,7 @@ export default function PostDetail({ postId }) {
   const toggleLike = async () => {
     if (likeRequestRef.current) return
     if (!isLoggedIn) {
-      window.location.assign('/plug/login')
+      navigate('/plug/login')
       return
     }
 
@@ -342,7 +345,7 @@ export default function PostDetail({ postId }) {
     event.preventDefault()
     if (commentRequestRef.current) return
     if (!isLoggedIn) {
-      window.location.assign('/plug/login')
+      navigate('/plug/login')
       return
     }
     const submittedContent = parentComment ? replyContent : commentContent
@@ -907,14 +910,14 @@ export default function PostDetail({ postId }) {
     <section className="community__more-posts" aria-labelledby="community-more-title">
       <div className="community__showcase-heading">
         <h2 id="community-more-title">{moreKeyword ? '게시글 검색 결과' : '다른 게시글도 둘러보세요'}</h2>
-        <a className="community__main-link" href="/plug/community">전체 목록</a>
+        <a className="community__main-link" href="#/plug/community">전체 목록</a>
       </div>
       {morePostsLoading ? <p role="status">게시글을 불러오는 중입니다.</p>
         : morePostsError ? <p role="status">{morePostsError}</p>
           : morePosts.length === 0 ? <p role="status">{moreKeyword ? '검색어에 맞는 다른 게시글이 없습니다.' : '아직 다른 게시글이 없습니다.'}</p>
             : <ul className="community__more-list">
               {morePosts.map((item) => <li key={item.postId}>
-                <a href={`/plug/community/posts/${item.postId}?from=%2Fplug%2Fcommunity`}>
+                <a href={`#/plug/community/posts/${item.postId}?from=%2Fplug%2Fcommunity`}>
                   <span className="community__badge">{item.showcaseImageId ? '자랑' : item.teamName || item.categoryType || '자유'}</span>
                   <span className="community__more-title community__title-with-comments"><span className="community__title-text">{Array.from(item.title || '').slice(0, 30).join('')}{Array.from(item.title || '').length > 30 ? '...' : ''}</span>{Number(item.commentCount) > 0 && <span className="community__comment-count" aria-label={`댓글 ${item.commentCount}개`}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6 4V6a2 2 0 0 1 2-2Z" /></svg>{item.commentCount}</span>}</span>
                   <span className="community__more-meta"><span className="community__more-author">작성자 {item.nickname || '알 수 없음'}</span><span>조회 {item.viewCount || 0} · 추천 {item.likeCount || 0}</span></span>

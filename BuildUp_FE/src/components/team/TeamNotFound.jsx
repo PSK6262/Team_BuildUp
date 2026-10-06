@@ -6,7 +6,7 @@ export default function TeamNotFound({ teamId }) {
       <div className="team-not-found">
         <h2>존재하지 않는 구단입니다.</h2>
         <p>요청하신 팀 ID ({teamId})를 찾을 수 없습니다.</p>
-        <a href="/plug/teams" className="team-back-btn">
+        <a href="#/plug/teams" className="team-back-btn">
           ← 팀 소개 페이지로 돌아가기
         </a>
       </div>

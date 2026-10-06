@@ -4,6 +4,7 @@ import { defineConfig } from 'vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base:'/Team_BuildUp/',
   build: {
     rolldownOptions: {
       output: {
@@ -17,8 +18,9 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: process.env.VITE_API_PROXY_TARGET || 'https://psk6262buildup.duckdns.org',
         changeOrigin: true,
+        secure: false,
       },
     },
   },

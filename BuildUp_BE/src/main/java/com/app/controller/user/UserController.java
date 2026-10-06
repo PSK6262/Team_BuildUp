@@ -26,6 +26,7 @@ import com.app.dto.user.Users;
 import com.app.service.user.UserService;
 import com.app.util.JwtProvider;
 import com.app.util.LoginManager;
+import com.app.util.UserActivityLogger;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -225,6 +226,7 @@ public class UserController {
 
 		try {
 			Map<String, Object> result = userService.purchaseShopItem(user.getUserId(), itemRequest);
+			UserActivityLogger.log(request, "포인트샵 구매(UserCtrl)", loginId);
 			return ApiResponse.success(result);
 		} catch (IllegalArgumentException e) {
 			return ApiResponse.error(ResultCode.INVALID_INPUT, e.getMessage());
@@ -294,6 +296,7 @@ public class UserController {
 			if (request.getSession(false) != null) {
 				request.getSession().setAttribute(CommonCode.SESSION_LOGIN_USER, updated);
 			}
+			UserActivityLogger.log(request, "프로필 수정", loginId);
 			return ApiResponse.success(updated);
 
 		} catch (IllegalArgumentException e) {
@@ -304,6 +307,51 @@ public class UserController {
 		} catch (Exception e) {
 			log.error("[UserController] 프로필 수정 오류: {}", e.getMessage(), e);
 			return ApiResponse.error(ResultCode.PROFILE_UPDATE_FAIL);
+		}
+	}
+
+	/**
+	 * 회원 비밀번호 변경 (현재 비밀번호 검증 + 신규 규격 암호화 적용)
+	 */
+	@PutMapping("/me/password")
+	public ApiResponse<Void> changePassword(
+			@RequestBody Map<String, String> body,
+			HttpServletRequest request) {
+		String loginId = resolveLoginId(request);
+		if (loginId == null) {
+			return ApiResponse.error(ResultCode.UNAUTHORIZED);
+		}
+
+		Users currentUser = userDAO.selectUserByLoginId(loginId);
+		if (currentUser == null) {
+			return ApiResponse.error(ResultCode.USER_NOT_FOUND);
+		}
+
+		String currentPassword = body != null ? body.get("currentPassword") : null;
+		String newPassword = body != null ? body.get("newPassword") : null;
+
+		if (currentPassword == null || currentPassword.trim().isEmpty() ||
+			newPassword == null || newPassword.trim().isEmpty()) {
+			return ApiResponse.error(ResultCode.INVALID_INPUT, "현재 비밀번호와 새 비밀번호를 모두 입력해주세요.");
+		}
+
+		if (newPassword.trim().length() < 8 || newPassword.trim().length() > 20) {
+			return ApiResponse.error(ResultCode.INVALID_PASSWORD, "새 비밀번호는 8자 이상 20자 이하로 입력해주세요.");
+		}
+
+		try {
+			boolean changed = userService.changePassword(currentUser.getUserId(), currentPassword.trim(), newPassword.trim());
+			if (changed) {
+				UserActivityLogger.log(request, "비밀번호 변경", loginId);
+				return ApiResponse.success();
+			} else {
+				return ApiResponse.error(ResultCode.FAIL, "비밀번호 변경에 실패했습니다.");
+			}
+		} catch (IllegalArgumentException e) {
+			return ApiResponse.error(ResultCode.INVALID_PASSWORD, e.getMessage());
+		} catch (Exception e) {
+			log.error("[UserController] 비밀번호 변경 중 예외 발생: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "비밀번호 변경 처리 중 오류가 발생했습니다.");
 		}
 	}
 
@@ -325,6 +373,7 @@ public class UserController {
 		try {
 			boolean success = userService.withdraw(currentUser.getUserId(), currentUser.getEmail());
 			if (success) {
+				UserActivityLogger.log(request, "회원 탈퇴", loginId);
 				LoginManager.logout(request);
 				log.info("[UserController] 회원 탈퇴 완료 -> userId: {}, loginId: {}", currentUser.getUserId(), loginId);
 				return ApiResponse.success();

@@ -36,6 +36,7 @@ import com.app.service.admin.AdminService;
 import com.app.service.api.GeminiApiService;
 import com.app.util.JwtProvider;
 import com.app.util.LoginManager;
+import com.app.util.UserActivityLogger;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -58,7 +59,7 @@ public class AdminController {
 		HttpSession session = request.getSession(false);
 		if (session != null) {
 			Users sessionUser = (Users) session.getAttribute(CommonCode.SESSION_LOGIN_USER);
-			if (sessionUser != null && CommonCode.ROLE_ADMIN.equals(sessionUser.getRoleCode())) {
+			if (sessionUser != null && (CommonCode.ROLE_ADMIN.equals(sessionUser.getRoleCode()) || CommonCode.ROLE_SUB_ADMIN.equals(sessionUser.getRoleCode()))) {
 				return true;
 			}
 		}
@@ -67,7 +68,7 @@ public class AdminController {
 		String sessionLoginId = LoginManager.getLoginUserId(request);
 		if (sessionLoginId != null && userDAO != null) {
 			Users user = userDAO.selectUserByLoginId(sessionLoginId);
-			if (user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode())) {
+			if (user != null && (CommonCode.ROLE_ADMIN.equals(user.getRoleCode()) || CommonCode.ROLE_SUB_ADMIN.equals(user.getRoleCode()))) {
 				return true;
 			}
 		}
@@ -78,7 +79,7 @@ public class AdminController {
 			String tokenLoginId = JwtProvider.getLoginIdFromToken(token);
 			if (tokenLoginId != null && userDAO != null) {
 				Users user = userDAO.selectUserByLoginId(tokenLoginId);
-				if (user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode())) {
+				if (user != null && (CommonCode.ROLE_ADMIN.equals(user.getRoleCode()) || CommonCode.ROLE_SUB_ADMIN.equals(user.getRoleCode()))) {
 					return true;
 				}
 			}
@@ -87,19 +88,19 @@ public class AdminController {
 		return false;
 	}
 
-	// 현재 접속 중인 관리자 사용자 엔티티 조회 헬퍼
+	// 현재 접속 중인 관리자/부관리자 사용자 엔티티 조회 헬퍼
 	private Users getLoginAdmin(HttpServletRequest request) {
 		HttpSession session = request.getSession(false);
 		if (session != null) {
 			Users sessionUser = (Users) session.getAttribute(CommonCode.SESSION_LOGIN_USER);
-			if (sessionUser != null && CommonCode.ROLE_ADMIN.equals(sessionUser.getRoleCode())) {
+			if (sessionUser != null && (CommonCode.ROLE_ADMIN.equals(sessionUser.getRoleCode()) || CommonCode.ROLE_SUB_ADMIN.equals(sessionUser.getRoleCode()))) {
 				return sessionUser;
 			}
 		}
 		String sessionLoginId = LoginManager.getLoginUserId(request);
 		if (sessionLoginId != null && userDAO != null) {
 			Users user = userDAO.selectUserByLoginId(sessionLoginId);
-			if (user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode())) {
+			if (user != null && (CommonCode.ROLE_ADMIN.equals(user.getRoleCode()) || CommonCode.ROLE_SUB_ADMIN.equals(user.getRoleCode()))) {
 				return user;
 			}
 		}
@@ -108,7 +109,7 @@ public class AdminController {
 			String tokenLoginId = JwtProvider.getLoginIdFromToken(token);
 			if (tokenLoginId != null && userDAO != null) {
 				Users user = userDAO.selectUserByLoginId(tokenLoginId);
-				if (user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode())) {
+				if (user != null && (CommonCode.ROLE_ADMIN.equals(user.getRoleCode()) || CommonCode.ROLE_SUB_ADMIN.equals(user.getRoleCode()))) {
 					return user;
 				}
 			}
@@ -328,6 +329,7 @@ public class AdminController {
 			return ApiResponse.error(ResultCode.FORBIDDEN);
 		}
 		boolean success = adminService.deletePost(postId);
+		if (success) UserActivityLogger.log(request, "관리자 게시글 삭제(postId=" + postId + ")", "admin");
 		return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
 	}
 
@@ -401,6 +403,24 @@ public class AdminController {
 			return ApiResponse.error(ResultCode.INVALID_INPUT);
 		}
 		Long roleCode = Long.valueOf(body.get("roleCode").toString());
+		Users operator = getLoginAdmin(request);
+		if (operator == null) {
+			return ApiResponse.error(ResultCode.UNAUTHORIZED);
+		}
+
+		// 최고관리자(9)가 아닌 부관리자(8)의 경우 제약사항:
+		// 1) 최고관리자(9) 등급을 부여할 수 없음
+		// 2) 최고관리자(9) 등급인 회원의 권한을 변경할 수 없음
+		if (!CommonCode.ROLE_ADMIN.equals(operator.getRoleCode())) {
+			if (CommonCode.ROLE_ADMIN.equals(roleCode)) {
+				return ApiResponse.error(ResultCode.FORBIDDEN, "최고 관리자(매니저)만 관리자 등급을 부여할 수 있습니다.");
+			}
+			Users targetUser = userDAO.selectUserByUserId(userId);
+			if (targetUser != null && CommonCode.ROLE_ADMIN.equals(targetUser.getRoleCode())) {
+				return ApiResponse.error(ResultCode.FORBIDDEN, "부관리자는 최고 관리자의 권한을 변경할 수 없습니다.");
+			}
+		}
+
 		boolean success = adminService.updateUserRole(userId, roleCode);
 		return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
 	}
@@ -430,6 +450,7 @@ public class AdminController {
 
 		try {
 			boolean success = adminService.adjustUserPoints(userId, amount, finalDescription);
+			if (success) UserActivityLogger.log(request, "관리자 포인트 직권 조정(userId=" + userId + ")", "admin");
 			return success ? ApiResponse.success() : ApiResponse.error(ResultCode.FAIL);
 		} catch (IllegalStateException | IllegalArgumentException e) {
 			return ApiResponse.error(ResultCode.FAIL, e.getMessage());
@@ -628,6 +649,93 @@ public class AdminController {
 		} catch (Exception e) {
 			log.error("[AdminController] 불일치 경기 재동기화 실패: {}", e.getMessage(), e);
 			return ApiResponse.error(ResultCode.FAIL, "불일치 경기 재동기화 중 오류가 발생했습니다: " + e.getMessage());
+		}
+	}
+
+	// [Gemini AI] 23-1. 전체 구단 역사 및 한글명 일괄 자동 적재 (비동기 백그라운드)
+	@PostMapping("/sync/ai-korean")
+	public ApiResponse<Map<String, Object>> syncAiKorean(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		try {
+			Map<String, Object> result = geminiApiService.syncAllKoreanDataAsync();
+			return ApiResponse.success(result);
+		} catch (Exception e) {
+			log.error("[AdminController] 전체 AI 한글화 일괄 실행 실패: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "전체 AI 한글화 실행 중 오류가 발생했습니다: " + e.getMessage());
+		}
+	}
+
+	// [Gemini AI] 23-2. 전체 선수단 한글 번역 단독 실행
+	@PostMapping("/sync/ai-players")
+	public ApiResponse<Map<String, Object>> syncAiPlayers(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		try {
+			int count = geminiApiService.syncAllPlayersKorean();
+			Map<String, Object> data = new HashMap<>();
+			data.put("syncedPlayersKorean", count);
+			data.put("updatedCount", count);
+			return ApiResponse.success(data);
+		} catch (Exception e) {
+			log.error("[AdminController] 선수단 한글 번역 실패: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "선수단 한글 번역 중 오류가 발생했습니다: " + e.getMessage());
+		}
+	}
+
+	// [Gemini AI] 23-3. 20개 구단 한글명, 홈구장, 역사 동기화 단독 실행
+	@PostMapping("/sync/ai-teams")
+	public ApiResponse<Map<String, Object>> syncAiTeams(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		try {
+			int count = geminiApiService.syncTeamsKoreanAndHistory();
+			Map<String, Object> data = new HashMap<>();
+			data.put("syncedTeamsKorean", count);
+			data.put("updatedCount", count);
+			return ApiResponse.success(data);
+		} catch (Exception e) {
+			log.error("[AdminController] 구단 한글명 동기화 실패: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "구단 한글명 동기화 중 오류가 발생했습니다: " + e.getMessage());
+		}
+	}
+
+	// [Gemini AI] 23-4. 코칭스태프(감독) 한글명 번역 단독 실행
+	@PostMapping("/sync/ai-staffs")
+	public ApiResponse<Map<String, Object>> syncAiStaffs(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		try {
+			int count = geminiApiService.syncStaffsKorean();
+			Map<String, Object> data = new HashMap<>();
+			data.put("syncedStaffsKorean", count);
+			data.put("updatedCount", count);
+			return ApiResponse.success(data);
+		} catch (Exception e) {
+			log.error("[AdminController] 코칭스태프 한글 번역 실패: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "코칭스태프 한글 번역 중 오류가 발생했습니다: " + e.getMessage());
+		}
+	}
+
+	// [Gemini AI] 23-5. 전체 선수 세부 포지션(CB, LB, CDM, ST 등) AI 판별 및 DB 적재
+	@PostMapping("/sync/ai-positions")
+	public ApiResponse<Map<String, Object>> syncAiPositions(HttpServletRequest request) {
+		if (!isAdmin(request)) {
+			return ApiResponse.error(ResultCode.FORBIDDEN);
+		}
+		try {
+			int count = geminiApiService.syncAllPlayersDetailPositions();
+			Map<String, Object> data = new HashMap<>();
+			data.put("syncedPositions", count);
+			data.put("updatedCount", count);
+			return ApiResponse.success(data);
+		} catch (Exception e) {
+			log.error("[AdminController] 세부 포지션 AI 적재 실패: {}", e.getMessage(), e);
+			return ApiResponse.error(ResultCode.FAIL, "세부 포지션 AI 적재 중 오류가 발생했습니다: " + e.getMessage());
 		}
 	}
 

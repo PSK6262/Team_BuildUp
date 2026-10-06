@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchTeams } from '../store/teamSlice.js';
 import TeamCard from '../components/team/TeamCard.jsx';
+import { getAppSearchParams } from '../utils/searchParams.js';
 import '../css/teams.css';
 import '../css/rankings.css';
 
@@ -268,16 +269,33 @@ export function StandingsPage() {
     cleanSheets: ['CLEAN SHEETS', '골문을 굳건히 지키는 무실점 수문장들의 기록'],
   };
   const [ tab, setTab ] = useState(() => {
-    const value = new URLSearchParams(window.location.search).get('tab');
+    const value = getAppSearchParams().get('tab');
     return tabs.some(([ id ]) => id === value) ? value : 'league';
   });
   function changeTab(value) {
-    const url = new URL(window.location.href);
-    url.searchParams.set('tab', value);
-    url.searchParams.delete('season');
-    window.history.replaceState(null, '', url);
+    if (window.location.hash) {
+      const [path, query = ''] = window.location.hash.slice(1).split('?');
+      const params = new URLSearchParams(query);
+      params.set('tab', value);
+      params.delete('season');
+      window.location.hash = `${path}?${params.toString()}`;
+    } else {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', value);
+      url.searchParams.delete('season');
+      window.history.replaceState(null, '', url);
+    }
     setTab(value);
   }
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const value = getAppSearchParams().get('tab');
+      if (tabs.some(([ id ]) => id === value)) setTab(value);
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   return (
     <main className="teams-page-container teams-page-container--rankings">
@@ -542,7 +560,7 @@ function DesktopLeagueRankings({ rows }) {
             return (
               <tr key={row.teamId}>
                 <td><span className="standings-rank" data-rank={row.currentRank}>{row.currentRank ?? '—'}</span></td>
-                <th scope="row"><a className="standings-team" href={`/plug/team/${row.teamId}`} title={`${teamKor} 상세 정보 보기`}>
+                <th scope="row"><a className="standings-team" href={`#/plug/team/${row.teamId}`} title={`${teamKor} 상세 정보 보기`}>
                   {row.emblemUrl && <img src={row.emblemUrl} alt="" width="28" height="28" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} />}
                   <span style={{ fontWeight: 700 }}>{teamKor}</span>
                   {row.teamName && teamKor !== row.teamName && (
@@ -628,7 +646,7 @@ function RankingDetailCarousel({ rows, metric, label, initialIndex, onActiveInde
                 <dd>{row[field] == null ? '—' : field === 'goalDiff' && row[field] > 0 ? `+${row[field]}` : row[field]}</dd>
               </div>)}
             </dl>
-            <a className="player-ranking-detail" href={`/plug/team/${row.teamId}`}>{teamName} 상세 보기</a>
+            <a className="player-ranking-detail" href={`#/plug/team/${row.teamId}`}>{teamName} 상세 보기</a>
           </article>;
         }
         const name = row.playerNameKor || row.playerName || '선수명 미등록';
@@ -822,8 +840,19 @@ export function MemberRankings({ type, refreshKey = 0, mobileCards = false }) {
     <h2>{prediction ? '승부예측 적중' : '나만의 팀 가상 대결 승률'} TOP 10</h2>
     <p>{prediction ? '정산된 예측의 적중 수 → 적중률 순입니다.' : '로그인 후 진행한 가상 대결의 승률 → 승리 수 순입니다. 승률은 전체 대결 중 승리 비율이며, 무승부도 전체 대결에 포함됩니다.'}</p>
     <div className="member-ranking-actions">
-      <a href={prediction ? '/plug/prediction' : '/plug/myteam'}>{prediction ? '승부예측 참여하기' : '나만의 팀 대결하기'}</a>
-      <button type="button" disabled={result.status === 'loading'} onClick={() => setAttempt((value) => value + 1)}>새로고침</button>
+      {prediction && <a href="#/plug/prediction">승부예측 참여하기</a>}
+      <button
+        type="button"
+        disabled={result.status === 'loading'}
+        onClick={() => setAttempt((value) => value + 1)}
+        title="랭킹 새로고침"
+        aria-label="랭킹 새로고침"
+        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '8px 12px' }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+        </svg>
+      </button>
     </div>
     {result.status === 'loading' ? <p role="status">랭킹을 불러오는 중입니다...</p>
       : result.status === 'error' ? <p role="alert">랭킹을 불러오지 못했습니다. 새로고침으로 다시 시도해주세요.</p>

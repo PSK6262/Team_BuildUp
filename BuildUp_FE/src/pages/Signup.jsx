@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
+import { getAppSearchParams } from '../utils/searchParams.js'
 import '../css/Auth.css'
 
 const EMAIL_REGEX = /^[a-zA-Z0-9](?!.*\.\.)[a-zA-Z0-9._-]{2,28}[a-zA-Z0-9]@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -29,9 +30,10 @@ export default function Signup() {
   const [sentEmail, setSentEmail] = useState('')
 
   // URL에서 이메일 인증키 추출 (?key=...)
-  const searchParams = new URLSearchParams(window.location.search)
+  const searchParams = getAppSearchParams()
   const confirmKey = searchParams.get('key')
-  const isConfirmMode = Boolean(confirmKey || window.location.pathname === '/plug/signup/confirm')
+  const currentPath = (window.location.hash.replace(/^#/, '').split('?')[0] || window.location.pathname).replace(/\/$/, '')
+  const isConfirmMode = Boolean(confirmKey || currentPath === '/plug/signup/confirm')
 
   const [confirmStatus, setConfirmStatus] = useState(isConfirmMode ? (confirmKey ? 'loading' : 'error') : 'idle')
   const [confirmMsg, setConfirmMsg] = useState(isConfirmMode && !confirmKey ? '인증키가 존재하지 않거나 누락되었습니다.' : '')
@@ -246,7 +248,7 @@ export default function Signup() {
             </p>
             <div>
               <a
-                href="/plug/login"
+                href="#/plug/login"
                 className="auth-submit-btn"
                 style={{
                   display: 'flex',
@@ -280,7 +282,7 @@ export default function Signup() {
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <a
-              href="/plug/signup"
+              href="#/plug/signup"
               className="auth-submit-btn"
               style={{
                 display: 'flex',
@@ -295,7 +297,7 @@ export default function Signup() {
               회원가입 다시 하기
             </a>
             <a
-              href="/plug/login"
+              href="#/plug/login"
               className="auth-secondary-btn"
             >
               로그인 화면으로 이동
@@ -326,7 +328,7 @@ export default function Signup() {
           </p>
           <div style={{ marginTop: '28px' }}>
             <a
-              href="/plug/login"
+              href="#/plug/login"
               className="auth-submit-btn"
               style={{
                 display: 'flex',
@@ -475,7 +477,7 @@ export default function Signup() {
 
         <div className="auth-footer">
           <span>이미 계정이 있으신가요?</span>
-          <a href="/plug/login">로그인</a>
+          <a href="#/plug/login">로그인</a>
         </div>
       </div>
     </div>

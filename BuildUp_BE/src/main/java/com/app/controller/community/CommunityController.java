@@ -31,6 +31,7 @@ import com.app.dto.community.Posts;
 import com.app.service.community.CommunityService;
 import com.app.util.JwtProvider;
 import com.app.util.LoginManager;
+import com.app.util.UserActivityLogger;
 @RestController
 public class CommunityController {
     private final CommunityService communityService;
@@ -89,6 +90,7 @@ public class CommunityController {
                 .body(ApiResponse.error(ResultCode.COMMUNITY_LOGIN_REQUIRED));
         }
         Posts createdPost = communityService.createPost(loginId, post);
+        UserActivityLogger.log(request, "게시글 작성", loginId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(createdPost));
     }
 
@@ -101,6 +103,7 @@ public class CommunityController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error(ResultCode.COMMUNITY_LOGIN_REQUIRED));
         }
+        UserActivityLogger.log(request, "게시글 수정", loginId);
         return ResponseEntity.ok(ApiResponse.success(communityService.updatePost(loginId, postId, post)));
     }
 
@@ -113,6 +116,7 @@ public class CommunityController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error(ResultCode.COMMUNITY_LOGIN_REQUIRED));
         }
+        UserActivityLogger.log(request, "게시글 삭제", loginId);
         communityService.deletePost(loginId, postId);
         return ResponseEntity.ok(ApiResponse.success());
     }
@@ -138,6 +142,7 @@ public class CommunityController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error(ResultCode.COMMUNITY_LOGIN_REQUIRED));
         }
+        UserActivityLogger.log(request, "게시글 추천", loginId);
         return ResponseEntity.ok(ApiResponse.success(communityService.likePost(loginId, postId)));
     }
 
@@ -172,6 +177,7 @@ public class CommunityController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error(ResultCode.COMMUNITY_LOGIN_REQUIRED));
         }
+        UserActivityLogger.log(request, "댓글 작성", loginId);
         Comments createdComment = communityService.createComment(loginId, postId, comment);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(createdComment));
     }
@@ -186,6 +192,7 @@ public class CommunityController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error(ResultCode.COMMUNITY_LOGIN_REQUIRED));
         }
+        UserActivityLogger.log(request, "댓글 수정", loginId);
         return ResponseEntity.ok(ApiResponse.success(
             communityService.updateComment(loginId, postId, commentId, comment)));
     }
@@ -200,6 +207,7 @@ public class CommunityController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error(ResultCode.COMMUNITY_LOGIN_REQUIRED));
         }
+        UserActivityLogger.log(request, "댓글 삭제", loginId);
         communityService.deleteComment(loginId, postId, commentId);
         return ResponseEntity.ok(ApiResponse.success());
     }

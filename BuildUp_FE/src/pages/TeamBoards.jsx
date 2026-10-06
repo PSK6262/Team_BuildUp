@@ -15,7 +15,7 @@ export default function TeamBoards() {
     </header>
     <CommunityNavigation section="teams" />
     <nav className="community__team-grid" aria-label="팀별 게시판 선택">
-      {orderedTeams.map((team) => <a className={`community__card community__card--free${isFavorite(team) ? ' community__favorite-team' : ''}`} key={team.slug} href={`/plug/community/teams/${team.slug}`}>
+      {orderedTeams.map((team) => <a className={`community__card community__card--free${isFavorite(team) ? ' community__favorite-team' : ''}`} key={team.slug} href={`#/plug/community/teams/${team.slug}`}>
         <img className="community__emblem" src={team.emblemUrl} alt="" width="50" height="50" loading="lazy" onError={(event) => { event.currentTarget.style.visibility = 'hidden' }} />
         <strong>{team.name}</strong>
         {isFavorite(team) && <small className="community__favorite-label">애정팀</small>}

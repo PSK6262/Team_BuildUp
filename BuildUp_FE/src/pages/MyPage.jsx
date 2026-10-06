@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateUser, logout } from '../store/authSlice.js'
-import { getMyActivities, getMyPosts, getMyComments, getMyLikedPosts, getMyPointHistories, getMyShopData } from '../api/userApi.js'
+import { getMyActivities, getMyPosts, getMyComments, getMyLikedPosts, getMyPointHistories, getMyShopData, changePassword } from '../api/userApi.js'
 import { SHOP_ITEMS } from '../api/shopApi.js'
+import { navigate } from '../utils/navigation.js'
 import '../css/MyPage.css'
 
 const EMAIL_REGEX = /^[a-zA-Z0-9](?!.*\.\.)[a-zA-Z0-9._-]{2,28}[a-zA-Z0-9]@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -279,6 +280,58 @@ export default function MyPage() {
   const [showPointModal, setShowPointModal] = useState(false)
   const [pointHistories, setPointHistories] = useState([])
   const [pointHistoriesLoading, setPointHistoriesLoading] = useState(false)
+
+  // 비밀번호 변경 모달 상태
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [pwCurrent, setPwCurrent] = useState('')
+  const [pwNew, setPwNew] = useState('')
+  const [pwConfirm, setPwConfirm] = useState('')
+  const [pwMsg, setPwMsg] = useState('')
+  const [pwSuccess, setPwSuccess] = useState(false)
+  const [pwSubmitting, setPwSubmitting] = useState(false)
+
+  const handlePasswordChangeSubmit = async (e) => {
+    e.preventDefault()
+    setPwMsg('')
+    setPwSuccess(false)
+
+    if (!pwCurrent) {
+      setPwMsg('현재 비밀번호를 입력해주세요.')
+      return
+    }
+    if (!pwNew || pwNew.length < 8 || pwNew.length > 20) {
+      setPwMsg('새 비밀번호는 8자 이상 20자 이하로 입력해주세요.')
+      return
+    }
+    if (pwNew !== pwConfirm) {
+      setPwMsg('새 비밀번호와 비밀번호 확인이 일치하지 않습니다.')
+      return
+    }
+    if (pwCurrent === pwNew) {
+      setPwMsg('현재 비밀번호와 다른 새 비밀번호를 입력해주세요.')
+      return
+    }
+
+    try {
+      setPwSubmitting(true)
+      await changePassword(pwCurrent, pwNew)
+      setPwSuccess(true)
+      setPwMsg('비밀번호가 안전하게 변경되었습니다!')
+      setTimeout(() => {
+        setShowPasswordModal(false)
+        setPwCurrent('')
+        setPwNew('')
+        setPwConfirm('')
+        setPwMsg('')
+        setPwSuccess(false)
+      }, 1500)
+    } catch (err) {
+      setPwSuccess(false)
+      setPwMsg(err.message || '비밀번호 변경에 실패했습니다.')
+    } finally {
+      setPwSubmitting(false)
+    }
+  }
 
   const handleOpenPointModal = async () => {
     setShowPointModal(true)
@@ -957,7 +1010,7 @@ export default function MyPage() {
         alert('회원 탈퇴가 완료되었습니다.\n작성하신 게시글과 댓글은 커뮤니티 보존을 위해 (탈퇴회원)으로 유지됩니다.')
         setShowWithdrawModal(false)
         dispatch(logout())
-        window.location.assign('/plug/login')
+        navigate('/plug/login')
       } else {
         alert(data.message || '회원 탈퇴 처리 중 오류가 발생했습니다.')
       }
@@ -989,7 +1042,7 @@ export default function MyPage() {
           <h2 style={{ color: currentTheme === 'light' ? '#0f172a' : '#ffffff', fontSize: '22px', fontWeight: 800, margin: '0 0 8px' }}>로그인이 필요합니다</h2>
           <p style={{ color: currentTheme === 'light' ? '#64748b' : '#a795b5', fontSize: '14px', margin: '0 0 24px' }}>마이페이지는 회원 로그인 후 이용하실 수 있습니다.</p>
           <a
-            href="/plug/login"
+            href="#/plug/login"
             className="mypage-primary-btn"
             style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', padding: '0 28px' }}
           >
@@ -1328,21 +1381,37 @@ export default function MyPage() {
                         프로필 정보 관리
                       </h2>
                       {!isEditing && (
-                        <button
-                          type="button"
-                          className="mypage-action-outline-btn"
-                          onClick={() => {
-                            setIsEditing(true)
-                            setNicknameChecked(true)
-                            setNicknameCheckMsg('')
-                            setEmailVerified(true)
-                            setEmailVerifyMsg('')
-                            setEmailCodeSent(false)
-                            setEmailAuthCode('')
-                          }}
-                        >
-                          프로필 수정하기
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <button
+                            type="button"
+                            className="mypage-action-outline-btn"
+                            onClick={() => {
+                              setShowPasswordModal(true)
+                              setPwCurrent('')
+                              setPwNew('')
+                              setPwConfirm('')
+                              setPwMsg('')
+                              setPwSuccess(false)
+                            }}
+                          >
+                            🔒 비밀번호 변경
+                          </button>
+                          <button
+                            type="button"
+                            className="mypage-action-outline-btn"
+                            onClick={() => {
+                              setIsEditing(true)
+                              setNicknameChecked(true)
+                              setNicknameCheckMsg('')
+                              setEmailVerified(true)
+                              setEmailVerifyMsg('')
+                              setEmailCodeSent(false)
+                              setEmailAuthCode('')
+                            }}
+                          >
+                            프로필 수정하기
+                          </button>
+                        </div>
                       )}
                     </div>
                     <p>기본 회원 정보 및 응원하는 구단을 수정할 수 있습니다.</p>
@@ -1401,7 +1470,7 @@ export default function MyPage() {
                             <IconTarget size={18} color={currentTheme === 'light' ? '#38003c' : '#00ff87'} />
                             승부예측 전적 & 적중률
                           </span>
-                          <a href="/plug/prediction" className="mypage-subwidget-link">
+                          <a href="#/plug/prediction" className="mypage-subwidget-link">
                             예측하기 →
                           </a>
                         </div>
@@ -1439,7 +1508,7 @@ export default function MyPage() {
                         className={`mypage-subwidget-card ${nextFavoriteMatch ? 'is-clickable-match-card' : ''}`}
                         onClick={
                           nextFavoriteMatch
-                            ? () => window.location.assign(`/plug/match?matchId=${nextFavoriteMatch.matchId}`)
+                            ? () => navigate(`/plug/match?matchId=${nextFavoriteMatch.matchId}`)
                             : undefined
                         }
                         onKeyDown={
@@ -1447,7 +1516,7 @@ export default function MyPage() {
                             ? (e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                   e.preventDefault()
-                                  window.location.assign(`/plug/match?matchId=${nextFavoriteMatch.matchId}`)
+                                  navigate(`/plug/match?matchId=${nextFavoriteMatch.matchId}`)
                                 }
                               }
                             : undefined
@@ -1574,7 +1643,7 @@ export default function MyPage() {
                         ) : (
                           <div className="mypage-next-match-empty mypage-shop-empty">
                             <p>보유한 포인트샵 아이템이 없습니다.</p>
-                            <a href="/plug/point" className="mypage-subwidget-action-btn" style={{ textDecoration: 'none' }}>
+                            <a href="#/plug/point" className="mypage-subwidget-action-btn" style={{ textDecoration: 'none' }}>
                               포인트샵 구경하기
                             </a>
                           </div>
@@ -1911,7 +1980,7 @@ export default function MyPage() {
                         <IconArticle size={36} color="#8b7899" />
                       </span>
                       <p>아직 작성하신 게시글이 없습니다.</p>
-                      <a href="/plug/community/posts/write" className="mypage-empty-action">
+                      <a href="#/plug/community/posts/write" className="mypage-empty-action">
                         첫 게시글 작성하러 가기
                       </a>
                     </div>
@@ -1922,7 +1991,7 @@ export default function MyPage() {
                           <div
                             key={post.postId}
                             className="mypage-card-item"
-                            onClick={() => window.location.assign(`/plug/community/posts/${post.postId}`)}
+                            onClick={() => navigate(`/plug/community/posts/${post.postId}`)}
                           >
                             <div className="mypage-card-main">
                               <div className="mypage-card-meta">
@@ -1978,7 +2047,7 @@ export default function MyPage() {
                         <IconComment size={36} color="#8b7899" />
                       </span>
                       <p>아직 남기신 댓글이 없습니다.</p>
-                      <a href="/plug/community/teams" className="mypage-empty-action">
+                      <a href="#/plug/community/teams" className="mypage-empty-action">
                         커뮤니티 둘러보기
                       </a>
                     </div>
@@ -1989,7 +2058,7 @@ export default function MyPage() {
                           <div
                             key={comment.commentId}
                             className="mypage-card-item"
-                            onClick={() => window.location.assign(`/plug/community/posts/${comment.postId}`)}
+                            onClick={() => navigate(`/plug/community/posts/${comment.postId}`)}
                           >
                             <div className="mypage-card-main">
                               <div className="mypage-card-meta">
@@ -2037,7 +2106,7 @@ export default function MyPage() {
                         <IconHeart size={36} color="#8b7899" />
                       </span>
                       <p>아직 좋아요를 누른 게시글이 없습니다.</p>
-                      <a href="/plug/community/teams" className="mypage-empty-action">
+                      <a href="#/plug/community/teams" className="mypage-empty-action">
                         인기 게시글 보러가기
                       </a>
                     </div>
@@ -2048,7 +2117,7 @@ export default function MyPage() {
                           <div
                             key={post.postId}
                             className="mypage-card-item"
-                            onClick={() => window.location.assign(`/plug/community/posts/${post.postId}`)}
+                            onClick={() => navigate(`/plug/community/posts/${post.postId}`)}
                           >
                             <div className="mypage-card-main">
                               <div className="mypage-card-meta">
@@ -2297,7 +2366,7 @@ export default function MyPage() {
                         이모티콘 <span>{ownedShopItems.filter((i) => i.type === 'emoticon').length}</span>
                       </button>
                     </div>
-                    <a href="/plug/point" className="mypage-shop-goto-link">
+                    <a href="#/plug/point" className="mypage-shop-goto-link">
                       포인트샵 가기 →
                     </a>
                   </div>
@@ -2307,7 +2376,7 @@ export default function MyPage() {
                       <div style={{ fontSize: '34px', marginBottom: '8px' }}>🎁</div>
                       <p>보유 중인 아이템이 없습니다.</p>
                       <a
-                        href="/plug/point"
+                        href="#/plug/point"
                         className="mypage-subwidget-action-btn"
                         style={{ display: 'inline-block', marginTop: '10px', textDecoration: 'none' }}
                       >
@@ -2432,7 +2501,7 @@ export default function MyPage() {
                       <div style={{ fontSize: '34px', marginBottom: '8px' }}>🧾</div>
                       <p>포인트샵 구매 내역이 없습니다.</p>
                       <a
-                        href="/plug/point"
+                        href="#/plug/point"
                         className="mypage-subwidget-action-btn"
                         style={{ display: 'inline-block', marginTop: '10px', textDecoration: 'none' }}
                       >
@@ -2524,6 +2593,114 @@ export default function MyPage() {
           </div>,
           document.body
         )}
+
+      {/* 회원 비밀번호 변경 모달 */}
+      {showPasswordModal && typeof document !== 'undefined' && createPortal(
+        <div
+          className="point-modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !pwSubmitting) setShowPasswordModal(false)
+          }}
+          style={{ zIndex: 99999 }}
+        >
+          <div className="point-modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px', padding: '28px' }}>
+            <div className="point-modal-header" style={{ marginBottom: '20px' }}>
+              <div className="point-modal-header-left">
+                <h3 className="point-modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px', fontWeight: 'bold' }}>
+                  🔒 비밀번호 변경
+                </h3>
+              </div>
+              <button
+                type="button"
+                className="point-modal-close-btn"
+                onClick={() => !pwSubmitting && setShowPasswordModal(false)}
+                title="닫기"
+              >
+                <IconX size={20} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '13px', color: '#8e7a9c', marginBottom: '20px', lineHeight: '1.5' }}>
+              현재 사용 중인 비밀번호를 확인한 후, 새 비밀번호(8~20자)로 안전하게 변경합니다.
+            </p>
+
+            <form onSubmit={handlePasswordChangeSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>현재 비밀번호</label>
+                <input
+                  type="password"
+                  value={pwCurrent}
+                  onChange={(e) => { setPwCurrent(e.target.value); setPwMsg(''); }}
+                  placeholder="현재 비밀번호를 입력하세요"
+                  required
+                  className="mypage-form-input"
+                  style={{ width: '100%', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>새 비밀번호</label>
+                <input
+                  type="password"
+                  value={pwNew}
+                  onChange={(e) => { setPwNew(e.target.value); setPwMsg(''); }}
+                  placeholder="새 비밀번호 (8~20자)"
+                  required
+                  className="mypage-form-input"
+                  style={{ width: '100%', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>새 비밀번호 확인</label>
+                <input
+                  type="password"
+                  value={pwConfirm}
+                  onChange={(e) => { setPwConfirm(e.target.value); setPwMsg(''); }}
+                  placeholder="새 비밀번호를 한 번 더 입력하세요"
+                  required
+                  className="mypage-form-input"
+                  style={{ width: '100%', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              {pwMsg && (
+                <div style={{
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  backgroundColor: pwSuccess ? 'rgba(0, 255, 135, 0.1)' : 'rgba(255, 77, 79, 0.1)',
+                  color: pwSuccess ? '#00ff87' : '#ff4d4f',
+                  border: pwSuccess ? '1px solid rgba(0, 255, 135, 0.3)' : '1px solid rgba(255, 77, 79, 0.3)',
+                }}>
+                  {pwMsg}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  className="mypage-action-outline-btn"
+                  style={{ flex: 1, padding: '12px' }}
+                  disabled={pwSubmitting}
+                  onClick={() => setShowPasswordModal(false)}
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  className="mypage-action-primary-btn"
+                  style={{ flex: 1, padding: '12px' }}
+                  disabled={pwSubmitting}
+                >
+                  {pwSubmitting ? '변경 중...' : '비밀번호 변경'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }

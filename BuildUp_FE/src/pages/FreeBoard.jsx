@@ -102,7 +102,7 @@ export default function FreeBoard() {
           <thead><tr><th scope="col">번호</th><th scope="col">제목</th><th scope="col">작성자</th><th scope="col">작성일</th><th scope="col">조회수</th></tr></thead>
           <tbody>
             {posts.map((post) => <tr key={post.postId}>
-              <td>{post.postId}</td><td className="community__title"><a className="community__post-link" href={`/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.pathname)}`}>{post.title}</a></td><td>{post.nickname}</td>
+              <td>{post.postId}</td><td className="community__title"><a className="community__post-link" href={`#/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.hash.replace(/^#/, '').split('?')[0] || window.location.pathname)}`}>{post.title}</a></td><td>{post.nickname}</td>
               <td><time dateTime={post.createdAt}>{post.createdAt?.slice(0, 10).replaceAll('-', '.')}</time></td><td>{post.viewCount}</td>
             </tr>)}
             {!loading && posts.length === 0 && <tr><td colSpan={5} className="community__empty">등록된 게시글이 없습니다.</td></tr>}
@@ -110,7 +110,7 @@ export default function FreeBoard() {
         </table>
       </div>
 
-      <p className="community__write-status"><a className="community__main-link" href="/plug/community/write?board=free">글쓰기</a></p>
+      <p className="community__write-status"><a className="community__main-link" href="#/plug/community/write?board=free">글쓰기</a></p>
       <div className="community__footer">
         <nav className="community__pagination" aria-label="게시글 페이지">
           <button type="button" disabled={page === 1 || loading} onClick={() => setPage(page - 1)}>이전</button>

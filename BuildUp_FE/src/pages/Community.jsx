@@ -236,7 +236,7 @@ export default function Community({ selectedTeam = null }) {
       <div className="community__toolbar">
         <p role="status">{postsLoading ? '불러오는 중' : keyword ? `“${keyword}” 검색 결과` : selectedTeam ? `${selectedTeamName} 게시글` : board === 'showcase' ? '나만의 팀 자랑글' : '통합 게시글'} <strong>{totalCount}</strong>개</p>
         <div className="community__toolbar-actions">
-          <a className="community__main-link community__write-link" href={`/plug/community/write?board=${selectedTeam ? 'team' : board === 'showcase' ? 'showcase' : 'free'}`}>글쓰기</a>
+          <a className="community__main-link community__write-link" href={`#/plug/community/write?board=${selectedTeam ? 'team' : board === 'showcase' ? 'showcase' : 'free'}`}>글쓰기</a>
         </div>
       </div>
       {(error || teamMatchMissing) && <p className="community__form-error" role="alert">{error || '선택한 구단을 DB에서 찾을 수 없습니다.'}</p>}
@@ -254,7 +254,7 @@ export default function Community({ selectedTeam = null }) {
                     블라인드
                   </span>
                 )}
-                <a className="community__post-link" title={post.title} href={`/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.pathname)}`}>
+                <a className="community__post-link" title={post.title} href={`#/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.hash.replace(/^#/, '').split('?')[0] || window.location.pathname)}`}>
                   {formatPostTitle(post.title, post.commentCount)}
                 </a>
               </td>
@@ -286,7 +286,7 @@ export default function Community({ selectedTeam = null }) {
         <p className="community__intro">나만의 전술, 나만의 베스트 11. 멋진 팀들을 이곳에서 만나보세요.</p>
         {showcaseError && <p className="community__form-error" role="alert">{showcaseError}</p>}
         <div className="community__cards">
-          {showcasePosts.map((post) => <a className="community__card community__showcase-card" href={`/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.pathname)}`} key={post.postId}>
+          {showcasePosts.map((post) => <a className="community__card community__showcase-card" href={`#/plug/community/posts/${post.postId}?from=${encodeURIComponent(window.location.hash.replace(/^#/, '').split('?')[0] || window.location.pathname)}`} key={post.postId}>
             {post.showcaseImageId
               ? <img className="community__showcase-thumbnail" src={`/api/communities/attachments/${post.showcaseImageId}/content`} alt="나만의 팀 포메이션" />
               : <span className="community__pitch" aria-hidden="true">⚽</span>}

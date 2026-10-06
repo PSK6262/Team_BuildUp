@@ -8,6 +8,8 @@ import { getAllPremierLeaguePlayers, getInitialTeams, getTeams } from '../api/te
 import '../css/MyTeam.css';
 import '../css/virtual-match.css';
 import { MemberRankings } from './teams.jsx';
+import { getAppSearchParams } from '../utils/searchParams.js';
+import { navigate } from '../utils/navigation.js';
 
 // 지정 프리셋 포메이션 정의 (DF - MF - FW 합계는 모두 10)
 const FORMATION_PRESETS = [
@@ -589,20 +591,33 @@ export default function MyTeam() {
   // 1. 전체 선수 & 구단 데이터
   const [allPlayers, setAllPlayers] = useState([]);
   const [workspaceView, setWorkspaceView] = useState(() =>
-    new URLSearchParams(window.location.search).get('view') === 'match' ? 'match' : 'builder');
+    getAppSearchParams().get('view') === 'match' ? 'match' : 'builder');
   const changeWorkspaceView = (view) => {
-    const url = new URL(window.location.href);
-    if (view === 'match') url.searchParams.set('view', 'match');
-    else url.searchParams.delete('view');
-    window.history.replaceState(window.history.state, '', url);
+    if (window.location.hash) {
+      const [path, query = ''] = window.location.hash.slice(1).split('?');
+      const params = new URLSearchParams(query);
+      if (view === 'match') params.set('view', 'match');
+      else params.delete('view');
+      const qs = params.toString();
+      window.location.hash = qs ? `${path}?${qs}` : path;
+    } else {
+      const url = new URL(window.location.href);
+      if (view === 'match') url.searchParams.set('view', 'match');
+      else url.searchParams.delete('view');
+      window.history.replaceState(window.history.state, '', url);
+    }
     setWorkspaceView(view);
   };
 
   useEffect(() => {
     const restoreView = () => setWorkspaceView(
-      new URLSearchParams(window.location.search).get('view') === 'match' ? 'match' : 'builder');
+      getAppSearchParams().get('view') === 'match' ? 'match' : 'builder');
     window.addEventListener('popstate', restoreView);
-    return () => window.removeEventListener('popstate', restoreView);
+    window.addEventListener('hashchange', restoreView);
+    return () => {
+      window.removeEventListener('popstate', restoreView);
+      window.removeEventListener('hashchange', restoreView);
+    };
   }, []);
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -618,6 +633,15 @@ export default function MyTeam() {
   const aiMatchIdRef = useRef(0);
   const [opponentMode, setOpponentMode] = useState('RANDOM');
   const [opponentClubId, setOpponentClubId] = useState('');
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => (prev > 1 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   // 2. 팀 및 포메이션 상태
   const [teamName, setTeamName] = useState('나만의 드림 스쿼드');
@@ -1741,7 +1765,7 @@ export default function MyTeam() {
         imageDataUrl,
         players: slots.map((slot) => ({ position: slot.pos, name: slot.player.nameKor || slot.player.name })),
       }));
-      window.location.assign(`/plug/community/write?board=showcase&customTeamId=${encodeURIComponent(result.customTeamId)}`);
+      navigate(`/plug/community/write?board=showcase&customTeamId=${encodeURIComponent(result.customTeamId)}`);
     } catch (error) {
       showToast(error.message || '나만의 팀 공유를 시작하지 못했습니다.');
     } finally {
@@ -1755,6 +1779,10 @@ export default function MyTeam() {
   const selectedOpponentClub = teams.find((team) => String(team.teamId) === opponentClubId);
 
   const handleAiMatch = async (mode = opponentMode) => {
+    if (cooldown > 0) {
+      showToast(`AI 대전 재시작까지 ${cooldown}초 남았습니다.`);
+      return;
+    }
     if (matchRequestRef.current) return;
     if (loading || slots.length !== 11 || filledCount !== 11 ||
       new Set(slots.map((slot) => String(slot.player?.playerId))).size !== 11) {
@@ -1795,6 +1823,7 @@ export default function MyTeam() {
       }
       if (matchRequestRef.current === controller && !controller.signal.aborted) {
         setAiMatch({ ...result, home: restoreMatchPlacement(result.home, submittedSquads), replayId: ++aiMatchIdRef.current });
+        setCooldown(30);
       }
     } catch (error) {
       if (matchRequestRef.current === controller) {
@@ -2350,8 +2379,8 @@ export default function MyTeam() {
                 </button>
                 <button type="button" className="myteam-btn myteam-btn-primary myteam-mobile-start"
                   aria-label="랜덤 AI 대전 시작" onClick={() => handleAiMatch('RANDOM')}
-                  disabled={loading || matching || filledCount !== 11}>
-                  {matching && opponentMode === 'RANDOM' ? '준비 중...' : '대전 시작'}
+                  disabled={cooldown > 0 || loading || matching || filledCount !== 11}>
+                  {cooldown > 0 ? `쿨타임 (${cooldown}초)` : matching && opponentMode === 'RANDOM' ? '준비 중...' : '대전 시작'}
                 </button>
                 </div>
                 <div className="myteam-opponent-row">
@@ -2361,8 +2390,8 @@ export default function MyTeam() {
                 </button>
                 <button type="button" className="myteam-btn myteam-btn-primary myteam-mobile-start"
                   aria-label="선택한 구단과 대전 시작" onClick={() => handleAiMatch('CLUB')}
-                  disabled={loading || matching || filledCount !== 11 || !selectedOpponentClub}>
-                  {matching && opponentMode === 'CLUB' ? '준비 중...' : '대전 시작'}
+                  disabled={cooldown > 0 || loading || matching || filledCount !== 11 || !selectedOpponentClub}>
+                  {cooldown > 0 ? `쿨타임 (${cooldown}초)` : matching && opponentMode === 'CLUB' ? '준비 중...' : '대전 시작'}
                 </button>
                 </div>
               </div>
@@ -2407,8 +2436,8 @@ export default function MyTeam() {
                 </button>
               )}
               <button type="button" className="myteam-btn myteam-btn-primary myteam-desktop-start"
-                onClick={() => handleAiMatch()} disabled={loading || matching || filledCount !== 11 || (opponentMode === 'CLUB' && !opponentClubId)}>
-                {matching ? 'AI 대전 준비 중...' : opponentMode === 'CLUB' ? (selectedOpponentClub ? `${selectedOpponentClub.teamNameKor || selectedOpponentClub.teamName} 상대 대전 시작` : '상대 구단을 먼저 선택해주세요') : (aiMatch ? '새 AI 팀과 다시 대전' : 'AI 대전 시작')}
+                onClick={() => handleAiMatch()} disabled={cooldown > 0 || loading || matching || filledCount !== 11 || (opponentMode === 'CLUB' && !opponentClubId)}>
+                {cooldown > 0 ? `⏳ AI 대전 쿨타임 (${cooldown}초)` : matching ? 'AI 대전 준비 중...' : opponentMode === 'CLUB' ? (selectedOpponentClub ? `${selectedOpponentClub.teamNameKor || selectedOpponentClub.teamName} 상대 대전 시작` : '상대 구단을 먼저 선택해주세요') : (aiMatch ? '새 AI 팀과 다시 대전' : 'AI 대전 시작')}
               </button>
             </div>
           </div>
@@ -2423,7 +2452,7 @@ export default function MyTeam() {
             <div className="myteam-ai-result">
               <div className="myteam-ai-result-heading">
                 <div><h2>가상 대결 결과</h2><p>{aiMatch.rankingRecorded ? '랭킹에 반영된 경기입니다.' : '비회원 연습 경기 · 랭킹에 반영되지 않습니다.'}</p></div>
-                <a href="/plug/rankpage?tab=virtual">승률 랭킹 보기 <span aria-hidden="true">↗</span></a>
+                <a href="#/plug/rankpage?tab=virtual">승률 랭킹 보기 <span aria-hidden="true">↗</span></a>
               </div>
               <div className="myteam-ai-score" role="status">
                 <span>{aiMatch.homeName}</span>
