@@ -4,6 +4,13 @@ import '../css/MiniGames.css'
 
 const games = [
   {
+    title: '스카이 트래핑',
+    description: '발끝으로 공을 받아 성층권 너머 우주까지!',
+    icon: '🚀',
+    href: '#/plug/minigames/trapping',
+    available: true,
+  },
+  {
     title: '승부차기',
     description: '승부차기로 AI와 대결! 3골 선취 시 승리',
     icon: '⚽',
@@ -14,13 +21,6 @@ const games = [
     title: '팀 퀴즈',
     description: '프리미어리그 상식 퀴즈 도전',
     icon: '🧠',
-    href: '#',
-    available: false,
-  },
-  {
-    title: '선수 맞추기',
-    description: '실루엣을 보고 선수를 맞춰라',
-    icon: '🔍',
     href: '#',
     available: false,
   },
