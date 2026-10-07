@@ -70,7 +70,7 @@ export default function AllUseNav() {
   }, [])
 
   const isMainPage = !pathname || pathname === '' || pathname === '/plug' || pathname === '/plug/mainpage' || pathname === '/plug/teams'
-  const isAdmin = user && Number(user.roleCode) === 9
+  const isAdmin = user && (Number(user.roleCode) === 9 || Number(user.roleCode) === 8)
   const nickname = user?.nickname?.trim() || '내 계정'
 
   // 외부 클릭 시 모바일 메뉴 닫기 & ESC 키로 닫기

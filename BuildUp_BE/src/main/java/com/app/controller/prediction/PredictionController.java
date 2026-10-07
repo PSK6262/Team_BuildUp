@@ -256,6 +256,7 @@ public class PredictionController {
 	 */
 	private boolean isAdmin(HttpServletRequest request) {
 		Users user = resolveLoginUser(request);
-		return user != null && CommonCode.ROLE_ADMIN.equals(user.getRoleCode());
+		return user != null && (CommonCode.ROLE_ADMIN.equals(user.getRoleCode())
+				|| CommonCode.ROLE_SUB_ADMIN.equals(user.getRoleCode()));
 	}
 }

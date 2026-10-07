@@ -28,18 +28,12 @@ public class UserMailServiceImpl implements UserMailService {
 	@org.springframework.beans.factory.annotation.Value("${app.frontend.url:https://psk6262.github.io/Team_BuildUp}")
 	private String frontendUrl;
 
-	/** 배포 도메인(기본: GitHub Pages) 또는 설정된 프론트엔드 주소 반환 */
+	/** 배포 도메인(기본: GitHub Pages) 프론트엔드 주소 반환 */
 	private String getFrontendBaseUrl() {
 		if (frontendUrl != null && !frontendUrl.trim().isEmpty()) {
 			return frontendUrl.trim().replaceAll("/+$", "");
 		}
-		try {
-			String ip = InetAddress.getLocalHost().getHostAddress();
-			return "http://" + ip + ":5173";
-		} catch (UnknownHostException e) {
-			log.warn("서버 IP 감지 실패, localhost로 대체");
-			return "http://localhost:5173";
-		}
+		return "https://psk6262.github.io/Team_BuildUp";
 	}
 
 	@Autowired
@@ -75,80 +69,81 @@ public class UserMailServiceImpl implements UserMailService {
 
 			String confirmUrl = getFrontendBaseUrl() + "/#/plug/signup/confirm?key=" + authKey;
 			String title = "[PL:UG] 이메일 인증을 완료하고 회원가입을 마쳐주세요! ⚽";
-			String content = "<!DOCTYPE html>"
-					+ "<html lang='ko'>"
-					+ "<head>"
-					+ "    <meta charset='UTF-8'>"
-					+ "    <meta name='viewport' content='width=device-width, initial-scale=1.0'>"
-					+ "    <title>PL:UG 회원가입 인증</title>"
-					+ "</head>"
-					+ "<body style='margin: 0; padding: 0; background-color: #0d0b14; font-family: -apple-system, BlinkMacSystemFont, \"Apple SD Gothic Neo\", \"Malgun Gothic\", sans-serif;'>"
-					+ "    <table border='0' cellpadding='0' cellspacing='0' width='100%' style='background-color: #0d0b14; padding: 40px 12px;'>"
-					+ "        <tr>"
-					+ "            <td align='center'>"
-					+ "                <table border='0' cellpadding='0' cellspacing='0' width='100%' style='max-width: 580px; background-color: #171324; border: 1px solid #2d2442; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);'>"
-					+ "                    <tr>"
-					+ "                        <td style='padding: 32px 36px; background: linear-gradient(135deg, #221438 0%, #120d22 100%); border-bottom: 1px solid #2c2144; text-align: left;'>"
-					+ "                            <table border='0' cellpadding='0' cellspacing='0' width='100%'>"
-					+ "                                <tr>"
-					+ "                                    <td>"
-					+ "                                        <div style='font-size: 28px; font-weight: 900; letter-spacing: -0.5px; color: #00ff87; text-shadow: 0 0 16px rgba(0, 255, 135, 0.45); font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif;'>PL:UG</div>"
-					+ "                                        <div style='color: #9d93b8; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px;'>PREMIER LEAGUE FOOTBALL &amp; COMMUNITY</div>"
-					+ "                                    </td>"
-					+ "                                    <td align='right' style='vertical-align: middle;'>"
-					+ "                                        <span style='background: rgba(0, 255, 135, 0.12); color: #00ff87; border: 1px solid rgba(0, 255, 135, 0.3); padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;'>EMAIL AUTH</span>"
-					+ "                                    </td>"
-					+ "                                </tr>"
-					+ "                            </table>"
-					+ "                        </td>"
-					+ "                    </tr>"
-					+ "                    <tr>"
-					+ "                        <td style='padding: 38px 36px; color: #d6d0e6; font-size: 15px; line-height: 1.7;'>"
-					+ "                            <h2 style='margin: 0 0 18px 0; color: #ffffff; font-size: 22px; font-weight: 800; letter-spacing: -0.5px;'>"
-					+ "                                환영합니다, <span style='color: #00ff87;'>" + pendingUser.getNickname() + "</span>님! ⚽"
-					+ "                            </h2>"
-					+ "                            <p style='margin: 0 0 16px 0; color: #b8b0cc;'>"
-					+ "                                프리미어리그 실시간 분석 &amp; 승부예측 커뮤니티 <strong style='color: #ffffff;'>PL:UG</strong>에 가입해 주셔서 감사드립니다."
-					+ "                            </p>"
-					+ "                            <div style='background-color: #241626; border: 1px solid #732238; border-radius: 8px; padding: 14px 18px; margin: 20px 0; color: #fecdd3; font-size: 13.5px;'>"
-					+ "                                ⚠️ <strong>보안 안내:</strong> 본 가입 인증 링크는 발송 시점으로부터 <strong style='color: #ff859b;'>30분 동안만 유효</strong>합니다."
-					+ "                            </div>"
-					+ "                            <p style='margin: 0 0 28px 0; color: #b8b0cc;'>"
-					+ "                                아래의 <strong>회원가입 완료하기</strong> 버튼을 누르시면 이메일 인증이 완료되며 즉시 모든 서비스를 이용하실 수 있습니다."
-					+ "                            </p>"
-					+ "                            <table border='0' cellpadding='0' cellspacing='0' width='100%' style='margin: 28px 0;'>"
-					+ "                                <tr>"
-					+ "                                    <td align='center'>"
-					+ "                                        <a href='" + confirmUrl + "' target='_blank' style='background: linear-gradient(135deg, #00ff87 0%, #60efff 100%); color: #0d141e; padding: 15px 42px; text-decoration: none; border-radius: 8px; font-weight: 800; font-size: 16px; display: inline-block; box-shadow: 0 4px 20px rgba(0, 255, 135, 0.35); letter-spacing: 0.5px;'>회원가입 완료하기 →</a>"
-					+ "                                    </td>"
-					+ "                                </tr>"
-					+ "                            </table>"
-					+ "                            <div style='background-color: #1a162b; border: 1px solid #2d2446; border-radius: 8px; padding: 16px 20px; margin-top: 28px; font-size: 12.5px; color: #8e84a8; line-height: 1.6;'>"
-					+ "                                ※ 30분이 지나 링크가 만료된 경우 회원가입을 다시 진행해 주셔야 합니다.<br>"
-					+ "                                ※ 버튼이 클릭되지 않는 경우 아래 주소를 복사하여 브라우저에 붙여넣어 주세요.<br>"
-					+ "                                <a href='" + confirmUrl + "' style='color: #00ff87; word-break: break-all; text-decoration: underline; font-size: 12px; margin-top: 6px; display: inline-block;'>" + confirmUrl + "</a>"
-					+ "                            </div>"
-					+ "                            <p style='margin: 28px 0 0 0; color: #8e84a8; font-size: 13.5px;'>"
-					+ "                                축구의 모든 순간, Team BUILDUP 드림"
-					+ "                            </p>"
-					+ "                        </td>"
-					+ "                    </tr>"
-					+ "                    <tr>"
-					+ "                        <td style='padding: 22px 36px; background-color: #100d1a; border-top: 1px solid #201a30; text-align: left;'>"
-					+ "                            <p style='margin: 0 0 4px 0; font-size: 11.5px; color: #6b6380; line-height: 1.4;'>"
-					+ "                                본 메일은 PL:UG 서비스에 의해 발송된 발신전용 안내 메일입니다."
-					+ "                            </p>"
-					+ "                            <p style='margin: 0; font-size: 11px; color: #554f68;'>"
-					+ "                                © 2026 PL:UG (BUILDUP). All rights reserved."
-					+ "                            </p>"
-					+ "                        </td>"
-					+ "                    </tr>"
-					+ "                </table>"
-					+ "            </td>"
-					+ "        </tr>"
-					+ "    </table>"
-					+ "</body>"
-					+ "</html>";
+			String content = """
+					<!DOCTYPE html>
+					<html lang="ko">
+					<head>
+					  <meta charset="UTF-8">
+					  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+					  <title>PL:UG 회원가입 인증</title>
+					  <style>
+					    @media only screen and (max-width: 600px) {
+					      .outer-td { padding: 20px 6px !important; }
+					      .card { border-radius: 12px !important; }
+					      .header-td { padding: 22px 20px !important; }
+					      .logo { font-size: 22px !important; }
+					      .badge { display: none !important; }
+					      .body-td { padding: 24px 20px !important; font-size: 14px !important; }
+					      .title { font-size: 18px !important; }
+					      .btn a { padding: 13px 28px !important; font-size: 14px !important; }
+					      .footer-td { padding: 16px 20px !important; }
+					    }
+					  </style>
+					</head>
+					<body style="margin:0;padding:0;background-color:#0d0b14;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
+					  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#0d0b14;">
+					    <tr><td class="outer-td" align="center" style="padding:40px 12px;">
+					      <table border="0" cellpadding="0" cellspacing="0" width="100%" class="card" style="max-width:580px;background-color:#171324;border:1px solid #2d2442;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+					        <tr>
+					          <td class="header-td" style="padding:28px 32px;background:linear-gradient(135deg,#221438 0%,#120d22 100%);border-bottom:1px solid #2c2144;">
+					            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+					              <tr>
+					                <td>
+					                  <div class="logo" style="font-size:26px;font-weight:900;letter-spacing:-0.5px;color:#00ff87;text-shadow:0 0 16px rgba(0,255,135,0.45);">PL:UG</div>
+					                  <div style="color:#9d93b8;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;">PREMIER LEAGUE FOOTBALL &amp; COMMUNITY</div>
+					                </td>
+					                <td align="right" style="vertical-align:middle;" class="badge">
+					                  <span style="background:rgba(0,255,135,0.12);color:#00ff87;border:1px solid rgba(0,255,135,0.3);padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;">EMAIL AUTH</span>
+					                </td>
+					              </tr>
+					            </table>
+					          </td>
+					        </tr>
+					        <tr>
+					          <td class="body-td" style="padding:32px 32px;color:#d6d0e6;font-size:15px;line-height:1.7;">
+					            <h2 class="title" style="margin:0 0 16px 0;color:#ffffff;font-size:20px;font-weight:800;letter-spacing:-0.5px;">환영합니다, <span style="color:#00ff87;">{{NICKNAME}}</span>님! ⚽</h2>
+					            <p style="margin:0 0 14px 0;color:#b8b0cc;">프리미어리그 실시간 분석 &amp; 승부예측 커뮤니티 <strong style="color:#ffffff;">PL:UG</strong>에 가입해 주셔서 감사드립니다.</p>
+					            <div style="background-color:#241626;border:1px solid #732238;border-radius:8px;padding:12px 16px;margin:18px 0;color:#fecdd3;font-size:13px;">
+					              ⚠️ <strong>보안 안내:</strong> 본 가입 인증 링크는 발송 시점으로부터 <strong style="color:#ff859b;">30분 동안만 유효</strong>합니다.
+					            </div>
+					            <p style="margin:0 0 24px 0;color:#b8b0cc;">아래의 <strong>회원가입 완료하기</strong> 버튼을 누르시면 이메일 인증이 완료되며 즉시 모든 서비스를 이용하실 수 있습니다.</p>
+					            <table border="0" cellpadding="0" cellspacing="0" width="100%" class="btn" style="margin:24px 0;">
+					              <tr><td align="center">
+					                <a href="{{CONFIRM_URL}}" target="_blank" style="background:linear-gradient(135deg,#00ff87 0%,#60efff 100%);color:#0d141e;padding:14px 38px;text-decoration:none;border-radius:8px;font-weight:800;font-size:15px;display:inline-block;box-shadow:0 4px 20px rgba(0,255,135,0.35);letter-spacing:0.5px;">회원가입 완료하기 →</a>
+					              </td></tr>
+					            </table>
+					            <div style="background-color:#1a162b;border:1px solid #2d2446;border-radius:8px;padding:14px 18px;margin-top:24px;font-size:12px;color:#8e84a8;line-height:1.7;word-break:break-all;">
+					              ※ 30분이 지나 링크가 만료된 경우 회원가입을 다시 진행해 주셔야 합니다.<br>
+					              ※ 버튼이 클릭되지 않는 경우 아래 주소를 복사하여 브라우저에 붙여넣어 주세요.<br>
+					              <a href="{{CONFIRM_URL}}" style="color:#00ff87;text-decoration:underline;margin-top:6px;display:inline-block;">{{CONFIRM_URL}}</a>
+					            </div>
+					            <p style="margin:24px 0 0 0;color:#8e84a8;font-size:13px;">축구의 모든 순간, Team BUILDUP 드림</p>
+					          </td>
+					        </tr>
+					        <tr>
+					          <td class="footer-td" style="padding:18px 32px;background-color:#100d1a;border-top:1px solid #201a30;">
+					            <p style="margin:0 0 4px 0;font-size:11px;color:#6b6380;line-height:1.4;">본 메일은 PL:UG 서비스에 의해 발송된 발신전용 안내 메일입니다.</p>
+					            <p style="margin:0;font-size:11px;color:#554f68;">© 2026 PL:UG (BUILDUP). All rights reserved.</p>
+					          </td>
+					        </tr>
+					      </table>
+					    </td></tr>
+					  </table>
+					</body>
+					</html>
+					"""
+					.replace("{{NICKNAME}}", pendingUser.getNickname() != null ? pendingUser.getNickname() : "회원")
+					.replace("{{CONFIRM_URL}}", confirmUrl);
 
 			boolean sent = sendMail.send(pendingUser.getEmail(), title, content);
 			if (sent) {
@@ -212,6 +207,19 @@ public class UserMailServiceImpl implements UserMailService {
 		if (isExpiredObj instanceof Number) {
 			isExpired = ((Number) isExpiredObj).intValue() == 1;
 		}
+
+		// 타임존 변환 오차 대비 Java 측 이중 검증: 생성 시각(CREATED_AT) 기준 30분 이내라면 유효한 것으로 보정
+		if (isExpired) {
+			Object createdAtObj = record.get("CREATED_AT");
+			if (createdAtObj instanceof java.util.Date) {
+				long elapsed = System.currentTimeMillis() - ((java.util.Date) createdAtObj).getTime();
+				if (elapsed >= 0 && elapsed <= 30 * 60 * 1000L) {
+					log.info("[UserMailServiceImpl] 타임존 보정 적용: 생성된 지 {}초 경과 -> 정상 유효 인증키로 처리", elapsed / 1000);
+					isExpired = false;
+				}
+			}
+		}
+
 		if (isExpired) {
 			throw new IllegalArgumentException("인증 링크 유효시간(30분)이 만료되었습니다. 회원가입을 다시 진행해주세요.");
 		}
@@ -247,33 +255,61 @@ public class UserMailServiceImpl implements UserMailService {
 	public void sendWelcomeMail(String userEmail, String nickname) {
 		String title = "[PL:UG] 웰컴 탑승 완료! PL:UG에 오신 것을 환영합니다! 🏆";
 		String communityUrl = getFrontendBaseUrl() + "/#/plug/community";
-		String content = "<!DOCTYPE html>"
-				+ "<html lang='ko'>"
-				+ "<head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>PL:UG 가입 완료</title></head>"
-				+ "<body style='margin: 0; padding: 0; background-color: #0d0b14; font-family: -apple-system, BlinkMacSystemFont, \"Apple SD Gothic Neo\", \"Malgun Gothic\", sans-serif;'>"
-				+ "    <table border='0' cellpadding='0' cellspacing='0' width='100%' style='background-color: #0d0b14; padding: 40px 12px;'>"
-				+ "        <tr><td align='center'>"
-				+ "            <table border='0' cellpadding='0' cellspacing='0' width='100%' style='max-width: 580px; background-color: #171324; border: 1px solid #2d2442; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);'>"
-				+ "                <tr><td style='padding: 32px 36px; background: linear-gradient(135deg, #221438 0%, #120d22 100%); border-bottom: 1px solid #2c2144; text-align: left;'>"
-				+ "                    <div style='font-size: 28px; font-weight: 900; letter-spacing: -0.5px; color: #00ff87; text-shadow: 0 0 16px rgba(0, 255, 135, 0.45); font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif;'>PL:UG</div>"
-				+ "                    <div style='color: #9d93b8; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px;'>WELCOME TO PREMIER LEAGUE FOOTBALL &amp; COMMUNITY</div>"
-				+ "                </td></tr>"
-				+ "                <tr><td style='padding: 38px 36px; color: #d6d0e6; font-size: 15px; line-height: 1.7;'>"
-				+ "                    <h2 style='margin: 0 0 18px 0; color: #ffffff; font-size: 22px; font-weight: 800;'>환영합니다, <span style='color: #00ff87;'>" + nickname + "</span>님! ⚽</h2>"
-				+ "                    <p style='margin: 0 0 16px 0; color: #b8b0cc;'>PL:UG의 정식 회원이 되신 것을 진심으로 환영합니다!</p>"
-				+ "                    <p style='margin: 0 0 24px 0; color: #b8b0cc;'>실시간 프리미어리그 경기 일정 및 스코어 분석, 승부예측 랭킹 챌린지, 서포터즈 커뮤니티까지 PL:UG의 모든 축구 콘텐츠를 지금 바로 즐겨보세요.</p>"
-				+ "                    <div style='text-align: center; margin: 32px 0;'>"
-				+ "                        <a href='" + communityUrl + "' style='background: linear-gradient(135deg, #00ff87 0%, #60efff 100%); color: #0d141e; padding: 14px 38px; text-decoration: none; border-radius: 8px; font-weight: 800; font-size: 15px; display: inline-block; box-shadow: 0 4px 18px rgba(0, 255, 135, 0.35);'>커뮤니티 바로가기 →</a>"
-				+ "                    </div>"
-				+ "                    <p style='margin: 28px 0 0 0; color: #8e84a8; font-size: 13.5px;'>축구의 모든 순간을 함께하는, Team BUILDUP 드림</p>"
-				+ "                </td></tr>"
-				+ "                <tr><td style='padding: 20px 36px; background-color: #100d1a; border-top: 1px solid #201a30; text-align: left;'>"
-				+ "                    <p style='margin: 0; font-size: 11px; color: #554f68;'>© 2026 PL:UG (BUILDUP). All rights reserved.</p>"
-				+ "                </td></tr>"
-				+ "            </table>"
-				+ "        </td></tr>"
-				+ "    </table>"
-				+ "</body></html>";
+		String content = """
+				<!DOCTYPE html>
+				<html lang="ko">
+				<head>
+				  <meta charset="UTF-8">
+				  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+				  <title>PL:UG 가입 완료</title>
+				  <style>
+				    @media only screen and (max-width: 600px) {
+				      .outer-td { padding: 20px 6px !important; }
+				      .header-td { padding: 22px 20px !important; }
+				      .logo { font-size: 22px !important; }
+				      .body-td { padding: 24px 20px !important; font-size: 14px !important; }
+				      .title { font-size: 18px !important; }
+				      .btn a { padding: 12px 28px !important; font-size: 14px !important; }
+				      .footer-td { padding: 14px 20px !important; }
+				    }
+				  </style>
+				</head>
+				<body style="margin:0;padding:0;background-color:#0d0b14;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
+				  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#0d0b14;">
+				    <tr><td class="outer-td" align="center" style="padding:40px 12px;">
+				      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:580px;background-color:#171324;border:1px solid #2d2442;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+				        <tr>
+				          <td class="header-td" style="padding:28px 32px;background:linear-gradient(135deg,#221438 0%,#120d22 100%);border-bottom:1px solid #2c2144;">
+				            <div class="logo" style="font-size:26px;font-weight:900;letter-spacing:-0.5px;color:#00ff87;text-shadow:0 0 16px rgba(0,255,135,0.45);">PL:UG</div>
+				            <div style="color:#9d93b8;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;">WELCOME TO PREMIER LEAGUE FOOTBALL &amp; COMMUNITY</div>
+				          </td>
+				        </tr>
+				        <tr>
+				          <td class="body-td" style="padding:32px 32px;color:#d6d0e6;font-size:15px;line-height:1.7;">
+				            <h2 class="title" style="margin:0 0 16px 0;color:#ffffff;font-size:20px;font-weight:800;">환영합니다, <span style="color:#00ff87;">{{NICKNAME}}</span>님! ⚽</h2>
+				            <p style="margin:0 0 14px 0;color:#b8b0cc;">PL:UG의 정식 회원이 되신 것을 진심으로 환영합니다!</p>
+				            <p style="margin:0 0 24px 0;color:#b8b0cc;">실시간 프리미어리그 경기 일정 및 스코어 분석, 승부예측 랭킹 챌린지, 서포터즈 커뮤니티까지 PL:UG의 모든 축구 콘텐츠를 지금 바로 즐겨보세요.</p>
+				            <table border="0" cellpadding="0" cellspacing="0" width="100%" class="btn" style="margin:28px 0;">
+				              <tr><td align="center">
+				                <a href="{{COMMUNITY_URL}}" style="background:linear-gradient(135deg,#00ff87 0%,#60efff 100%);color:#0d141e;padding:14px 38px;text-decoration:none;border-radius:8px;font-weight:800;font-size:15px;display:inline-block;box-shadow:0 4px 18px rgba(0,255,135,0.35);">커뮤니티 바로가기 →</a>
+				              </td></tr>
+				            </table>
+				            <p style="margin:24px 0 0 0;color:#8e84a8;font-size:13px;">축구의 모든 순간을 함께하는, Team BUILDUP 드림</p>
+				          </td>
+				        </tr>
+				        <tr>
+				          <td class="footer-td" style="padding:16px 32px;background-color:#100d1a;border-top:1px solid #201a30;">
+				            <p style="margin:0;font-size:11px;color:#554f68;">© 2026 PL:UG (BUILDUP). All rights reserved.</p>
+				          </td>
+				        </tr>
+				      </table>
+				    </td></tr>
+				  </table>
+				</body>
+				</html>
+				"""
+				.replace("{{NICKNAME}}", (nickname != null && !nickname.trim().isEmpty()) ? nickname : "회원")
+				.replace("{{COMMUNITY_URL}}", communityUrl);
 
 		sendMail.send(userEmail, title, content);
 	}
@@ -283,40 +319,67 @@ public class UserMailServiceImpl implements UserMailService {
 		String title = "[PL:UG] 회원 탈퇴 처리가 완료되었습니다.";
 		String displayName = (nickname != null && !nickname.trim().isEmpty()) ? nickname : "회원";
 		String mainUrl = getFrontendBaseUrl() + "/#/plug/mainpage";
-		String content = "<!DOCTYPE html>"
-				+ "<html lang='ko'>"
-				+ "<head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>PL:UG 회원 탈퇴 안내</title></head>"
-				+ "<body style='margin: 0; padding: 0; background-color: #0d0b14; font-family: -apple-system, BlinkMacSystemFont, \"Apple SD Gothic Neo\", \"Malgun Gothic\", sans-serif;'>"
-				+ "    <table border='0' cellpadding='0' cellspacing='0' width='100%' style='background-color: #0d0b14; padding: 40px 12px;'>"
-				+ "        <tr><td align='center'>"
-				+ "            <table border='0' cellpadding='0' cellspacing='0' width='100%' style='max-width: 580px; background-color: #171324; border: 1px solid #2d2442; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);'>"
-				+ "                <tr><td style='padding: 32px 36px; background: #1c142b; border-bottom: 1px solid #281f3d; text-align: left;'>"
-				+ "                    <div style='font-size: 24px; font-weight: 800; color: #a097ba;'>PL:UG</div>"
-				+ "                    <div style='color: #6b6380; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-top: 4px;'>ACCOUNT WITHDRAWAL NOTICE</div>"
-				+ "                </td></tr>"
-				+ "                <tr><td style='padding: 38px 36px; color: #d6d0e6; font-size: 15px; line-height: 1.7;'>"
-				+ "                    <h2 style='font-size: 20px; color: #ffffff; margin-top: 0;'>안녕하세요, " + displayName + "님</h2>"
-				+ "                    <p style='color: #b8b0cc;'>회원님의 요청에 따라 <strong>PL:UG 회원 탈퇴 처리가 완료</strong>되었습니다.</p>"
-				+ "                    <div style='background-color: #1a162b; border: 1px solid #2d2446; border-radius: 8px; padding: 18px 20px; margin: 24px 0;'>"
-				+ "                        <p style='margin: 0 0 8px 0; font-weight: bold; color: #e2dcee;'>📌 주요 안내 사항</p>"
-				+ "                        <ul style='margin: 0; padding-left: 20px; color: #9d93b8; font-size: 13px; line-height: 1.6;'>"
-				+ "                            <li style='margin-bottom: 4px;'>회원 계정 정보 및 보유 포인트는 비활성화/초기화 처리되었습니다.</li>"
-				+ "                            <li style='margin-bottom: 4px;'>작성하신 게시글 및 댓글은 커뮤니티 맥락 보존을 위해 <strong>(탈퇴회원)</strong> 명의로 안전하게 보존됩니다.</li>"
-				+ "                            <li style='margin-bottom: 4px;'>동일한 이메일로 언제든 재가입이 가능합니다.</li>"
-				+ "                        </ul>"
-				+ "                    </div>"
-				+ "                    <p style='color: #b8b0cc;'>그동안 PL:UG를 이용해 주셔서 진심으로 감사드리며, 더 멋진 서비스로 다시 뵙기를 기대하겠습니다.</p>"
-				+ "                    <div style='text-align: center; margin: 30px 0 10px 0;'>"
-				+ "                        <a href='" + mainUrl + "' style='background-color: #2b2342; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;'>PL:UG 홈으로 가기</a>"
-				+ "                    </div>"
-				+ "                </td></tr>"
-				+ "                <tr><td style='padding: 20px 36px; background-color: #100d1a; border-top: 1px solid #201a30; text-align: left;'>"
-				+ "                    <p style='margin: 0; font-size: 11px; color: #554f68;'>© 2026 PL:UG (BUILDUP). All rights reserved.</p>"
-				+ "                </td></tr>"
-				+ "            </table>"
-				+ "        </td></tr>"
-				+ "    </table>"
-				+ "</body></html>";
+		String content = """
+				<!DOCTYPE html>
+				<html lang="ko">
+				<head>
+				  <meta charset="UTF-8">
+				  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+				  <title>PL:UG 회원 탈퇴 안내</title>
+				  <style>
+				    @media only screen and (max-width: 600px) {
+				      .outer-td { padding: 20px 6px !important; }
+				      .header-td { padding: 22px 20px !important; }
+				      .body-td { padding: 24px 20px !important; font-size: 14px !important; }
+				      .title { font-size: 17px !important; }
+				      .btn a { padding: 10px 22px !important; font-size: 13px !important; }
+				      .footer-td { padding: 14px 20px !important; }
+				    }
+				  </style>
+				</head>
+				<body style="margin:0;padding:0;background-color:#0d0b14;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
+				  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#0d0b14;">
+				    <tr><td class="outer-td" align="center" style="padding:40px 12px;">
+				      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:580px;background-color:#171324;border:1px solid #2d2442;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+				        <tr>
+				          <td class="header-td" style="padding:28px 32px;background:#1c142b;border-bottom:1px solid #281f3d;">
+				            <div style="font-size:22px;font-weight:800;color:#a097ba;">PL:UG</div>
+				            <div style="color:#6b6380;font-size:11px;font-weight:700;letter-spacing:1px;margin-top:4px;">ACCOUNT WITHDRAWAL NOTICE</div>
+				          </td>
+				        </tr>
+				        <tr>
+				          <td class="body-td" style="padding:32px 32px;color:#d6d0e6;font-size:15px;line-height:1.7;">
+				            <h2 class="title" style="font-size:19px;color:#ffffff;margin-top:0;margin-bottom:14px;">안녕하세요, {{DISPLAY_NAME}}님</h2>
+				            <p style="color:#b8b0cc;margin:0 0 14px 0;">회원님의 요청에 따라 <strong>PL:UG 회원 탈퇴 처리가 완료</strong>되었습니다.</p>
+				            <div style="background-color:#1a162b;border:1px solid #2d2446;border-radius:8px;padding:16px 20px;margin:20px 0;">
+				              <p style="margin:0 0 8px 0;font-weight:bold;color:#e2dcee;">📌 주요 안내 사항</p>
+				              <ul style="margin:0;padding-left:20px;color:#9d93b8;font-size:13px;line-height:1.7;">
+				                <li style="margin-bottom:4px;">회원 계정 정보 및 보유 포인트는 비활성화/초기화 처리되었습니다.</li>
+				                <li style="margin-bottom:4px;">작성하신 게시글 및 댓글은 커뮤니티 맥락 보존을 위해 <strong>(탈퇴회원)</strong> 명의로 안전하게 보존됩니다.</li>
+				                <li style="margin-bottom:4px;">동일한 이메일로 언제든 재가입이 가능합니다.</li>
+				              </ul>
+				            </div>
+				            <p style="color:#b8b0cc;margin:0 0 20px 0;">그동안 PL:UG를 이용해 주셔서 진심으로 감사드리며, 더 멋진 서비스로 다시 뵙기를 기대하겠습니다.</p>
+				            <table border="0" cellpadding="0" cellspacing="0" width="100%" class="btn" style="margin:20px 0 10px 0;">
+				              <tr><td align="center">
+				                <a href="{{MAIN_URL}}" style="background-color:#2b2342;color:#ffffff;padding:12px 28px;text-decoration:none;border-radius:6px;font-weight:bold;font-size:14px;display:inline-block;">PL:UG 홈으로 가기</a>
+				              </td></tr>
+				            </table>
+				          </td>
+				        </tr>
+				        <tr>
+				          <td class="footer-td" style="padding:16px 32px;background-color:#100d1a;border-top:1px solid #201a30;">
+				            <p style="margin:0;font-size:11px;color:#554f68;">© 2026 PL:UG (BUILDUP). All rights reserved.</p>
+				          </td>
+				        </tr>
+				      </table>
+				    </td></tr>
+				  </table>
+				</body>
+				</html>
+				"""
+				.replace("{{DISPLAY_NAME}}", displayName)
+				.replace("{{MAIN_URL}}", mainUrl);
 
 		sendMail.send(userEmail, title, content);
 	}
@@ -328,38 +391,133 @@ public class UserMailServiceImpl implements UserMailService {
 
 		String resetUrl = getFrontendBaseUrl() + "/#/plug/reset-password?key=" + authKey + "&email=" + userEmail;
 		String title = "[PL:UG] 비밀번호 재설정 안내 메일입니다. 🔑";
-		String content = "<!DOCTYPE html>"
-				+ "<html lang='ko'>"
-				+ "<head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>PL:UG 비밀번호 재설정</title></head>"
-				+ "<body style='margin: 0; padding: 0; background-color: #0d0b14; font-family: -apple-system, BlinkMacSystemFont, \"Apple SD Gothic Neo\", \"Malgun Gothic\", sans-serif;'>"
-				+ "    <table border='0' cellpadding='0' cellspacing='0' width='100%' style='background-color: #0d0b14; padding: 40px 12px;'>"
-				+ "        <tr><td align='center'>"
-				+ "            <table border='0' cellpadding='0' cellspacing='0' width='100%' style='max-width: 580px; background-color: #171324; border: 1px solid #2d2442; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);'>"
-				+ "                <tr><td style='padding: 32px 36px; background: linear-gradient(135deg, #221438 0%, #120d22 100%); border-bottom: 1px solid #2c2144; text-align: left;'>"
-				+ "                    <div style='font-size: 28px; font-weight: 900; letter-spacing: -0.5px; color: #00ff87; text-shadow: 0 0 16px rgba(0, 255, 135, 0.45); font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif;'>PL:UG</div>"
-				+ "                    <div style='color: #9d93b8; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px;'>PASSWORD RESET SERVICE</div>"
-				+ "                </td></tr>"
-				+ "                <tr><td style='padding: 38px 36px; color: #d6d0e6; font-size: 15px; line-height: 1.7;'>"
-				+ "                    <h2 style='margin: 0 0 18px 0; color: #ffffff; font-size: 22px; font-weight: 800;'>비밀번호 재설정 안내 🔑</h2>"
-				+ "                    <p style='margin: 0 0 16px 0; color: #b8b0cc;'>회원님의 계정 비밀번호 재설정을 위해 아래 버튼을 클릭해 주세요.</p>"
-				+ "                    <div style='background-color: #241626; border: 1px solid #732238; border-radius: 8px; padding: 14px 18px; margin: 20px 0; color: #fecdd3; font-size: 13.5px;'>"
-				+ "                        ⚠️ <strong>보안 유의:</strong> 본 재설정 링크는 발송 후 <strong style='color: #ff859b;'>10분 동안만 유효</strong>합니다."
-				+ "                    </div>"
-				+ "                    <div style='text-align: center; margin: 32px 0;'>"
-				+ "                        <a href='" + resetUrl + "' style='background: linear-gradient(135deg, #00ff87 0%, #60efff 100%); color: #0d141e; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: 800; font-size: 15px; display: inline-block; box-shadow: 0 4px 18px rgba(0, 255, 135, 0.35);'>비밀번호 재설정하기 →</a>"
-				+ "                    </div>"
-				+ "                    <div style='background-color: #1a162b; border: 1px solid #2d2446; border-radius: 8px; padding: 16px 20px; font-size: 12.5px; color: #8e84a8; line-height: 1.6;'>"
-				+ "                        ※ 본인이 요청하지 않은 경우 즉시 고객센터에 문의하시기 바랍니다.<br>"
-				+ "                        <a href='" + resetUrl + "' style='color: #00ff87; word-break: break-all; font-size: 12px; margin-top: 6px; display: inline-block;'>" + resetUrl + "</a>"
-				+ "                    </div>"
-				+ "                </td></tr>"
-				+ "                <tr><td style='padding: 20px 36px; background-color: #100d1a; border-top: 1px solid #201a30; text-align: left;'>"
-				+ "                    <p style='margin: 0; font-size: 11px; color: #554f68;'>© 2026 PL:UG (BUILDUP). All rights reserved.</p>"
-				+ "                </td></tr>"
-				+ "            </table>"
-				+ "        </td></tr>"
-				+ "    </table>"
-				+ "</body></html>";
+		String content = """
+				<!DOCTYPE html>
+				<html lang="ko">
+				<head>
+				  <meta charset="UTF-8">
+				  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+				  <title>PL:UG 비밀번호 재설정</title>
+				  <style>
+				    @media only screen and (max-width: 600px) {
+				      .outer-td { padding: 20px 6px !important; }
+				      .header-td { padding: 22px 20px !important; }
+				      .logo { font-size: 22px !important; }
+				      .body-td { padding: 24px 20px !important; font-size: 14px !important; }
+				      .title { font-size: 18px !important; }
+				      .btn a { padding: 13px 28px !important; font-size: 14px !important; }
+				      .footer-td { padding: 14px 20px !important; }
+				    }
+				  </style>
+				</head>
+				<body style="margin:0;padding:0;background-color:#0d0b14;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
+				  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#0d0b14;">
+				    <tr><td class="outer-td" align="center" style="padding:40px 12px;">
+				      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:580px;background-color:#171324;border:1px solid #2d2442;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+				        <tr>
+				          <td class="header-td" style="padding:28px 32px;background:linear-gradient(135deg,#221438 0%,#120d22 100%);border-bottom:1px solid #2c2144;">
+				            <div class="logo" style="font-size:26px;font-weight:900;letter-spacing:-0.5px;color:#00ff87;text-shadow:0 0 16px rgba(0,255,135,0.45);">PL:UG</div>
+				            <div style="color:#9d93b8;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;">PASSWORD RESET SERVICE</div>
+				          </td>
+				        </tr>
+				        <tr>
+				          <td class="body-td" style="padding:32px 32px;color:#d6d0e6;font-size:15px;line-height:1.7;">
+				            <h2 class="title" style="margin:0 0 16px 0;color:#ffffff;font-size:20px;font-weight:800;">비밀번호 재설정 안내 🔑</h2>
+				            <p style="margin:0 0 14px 0;color:#b8b0cc;">회원님의 계정 비밀번호 재설정을 위해 아래 버튼을 클릭해 주세요.</p>
+				            <div style="background-color:#241626;border:1px solid #732238;border-radius:8px;padding:12px 16px;margin:18px 0;color:#fecdd3;font-size:13px;">
+				              ⚠️ <strong>보안 유의:</strong> 본 재설정 링크는 발송 후 <strong style="color:#ff859b;">10분 동안만 유효</strong>합니다.
+				            </div>
+				            <table border="0" cellpadding="0" cellspacing="0" width="100%" class="btn" style="margin:28px 0;">
+				              <tr><td align="center">
+				                <a href="{{RESET_URL}}" style="background:linear-gradient(135deg,#00ff87 0%,#60efff 100%);color:#0d141e;padding:14px 38px;text-decoration:none;border-radius:8px;font-weight:800;font-size:15px;display:inline-block;box-shadow:0 4px 18px rgba(0,255,135,0.35);">비밀번호 재설정하기 →</a>
+				              </td></tr>
+				            </table>
+				            <div style="background-color:#1a162b;border:1px solid #2d2446;border-radius:8px;padding:14px 18px;font-size:12px;color:#8e84a8;line-height:1.7;word-break:break-all;">
+				              ※ 본인이 요청하지 않은 경우 즉시 고객센터에 문의하시기 바랍니다.<br>
+				              <a href="{{RESET_URL}}" style="color:#00ff87;margin-top:6px;display:inline-block;">{{RESET_URL}}</a>
+				            </div>
+				          </td>
+				        </tr>
+				        <tr>
+				          <td class="footer-td" style="padding:16px 32px;background-color:#100d1a;border-top:1px solid #201a30;">
+				            <p style="margin:0;font-size:11px;color:#554f68;">© 2026 PL:UG (BUILDUP). All rights reserved.</p>
+				          </td>
+				        </tr>
+				      </table>
+				    </td></tr>
+				  </table>
+				</body>
+				</html>
+				"""
+				.replace("{{RESET_URL}}", resetUrl);
+
+		sendMail.send(userEmail, title, content);
+	}
+
+	@Override
+	public void sendPasswordChangedMail(String userEmail, String nickname) {
+		String title = "[PL:UG] 계정 비밀번호가 성공적으로 변경되었습니다. 🔒";
+		String mainUrl = getFrontendBaseUrl() + "/#/plug/mainpage";
+		String displayName = (nickname != null && !nickname.trim().isEmpty()) ? nickname : "회원";
+		String content = """
+				<!DOCTYPE html>
+				<html lang="ko">
+				<head>
+				  <meta charset="UTF-8">
+				  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+				  <title>PL:UG 비밀번호 변경 안내</title>
+				  <style>
+				    @media only screen and (max-width: 600px) {
+				      .outer-td { padding: 20px 6px !important; }
+				      .header-td { padding: 22px 20px !important; }
+				      .logo { font-size: 22px !important; }
+				      .body-td { padding: 24px 20px !important; font-size: 14px !important; }
+				      .title { font-size: 18px !important; }
+				      .btn a { padding: 12px 28px !important; font-size: 14px !important; }
+				      .footer-td { padding: 14px 20px !important; }
+				    }
+				  </style>
+				</head>
+				<body style="margin:0;padding:0;background-color:#0d0b14;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
+				  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#0d0b14;">
+				    <tr><td class="outer-td" align="center" style="padding:40px 12px;">
+				      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:580px;background-color:#171324;border:1px solid #2d2442;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+				        <tr>
+				          <td class="header-td" style="padding:28px 32px;background:linear-gradient(135deg,#221438 0%,#120d22 100%);border-bottom:1px solid #2c2144;">
+				            <div class="logo" style="font-size:26px;font-weight:900;letter-spacing:-0.5px;color:#00ff87;text-shadow:0 0 16px rgba(0,255,135,0.45);">PL:UG</div>
+				            <div style="color:#9d93b8;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;">ACCOUNT SECURITY NOTICE</div>
+				          </td>
+				        </tr>
+				        <tr>
+				          <td class="body-td" style="padding:32px 32px;color:#d6d0e6;font-size:15px;line-height:1.7;">
+				            <h2 class="title" style="margin:0 0 16px 0;color:#ffffff;font-size:20px;font-weight:800;">비밀번호 변경 완료 안내 🔒</h2>
+				            <p style="margin:0 0 14px 0;color:#b8b0cc;">안녕하세요, <span style="color:#00ff87;">{{DISPLAY_NAME}}</span>님!</p>
+				            <p style="margin:0 0 14px 0;color:#b8b0cc;">회원님의 PL:UG 계정 비밀번호가 안전하게 변경되었습니다.</p>
+				            <div style="background-color:#241626;border:1px solid #732238;border-radius:8px;padding:12px 16px;margin:18px 0;color:#fecdd3;font-size:13px;">
+				              ⚠️ <strong>보안 유의:</strong> 본인이 직접 변경하지 않은 경우, 타인이 계정에 접근했을 가능성이 있으니 즉시 고객센터에 문의하시거나 비밀번호를 재설정해 주세요.
+				            </div>
+				            <table border="0" cellpadding="0" cellspacing="0" width="100%" class="btn" style="margin:24px 0;">
+				              <tr><td align="center">
+				                <a href="{{MAIN_URL}}" style="background:linear-gradient(135deg,#00ff87 0%,#60efff 100%);color:#0d141e;padding:14px 38px;text-decoration:none;border-radius:8px;font-weight:800;font-size:15px;display:inline-block;box-shadow:0 4px 18px rgba(0,255,135,0.35);">PL:UG 바로가기 →</a>
+				              </td></tr>
+				            </table>
+				            <p style="margin:24px 0 0 0;color:#8e84a8;font-size:13px;">축구의 모든 순간, Team BUILDUP 드림</p>
+				          </td>
+				        </tr>
+				        <tr>
+				          <td class="footer-td" style="padding:16px 32px;background-color:#100d1a;border-top:1px solid #201a30;">
+				            <p style="margin:0 0 4px 0;font-size:11px;color:#6b6380;line-height:1.4;">본 메일은 PL:UG 서비스에 의해 발송된 보안 안내 메일입니다.</p>
+				            <p style="margin:0;font-size:11px;color:#554f68;">© 2026 PL:UG (BUILDUP). All rights reserved.</p>
+				          </td>
+				        </tr>
+				      </table>
+				    </td></tr>
+				  </table>
+				</body>
+				</html>
+				"""
+				.replace("{{DISPLAY_NAME}}", displayName)
+				.replace("{{MAIN_URL}}", mainUrl);
 
 		sendMail.send(userEmail, title, content);
 	}
@@ -376,36 +534,66 @@ public class UserMailServiceImpl implements UserMailService {
 		userMailDAO.insertEmailChangeCode(newEmail, code);
 
 		String title = "[PL:UG] 이메일 변경 인증번호를 확인해주세요 ⚽";
-		String content = "<!DOCTYPE html>"
-				+ "<html lang='ko'>"
-				+ "<head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>PL:UG 이메일 변경 인증번호</title></head>"
-				+ "<body style='margin:0;padding:0;background-color:#0d0b14;font-family:-apple-system, BlinkMacSystemFont, \"Apple SD Gothic Neo\", \"Malgun Gothic\", sans-serif;'>"
-				+ "<table border='0' cellpadding='0' cellspacing='0' width='100%' style='background-color:#0d0b14;padding:40px 12px;'>"
-				+ "<tr><td align='center'>"
-				+ "<table border='0' cellpadding='0' cellspacing='0' width='100%' style='max-width:580px;background-color:#171324;border:1px solid #2d2442;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,0.5);overflow:hidden;'>"
-				+ "<tr><td style='padding:32px 36px;background:linear-gradient(135deg, #221438 0%, #120d22 100%);border-bottom:1px solid #2c2144;text-align:left;'>"
-				+ "<div style='font-size:28px;font-weight:900;letter-spacing:-0.5px;color:#00ff87;text-shadow:0 0 16px rgba(0,255,135,0.45);font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif;'>PL:UG</div>"
-				+ "<div style='color:#9d93b8;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;'>PREMIER LEAGUE FOOTBALL &amp; COMMUNITY</div>"
-				+ "</td></tr>"
-				+ "<tr><td style='padding:38px 36px;color:#d6d0e6;font-size:15px;line-height:1.7;'>"
-				+ "<h2 style='margin:0 0 18px 0;color:#ffffff;font-size:22px;font-weight:800;'>" + nickname + "님, 이메일 변경을 요청하셨습니다.</h2>"
-				+ "<p style='margin:0 0 16px 0;color:#b8b0cc;'>아래의 6자리 인증번호를 마이페이지 이메일 변경 확인창에 입력해 주세요.</p>"
-				+ "<div style='background-color:#241626;border:1px solid #732238;border-radius:8px;padding:12px 18px;margin:18px 0;color:#fecdd3;font-size:13.5px;'>"
-				+ "⚠️ <strong>보안 유의:</strong> 본 인증번호는 발송 후 <strong style='color:#ff859b;'>10분 동안만 유효</strong>합니다."
-				+ "</div>"
-				+ "<div style='margin:28px 0;padding:24px;background-color:#141020;border:2px dashed #00ff87;border-radius:12px;text-align:center;box-shadow:inset 0 0 20px rgba(0,255,135,0.06);'>"
-				+ "<span style='font-size:40px;font-weight:900;letter-spacing:12px;color:#00ff87;text-shadow:0 0 14px rgba(0,255,135,0.5);font-family:monospace;'>" + code + "</span>"
-				+ "</div>"
-				+ "<div style='background-color:#1a162b;border:1px solid #2d2446;border-radius:8px;padding:16px 20px;font-size:12.5px;color:#8e84a8;line-height:1.6;'>"
-				+ "※ 본인이 요청하지 않은 인증 메일인 경우 계정 비밀번호를 즉시 변경해 주시기 바랍니다."
-				+ "</div>"
-				+ "<p style='margin:28px 0 0 0;color:#8e84a8;font-size:13.5px;'>축구의 모든 순간, Team BUILDUP 드림</p>"
-				+ "</td></tr>"
-				+ "<tr><td style='padding:20px 36px;background-color:#100d1a;border-top:1px solid #201a30;text-align:left;'>"
-				+ "<p style='margin:0;font-size:11px;color:#554f68;'>© 2026 PL:UG (BUILDUP). All rights reserved.</p>"
-				+ "</td></tr>"
-				+ "</table></td></tr></table>"
-				+ "</body></html>";
+		String content = """
+				<!DOCTYPE html>
+				<html lang="ko">
+				<head>
+				  <meta charset="UTF-8">
+				  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+				  <title>PL:UG 이메일 변경 인증번호</title>
+				  <style>
+				    @media only screen and (max-width: 600px) {
+				      .outer-td { padding: 20px 6px !important; }
+				      .header-td { padding: 22px 20px !important; }
+				      .logo { font-size: 22px !important; }
+				      .body-td { padding: 24px 20px !important; font-size: 14px !important; }
+				      .title { font-size: 18px !important; }
+				      .code-box { padding: 16px 12px !important; }
+				      .code-span { font-size: 30px !important; letter-spacing: 8px !important; }
+				      .footer-td { padding: 14px 20px !important; }
+				    }
+				  </style>
+				</head>
+				<body style="margin:0;padding:0;background-color:#0d0b14;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
+				  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#0d0b14;">
+				    <tr><td class="outer-td" align="center" style="padding:40px 12px;">
+				      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:580px;background-color:#171324;border:1px solid #2d2442;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+				        <tr>
+				          <td class="header-td" style="padding:28px 32px;background:linear-gradient(135deg,#221438 0%,#120d22 100%);border-bottom:1px solid #2c2144;">
+				            <div class="logo" style="font-size:26px;font-weight:900;letter-spacing:-0.5px;color:#00ff87;text-shadow:0 0 16px rgba(0,255,135,0.45);">PL:UG</div>
+				            <div style="color:#9d93b8;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;">PREMIER LEAGUE FOOTBALL &amp; COMMUNITY</div>
+				          </td>
+				        </tr>
+				        <tr>
+				          <td class="body-td" style="padding:32px 32px;color:#d6d0e6;font-size:15px;line-height:1.7;">
+				            <h2 class="title" style="margin:0 0 16px 0;color:#ffffff;font-size:20px;font-weight:800;">{{NICKNAME}}님, 이메일 변경을 요청하셨습니다.</h2>
+				            <p style="margin:0 0 14px 0;color:#b8b0cc;">아래의 6자리 인증번호를 마이페이지 이메일 변경 확인창에 입력해 주세요.</p>
+				            <div style="background-color:#241626;border:1px solid #732238;border-radius:8px;padding:12px 16px;margin:18px 0;color:#fecdd3;font-size:13px;">
+				              ⚠️ <strong>보안 유의:</strong> 본 인증번호는 발송 후 <strong style="color:#ff859b;">10분 동안만 유효</strong>합니다.
+				            </div>
+				            <div class="code-box" style="margin:24px 0;padding:22px 12px;background-color:#141020;border:2px dashed #00ff87;border-radius:12px;text-align:center;box-shadow:inset 0 0 20px rgba(0,255,135,0.06);">
+				              <span class="code-span" style="font-size:40px;font-weight:900;letter-spacing:12px;color:#00ff87;text-shadow:0 0 14px rgba(0,255,135,0.5);font-family:monospace;">{{CODE}}</span>
+				            </div>
+				            <div style="background-color:#1a162b;border:1px solid #2d2446;border-radius:8px;padding:14px 18px;font-size:12px;color:#8e84a8;line-height:1.6;">
+				              ※ 본인이 요청하지 않은 인증 메일인 경우 계정 비밀번호를 즉시 변경해 주시기 바랍니다.
+				            </div>
+				            <p style="margin:24px 0 0 0;color:#8e84a8;font-size:13px;">축구의 모든 순간, Team BUILDUP 드림</p>
+				          </td>
+				        </tr>
+				        <tr>
+				          <td class="footer-td" style="padding:16px 32px;background-color:#100d1a;border-top:1px solid #201a30;">
+				            <p style="margin:0 0 4px 0;font-size:11px;color:#6b6380;line-height:1.4;">본 메일은 PL:UG 서비스에 의해 발송된 발신전용 안내 메일입니다.</p>
+				            <p style="margin:0;font-size:11px;color:#554f68;">© 2026 PL:UG (BUILDUP). All rights reserved.</p>
+				          </td>
+				        </tr>
+				      </table>
+				    </td></tr>
+				  </table>
+				</body>
+				</html>
+				"""
+				.replace("{{NICKNAME}}", (nickname != null && !nickname.trim().isEmpty()) ? nickname : "회원")
+				.replace("{{CODE}}", code);
 
 		boolean sent = sendMail.send(newEmail, title, content);
 		if (sent) {

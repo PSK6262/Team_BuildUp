@@ -1,0 +1,689 @@
+/* ==========================================================================
+   AI 대전 리플레이 중계 이벤트 오버레이 스타일시트 (MatchEventOverlay.css)
+   - EPL 방송 중계 그래픽 스타일, 네온 글래스모피즘, 3D 카드 플립 연출
+   - 마우스 상호작용 차단 방지: pointer-events: none 적용
+   ========================================================================== */
+
+/* 0. 피치 래퍼 컨테이너 정렬 */
+.myteam-ai-pitch-wrapper {
+  position: relative;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.myteam-ai-pitch-wrapper .myteam-ai-mini-pitch {
+  margin-top: 0;
+}
+
+/* 1. 최상위 오버레이 컨테이너 */
+.match-event-overlay-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 25;
+  overflow: hidden;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+/* 2. 공통 팀 배지 및 설명 텍스트 */
+.match-overlay-team-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: clamp(0.72rem, 0.9vw, 0.88rem);
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  margin-top: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.match-overlay-team-badge.badge--home {
+  background: rgba(59, 130, 246, 0.25);
+  color: #93c5fd;
+  border: 1px solid rgba(96, 165, 250, 0.7);
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.35);
+}
+
+.match-overlay-team-badge.badge--away {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  border: 1px solid rgba(248, 113, 113, 0.7);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.35);
+}
+
+.match-overlay-event-desc {
+  margin: 6px 0 0;
+  font-size: clamp(0.7rem, 0.82vw, 0.84rem);
+  font-weight: 600;
+  color: #e2e8f0;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+  max-width: 85%;
+  line-height: 1.35;
+  text-align: center;
+}
+
+/* ==========================================================================
+   1. GOAL (골) 연출
+   - 화면 섬광 + 중앙 스케일업(Pop) + 셰이크 진동 + 2.3초 페이드아웃
+   ========================================================================== */
+.match-overlay-goal-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(0, 255, 135, 0.32) 0%, rgba(250, 204, 21, 0.16) 45%, transparent 75%);
+  animation: goalFlashEffect 0.9s ease-out forwards;
+}
+
+@keyframes goalFlashEffect {
+  0% { opacity: 0; transform: scale(0.6); }
+  25% { opacity: 1; transform: scale(1.1); }
+  60% { opacity: 0.6; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.05); }
+}
+
+.match-overlay-goal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: goalPopShake 2.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.match-overlay-goal-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.goal-text-glow {
+  font-size: clamp(2.4rem, 5.2vw, 4rem);
+  font-weight: 950;
+  font-style: italic;
+  letter-spacing: 0.08em;
+  background: linear-gradient(180deg, #FFFFFF 0%, #00FF87 55%, #FACC15 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 18px rgba(0, 255, 135, 0.85)) drop-shadow(0 0 35px rgba(250, 204, 21, 0.45));
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.goal-desc {
+  font-size: clamp(0.74rem, 0.88vw, 0.92rem);
+  color: #F8FAFC;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+@keyframes goalPopShake {
+  0% {
+    opacity: 0;
+    transform: scale(0.2) rotate(-8deg);
+  }
+  16% {
+    opacity: 1;
+    transform: scale(1.22) rotate(3deg);
+  }
+  24% {
+    transform: scale(1.1) translate(-6px, 3px) rotate(-3deg);
+  }
+  32% {
+    transform: scale(1.1) translate(6px, -3px) rotate(3deg);
+  }
+  40% {
+    transform: scale(1.06) translate(-4px, -2px) rotate(-2deg);
+  }
+  48% {
+    transform: scale(1.04) translate(4px, 2px) rotate(1deg);
+  }
+  56%, 80% {
+    opacity: 1;
+    transform: scale(1.02) translate(0, 0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.92) translateY(-10px);
+  }
+}
+
+/* ==========================================================================
+   2. CARD (카드 판정 및 경고 누적)
+   - [경고 누적]: 드롭 후 0.6초 뒤 Y축 180도 3D 회전(Flip)으로 레드카드 모핑
+   - [일반 옐로]: 회전 드롭다운 모션
+   - [다이렉트 레드]: 붉은 섬광 + 강한 슬램 임팩트
+   ========================================================================== */
+.match-overlay-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: cardOverallFade 2.3s ease-out forwards;
+}
+
+@keyframes cardOverallFade {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  82% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.95) translateY(-8px); }
+}
+
+/* 3D 카드 플립 스테이지 (경고 누적 퇴장) */
+.card-flip-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  perspective: 1200px;
+}
+
+.card-flip-flipper {
+  position: relative;
+  width: 46px;
+  height: 68px;
+  transform-style: preserve-3d;
+  animation: cardDropAndMorph 2.3s cubic-bezier(0.18, 0.9, 0.25, 1) forwards;
+}
+
+.card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  backface-visibility: hidden;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.7);
+}
+
+.card-face--yellow {
+  background: linear-gradient(145deg, #fef08a 0%, #facc15 65%, #ca8a04 100%);
+  border: 1.5px solid #fef9c3;
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.75), 0 8px 20px rgba(0, 0, 0, 0.6);
+}
+
+.card-face--red {
+  background: linear-gradient(145deg, #f87171 0%, #dc2626 65%, #991b1b 100%);
+  border: 1.5px solid #fca5a5;
+  transform: rotateY(180deg);
+  box-shadow: 0 0 28px rgba(239, 68, 68, 0.85), 0 8px 20px rgba(0, 0, 0, 0.7);
+}
+
+@keyframes cardDropAndMorph {
+  0% {
+    opacity: 0;
+    transform: translateY(-90px) rotate(-18deg) rotateY(0deg) scale(0.5);
+  }
+  16% {
+    opacity: 1;
+    transform: translateY(0) rotate(4deg) rotateY(0deg) scale(1.05);
+  }
+  24% {
+    transform: translateY(-6px) rotate(-2deg) rotateY(0deg) scale(1);
+  }
+  32% {
+    transform: translateY(0) rotate(0deg) rotateY(0deg) scale(1);
+  }
+  /* 0.6초 뒤(약 42% 구간) 3D Y축 180도 회전하며 레드로 모핑 */
+  44% {
+    transform: translateY(0) rotateY(0deg) scale(1.08);
+  }
+  58% {
+    transform: translateY(-10px) rotateY(180deg) scale(1.22);
+  }
+  68% {
+    transform: translateY(0) rotateY(180deg) scale(1.04);
+  }
+  84% {
+    transform: translateY(0) rotateY(180deg) scale(1);
+  }
+  100% {
+    transform: translateY(0) rotateY(180deg) scale(0.96);
+  }
+}
+
+/* 단일 카드 스테이지 (일반 옐로 / 다이렉트 레드) */
+.card-single-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card-rect {
+  width: 44px;
+  height: 65px;
+  border-radius: 6px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.7);
+}
+
+.card-rect--yellow {
+  background: linear-gradient(145deg, #fef08a 0%, #facc15 65%, #ca8a04 100%);
+  border: 1.5px solid #fef9c3;
+  box-shadow: 0 0 22px rgba(250, 204, 21, 0.8), 0 8px 20px rgba(0, 0, 0, 0.6);
+  animation: cardSingleDrop 2.3s cubic-bezier(0.18, 0.9, 0.25, 1) forwards;
+}
+
+.card-rect--red {
+  background: linear-gradient(145deg, #f87171 0%, #dc2626 65%, #991b1b 100%);
+  border: 1.5px solid #fca5a5;
+  box-shadow: 0 0 32px rgba(239, 68, 68, 0.9), 0 8px 24px rgba(0, 0, 0, 0.7);
+  animation: cardSlamImpact 2.3s cubic-bezier(0.15, 1, 0.2, 1) forwards;
+}
+
+@keyframes cardSingleDrop {
+  0% {
+    opacity: 0;
+    transform: translateY(-80px) rotate(-16deg) scale(0.6);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(0) rotate(5deg) scale(1.08);
+  }
+  30% {
+    transform: translateY(-5px) rotate(-1deg) scale(1);
+  }
+  40%, 82% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  100% {
+    transform: translateY(-6px) scale(0.95);
+  }
+}
+
+@keyframes cardSlamImpact {
+  0% {
+    opacity: 0;
+    transform: translateY(-120px) scale(1.6);
+  }
+  18% {
+    opacity: 1;
+    transform: translateY(0) scale(1.15);
+  }
+  26% {
+    transform: translateY(-8px) scale(1.05);
+  }
+  34%, 82% {
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    transform: translateY(-6px) scale(0.95);
+  }
+}
+
+.match-overlay-card-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+  margin-top: 8px;
+}
+
+.match-overlay-card-tag.tag--yellow {
+  background: rgba(250, 204, 21, 0.2);
+  color: #fde047;
+  border: 1px solid rgba(250, 204, 21, 0.6);
+}
+
+.match-overlay-card-tag.tag--red {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.7);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+/* ==========================================================================
+   3. SAVE, CORNER, FREE-KICK, PK 슬림 중계 배너
+   ========================================================================== */
+.match-overlay-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  max-width: 90%;
+  box-sizing: border-box;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75);
+}
+
+.banner-icon-box {
+  font-size: clamp(1.4rem, 2vw, 1.9rem);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.banner-text-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.banner-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.banner-title {
+  font-size: clamp(0.92rem, 1.15vw, 1.25rem);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+
+.banner-team-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #f1f5f9;
+}
+
+.banner-sub {
+  font-size: clamp(0.68rem, 0.8vw, 0.82rem);
+  font-weight: 600;
+  color: #cbd5e1;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+/* 선방 (SAVE) - 시안/스카이블루 슬림 배너, 좌측 슬라이드 인 */
+.banner--save {
+  background: rgba(6, 42, 66, 0.9);
+  border: 1.5px solid #38bdf8;
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.45), 0 10px 28px rgba(0, 0, 0, 0.7);
+  animation: saveSlideInOut 2.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.banner--save .banner-title {
+  color: #38bdf8;
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.65);
+}
+
+@keyframes saveSlideInOut {
+  0% {
+    opacity: 0;
+    transform: translateX(-140%) skewX(-8deg);
+  }
+  16% {
+    opacity: 1;
+    transform: translateX(0) skewX(0deg);
+  }
+  24% {
+    transform: translateX(4px);
+  }
+  32%, 82% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(130%) skewX(6deg);
+  }
+}
+
+/* 코너킥 (CORNER) - 옐로 앰버 테마 슬라이드 배너 */
+.banner--corner {
+  background: rgba(48, 30, 6, 0.9);
+  border: 1.5px solid #f59e0b;
+  box-shadow: 0 0 24px rgba(245, 158, 11, 0.45), 0 10px 28px rgba(0, 0, 0, 0.7);
+  animation: bannerSlideScaleInOut 2.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.banner--corner .banner-title {
+  color: #fbbf24;
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.65);
+}
+
+/* 프리킥 (FREE KICK) - 네온 퍼플 & 그린 */
+.banner--freekick {
+  background: rgba(30, 10, 48, 0.92);
+  border: 1.5px solid #a855f7;
+  box-shadow: 0 0 24px rgba(168, 85, 247, 0.5), 0 10px 28px rgba(0, 0, 0, 0.7);
+  animation: bannerSlideScaleInOut 2.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.banner--freekick .banner-title {
+  color: #d8b4fe;
+  text-shadow: 0 0 12px rgba(216, 180, 254, 0.65);
+}
+
+/* 페널티킥 (PK) - 네온 레드 & 앰버 */
+.banner--pk {
+  background: rgba(48, 8, 16, 0.92);
+  border: 1.5px solid #f43f5e;
+  box-shadow: 0 0 26px rgba(244, 63, 94, 0.55), 0 10px 28px rgba(0, 0, 0, 0.7);
+  animation: bannerSlideScaleInOut 2.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.banner--pk .banner-title {
+  color: #fda4af;
+  text-shadow: 0 0 12px rgba(253, 164, 175, 0.7);
+}
+
+/* 오프사이드 (OFFSIDE) */
+.banner--offside {
+  background: rgba(30, 25, 10, 0.9);
+  border: 1.5px solid #eab308;
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.4);
+  animation: bannerSlideScaleInOut 2.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.banner--offside .banner-title {
+  color: #fde047;
+}
+
+@keyframes bannerSlideScaleInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.85);
+  }
+  16% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+  26%, 82% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.94);
+  }
+}
+
+/* ==========================================================================
+   4. KICKOFF (킥오프 / 피리어드)
+   - 센터서클 펄스 확대 후 페이드
+   ========================================================================== */
+.match-overlay-kickoff-pulse {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 32, 22, 0.88);
+  border: 1.5px solid #10b981;
+  padding: 12px 24px;
+  border-radius: 999px;
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.5), 0 10px 25px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  animation: kickoffPulseEffect 2.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.kickoff-whistle-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.kickoff-title {
+  font-size: clamp(1rem, 1.35vw, 1.45rem);
+  font-weight: 900;
+  color: #6ee7b7;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 14px rgba(110, 231, 183, 0.7);
+  margin-top: 4px;
+}
+
+.kickoff-sub {
+  margin: 3px 0 0;
+  font-size: 0.72rem;
+  color: #d1fae5;
+  font-weight: 600;
+}
+
+@keyframes kickoffPulseEffect {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  28% {
+    transform: scale(0.98);
+  }
+  38%, 80% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+}
+
+/* ==========================================================================
+   5. FULL TIME (경기 종료)
+   - 피치 전체 반투명 어두운 딤드(backdrop blur) 처리
+   - 중앙 전광판 스타일 스코어보드 카드 고정 노출 (자동 소멸되지 않고 유지)
+   ========================================================================== */
+.match-overlay--dimmed {
+  background: rgba(8, 3, 14, 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: dimmedBackdropFade 0.4s ease-out forwards;
+}
+
+@keyframes dimmedBackdropFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.match-overlay-scoreboard-card {
+  width: min(290px, 86%);
+  background: linear-gradient(165deg, rgba(28, 14, 46, 0.95) 0%, rgba(14, 6, 24, 0.98) 100%);
+  border: 1.5px solid rgba(250, 204, 21, 0.45);
+  border-radius: 16px;
+  padding: 18px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 0 35px rgba(250, 204, 21, 0.25), 0 20px 45px rgba(0, 0, 0, 0.85);
+  animation: scoreboardScaleUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes scoreboardScaleUp {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.scoreboard-card__badge {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f59e0b, #eab308);
+  color: #1a0b2e;
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.5);
+  margin-bottom: 6px;
+}
+
+.scoreboard-card__title {
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.scoreboard-card__score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.scoreboard-card__team {
+  font-size: 0.82rem;
+  font-weight: 800;
+  max-width: 80px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scoreboard-card__team--home {
+  color: #93c5fd;
+}
+
+.scoreboard-card__team--away {
+  color: #fca5a5;
+}
+
+.scoreboard-card__score-box {
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(250, 204, 21, 0.4);
+}
+
+.scoreboard-card__score {
+  font-size: 1.25rem;
+  font-weight: 950;
+  color: #facc15;
+  letter-spacing: 0.08em;
+  font-family: monospace;
+}
+
+.scoreboard-card__verdict {
+  margin-top: 10px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #00ff87;
+  text-shadow: 0 0 10px rgba(0, 255, 135, 0.5);
+}
+
+.scoreboard-card__desc {
+  margin: 6px 0 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-align: center;
+  line-height: 1.3;
+}

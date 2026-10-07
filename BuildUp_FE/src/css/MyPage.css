@@ -388,70 +388,49 @@
 
 .mypage-ad-box {
   width: 100%;
-  min-height: 250px;
+  aspect-ratio: 1 / 1;
   position: relative;
-  background: linear-gradient(145deg, rgba(38, 7, 46, 0.6) 0%, rgba(18, 3, 22, 0.8) 100%);
-  border: 1px dashed rgba(220, 150, 245, 0.3);
+  background: #f1e9de;
+  border: 1px solid rgba(220, 150, 245, 0.25);
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
 .mypage-ad-ins {
   width: 100%;
-  min-height: 250px;
+  height: 100%;
   position: relative;
   z-index: 2;
 }
 
-.mypage-ad-placeholder {
+.mypage-ad-picture {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 20px;
-  box-sizing: border-box;
-  gap: 10px;
-  z-index: 1;
-}
-
-.mypage-ad-icon {
-  font-size: 30px;
-  filter: drop-shadow(0 0 12px rgba(0, 255, 135, 0.4));
-}
-
-.mypage-ad-text strong {
+  width: 100%;
+  height: 100%;
   display: block;
-  font-size: 13px;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: 0.5px;
-  margin-bottom: 4px;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #f1e9de;
 }
 
-.mypage-ad-text p {
-  margin: 0;
-  font-size: 11.5px;
-  color: #a795b5;
-  line-height: 1.4;
+.mypage-ad-fallback-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  border-radius: 14px;
+  transition: transform 0.3s ease;
 }
 
-.mypage-ad-subtag {
-  display: inline-block;
-  font-size: 10px;
-  font-weight: 700;
-  color: #00ff87;
-  background: rgba(0, 255, 135, 0.08);
-  border: 1px solid rgba(0, 255, 135, 0.25);
-  padding: 3px 10px;
-  border-radius: 999px;
-  margin-top: 2px;
+.mypage-ad-card:hover .mypage-ad-fallback-img {
+  transform: scale(1.02);
 }
 
 /* 프로필 정보 관리 패널 우측 맨 아래: 회원탈퇴 버튼 */
@@ -1986,6 +1965,24 @@
   .mypage-ad-card {
     order: 5;
   }
+
+  .mypage-ad-box {
+    min-height: unset;
+    height: auto;
+    aspect-ratio: 3 / 1;
+    max-height: 200px;
+    border-radius: 14px;
+  }
+
+  .mypage-ad-ins {
+    min-height: unset;
+    height: 100%;
+  }
+
+  .mypage-ad-fallback-img {
+    object-fit: cover;
+    object-position: center center;
+  }
 }
 
 @media (max-width: 768px) {
@@ -2640,17 +2637,6 @@
 .mypage-light-mode .mypage-ad-badge,
 [data-theme='light'] .mypage-dashboard-bg .mypage-ad-badge {
   color: #94a3b8;
-}
-
-.mypage-light-mode .mypage-ad-placeholder,
-[data-theme='light'] .mypage-dashboard-bg .mypage-ad-placeholder {
-  background: #f8fafc;
-  border: 1px dashed #cbd5e1;
-}
-
-.mypage-light-mode .mypage-ad-text,
-[data-theme='light'] .mypage-dashboard-bg .mypage-ad-text {
-  color: #64748b;
 }
 
 /* 회원 탈퇴 트리거 */
@@ -3342,31 +3328,9 @@
 /* 사이드바 애드센스 광고 카드 (라이트 모드) */
 .mypage-light-mode .mypage-ad-box,
 [data-theme='light'] .mypage-dashboard-bg .mypage-ad-box {
-  background: #f8fafc;
-  border: 1.5px dashed #cbd5e1;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   box-shadow: none;
-}
-
-.mypage-light-mode .mypage-ad-icon,
-[data-theme='light'] .mypage-dashboard-bg .mypage-ad-icon {
-  filter: none !important;
-}
-
-.mypage-light-mode .mypage-ad-text strong,
-[data-theme='light'] .mypage-dashboard-bg .mypage-ad-text strong {
-  color: #0f172a !important;
-}
-
-.mypage-light-mode .mypage-ad-text p,
-[data-theme='light'] .mypage-dashboard-bg .mypage-ad-text p {
-  color: #64748b !important;
-}
-
-.mypage-light-mode .mypage-ad-subtag,
-[data-theme='light'] .mypage-dashboard-bg .mypage-ad-subtag {
-  color: #38003c !important;
-  background: #f3e8f8 !important;
-  border-color: #d8c2df !important;
 }
 
 
@@ -3716,8 +3680,115 @@
 }
 
 .mypage-light-mode .mypage-subwidget-card.is-clickable-match-card:hover .mypage-next-match-teams,
-[data-theme='light'] .mypage-dashboard-bg .mypage-subwidget-card.is-clickable-match-card:hover .mypage-next-match-teams {
+[data-theme='light'] .mypage-dashboard-bg .mypage-next-match-teams:hover {
   border-color: #d8c2df;
   background: #f3e8f8;
 }
 
+.mypage-light-mode .mypage-dark-input:disabled,
+[data-theme='light'] .mypage-dashboard-bg .mypage-dark-input:disabled {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+
+/* ========================================================
+   비밀번호 변경 모달 (다크 모드 & 라이트 모드 완벽 지원)
+   ======================================================== */
+.pw-modal-content {
+  max-width: 440px;
+  padding: 26px 26px 24px;
+}
+
+.pw-modal-icon-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(0, 255, 135, 0.12);
+  border: 1px solid rgba(0, 255, 135, 0.32);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(0, 255, 135, 0.18);
+}
+
+.pw-modal-desc-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(235, 175, 255, 0.16);
+  border-radius: 12px;
+  padding: 13px 16px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #c5b4d1;
+  line-height: 1.55;
+  word-break: keep-all;
+}
+
+.pw-modal-desc-box strong {
+  color: #00ff87;
+  font-weight: 700;
+}
+
+.pw-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pw-modal-alert {
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pw-modal-alert.is-success {
+  background: rgba(0, 255, 135, 0.12);
+  border: 1px solid rgba(0, 255, 135, 0.38);
+  color: #00ff87;
+}
+
+.pw-modal-alert.is-error {
+  background: rgba(255, 51, 119, 0.12);
+  border: 1px solid rgba(255, 51, 119, 0.38);
+  color: #ff5c93;
+}
+
+/* 라이트 모드 오버라이드 */
+.mypage-light-mode .pw-modal-icon-badge,
+[data-theme='light'] .mypage-dashboard-bg .pw-modal-icon-badge {
+  background: #f3e8f8;
+  border: 1px solid #d8c2df;
+  box-shadow: none;
+}
+
+.mypage-light-mode .pw-modal-desc-box,
+[data-theme='light'] .mypage-dashboard-bg .pw-modal-desc-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.mypage-light-mode .pw-modal-desc-box strong,
+[data-theme='light'] .mypage-dashboard-bg .pw-modal-desc-box strong {
+  color: #38003c;
+}
+
+.mypage-light-mode .pw-modal-alert.is-success,
+[data-theme='light'] .mypage-dashboard-bg .pw-modal-alert.is-success {
+  background: #ecfdf5;
+  border: 1px solid #6ee7b7;
+  color: #047857;
+}
+
+.mypage-light-mode .pw-modal-alert.is-error,
+[data-theme='light'] .mypage-dashboard-bg .pw-modal-alert.is-error {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #e11d48;
+}

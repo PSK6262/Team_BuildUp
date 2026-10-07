@@ -128,25 +128,12 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
         </div>
 
         {/* 🧪 승부예측 테스트용 더미 경기 (999901~999910) 컨트롤 바 */}
-        <div
-          style={{
-            background: '#f8fafc',
-            border: '1px solid #cbd5e1',
-            borderRadius: 10,
-            padding: '12px 16px',
-            marginBottom: 16,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 12,
-          }}
-        >
+        <div className="admin-dummy-bar">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <span style={{ fontWeight: 700, fontSize: 13, color: '#334155' }}>
+            <span className="admin-dummy-bar__title">
               🧪 승부예측 테스트용 더미 경기 (10건)
             </span>
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#475569' }}>
+            <label className="admin-dummy-bar__label">
               <span>현재시간 +</span>
               <input
                 type="number"
@@ -195,19 +182,8 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
 
         {/* 스코어-이벤트 불일치 안내 배너 */}
         {mismatchCount > 0 && (
-          <div style={{
-            background: '#fff1f2',
-            border: '1px solid #fecdd3',
-            borderRadius: 8,
-            padding: '12px 18px',
-            marginBottom: 16,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 10,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#be123c', fontWeight: 600, fontSize: 13 }}>
+          <div className="admin-mismatch-banner">
+            <div className="admin-mismatch-banner__text">
               <span style={{ fontSize: 18 }}>⚠️</span>
               <span>
                 현재 공식 스코어와 골 타임라인 이벤트가 일치하지 않는 경기가 <strong>{mismatchCount}건</strong> 있습니다.
@@ -251,11 +227,12 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                 <tr><td colSpan="6" style={{ textAlign: 'center', padding: 30, color: '#94a3b8' }}>해당 조건의 경기가 없습니다.</td></tr>
               ) : (
                 matches.slice(0, visibleMatches).map((m) => {
-                  const isMismatch = m.status === 'FINISHED' && m.homeScore !== null && m.awayScore !== null &&
+                  const isDummyMatch = Number(m.matchId) >= 999901 && Number(m.matchId) <= 999910;
+                  const isMismatch = !isDummyMatch && m.status === 'FINISHED' && m.homeScore !== null && m.awayScore !== null &&
                     ((m.homeScore !== (m.homeGoalEvents ?? 0)) || (m.awayScore !== (m.awayGoalEvents ?? 0)));
 
                   return (
-                    <tr key={m.matchId} style={isMismatch ? { background: '#fff5f5' } : {}}>
+                    <tr key={m.matchId} className={isMismatch ? 'admin-row-mismatch' : ''}>
                       <td data-label="경기일시" style={{ whiteSpace: 'nowrap' }}>{m.matchDate}</td>
                       <td data-label="매치업">
                         <div className="match-team-cell">
@@ -297,7 +274,9 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                         </span>
                       </td>
                       <td data-label="공지사항">
-                        {m.notice ? (
+                        {isDummyMatch ? (
+                          <span className="match-notice-text" title="테스트경기">테스트경기</span>
+                        ) : m.notice ? (
                           <span className="match-notice-text" title={m.notice}>📢 {m.notice}</span>
                         ) : (
                           <span style={{ color: '#94a3b8', fontSize: 13 }}>공지 없음</span>

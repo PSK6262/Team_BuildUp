@@ -39,13 +39,16 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
     }
   }, [initialFilter, onClearInitialFilter]);
 
-  // 불일치 경기 카운트 갱신 (배너용)
+  // 불일치 경기 카운트 갱신 (배너용 - 더미 경기 999901~999910 제외)
   const refreshMismatchCount = useCallback(async () => {
     try {
-      const res = await adminApi.getAdminSummary();
+      const res = await adminApi.getAdminMatches({ status: 'MISMATCH', sort: 'ASC' });
       const json = await res.json();
-      if (json.code === 'SUC_001' && json.data) {
-        setMismatchCount(Number(json.data.MISMATCH_MATCHES || 0));
+      if (json.code === 'SUC_001' && Array.isArray(json.data)) {
+        const realMismatches = json.data.filter(
+          (m) => !(Number(m.matchId) >= 999901 && Number(m.matchId) <= 999910)
+        );
+        setMismatchCount(realMismatches.length);
       }
     } catch {
       // ignore
@@ -84,7 +87,11 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
       }
 
       if (json.code === 'SUC_001' && json.data) {
-        setMatches(json.data);
+        const list = Array.isArray(json.data) ? json.data : [];
+        const filtered = statusToUse === 'MISMATCH'
+          ? list.filter((m) => !(Number(m.matchId) >= 999901 && Number(m.matchId) <= 999910))
+          : list;
+        setMatches(filtered);
       }
     } catch (e) {
       console.warn('경기 목록 조회 실패', e);

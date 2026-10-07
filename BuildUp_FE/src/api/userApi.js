@@ -159,7 +159,8 @@ export async function changePassword(currentPassword, newPassword) {
     body: JSON.stringify({ currentPassword, newPassword }),
   });
   const json = await res.json();
-  if (!res.ok || json.code !== 'SUCCESS') {
+  const isSuccess = res.ok && (json.status === 'SUCCESS' || json.code === 'SUC_001' || json.code === 'SUCCESS');
+  if (!isSuccess) {
     throw new Error(json.message || '비밀번호 변경에 실패했습니다.');
   }
   return json;

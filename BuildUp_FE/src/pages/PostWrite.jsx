@@ -2,9 +2,26 @@ import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchTeams, fetchCategories } from '../store/teamSlice.js'
 import CommunityNavigation from './CommunityNavigation.jsx'
+import { notifyCommunity } from '../components/CommunityToast.jsx'
 import { getAppSearchParams } from '../utils/searchParams.js'
 import { navigate } from '../utils/navigation.js'
 import '../css/Community.css'
+
+function ImagePreview({ file, onRemove, disabled }) {
+  const [url, setUrl] = useState('')
+  const [failed, setFailed] = useState(false)
+  useEffect(() => {
+    const preview = URL.createObjectURL(file)
+    setUrl(preview)
+    setFailed(false)
+    return () => URL.revokeObjectURL(preview)
+  }, [file])
+  return <li>
+    {failed ? <span className="community__preview-fallback">미리보기 미지원<br />{file.name}</span> : url && <img src={url} alt={file.name} onError={() => setFailed(true)} />}
+    <button type="button" aria-label={`${file.name} 첨부 제거`} onClick={onRemove} disabled={disabled}>×</button>
+    <span className="community__preview-name" title={file.name}>{file.name}</span>
+  </li>
+}
 
 function WriteSelect({ label, value, options, onChange, disabled, searchable = false }) {
   const [open, setOpen] = useState(false)
@@ -52,14 +69,57 @@ function WriteSelect({ label, value, options, onChange, disabled, searchable = f
   </div>
 }
 
-const MAX_ATTACHMENT_COUNT = 5
+const MAX_ATTACHMENT_COUNT = 3
 const POST_TITLE_MAX_LENGTH = 50
 const POST_CONTENT_MAX_LENGTH = 1000
-const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024
-const MAX_ATTACHMENT_TOTAL_SIZE = 20 * 1024 * 1024
+const MAX_IMAGE_ATTACHMENT_SIZE = 1 * 1024 * 1024
+const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024
+const MAX_ATTACHMENT_TOTAL_SIZE = 10 * 1024 * 1024
 const IMAGE_ATTACHMENT_PATTERN = /\.(jpe?g|png|gif|webp|heic|heif)$/i
 const FILE_ATTACHMENT_PATTERN = /\.(pdf|txt|docx|xlsx|zip)$/i
 const SHOWCASE_DRAFT_KEY = 'plugin:community:showcase-draft'
+
+async function compressImageUnderLimit(file, maxBytes = MAX_IMAGE_ATTACHMENT_SIZE, forcePng = false) {
+  if (file.size > 0 && file.size < maxBytes) return file
+  return new Promise((resolve) => {
+    const objectUrl = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = async () => {
+      URL.revokeObjectURL(objectUrl)
+      const maxDims = [1600, 1280, 1024, 800, 640, 480]
+      const qualities = forcePng ? [1] : [0.82, 0.68, 0.54, 0.4]
+      const origW = img.naturalWidth || img.width || 1280
+      const origH = img.naturalHeight || img.height || 720
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+
+      for (const maxDim of maxDims) {
+        const scale = Math.min(1, maxDim / Math.max(origW, origH))
+        canvas.width = Math.max(1, Math.round(origW * scale))
+        canvas.height = Math.max(1, Math.round(origH * scale))
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+        for (const q of qualities) {
+          const mime = forcePng ? 'image/png' : 'image/jpeg'
+          const blob = await new Promise((r) => canvas.toBlob(r, mime, q))
+          if (blob && blob.size > 0 && blob.size < maxBytes) {
+            const baseName = (file.name || 'image').replace(/\.[^.]+$/, '')
+            const ext = forcePng ? '.png' : '.jpg'
+            resolve(new File([blob], `${baseName}${ext}`, { type: mime, lastModified: Date.now() }))
+            return
+          }
+        }
+      }
+      resolve(file)
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      resolve(file)
+    }
+    img.src = objectUrl
+  })
+}
 const titleLength = (value) => Array.from(value).length
 const limitTitle = (value) => Array.from(value).slice(0, POST_TITLE_MAX_LENGTH).join('')
 const contentLength = (value) => Array.from(value).length
@@ -102,6 +162,25 @@ export default function PostWrite() {
   const [fileAttachments, setFileAttachments] = useState([])
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
+
+  // 글작성 페이지 사이드바 애드센스 Ref 및 푸시 처리
+  const writeAdRef = useRef(null)
+  const isWriteAdPushed = useRef(false)
+
+  useEffect(() => {
+    if (isWriteAdPushed.current) return
+    try {
+      if (typeof window !== 'undefined' && writeAdRef.current) {
+        ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+        isWriteAdPushed.current = true
+      }
+    } catch (e) {
+      console.debug('[PostWrite] AdSense init:', e)
+    }
+  }, [])
+  const titleInputRef = useRef(null)
+  const contentInputRef = useRef(null)
   const error = submitError || categoriesError || teamsError
   const [customTeam, setCustomTeam] = useState(null)
   const submitRequestRef = useRef(false)
@@ -142,22 +221,20 @@ export default function PostWrite() {
   }, [board, isLoggedIn, requestedCustomTeamId])
 
   // 이미지와 일반 첨부파일을 각각 검사하여 선택 목록에 저장합니다.
-  const selectAttachments = (event, type) => {
-    const selected = Array.from(event.target.files || [])
+  const selectAttachments = async (event, type) => {
+    const incoming = Array.from(event.target.files || [])
     event.target.value = ''
+    if (!incoming.length) return
+    const existing = type === 'image' ? imageAttachments : fileAttachments
+    const selected = [...existing]
+    for (const file of incoming) {
+      if (!selected.some((item) => item.name === file.name && item.size === file.size && item.lastModified === file.lastModified)) selected.push(file)
+    }
     const otherFiles = type === 'image' ? fileAttachments : imageAttachments
     const pattern = type === 'image' ? IMAGE_ATTACHMENT_PATTERN : FILE_ATTACHMENT_PATTERN
     const automaticImageCount = board === 'showcase' && showcaseDraft?.imageDataUrl ? 1 : 0
     if (selected.length + otherFiles.length + automaticImageCount > MAX_ATTACHMENT_COUNT) {
       setError(`스쿼드 이미지를 포함해 첨부파일은 최대 ${MAX_ATTACHMENT_COUNT}개까지 선택할 수 있습니다.`)
-      return
-    }
-    if (selected.some((file) => file.size <= 0 || file.size > 30 * 1024 * 1024)) {
-      setError('파일 하나의 크기는 30MB 이하여야 합니다.')
-      return
-    }
-    if ([...selected, ...otherFiles].reduce((sum, file) => sum + file.size, 0) > 50 * 1024 * 1024) {
-      setError('첨부파일 전체 크기는 50MB 이하여야 합니다.')
       return
     }
     const isImageFile = (file) => (file.type && file.type.startsWith('image/')) || pattern.test(file.name)
@@ -169,23 +246,48 @@ export default function PostWrite() {
       setError('PDF, TXT, DOCX, XLSX, ZIP 파일만 첨부할 수 있습니다.')
       return
     }
+    if (type === 'file' && selected.some((file) => file.size <= 0 || file.size > MAX_ATTACHMENT_SIZE)) {
+      setError('일반 첨부파일 하나의 크기는 5MB 이하여야 합니다.')
+      return
+    }
+
+    const processed = type === 'image'
+      ? await Promise.all(selected.map((file) => compressImageUnderLimit(file, MAX_IMAGE_ATTACHMENT_SIZE, false)))
+      : selected
+
+    if (type === 'image' && processed.some((file) => file.size <= 0 || file.size >= MAX_IMAGE_ATTACHMENT_SIZE)) {
+      setError('이미지 파일은 1MB 미만이어야 합니다.')
+      return
+    }
+    if ([...processed, ...otherFiles].reduce((sum, file) => sum + file.size, 0) > MAX_ATTACHMENT_TOTAL_SIZE) {
+      setError('첨부파일 전체 크기는 10MB 이하여야 합니다.')
+      return
+    }
     setError('')
-    if (type === 'image') setImageAttachments(selected)
-    else setFileAttachments(selected)
+    if (type === 'image') setImageAttachments(processed)
+    else setFileAttachments(processed)
   }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     if (submitRequestRef.current) return
     setError('')
+    const invalidFields = {}
+    if (!title.trim()) invalidFields.title = '제목을 입력해주세요.'
+    if (!content.trim()) invalidFields.content = '내용을 입력해주세요.'
+    setFieldErrors(invalidFields)
+    if (Object.keys(invalidFields).length) {
+      const input = invalidFields.title ? titleInputRef.current : contentInputRef.current
+      input?.focus({ preventScroll: true })
+      input?.scrollIntoView({ block: 'center', behavior: 'auto' })
+      return
+    }
 
     if (!categoryId) return setError('카테고리를 선택해주세요.')
     if (board === 'team' && !teamId) return setError('팀별 게시글의 구단을 선택해주세요.')
     if (board === 'showcase' && !customTeam?.customTeamId) return setError('먼저 나만의 팀에서 스쿼드를 저장해주세요.')
     if (board === 'showcase' && !showcaseDraft?.imageDataUrl) return setError('공유할 스쿼드 이미지를 확인하지 못했습니다. 나만의 팀에서 다시 공유해주세요.')
-    if (!title.trim()) return setError('제목을 입력해주세요.')
     if (titleLength(title.trim()) > POST_TITLE_MAX_LENGTH) return setError(`제목은 ${POST_TITLE_MAX_LENGTH}자까지 입력할 수 있습니다.`)
-    if (!content.trim()) return setError('내용을 입력해주세요.')
     if (contentLength(content.trim()) > POST_CONTENT_MAX_LENGTH) return setError(`내용은 ${POST_CONTENT_MAX_LENGTH}자까지 입력할 수 있습니다.`)
 
     submitRequestRef.current = true
@@ -223,8 +325,10 @@ export default function PostWrite() {
           const imageResponse = await fetch(showcaseDraft.imageDataUrl)
           if (!imageResponse.ok) throw new Error('스쿼드 이미지를 읽지 못했습니다.')
           const squadImageBlob = await imageResponse.blob()
+          const rawSquadFile = new File([squadImageBlob], `plugin-squad-${createdPostId}.png`, { type: 'image/png' })
+          const compressedSquadFile = await compressImageUnderLimit(rawSquadFile, MAX_IMAGE_ATTACHMENT_SIZE, true)
           const showcaseFormData = new FormData()
-          showcaseFormData.append('files', new File([squadImageBlob], `plugin-squad-${createdPostId}.png`, { type: 'image/png' }))
+          showcaseFormData.append('files', compressedSquadFile)
           showcaseFormData.append('showcaseImage', 'true')
           const showcaseResponse = await fetch(`/api/communities/${createdPostId}/attachments`, {
             method: 'POST',
@@ -282,6 +386,7 @@ export default function PostWrite() {
 
       const query = new URLSearchParams({ from: '/plug/community' })
       if (attachmentFailed) query.set('attachmentError', '1')
+      notifyCommunity(attachmentFailed ? '게시글은 등록됐지만 일부 첨부파일을 올리지 못했어요.' : '게시글을 등록했어요.')
       navigate(`/plug/community/posts/${createdPostId}?${query.toString()}`)
     } catch (exception) {
       setError(exception.message || '게시글 등록에 실패했습니다.')
@@ -341,12 +446,14 @@ export default function PostWrite() {
         options={[{ value: '', label: '구단을 선택해주세요.' }, ...[...teams].sort((a, b) => Number(isFavoriteTeam(b)) - Number(isFavoriteTeam(a))).map((team) => ({ value: team.teamId, label: team.teamNameKor || team.teamName, favorite: isFavoriteTeam(team) }))]} />}
 
       <label>제목
-        <input type="text" value={title} onChange={(event) => setTitle(limitTitle(event.target.value))} disabled={loading || submitting} />
+        <input ref={titleInputRef} type="text" value={title} aria-invalid={Boolean(fieldErrors.title)} aria-describedby={fieldErrors.title ? 'post-title-error' : undefined} onChange={(event) => { setTitle(limitTitle(event.target.value)); if (event.target.value.trim()) setFieldErrors((current) => ({ ...current, title: '' })) }} disabled={loading || submitting} />
+        {fieldErrors.title && <span id="post-title-error" className="community__field-error" role="alert">{fieldErrors.title}</span>}
         <small className="community__character-count">{titleLength(title)} / {POST_TITLE_MAX_LENGTH}</small>
       </label>
 
       <label>내용
-        <textarea rows="14" value={content} onChange={(event) => setContent(limitContent(event.target.value))} disabled={loading || submitting} />
+        <textarea ref={contentInputRef} rows="14" value={content} aria-invalid={Boolean(fieldErrors.content)} aria-describedby={fieldErrors.content ? 'post-content-error' : undefined} onChange={(event) => { setContent(limitContent(event.target.value)); if (event.target.value.trim()) setFieldErrors((current) => ({ ...current, content: '' })) }} disabled={loading || submitting} />
+        {fieldErrors.content && <span id="post-content-error" className="community__field-error" role="alert">{fieldErrors.content}</span>}
         <small className="community__character-count">{contentLength(content)} / {POST_CONTENT_MAX_LENGTH}</small>
       </label>
 
@@ -362,13 +469,10 @@ export default function PostWrite() {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="8" cy="8" r="1.5" /><path d="m3 17 6-6 4 4 3-3 5 5" /></svg>
           <span>이미지 첨부</span><small>{imageAttachments.length ? `${imageAttachments.length}개 선택됨` : 'JPG · PNG · GIF · WEBP'}</small>
         </span>
-        <small>본문 아래 이미지 영역에 미리보기로 표시됩니다.</small>
+        <small>본문 아래 이미지 영역에 미리보기로 표시됩니다. (1MB 미만, 초과 시 자동 압축)</small>
       </label>
-      {imageAttachments.length > 0 && <ul className="community__selected-files">
-        {imageAttachments.map((file, index) => <li key={`${file.name}-${file.lastModified}-${index}`}>
-          <span>{file.name} ({(file.size / 1024).toFixed(1)}KB)</span>
-          <button type="button" onClick={() => setImageAttachments((current) => current.filter((_, itemIndex) => itemIndex !== index))} disabled={submitting}>제거</button>
-        </li>)}
+      {imageAttachments.length > 0 && <ul className="community__image-previews" aria-label="선택한 이미지 미리보기">
+        {imageAttachments.map((file, index) => <ImagePreview key={`${file.name}-${file.lastModified}-${index}`} file={file} onRemove={() => setImageAttachments((current) => current.filter((_, itemIndex) => itemIndex !== index))} disabled={submitting} />)}
       </ul>}
 
       <label className="community__file-picker">일반 첨부파일
@@ -383,7 +487,7 @@ export default function PostWrite() {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m8 13 7-7a3 3 0 0 1 4 4l-9 9a5 5 0 0 1-7-7l9-9M6 15l8-8" /></svg>
           <span>파일 첨부</span><small>{fileAttachments.length ? `${fileAttachments.length}개 선택됨` : 'PDF · TXT · DOCX · XLSX · ZIP'}</small>
         </span>
-        <small>다운로드 목록에 표시됩니다. 이미지와 합쳐 최대 5개, 파일당 10MB, 전체 20MB까지 등록할 수 있습니다.</small>
+        <small>다운로드 목록에 표시됩니다. 이미지와 합쳐 최대 3개, 일반 파일당 5MB 이하(이미지 1MB 미만), 전체 10MB 이하까지 등록할 수 있습니다.</small>
       </label>
       {fileAttachments.length > 0 && <ul className="community__selected-files">
         {fileAttachments.map((file, index) => <li key={`${file.name}-${file.lastModified}-${index}`}>
@@ -401,11 +505,19 @@ export default function PostWrite() {
     </form>
     </div>
     <aside className="community__write-ad" aria-label="광고 영역">
-      <span className="community__ad-label">광고 · ADVERTISEMENT</span>
-      <div className="community__vertical-ad">
-        <picture>
+      <div className="community__vertical-ad" style={{ position: 'relative', padding: 0, overflow: 'hidden' }}>
+        <ins
+          ref={writeAdRef}
+          className="adsbygoogle"
+          style={{ display: 'block', width: '100%', minHeight: '300px', position: 'relative', zIndex: 2 }}
+          data-ad-client="ca-pub-6961977480009285"
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        />
+        {/* 애드센스 로드 전 / 로컬 개발 환경용 폴백 제때약 배너 */}
+        <picture style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', zIndex: 1 }}>
           <source media="(max-width: 1000px)" srcSet={`${import.meta.env.BASE_URL}je-mobile.png`} width="2172" height="724" />
-          <img src={`${import.meta.env.BASE_URL}je.png`} width="300" height="600" alt="제때약 — 내 약을 제때, 더 안전하게." />
+          <img src={`${import.meta.env.BASE_URL}je.png`} width="300" height="600" alt="제때약 — 내 약을 제때, 더 안전하게." style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         </picture>
       </div>
     </aside>

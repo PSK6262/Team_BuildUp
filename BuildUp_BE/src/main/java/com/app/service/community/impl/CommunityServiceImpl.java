@@ -36,9 +36,10 @@ public class CommunityServiceImpl implements CommunityService {
     private static final int POST_TITLE_MAX_LENGTH = 50;
     private static final int POST_CONTENT_MAX_LENGTH = 1000;
     private static final int COMMENT_MAX_LENGTH = 100;
-    private static final int POST_ATTACHMENT_MAX_COUNT = 5;
-    private static final long POST_ATTACHMENT_MAX_SIZE = 10L * 1024 * 1024;
-    private static final long POST_ATTACHMENT_MAX_TOTAL_SIZE = 20L * 1024 * 1024;
+    private static final int POST_ATTACHMENT_MAX_COUNT = 3;
+    private static final long POST_IMAGE_MAX_SIZE = 1L * 1024 * 1024;
+    private static final long POST_ATTACHMENT_MAX_SIZE = 5L * 1024 * 1024;
+    private static final long POST_ATTACHMENT_MAX_TOTAL_SIZE = 10L * 1024 * 1024;
     private static final String SHOWCASE_STORED_NAME_PREFIX = "showcase-";
     private static final String LEGACY_SHOWCASE_ORIGINAL_NAME_PREFIX = "plugin-squad-";
     private static final Map<String, Set<String>> ALLOWED_ATTACHMENT_TYPES = Map.ofEntries(
@@ -405,6 +406,10 @@ public class CommunityServiceImpl implements CommunityService {
             totalSize += file.getSize();
             String originalName = safeOriginalName(file.getOriginalFilename());
             String extension = fileExtension(originalName);
+            boolean isImageExt = Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic", ".heif").contains(extension);
+            if (isImageExt && file.getSize() >= POST_IMAGE_MAX_SIZE) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image attachment must be under 1MB");
+            }
             if (showcaseImage && (!".png".equals(extension)
                     || !"image/png".equals(normalizeContentType(file.getContentType())))) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid attachment");

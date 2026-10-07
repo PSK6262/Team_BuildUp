@@ -722,6 +722,7 @@ export default function Match() {
               const outcome = getMatchOutcome(match)
               const isHomeWinner = isFinished && outcome === 'HOME_WIN'
               const isAwayWinner = isFinished && outcome === 'AWAY_WIN'
+              const isDraw = isFinished && outcome === 'DRAW'
               const isFocusedMatch = Boolean(focusedMatchId && Number(match.matchId) === focusedMatchId)
 
               return (
@@ -741,18 +742,14 @@ export default function Match() {
                   } : undefined}
                   className={`match-card ${isFocusedMatch ? 'match-card--focused' : ''}`}
                 >
-                  {/* 일시 및 라운드 태그 */}
-                  <div className="match-card__datetime">
-                    {match.computedRound && (
-                      <span className="match-card__round-tag">{match.computedRound}R</span>
-                    )}
-                    <span className="match-card__date">{dateStr}</span>
-                    <span className="match-card__time">
-                      {timeStr ? `${timeStr} (KST)` : '시간 미정'}
+                  {/* 홈 경기장 안내 (맨 왼쪽) */}
+                  <div className="match-card__ground">
+                    <span className="match-ground-pill">
+                      📍 {match.displayHomeGround || match.homeGroundKor || homeTeam.homeGroundKor || getStadiumNameKor(match.homeGround || homeTeam.homeGround, match.homeTeamId)}
                     </span>
                   </div>
 
-                  {/* 대결 팀 (홈 vs 원정): 한국어명(영문명) 및 엠블럼 */}
+                  {/* 대결 팀 (홈 vs 원정): 한국어명(영문명) 및 엠블럼 (중앙) */}
                   <div className="match-card__versus">
                     {/* 홈팀 */}
                     <div
@@ -765,13 +762,16 @@ export default function Match() {
                       }`}
                     >
                       <div className="match-team__info">
-                        <span className="match-team__name-kor">
-                          {renderTeamRankBadge(match.homeTeamId)}
-                          <span className="match-team__name-text" title={homeTeam.teamNameKor}>{homeTeam.teamNameKor}</span>
-                          {isHomeWinner && <span className="match-win-badge">승</span>}
-                          {isAwayWinner && <span className="match-win-badge match-loss-badge">패</span>}
+                        <span className="match-team__name-kor-text" title={homeTeam.teamNameKor}>
+                          {homeTeam.teamNameKor}
                         </span>
                         <span className="match-team__name-eng">({homeTeam.teamName})</span>
+                      </div>
+                      <div className="match-team__badges">
+                        {isHomeWinner && <span className="match-win-badge">승</span>}
+                        {isAwayWinner && <span className="match-win-badge match-loss-badge">패</span>}
+                        {isDraw && <span className="match-win-badge match-draw-badge">무</span>}
+                        {renderTeamRankBadge(match.homeTeamId)}
                       </div>
                       {homeTeam.emblemUrl && (
                         <div className="match-team__emblem-wrap">
@@ -808,22 +808,29 @@ export default function Match() {
                           />
                         </div>
                       )}
+                      <div className="match-team__badges">
+                        {isAwayWinner && <span className="match-win-badge">승</span>}
+                        {isHomeWinner && <span className="match-win-badge match-loss-badge">패</span>}
+                        {isDraw && <span className="match-win-badge match-draw-badge">무</span>}
+                        {renderTeamRankBadge(match.awayTeamId)}
+                      </div>
                       <div className="match-team__info">
-                        <span className="match-team__name-kor">
-                          {renderTeamRankBadge(match.awayTeamId)}
-                          <span className="match-team__name-text" title={awayTeam.teamNameKor}>{awayTeam.teamNameKor}</span>
-                          {isAwayWinner && <span className="match-win-badge">승</span>}
-                          {isHomeWinner && <span className="match-win-badge match-loss-badge">패</span>}
+                        <span className="match-team__name-kor-text" title={awayTeam.teamNameKor}>
+                          {awayTeam.teamNameKor}
                         </span>
                         <span className="match-team__name-eng">({awayTeam.teamName})</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* 홈 경기장 안내 */}
-                  <div className="match-card__ground">
-                    <span className="match-ground-pill">
-                      📍 {match.displayHomeGround || match.homeGroundKor || homeTeam.homeGroundKor || getStadiumNameKor(match.homeGround || homeTeam.homeGround, match.homeTeamId)}
+                  {/* 일시 및 라운드 태그 (맨 오른쪽) */}
+                  <div className="match-card__datetime">
+                    {match.computedRound && (
+                      <span className="match-card__round-tag">{match.computedRound}R</span>
+                    )}
+                    <span className="match-card__date">{dateStr}</span>
+                    <span className="match-card__time">
+                      {timeStr ? `${timeStr} (KST)` : '시간 미정'}
                     </span>
                   </div>
                 </article>
