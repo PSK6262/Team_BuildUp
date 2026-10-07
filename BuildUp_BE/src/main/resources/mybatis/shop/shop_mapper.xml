@@ -251,4 +251,23 @@
 		WHERE USER_ID = #{userId}
 	</update>
 
+	<!-- 16. 포인트 변동 이력(POINT_HISTORY) 등록 (마이페이지 및 관리자 Audit Log 동기화) -->
+	<insert id="insertPointHistory" parameterType="PointHistory">
+		INSERT INTO POINT_HISTORY (
+			USER_ID,
+			PREDICTION_ID,
+			AMOUNT,
+			BALANCE_AFTER,
+			DESCRIPTION,
+			CREATED_AT
+		) VALUES (
+			#{userId},
+			NULL,
+			#{amount},
+			#{balanceAfter},
+			#{description},
+			SYSTIMESTAMP
+		)
+	</insert>
+
 </mapper>

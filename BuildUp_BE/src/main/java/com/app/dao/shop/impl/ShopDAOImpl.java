@@ -12,6 +12,7 @@ import com.app.dto.shop.ShopItem;
 import com.app.dto.shop.UserInventory;
 import com.app.dto.shop.ItemOrder;
 import com.app.dto.shop.PointTransaction;
+import com.app.dto.prediction.PointHistory;
 
 @Repository
 public class ShopDAOImpl implements ShopDAO {
@@ -102,6 +103,11 @@ public class ShopDAOImpl implements ShopDAO {
     @Override
     public Long selectUserPoint(Long userId) {
         return sqlSession.selectOne("ShopMapper.selectUserPoint", userId);
+    }
+
+    @Override
+    public int insertPointHistory(PointHistory pointHistory) {
+        return sqlSession.insert("ShopMapper.insertPointHistory", pointHistory);
     }
 
     @Override

@@ -14,6 +14,7 @@ import com.app.dao.user.UserDAO;
 import com.app.dao.user.UserMailDAO;
 import com.app.dto.community.Comments;
 import com.app.dto.community.Posts;
+import com.app.dto.prediction.PointHistory;
 import com.app.dto.team.Teams;
 import com.app.dto.user.Users;
 import com.app.service.user.UserService;
@@ -102,6 +103,14 @@ public class UserServiceImpl implements UserService {
 		// 승부예측 전적 초기화 레코드 생성
 		if (user.getUserId() != null) {
 			userDAO.insertUserPredictsInitial(user.getUserId());
+
+			// 신규 회원가입 축하 포인트(100P) 이력 기록 (마이페이지 및 관리자 Audit Log 동기화)
+			PointHistory history = new PointHistory();
+			history.setUserId(user.getUserId());
+			history.setAmount(100L);
+			history.setBalanceAfter(100L);
+			history.setDescription("[회원가입] 신규 회원가입 축하 포인트 지급 (+100 P)");
+			userDAO.insertPointHistory(history);
 		}
 
 		log.info("[회원가입 완료] userId={}, loginId={}, nickname={}", user.getUserId(), user.getLoginId(), user.getNickname());

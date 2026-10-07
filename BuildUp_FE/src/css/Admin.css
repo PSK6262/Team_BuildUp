@@ -1258,6 +1258,18 @@
   border: 1px solid #e9d5ff;
 }
 
+.badge--blue {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.admin-light-mode .badge--blue {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
 .badge--gray {
   background: rgba(255, 255, 255, 0.08);
   color: #a795b5;

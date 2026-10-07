@@ -20,6 +20,7 @@ import com.app.dto.shop.UserInventory;
 import com.app.dto.shop.ItemOrder;
 import com.app.dto.shop.PointTransaction;
 import com.app.dto.shop.ShopPurchaseResponse;
+import com.app.dto.prediction.PointHistory;
 
 @Service
 public class ShopServiceImpl implements ShopService {
@@ -125,7 +126,15 @@ public class ShopServiceImpl implements ShopService {
                 .build();
         shopDAO.insertTransaction(tx);
 
-        // 8. USER_INVENTORY 회원 보관함에 추가
+        // 8. POINT_HISTORY 포인트 변동 이력(마이페이지 및 관리자 Audit Log) 동기화 저장
+        PointHistory pointHistory = new PointHistory();
+        pointHistory.setUserId(userId);
+        pointHistory.setAmount((long) -price);
+        pointHistory.setBalanceAfter(remainingPoint);
+        pointHistory.setDescription("[포인트샵] " + item.getItemName() + " 아이템 구매");
+        shopDAO.insertPointHistory(pointHistory);
+
+        // 9. USER_INVENTORY 회원 보관함에 추가
         UserInventory inventory = UserInventory.builder()
                 .userId(userId)
                 .itemId(itemId)
