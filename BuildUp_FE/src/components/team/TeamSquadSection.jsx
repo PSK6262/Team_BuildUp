@@ -213,7 +213,7 @@ function PositionSquadSlider({ pos, config, players, onPlayerClick }) {
   );
 }
 
-export default function TeamSquadSection({ teamId }) {
+export default function TeamSquadSection({ teamId, teamName }) {
   const numericId = parseInt(teamId, 10);
   const [players, setPlayers] = useState([]);
   const [staffs, setStaffs] = useState([]);
@@ -410,6 +410,7 @@ export default function TeamSquadSection({ teamId }) {
           stats={playerStats}
           loading={statsLoading}
           onClose={handleCloseModal}
+          teamName={teamName}
         />
       )}
     </div>

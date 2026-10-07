@@ -31,7 +31,7 @@ const DETAIL_POS_DESC = {
   GK: 'GK-골키퍼',
 };
 
-export default function PlayerStatsModal({ player, stats, loading, onClose }) {
+export default function PlayerStatsModal({ player, stats, loading, onClose, teamName }) {
   const [photo, setPhoto] = useState({ status: 'loading', url: '' });
   const onCloseRef = useRef(onClose);
 
@@ -62,9 +62,11 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
     };
   }, [isOpen]);
 
-  // 랭킹 페이지와 동일하게 TheSportsDB API를 통해 선수 사진 조회 및 캐싱
+  // 구단명 및 국적 정보를 함께 전달하여 TheSportsDB API 동명이인 오매칭 방어
   const playerId = player?.playerId || player?.id;
   const searchName = player?.playerName || player?.name || stats?.playerName;
+  const playerTeamName = teamName || player?.teamName || stats?.teamName;
+  const playerNationality = player?.nationality || stats?.nationality;
 
   useEffect(() => {
     if (!player || !searchName) {
@@ -78,7 +80,10 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
     async function loadPhoto() {
       setPhoto({ status: 'loading', url: '' });
       try {
-        const url = await getPlayerPhoto(playerId, searchName, controller.signal);
+        const url = await getPlayerPhoto(playerId, searchName, controller.signal, {
+          teamName: playerTeamName,
+          nationality: playerNationality,
+        });
         if (active) {
           setPhoto({ status: url ? 'ready' : 'empty', url });
         }
@@ -95,7 +100,7 @@ export default function PlayerStatsModal({ player, stats, loading, onClose }) {
       active = false;
       controller.abort();
     };
-  }, [player, playerId, searchName]);
+  }, [player, playerId, searchName, playerTeamName, playerNationality]);
 
   if (!player) return null;
 
