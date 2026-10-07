@@ -143,7 +143,7 @@
 			AWAY_SCORE = #{awayScore, jdbcType=NUMERIC},
 			STATUS = #{status},
 			ENDED_AT = CASE
-				WHEN #{status} = 'FINISHED' AND ENDED_AT IS NULL THEN SYSTIMESTAMP
+				WHEN #{status} = 'FINISHED' AND ENDED_AT IS NULL THEN LOCALTIMESTAMP
 				ELSE ENDED_AT
 			END
 		WHERE MATCH_ID = #{matchId}
@@ -291,7 +291,7 @@
 	<update id="deletePost" parameterType="long">
 		UPDATE POSTS
 		SET IS_DELETED = 'Y',
-			UPDATED_AT = SYSTIMESTAMP
+			UPDATED_AT = LOCALTIMESTAMP
 		WHERE POST_ID = #{postId}
 		AND IS_DELETED = 'N'
 	</update>
@@ -410,7 +410,7 @@
 			#{amount},
 			#{balanceAfter},
 			#{description},
-			SYSTIMESTAMP
+			LOCALTIMESTAMP
 		)
 	</insert>
 
@@ -513,7 +513,7 @@
 			WHERE p.MATCH_ID BETWEEN 999901 AND 999910
 			  AND ph.USER_ID = u.USER_ID
 		), 0)),
-		    u.UPDATED_AT = SYSTIMESTAMP
+		    u.UPDATED_AT = LOCALTIMESTAMP
 		WHERE EXISTS (
 			SELECT 1
 			FROM POINT_HISTORY ph
@@ -540,7 +540,7 @@
 				  AND p.USER_ID = up.USER_ID
 				  AND p.IS_SUCCESS = 'Y'
 			), 0)),
-			up.UPDATED_AT = SYSTIMESTAMP
+			up.UPDATED_AT = LOCALTIMESTAMP
 		WHERE EXISTS (
 			SELECT 1
 			FROM PREDICTIONS p

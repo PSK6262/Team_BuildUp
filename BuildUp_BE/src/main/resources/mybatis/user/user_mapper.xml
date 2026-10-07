@@ -23,7 +23,7 @@
 			#{favoriteTeamId, jdbcType=NUMERIC},
 			NVL(#{roleCode, jdbcType=NUMERIC}, 1),
 			NVL(#{point, jdbcType=NUMERIC}, 100),
-			SYSTIMESTAMP
+			LOCALTIMESTAMP
 		)
 	</insert>
 
@@ -38,7 +38,7 @@
 			#{userId},
 			0,
 			0,
-			SYSTIMESTAMP
+			LOCALTIMESTAMP
 		)
 	</insert>
 
@@ -116,7 +116,7 @@
 			NICKNAME = #{nickname},
 			EMAIL = NVL(#{email, jdbcType=VARCHAR}, EMAIL),
 			FAVORITE_TEAM_ID = #{favoriteTeamId, jdbcType=NUMERIC},
-			UPDATED_AT = SYSTIMESTAMP
+			UPDATED_AT = LOCALTIMESTAMP
 		WHERE USER_ID = #{userId}
 	</update>
 
@@ -130,7 +130,7 @@
 		UPDATE USERS
 		SET 
 			PASSWORD = #{newPassword},
-			UPDATED_AT = SYSTIMESTAMP
+			UPDATED_AT = LOCALTIMESTAMP
 		WHERE USER_ID = #{userId}
 	</update>
 
@@ -182,7 +182,7 @@
 			ROLE_CODE = 7,
 			POINT = 0,
 			FAVORITE_TEAM_ID = NULL,
-			UPDATED_AT = SYSTIMESTAMP
+			UPDATED_AT = LOCALTIMESTAMP
 		WHERE USER_ID = #{userId}
 	</update>
 
@@ -376,7 +376,7 @@
 			#{point},
 			#{imageUrl},
 			'Y',
-			SYSDATE
+			CURRENT_DATE
 		)
 	</insert>
 
@@ -443,7 +443,7 @@
 		UPDATE USERS
 		SET
 			POINT = POINT - #{price},
-			UPDATED_AT = SYSTIMESTAMP
+			UPDATED_AT = LOCALTIMESTAMP
 		WHERE USER_ID = #{userId}
 		AND POINT &gt;= #{price}
 	</update>
@@ -459,7 +459,7 @@
 			#{userId},
 			#{itemId},
 			'N',
-			SYSDATE
+			CURRENT_DATE
 		)
 	</insert>
 
@@ -478,7 +478,7 @@
 			#{itemId},
 			#{point},
 			'COMPLETED',
-			SYSDATE
+			CURRENT_DATE
 		)
 	</insert>
 
@@ -499,7 +499,7 @@
 			#{balanceAfter},
 			#{orderId},
 			#{description},
-			SYSDATE
+			CURRENT_DATE
 		)
 	</insert>
 
@@ -517,7 +517,7 @@
 			NULL,
 			#{amount},
 			#{balanceAfter},
-			SYSTIMESTAMP,
+			LOCALTIMESTAMP,
 			#{description}
 		)
 	</insert>
@@ -536,7 +536,7 @@
 			NULL,
 			#{amount},
 			#{balanceAfter},
-			SYSTIMESTAMP,
+			LOCALTIMESTAMP,
 			#{description}
 		)
 	</insert>

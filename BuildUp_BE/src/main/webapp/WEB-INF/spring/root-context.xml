@@ -22,12 +22,31 @@ xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.sprin
 		ignore-resource-not-found="true"
 		local-override="true" />
 
+	<!-- 0. 시스템 JVM 기본 타임존을 한국 표준시(Asia/Seoul, KST, UTC+9)로 강제 고정 -->
+	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetClass" value="java.util.TimeZone"/>
+		<property name="targetMethod" value="setDefault"/>
+		<property name="arguments">
+			<list>
+				<bean class="java.util.TimeZone" factory-method="getTimeZone">
+					<constructor-arg value="Asia/Seoul"/>
+				</bean>
+			</list>
+		</property>
+	</bean>
+
 	<!-- 데이터베이스 연결 설정 -->
 	<bean class="org.apache.commons.dbcp2.BasicDataSource" id="data_source" destroy-method="close">
 		<property name="driverClassName" value="${jdbc.driver}"/>
 		<property name="url" value="${jdbc.url}"/>
 		<property name="username" value="${jdbc.username}"/>
 		<property name="password" value="${jdbc.password}"/>
+		<!-- 오라클 데이터베이스 세션 타임존을 Asia/Seoul로 동기화 -->
+		<property name="connectionInitSqls">
+			<list>
+				<value>ALTER SESSION SET TIME_ZONE = 'Asia/Seoul'</value>
+			</list>
+		</property>
 	</bean>
 
 	<!-- JavaMailSenderImpl 등록 -->

@@ -108,7 +108,7 @@
 			#{userId},
 			#{itemId},
 			NVL(#{isEquipped, jdbcType=CHAR}, 'N'),
-			SYSDATE
+			CURRENT_DATE
 		)
 	</insert>
 
@@ -147,7 +147,7 @@
 			#{itemId},
 			#{point},
 			NVL(#{orderStatus, jdbcType=VARCHAR}, 'COMPLETED'),
-			SYSDATE
+			CURRENT_DATE
 		)
 	</insert>
 
@@ -208,7 +208,7 @@
 			#{balanceAfter},
 			#{orderId, jdbcType=VARCHAR},
 			#{description},
-			SYSDATE
+			CURRENT_DATE
 		)
 	</insert>
 
@@ -247,7 +247,7 @@
 	<update id="updateUserPoint" parameterType="map">
 		UPDATE USERS
 		SET POINT = POINT + #{amount},
-		    UPDATED_AT = SYSTIMESTAMP
+		    UPDATED_AT = LOCALTIMESTAMP
 		WHERE USER_ID = #{userId}
 	</update>
 
@@ -266,7 +266,7 @@
 			#{amount},
 			#{balanceAfter},
 			#{description},
-			SYSTIMESTAMP
+			LOCALTIMESTAMP
 		)
 	</insert>
 

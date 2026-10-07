@@ -36,7 +36,7 @@
 
 	<insert id="insertTeam" parameterType="CustomTeams">
 		INSERT INTO CUSTOM_TEAMS (USER_ID, TEAM_NAME, FORMATION, CREATED_AT)
-		VALUES (#{userId}, #{teamName}, #{formation}, SYSTIMESTAMP)
+		VALUES (#{userId}, #{teamName}, #{formation}, LOCALTIMESTAMP)
 	</insert>
 
 	<update id="updateTeam" parameterType="CustomTeams">
@@ -64,7 +64,7 @@
 
 	<insert id="insertAiMatch" parameterType="AiMatches">
 		INSERT INTO AI_MATCHES (HOME_TEAM_ID, AWAY_TEAM_ID, HOME_SCORE, AWAY_SCORE, AI_REVIEW, CREATED_AT)
-		VALUES (#{homeTeamId}, NULL, #{homeScore}, #{awayScore}, #{aiReview}, SYSTIMESTAMP)
+		VALUES (#{homeTeamId}, NULL, #{homeScore}, #{awayScore}, #{aiReview}, LOCALTIMESTAMP)
 	</insert>
 
 	<select id="findRankings" resultType="CustomTeams">

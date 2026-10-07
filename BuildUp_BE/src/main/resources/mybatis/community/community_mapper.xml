@@ -29,13 +29,15 @@
 			TEAM_ID,
 			TITLE,
 			CONTENT,
-			CATEGORY_ID
+			CATEGORY_ID,
+			CREATED_AT
 		) VALUES (
 			#{userId},
 			#{teamId},
 			#{title},
 			#{content},
-			#{categoryId}
+			#{categoryId},
+			LOCALTIMESTAMP
 		)
 	</insert>
 
@@ -46,7 +48,7 @@
 			TITLE = #{title},
 			CONTENT = #{content},
 			CATEGORY_ID = #{categoryId},
-			UPDATED_AT = SYSTIMESTAMP
+			UPDATED_AT = LOCALTIMESTAMP
 		WHERE POST_ID = #{postId}
 		AND USER_ID = #{userId}
 		AND IS_BLIND = 'N'
@@ -57,7 +59,7 @@
 	<update id="blindPost" parameterType="map">
 		UPDATE POSTS
 		SET IS_BLIND = 'Y',
-			UPDATED_AT = SYSTIMESTAMP
+			UPDATED_AT = LOCALTIMESTAMP
 		WHERE POST_ID = #{postId}
 		AND USER_ID = #{userId}
 		AND IS_BLIND = 'N'
@@ -68,7 +70,7 @@
 	<update id="deletePost" parameterType="map">
 		UPDATE POSTS
 		SET IS_DELETED = 'Y',
-			UPDATED_AT = SYSTIMESTAMP
+			UPDATED_AT = LOCALTIMESTAMP
 		WHERE POST_ID = #{postId}
 		AND USER_ID = #{userId}
 		AND IS_DELETED = 'N'
@@ -86,10 +88,12 @@
 	<insert id="insertPostLike" parameterType="PostLikes">
 		INSERT INTO POST_LIKES (
 			USER_ID,
-			POST_ID
+			POST_ID,
+			CREATED_AT
 		) VALUES (
 			#{userId},
-			#{postId}
+			#{postId},
+			LOCALTIMESTAMP
 		)
 	</insert>
 
@@ -165,12 +169,14 @@
 			POST_ID,
 			USER_ID,
 			P_COMMENT_ID,
-			CONTENT
+			CONTENT,
+			CREATED_AT
 		) VALUES (
 			#{postId},
 			#{userId},
 			#{pCommentId},
-			#{content}
+			#{content},
+			LOCALTIMESTAMP
 		)
 	</insert>
 
@@ -178,7 +184,7 @@
 	<update id="updateComment" parameterType="Comments">
 		UPDATE COMMENTS
 		SET CONTENT = #{content},
-			UPDATED_AT = SYSTIMESTAMP
+			UPDATED_AT = LOCALTIMESTAMP
 		WHERE COMMENT_ID = #{commentId}
 		AND USER_ID = #{userId}
 		AND IS_BLIND = 'N'
@@ -189,7 +195,7 @@
 	<update id="blindComment" parameterType="map">
 		UPDATE COMMENTS
 		SET IS_BLIND = 'Y',
-			UPDATED_AT = SYSTIMESTAMP
+			UPDATED_AT = LOCALTIMESTAMP
 		WHERE COMMENT_ID = #{commentId}
 		AND USER_ID = #{userId}
 		AND IS_BLIND = 'N'
@@ -199,7 +205,7 @@
 	<update id="deleteComment" parameterType="map">
 		UPDATE COMMENTS
 		SET IS_DELETED = 'Y',
-			UPDATED_AT = SYSTIMESTAMP
+			UPDATED_AT = LOCALTIMESTAMP
 		WHERE COMMENT_ID = #{commentId}
 		AND USER_ID = #{userId}
 		AND IS_DELETED = 'N'
@@ -257,14 +263,16 @@
 			STORED_NAME,
 			CONTENT_TYPE,
 			FILE_SIZE,
-			SORT_ORDER
+			SORT_ORDER,
+			CREATED_AT
 		) VALUES (
 			#{postId},
 			#{originalName},
 			#{storedName},
 			#{contentType},
 			#{fileSize},
-			#{sortOrder}
+			#{sortOrder},
+			LOCALTIMESTAMP
 		)
 	</insert>
 
