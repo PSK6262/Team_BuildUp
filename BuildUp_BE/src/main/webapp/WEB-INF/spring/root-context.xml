@@ -11,8 +11,16 @@ xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.sprin
                       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
                       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
-	<!-- 1. 프로퍼티 설정 통합 (콤마를 사용하여 여러 설정을 단 하나의 태그로 안전하게 로드합니다) -->
-	<context:property-placeholder location="classpath:config/db.properties, classpath:config/application.properties, classpath:config/smtp.properties" />
+	<!-- 1. 프로퍼티 설정 통합: 기본 운영 설정을 로드하고, 로컬 설정(*.local.properties)이 존재할 경우 로컬 설정으로 자동 오버라이드합니다. -->
+	<context:property-placeholder
+		location="classpath:config/db.properties,
+		          classpath:config/application.properties,
+		          classpath:config/smtp.properties,
+		          classpath:config/db.local.properties,
+		          classpath:config/application.local.properties,
+		          classpath:config/smtp.local.properties"
+		ignore-resource-not-found="true"
+		local-override="true" />
 
 	<!-- 데이터베이스 연결 설정 -->
 	<bean class="org.apache.commons.dbcp2.BasicDataSource" id="data_source" destroy-method="close">

@@ -2,6 +2,8 @@
 FROM maven:3.8.5-openjdk-17 AS build
 COPY . /home/app
 WORKDIR /home/app
+# 로컬 전용 설정 파일이 포함되어 있더라도 운영 빌드 시 안전하게 사전 제거
+RUN rm -f /home/app/src/main/resources/config/*.local.properties
 RUN mvn clean package -DskipTests
 
 # 2단계: 실행 환경 (공식 Tomcat 9 + Java 17)
