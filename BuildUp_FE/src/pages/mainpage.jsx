@@ -11,7 +11,7 @@ const INTRO_SENTENCES = [
   "발끝에서 피어오르는 전율",
   "단 한 번의 함성에 요동치는 심장",
   "전 세계를 열광케 한 단 하나의 무대",
-  "프리미어리그로!!!"
+  "프리미어리그로!"
 ];
 
 export default function MainPage() {
@@ -49,14 +49,10 @@ export default function MainPage() {
   const [ hasAutoPlayed, setHasAutoPlayed ] = useState(false);
   const [ isShrunk, setIsShrunk ] = useState(false);
   const [ isVideoMuted, setIsVideoMuted ] = useState(true);
+  const [ isVideoPlaying, setIsVideoPlaying ] = useState(false);
 
-  // 1. 초기 볼륨 설정 및 메인페이지 진입 시 무조건 스크롤 최상단 고정
+  // 1. 초기 스크롤 최상단 고정
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.volume = 0.25;
-      videoRef.current.muted = true;
-    }
-
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
     }
@@ -77,76 +73,107 @@ export default function MainPage() {
     };
   }, []);
 
-  // 2. 화면 스크롤 진입 감지:
-  // 처음 상단에 머무는 동안에는 절대 실행되지 않으며, 사용자가 실제로 스크롤을 내려 비디오 영역에 도달했을 때 1회 무음 자동 재생
+  // 1-1. 인트로 완료 또는 비디오 DOM 마운트 시 초기 볼륨 및 음소거 설정
   useEffect(() => {
-    if (!sectionRef.current) return;
+    if (isIntroFinished && videoRef.current) {
+      videoRef.current.volume = 0.25;
+      videoRef.current.muted = true;
+    }
+  }, [ isIntroFinished ]);
 
-    let isUserScrolled = false;
-    const handleScroll = () => {
-      if (window.scrollY > 80 || document.documentElement.scrollTop > 80) {
-        isUserScrolled = true;
+  // 2. 화면 스크롤 / 뷰포트 진입 감지:
+  // 인트로가 완료된 후 비디오 영역이 화면에 들어오면 1회 무음 자동 재생
+  useEffect(() => {
+    if (!isIntroFinished || !sectionRef.current) return;
+
+    const tryAutoPlay = () => {
+      if (videoRef.current && !hasAutoPlayed) {
+        videoRef.current.muted = true;
+        videoRef.current.volume = 0.25;
+        const playPromise = videoRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              setHasAutoPlayed(true);
+            })
+            .catch(() => {
+              // 브라우저 자동 재생 정책으로 차단된 경우 사용자 클릭 시 재생
+            });
+        }
       }
     };
-    window.addEventListener('scroll', handleScroll, { passive: true });
 
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
-        // 유저가 실제로 스크롤을 내렸고 비디오 섹션이 화면에 35% 이상 들어왔을 때만 실행
-        if (entry.isIntersecting && isUserScrolled && !hasAutoPlayed && videoRef.current) {
-          videoRef.current.muted = true;
-          videoRef.current.volume = 0.25;
-          videoRef.current.play().then(() => {
-            setHasAutoPlayed(true);
-          }).catch(() => {});
+        if (entry.isIntersecting && !hasAutoPlayed) {
+          tryAutoPlay();
         }
       },
-      { threshold: 0.35 }
+      { threshold: 0.2 }
     );
 
-    // 초기 마운트 시 레이아웃 시프트 오탐지 방지를 위해 400ms 지연 후 관찰 시작
     const timer = setTimeout(() => {
       if (sectionRef.current) {
         observer.observe(sectionRef.current);
       }
-    }, 400);
+    }, 150);
 
     return () => {
       clearTimeout(timer);
-      window.removeEventListener('scroll', handleScroll);
       observer.disconnect();
     };
-  }, [ hasAutoPlayed ]);
+  }, [ isIntroFinished, hasAutoPlayed ]);
 
   // 3. 비디오 1회 재생 종료 시 -> 25% 크기로 축소
   const handleVideoEnded = () => {
     setIsShrunk(true);
     setIsVideoMuted(true);
+    setIsVideoPlaying(false);
   };
 
-  // 4. 비디오 클릭 핸들러 (축소 상태면 원래 크기로 커지면서 소리와 함께 재생 / 원래 크기면 소리 토글)
+  // 4. 비디오 클릭 핸들러 (멈춰있으면 즉시 사운드와 함께 재생 / 축소 상태면 복원 재생 / 재생 중이면 음소거 토글)
   const handleClickVideo = () => {
     if (!videoRef.current) return;
 
     if (isShrunk) {
-      // 25% 축소된 상태에서 클릭: 부드럽게 원래 크기로 커지면서 소리와 함께 처음부터 재생!
+      // 25% 축소된 상태에서 클릭: 원래 크기로 복원하면서 소리와 함께 처음부터 재생
       setIsShrunk(false);
       setIsVideoMuted(false);
       videoRef.current.currentTime = 0;
       videoRef.current.muted = false;
       videoRef.current.volume = 0.25;
-      videoRef.current.play().catch(() => {});
-    } else {
-      // 확대 상태에서 클릭: 소리 음소거 토글
-      if (videoRef.current.muted) {
-        videoRef.current.muted = false;
-        videoRef.current.volume = 0.25;
-        setIsVideoMuted(false);
-      } else {
+      videoRef.current.play().catch(() => {
         videoRef.current.muted = true;
         setIsVideoMuted(true);
-      }
+        videoRef.current.play().catch(() => {});
+      });
+      return;
+    }
+
+    // 확대 상태에서 클릭:
+    // 만약 비디오가 재생 중이지 않고 멈춰있는 상태라면 -> 즉시 소리와 함께 재생 시작!
+    if (videoRef.current.paused) {
+      videoRef.current.muted = false;
+      videoRef.current.volume = 0.25;
+      setIsVideoMuted(false);
+      videoRef.current.play().catch(() => {
+        // 브라우저 음원 정책으로 차단 시 무음으로 fallback 재생
+        videoRef.current.muted = true;
+        setIsVideoMuted(true);
+        videoRef.current.play().catch(() => {});
+      });
+      return;
+    }
+
+    // 이미 정상 재생 중인 상태라면 -> 사운드 음소거 토글
+    if (videoRef.current.muted) {
+      videoRef.current.muted = false;
+      videoRef.current.volume = 0.25;
+      setIsVideoMuted(false);
+    } else {
+      videoRef.current.muted = true;
+      setIsVideoMuted(true);
     }
   };
 
@@ -683,8 +710,23 @@ export default function MainPage() {
               src={`${import.meta.env.BASE_URL}plug-comm.mp4`}
               className="mainpage-video-player"
               playsInline
+              muted
+              preload="auto"
+              onPlay={() => setIsVideoPlaying(true)}
+              onPause={() => setIsVideoPlaying(false)}
               onEnded={handleVideoEnded}
             />
+
+            {/* 정지 상태(재생 전) 안내 오버레이 (클릭 시 사운드와 함께 즉시 재생) */}
+            {!isShrunk && !isVideoPlaying && (
+              <div className="mainpage-video-replay-overlay">
+                <div className="replay-badge">
+                  <span className="replay-icon">▶</span>
+                  <span className="replay-text">클릭하여 영상 재생</span>
+                  <span className="replay-sub">(사운드 25%)</span>
+                </div>
+              </div>
+            )}
 
             {/* AI 생성 광고 영상 안내 뱃지 (작게 표시) */}
             {!isShrunk && (

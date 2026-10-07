@@ -82,7 +82,7 @@
 			#{matchId},
 			#{predictResult},
 			NULL,
-			SYSTIMESTAMP
+			LOCALTIMESTAMP
 		)
 	</insert>
 
@@ -90,7 +90,7 @@
 	<update id="updateUserPoint" parameterType="map">
 		UPDATE USERS
 		SET POINT = POINT + #{amount},
-		    UPDATED_AT = SYSTIMESTAMP
+		    UPDATED_AT = LOCALTIMESTAMP
 		WHERE USER_ID = #{userId}
 	</update>
 
@@ -110,7 +110,7 @@
 			#{amount},
 			#{balanceAfter},
 			#{description},
-			SYSTIMESTAMP
+			LOCALTIMESTAMP
 		)
 	</insert>
 
@@ -178,7 +178,7 @@
 	<update id="updatePredictionChoice" parameterType="Predictions">
 		UPDATE PREDICTIONS
 		SET PREDICT_RESULT = #{predictResult},
-			CREATED_AT = SYSTIMESTAMP
+			CREATED_AT = LOCALTIMESTAMP
 		WHERE PREDICTION_ID = #{predictionId}
 	</update>
 
@@ -193,7 +193,7 @@
 			UPDATE SET
 				up.PREDICT_TOTAL = up.PREDICT_TOTAL + 1,
 				up.PREDICT_WIN = up.PREDICT_WIN + #{winIncrement},
-				up.UPDATED_AT = SYSTIMESTAMP
+				up.UPDATED_AT = LOCALTIMESTAMP
 		WHEN NOT MATCHED THEN
 			INSERT (
 				USER_ID,
@@ -205,7 +205,7 @@
 				#{userId},
 				#{winIncrement},
 				1,
-				SYSTIMESTAMP
+				LOCALTIMESTAMP
 			)
 	</insert>
 

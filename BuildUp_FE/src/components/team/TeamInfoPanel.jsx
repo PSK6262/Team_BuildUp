@@ -33,7 +33,7 @@ const TeamInfoPanel = forwardRef(function TeamInfoPanel(
         <div className="team-section-divider" />
 
         {/* 3. 구단 감독 및 포지션별 선수단 (스쿼드) 섹션 */}
-        <TeamSquadSection teamId={team.teamId} />
+        <TeamSquadSection teamId={team.teamId} teamName={team.teamName} />
       </div>
     </main>
   );

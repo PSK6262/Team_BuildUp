@@ -14,7 +14,7 @@
 				t.TEAM_NAME = #{teamName},
 				t.EMBLEM_URL = NVL(#{emblemUrl, jdbcType=VARCHAR}, t.EMBLEM_URL),
 				t.HOME_GROUND = NVL(t.HOME_GROUND, NVL(#{homeGround, jdbcType=VARCHAR}, '홈 경기장')),
-				t.UPDATED_AT = SYSTIMESTAMP
+				t.UPDATED_AT = LOCALTIMESTAMP
 		WHEN NOT MATCHED THEN
 			INSERT (TEAM_ID, TEAM_NAME, HISTORY, EMBLEM_URL, ANTHEM_URL, FOUNDED_YEAR, HOME_GROUND, UPDATED_AT)
 			VALUES (
@@ -29,7 +29,7 @@
 					ELSE TO_DATE('1900', 'YYYY') 
 				END,
 				NVL(#{homeGround, jdbcType=VARCHAR}, '홈 경기장'),
-				SYSTIMESTAMP
+				LOCALTIMESTAMP
 			)
 	</insert>
 
@@ -170,7 +170,7 @@
 			HOME_GROUND_KOR = #{homeGroundKor, jdbcType=VARCHAR},
 			HISTORY = #{history, jdbcType=CLOB},
 			ANTHEM_URL = NVL(#{anthemUrl, jdbcType=VARCHAR}, ANTHEM_URL),
-			UPDATED_AT = SYSTIMESTAMP
+			UPDATED_AT = LOCALTIMESTAMP
 		WHERE TEAM_ID = #{teamId}
 	</update>
 
@@ -179,7 +179,7 @@
 		UPDATE TEAMS
 		SET 
 			ANTHEM_URL = #{anthemUrl, jdbcType=VARCHAR},
-			UPDATED_AT = SYSTIMESTAMP
+			UPDATED_AT = LOCALTIMESTAMP
 		WHERE TEAM_ID = #{teamId}
 	</update>
 
@@ -202,7 +202,7 @@
 		UPDATE TEAMS
 		SET 
 			EMBLEM_URL = #{emblemUrl, jdbcType=VARCHAR},
-			UPDATED_AT = SYSTIMESTAMP
+			UPDATED_AT = LOCALTIMESTAMP
 		WHERE TEAM_ID = #{teamId}
 	</update>
 
@@ -329,7 +329,7 @@
 				ts.GOALS_AGAINST = #{goalsAgainst},
 				ts.GOAL_DIFF = #{goalDiff},
 				ts.CLEAN_SHEETS = NVL(#{cleanSheets, jdbcType=NUMERIC}, ts.CLEAN_SHEETS),
-				ts.UPDATED_AT = SYSTIMESTAMP
+				ts.UPDATED_AT = LOCALTIMESTAMP
 		WHEN NOT MATCHED THEN
 			INSERT (
 				TEAM_ID, SEASON, CURRENT_RANK, MATCHES_PLAYED, WINS, DRAWS, LOSSES, 
@@ -350,7 +350,7 @@
 				NVL(#{cleanSheets, jdbcType=NUMERIC}, 0),
 				NVL(#{yellowCards, jdbcType=NUMERIC}, 0),
 				NVL(#{redCards, jdbcType=NUMERIC}, 0),
-				SYSTIMESTAMP
+				LOCALTIMESTAMP
 			)
 	</insert>
 

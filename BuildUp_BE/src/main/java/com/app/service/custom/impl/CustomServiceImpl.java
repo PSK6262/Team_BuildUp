@@ -13,8 +13,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.time.LocalDateTime;
+import com.app.common.CustomCooldownException;
 import com.app.dao.team.TeamDAO;
 import com.app.dto.team.Players;
 import com.app.dto.team.Teams;
@@ -33,6 +35,12 @@ public class CustomServiceImpl implements CustomService {
     @Autowired
     private TeamDAO teamDAO;
 
+    /** AI 대전 재시작 쿨타임 (30초) */
+    private static final long AI_MATCH_COOLDOWN_MS = 30_000L;
+
+    /** 클라이언트(유저 식별자 또는 IP)별 최근 AI 대전 시작 시각 (ms) */
+    private final Map<String, Long> lastMatchTimeMap = new ConcurrentHashMap<>();
+
     private static final List<Formation> AI_FORMATIONS = List.of(
         new Formation("4-3-3", 4, 3, 3), new Formation("4-4-2", 4, 4, 2),
         new Formation("3-5-2", 3, 5, 2), new Formation("3-4-3", 3, 4, 3),
@@ -43,8 +51,35 @@ public class CustomServiceImpl implements CustomService {
     private static final Set<Long> EXCLUDED_TEAMS = Set.of(338L, 340L, 328L, 76L, 563L);
 
     @Override
+    public int getAiMatchCooldown(String clientKey) {
+        if (clientKey == null || clientKey.trim().isEmpty()) return 0;
+        Long lastTime = lastMatchTimeMap.get(clientKey);
+        if (lastTime == null) return 0;
+        long elapsed = System.currentTimeMillis() - lastTime;
+        if (elapsed < AI_MATCH_COOLDOWN_MS) {
+            return (int) Math.ceil((AI_MATCH_COOLDOWN_MS - elapsed) / 1000.0);
+        }
+        return 0;
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public AiMatches playAiMatch(AiMatches.Request request, Long userId) {
+        String defaultKey = userId != null ? "USER_" + userId : "ANON_DEFAULT";
+        return playAiMatch(request, userId, defaultKey);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AiMatches playAiMatch(AiMatches.Request request, Long userId, String clientKey) {
+        String key = (clientKey != null && !clientKey.trim().isEmpty())
+            ? clientKey
+            : (userId != null ? "USER_" + userId : "ANON_DEFAULT");
+
+        int remainingSeconds = getAiMatchCooldown(key);
+        if (remainingSeconds > 0) {
+            throw new CustomCooldownException(remainingSeconds);
+        }
         if (request == null || request.getSquads() == null || request.getSquads().size() != 11)
             throw new IllegalArgumentException("서로 다른 선수 11명을 배치해주세요.");
         String homeName = request.getTeamName() == null ? "" : request.getTeamName().trim();
@@ -119,7 +154,16 @@ public class CustomServiceImpl implements CustomService {
             customDAO.insertAiMatch(result);
             result.setRankingRecorded(true);
         }
+        lastMatchTimeMap.put(key, System.currentTimeMillis());
+        cleanupExpiredCooldowns();
         return result;
+    }
+
+    private void cleanupExpiredCooldowns() {
+        if (lastMatchTimeMap.size() > 500) {
+            long now = System.currentTimeMillis();
+            lastMatchTimeMap.entrySet().removeIf(entry -> now - entry.getValue() > AI_MATCH_COOLDOWN_MS * 2);
+        }
     }
 
     @Override
