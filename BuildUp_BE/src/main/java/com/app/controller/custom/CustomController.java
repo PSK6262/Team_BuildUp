@@ -11,6 +11,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.app.service.custom.CustomService;
+import com.app.common.CustomCooldownException;
 import com.app.dto.custom.CustomTeams;
 import com.app.dto.custom.AiMatches;
 import com.app.dto.user.Users;
@@ -30,14 +31,32 @@ public class CustomController {
         return ResponseEntity.ok(Map.of("rankings", customService.findRankings()));
     }
 
+    @GetMapping("/api/customs/ai-matches/cooldown")
+    public ResponseEntity<?> getCooldown(HttpServletRequest httpRequest) {
+        Users user = resolveUser(httpRequest);
+        String clientKey = resolveClientKey(httpRequest, user);
+        int remaining = customService.getAiMatchCooldown(clientKey);
+        return ResponseEntity.ok(Map.of(
+            "cooldown", remaining > 0,
+            "remainingSeconds", remaining
+        ));
+    }
+
     @PostMapping("/api/customs/ai-matches")
     public ResponseEntity<?> playAiMatch(@RequestBody AiMatches.Request request, HttpServletRequest httpRequest) {
         Users user = resolveUser(httpRequest);
         if (user == null && httpRequest.getHeader("Authorization") != null)
             return ResponseEntity.status(401).body(Map.of("message", "다시 로그인 후 대전해주세요."));
+        String clientKey = resolveClientKey(httpRequest, user);
         try {
             UserActivityLogger.log(httpRequest, "AI 대전", user == null ? "anonymous" : user.getLoginId());
-            return ResponseEntity.ok(customService.playAiMatch(request, user == null ? null : user.getUserId()));
+            return ResponseEntity.ok(customService.playAiMatch(request, user == null ? null : user.getUserId(), clientKey));
+        } catch (CustomCooldownException e) {
+            return ResponseEntity.status(429).body(Map.of(
+                "message", e.getMessage(),
+                "remainingSeconds", e.getRemainingSeconds(),
+                "cooldown", true
+            ));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
@@ -75,5 +94,12 @@ public class CustomController {
             if (token != null && JwtProvider.isValidToken(token)) loginId = JwtProvider.getLoginIdFromToken(token);
         }
         return loginId == null ? null : userDAO.selectUserByLoginId(loginId);
+    }
+
+    private String resolveClientKey(HttpServletRequest request, Users user) {
+        if (user != null && user.getUserId() != null) {
+            return "USER_" + user.getUserId();
+        }
+        return "IP_" + UserActivityLogger.extractIp(request);
     }
 }

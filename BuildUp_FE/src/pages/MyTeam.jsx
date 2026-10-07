@@ -690,7 +690,15 @@ export default function MyTeam() {
   const aiMatchIdRef = useRef(0);
   const [opponentMode, setOpponentMode] = useState('RANDOM');
   const [opponentClubId, setOpponentClubId] = useState('');
-  const [cooldown, setCooldown] = useState(0);
+  const [cooldown, setCooldown] = useState(() => {
+    try {
+      const savedUntil = Number(localStorage.getItem('ai_match_cooldown_until') || 0);
+      const diff = Math.ceil((savedUntil - Date.now()) / 1000);
+      return diff > 0 ? diff : 0;
+    } catch {
+      return 0;
+    }
+  });
 
   // AI 대전 시작 후 결과가 로드되면 타임라인 및 경기중계 창으로 자동 부드럽게 스크롤
   useEffect(() => {
@@ -708,10 +716,43 @@ export default function MyTeam() {
     }
   }, [aiMatch?.replayId]);
 
+  // 마운트 시 서버 쿨타임과 동기화 (새로고침 시 풀림 방어)
   useEffect(() => {
-    if (cooldown <= 0) return;
+    let ignore = false;
+    const syncCooldownWithServer = async () => {
+      try {
+        const token = localStorage.getItem('buildup_token');
+        const res = await fetch('/api/customs/ai-matches/cooldown', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!ignore && data?.remainingSeconds > 0) {
+          setCooldown(data.remainingSeconds);
+          try {
+            localStorage.setItem('ai_match_cooldown_until', String(Date.now() + data.remainingSeconds * 1000));
+          } catch {}
+        }
+      } catch {}
+    };
+    syncCooldownWithServer();
+    return () => { ignore = true; };
+  }, []);
+
+  useEffect(() => {
+    if (cooldown <= 0) {
+      try { localStorage.removeItem('ai_match_cooldown_until'); } catch {}
+      return;
+    }
     const timer = setInterval(() => {
-      setCooldown((prev) => (prev > 1 ? prev - 1 : 0));
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          try { localStorage.removeItem('ai_match_cooldown_until'); } catch {}
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
     return () => clearInterval(timer);
   }, [cooldown]);
@@ -1889,7 +1930,15 @@ export default function MyTeam() {
         }),
       });
       const result = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(result?.message || 'AI 대전을 생성하지 못했습니다.');
+      if (!response.ok) {
+        if (response.status === 429 && result?.remainingSeconds) {
+          setCooldown(result.remainingSeconds);
+          try {
+            localStorage.setItem('ai_match_cooldown_until', String(Date.now() + result.remainingSeconds * 1000));
+          } catch {}
+        }
+        throw new Error(result?.message || 'AI 대전을 생성하지 못했습니다.');
+      }
       if (!Array.isArray(result?.events) || result.events.length === 0 || !Array.isArray(result?.positionPenalties)
         || !Array.isArray(result?.home) || !Array.isArray(result?.opponent?.lineup) || !Array.isArray(result?.score)) {
         throw new Error('AI 대전 결과를 확인하지 못했습니다.');
@@ -1897,6 +1946,9 @@ export default function MyTeam() {
       if (matchRequestRef.current === controller && !controller.signal.aborted) {
         setAiMatch({ ...result, home: restoreMatchPlacement(result.home, submittedSquads), replayId: ++aiMatchIdRef.current });
         setCooldown(30);
+        try {
+          localStorage.setItem('ai_match_cooldown_until', String(Date.now() + 30000));
+        } catch {}
       }
     } catch (error) {
       if (matchRequestRef.current === controller) {
