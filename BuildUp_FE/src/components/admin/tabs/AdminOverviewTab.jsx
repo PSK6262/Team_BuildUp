@@ -77,9 +77,11 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
         if (!nick.includes(kw) && !uId.includes(kw) && !login.includes(kw)) return false;
       }
       const desc = item.description || '';
-      const isSystem = Boolean(item.predictionId || desc.includes('[시스템]'));
+      const isShop = desc.includes('[포인트샵]') || desc.includes('포인트샵');
+      const isSystem = Boolean(item.predictionId || desc.includes('[시스템]') || desc.includes('[회원가입]') || desc.includes('[승부예측'));
       if (auditAdminFilter === 'SYSTEM' && !isSystem) return false;
-      if (auditAdminFilter === 'ADMIN' && isSystem) return false;
+      if (auditAdminFilter === 'SHOP' && !isShop) return false;
+      if (auditAdminFilter === 'ADMIN' && (isSystem || isShop)) return false;
 
       if (auditAdminKeyword.trim()) {
         const kw = auditAdminKeyword.trim().toLowerCase();
@@ -323,7 +325,8 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
             >
               <option value="">전체 처리자</option>
               <option value="ADMIN">관리자 직권</option>
-              <option value="SYSTEM">시스템 (승부예측)</option>
+              <option value="SYSTEM">시스템 (승부예측 / 가입)</option>
+              <option value="SHOP">포인트샵 구매</option>
             </AdminSelect>
 
             {/* 2. 회원 닉네임/ID 검색 */}
@@ -403,9 +406,13 @@ export default function AdminOverviewTab({ onNavigateToMatches, showAlert }) {
                         const desc = item.description || '';
                         const match = desc.match(/^(\[[^\]]+\])\s*(.*)$/);
                         if (match) {
+                          const tag = match[1];
+                          const badgeClass = (tag === '[시스템]' || tag === '[회원가입]' || tag.includes('승부예측')) ? 'badge badge--blue'
+                                           : tag === '[포인트샵]' ? 'badge badge--green'
+                                           : 'badge badge--purple';
                           return (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                              <span className="badge badge--purple">{match[1]}</span>
+                              <span className={badgeClass}>{tag}</span>
                               <span>{match[2]}</span>
                             </div>
                           );

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import com.app.dao.user.UserDAO;
 import com.app.dto.community.Comments;
 import com.app.dto.community.Posts;
+import com.app.dto.prediction.PointHistory;
 import com.app.dto.user.Users;
 
 @Repository
@@ -216,5 +217,10 @@ public class UserDAOImpl implements UserDAO {
 	@Override
 	public int insertShopPointHistory(Map<String, Object> history) {
 		return sqlSession.insert("UserMapper.insertShopPointHistory", history);
+	}
+
+	@Override
+	public int insertPointHistory(PointHistory pointHistory) {
+		return sqlSession.insert("UserMapper.insertPointHistory", pointHistory);
 	}
 }

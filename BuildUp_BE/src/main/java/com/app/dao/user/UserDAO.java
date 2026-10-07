@@ -21,6 +21,7 @@ public interface UserDAO {
 	int deleteUserRelatedData(Long userId);
 	int deleteUser(Long userId);
 	int anonymizeUser(Long userId);
+	int insertPointHistory(PointHistory pointHistory);
 
 	// 마이페이지 활동 내역
 	List<Posts> selectUserPosts(Map<String, Object> params);

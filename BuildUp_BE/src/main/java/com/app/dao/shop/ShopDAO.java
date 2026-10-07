@@ -6,6 +6,7 @@ import com.app.dto.shop.ShopItem;
 import com.app.dto.shop.UserInventory;
 import com.app.dto.shop.ItemOrder;
 import com.app.dto.shop.PointTransaction;
+import com.app.dto.prediction.PointHistory;
 
 public interface ShopDAO {
     List<ShopItem> selectActiveItems();
@@ -24,6 +25,8 @@ public interface ShopDAO {
 
     int insertTransaction(PointTransaction tx);
     List<PointTransaction> selectTransactionsByUserId(Long userId);
+
+    int insertPointHistory(PointHistory pointHistory);
 
     Long lockUserPoint(Long userId);
     Long selectUserPoint(Long userId);

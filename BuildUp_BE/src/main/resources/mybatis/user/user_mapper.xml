@@ -522,4 +522,23 @@
 		)
 	</insert>
 
+	<!-- 회원 가입 축하 포인트 변동 이력(POINT_HISTORY) 등록 -->
+	<insert id="insertPointHistory" parameterType="PointHistory">
+		INSERT INTO POINT_HISTORY (
+			USER_ID,
+			PREDICTION_ID,
+			AMOUNT,
+			BALANCE_AFTER,
+			CREATED_AT,
+			DESCRIPTION
+		) VALUES (
+			#{userId},
+			NULL,
+			#{amount},
+			#{balanceAfter},
+			SYSTIMESTAMP,
+			#{description}
+		)
+	</insert>
+
 </mapper>
