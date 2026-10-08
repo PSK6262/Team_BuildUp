@@ -32,6 +32,8 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
     dummyMinutes,
     setDummyMinutes,
     dummyActionLoading,
+    dummyModal,
+    setDummyModal,
     handleCreateDummyMatches,
     handleSettleDummyMatches,
     handleCleanupDummyMatches,
@@ -127,55 +129,47 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
           </div>
         </div>
 
-        {/* 🧪 승부예측 테스트용 더미 경기 (999901~999910) 컨트롤 바 */}
-        <div className="admin-dummy-bar">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <span className="admin-dummy-bar__title">
-              🧪 승부예측 테스트용 더미 경기 (10건)
-            </span>
-            <label className="admin-dummy-bar__label">
-              <span>현재시간 +</span>
-              <input
-                type="number"
-                min="1"
-                max="1440"
-                className="admin-input"
-                style={{ width: 68, padding: '5px 8px', textAlign: 'center', fontWeight: 700 }}
-                value={dummyMinutes}
-                onChange={(e) => setDummyMinutes(e.target.value)}
-                disabled={dummyActionLoading}
-              />
-              <span>분 뒤 시작</span>
-            </label>
+        {/* 🧪 승부예측 테스트용 더미 경기 (999901~999910) 제어 콘솔 패널 */}
+        <div className="admin-dummy-panel">
+          <div className="admin-dummy-panel__header">
+            <div>
+              <span className="admin-dummy-panel__badge">TEST CONSOLE</span>
+              <h3 className="admin-dummy-panel__title">
+                <span>🧪</span> 승부예측 더미 경기 테스트 제어
+              </h3>
+            </div>
+            <p className="admin-dummy-panel__desc">
+              승부예측 시연 및 검증을 위해 가상 경기 10건(ID: 999901~999910)을 즉시 생성, 자동 정산, 또는 일괄 원상복구할 수 있습니다.
+            </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <div className="admin-dummy-panel__actions">
             <button
               type="button"
               className="btn-action btn-action--primary"
-              onClick={handleCreateDummyMatches}
+              onClick={() => setDummyModal('CREATE')}
               disabled={dummyActionLoading}
-              title="현재시간 + 설정한 분 뒤에 시작하는 더미 경기 10개(999901~999910)를 생성합니다"
+              title="승부예측 테스트용 더미 경기 10개 생성 모달을 엽니다"
             >
-              + 더미 경기 10개 추가
+              <span style={{ marginRight: 4 }}>➕</span> 더미 경기 10개 추가
             </button>
             <button
               type="button"
               className="btn-action btn-action--warning"
-              onClick={handleSettleDummyMatches}
+              onClick={() => setDummyModal('SETTLE')}
               disabled={dummyActionLoading}
-              title="기다리지 않고 즉시 더미 경기 10개를 종료(FINISHED)하고 승부예측 포인트를 정산합니다"
+              title="더미 경기 10개 즉시 종료 및 포인트 정산 모달을 엽니다"
             >
-              ⚡ 즉시 종료 &amp; 포인트 정산
+              <span style={{ marginRight: 4 }}>⚡</span> 즉시 종료 &amp; 포인트 정산
             </button>
             <button
               type="button"
               className="btn-action btn-action--danger"
-              onClick={handleCleanupDummyMatches}
+              onClick={() => setDummyModal('CLEANUP')}
               disabled={dummyActionLoading}
-              title="더미 경기 10개와 지급된 포인트, 포인트 내역, 예측 전적, 투표 기록을 모두 삭제하고 원상복구합니다"
+              title="더미 경기 10개 및 포인트/전적/투표 기록 일괄 원상복구 모달을 엽니다"
             >
-              🗑️ 더미 경기 &amp; 결과 일괄 삭제
+              <span style={{ marginRight: 4 }}>🗑️</span> 더미 경기 &amp; 결과 일괄 삭제
             </button>
           </div>
         </div>
@@ -981,6 +975,209 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
               </button>
               <button type="button" className="btn-action btn-action--primary" onClick={handleSaveInjury}>
                 저장하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. 더미 경기 10개 추가 모달 */}
+      {dummyModal === 'CREATE' && (
+        <div className="admin-modal-backdrop" onClick={() => !dummyActionLoading && setDummyModal(null)}>
+          <div className="admin-modal" style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal__header">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>🧪</span> 승부예측 더미 경기 10개 추가
+              </h3>
+              <button
+                type="button"
+                className="admin-modal__close"
+                onClick={() => !dummyActionLoading && setDummyModal(null)}
+                disabled={dummyActionLoading}
+              >
+                ×
+              </button>
+            </div>
+            <div className="admin-modal__body">
+              <p style={{ margin: '0 0 16px 0', fontSize: 13.5, lineHeight: 1.6 }}>
+                승부예측 기능 테스트 및 발표 시연을 위해 가상 더미 경기 10건(ID: <strong>999901 ~ 999910</strong>)을 DB에 즉시 생성합니다.
+              </p>
+
+              <div className="admin-form-group">
+                <label>경기 시작 시간 (현재 시각 기준 몇 분 뒤 시작)</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <input
+                    type="number"
+                    min="1"
+                    max="1440"
+                    className="admin-input"
+                    style={{ width: 100, textAlign: 'center', fontSize: 16, fontWeight: 700 }}
+                    value={dummyMinutes}
+                    onChange={(e) => setDummyMinutes(e.target.value)}
+                    disabled={dummyActionLoading}
+                  />
+                  <span style={{ fontSize: 13.5, fontWeight: 600 }}>분 뒤 킥오프</span>
+                </div>
+
+                <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
+                  {[1, 3, 5, 10, 30, 60].map((mins) => (
+                    <button
+                      key={mins}
+                      type="button"
+                      className={`btn-action ${Number(dummyMinutes) === mins ? 'btn-action--primary' : 'btn-action--outline'}`}
+                      style={{ padding: '4px 10px', fontSize: 12, minWidth: 'auto' }}
+                      onClick={() => setDummyMinutes(mins)}
+                      disabled={dummyActionLoading}
+                    >
+                      +{mins}분
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="admin-dummy-callout admin-dummy-callout--info">
+                💡 <strong>안내:</strong> 이미 등록된 더미 경기가 있다면 자동으로 초기화(Clean up)된 후 새로운 10개 경기가 생성됩니다.
+              </div>
+            </div>
+            <div className="admin-modal__footer">
+              <button
+                type="button"
+                className="btn-action btn-action--outline"
+                onClick={() => setDummyModal(null)}
+                disabled={dummyActionLoading}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                className="btn-action btn-action--primary"
+                onClick={handleCreateDummyMatches}
+                disabled={dummyActionLoading}
+              >
+                {dummyActionLoading ? '생성 처리 중...' : '+ 더미 경기 10개 생성'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. 더미 경기 즉시 종료 및 정산 모달 */}
+      {dummyModal === 'SETTLE' && (
+        <div className="admin-modal-backdrop" onClick={() => !dummyActionLoading && setDummyModal(null)}>
+          <div className="admin-modal" style={{ maxWidth: 540 }} onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal__header">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#eab308' }}>
+                <span>⚡</span> 더미 경기 즉시 종료 &amp; 포인트 정산
+              </h3>
+              <button
+                type="button"
+                className="admin-modal__close"
+                onClick={() => !dummyActionLoading && setDummyModal(null)}
+                disabled={dummyActionLoading}
+              >
+                ×
+              </button>
+            </div>
+            <div className="admin-modal__body">
+              <p style={{ margin: '0 0 16px 0', fontSize: 13.5, lineHeight: 1.6 }}>
+                현재 등록된 더미 경기 10개를 실제 경기 시간까지 기다리지 않고 즉시 <strong>FINISHED (경기 종료)</strong> 상태로 전환하며,
+                난수 스코어를 부여하여 승부예측 정산 로직을 실행합니다.
+              </p>
+
+              <div className="admin-dummy-callout admin-dummy-callout--warning">
+                <div style={{ fontWeight: 800, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span>⚡</span> 정산 시 연쇄 반영 작업
+                </div>
+                <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, lineHeight: 1.65 }}>
+                  <li>더미 경기 10건 상태를 FINISHED로 전환 및 스코어 확정</li>
+                  <li>승부예측 적중 회원에게 배당 포인트 즉시 지급</li>
+                  <li>회원 승부예측 전적(USER_PREDICTS) 및 승률 랭킹 갱신</li>
+                </ul>
+              </div>
+
+              <div className="admin-dummy-callout admin-dummy-callout--danger">
+                ⚠️ <strong>주의:</strong> 정산 후에는 유저의 실제 포인트와 랭킹이 변동됩니다. 테스트 완료 후에는 <strong>[일괄 삭제]</strong>를 통해 원상복구할 수 있습니다.
+              </div>
+            </div>
+            <div className="admin-modal__footer">
+              <button
+                type="button"
+                className="btn-action btn-action--outline"
+                onClick={() => setDummyModal(null)}
+                disabled={dummyActionLoading}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                className="btn-action btn-action--warning"
+                onClick={handleSettleDummyMatches}
+                disabled={dummyActionLoading}
+              >
+                {dummyActionLoading ? '정산 처리 중...' : '⚡ 즉시 종료 및 정산 실행'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. 더미 경기 및 결과 일괄 원상복구 모달 */}
+      {dummyModal === 'CLEANUP' && (
+        <div className="admin-modal-backdrop" onClick={() => !dummyActionLoading && setDummyModal(null)}>
+          <div className="admin-modal" style={{ maxWidth: 540 }} onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal__header">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#ef4444' }}>
+                <span>🗑️</span> 더미 경기 및 결과 일괄 원상복구
+              </h3>
+              <button
+                type="button"
+                className="admin-modal__close"
+                onClick={() => !dummyActionLoading && setDummyModal(null)}
+                disabled={dummyActionLoading}
+              >
+                ×
+              </button>
+            </div>
+            <div className="admin-modal__body">
+              <p style={{ margin: '0 0 16px 0', fontSize: 13.5, lineHeight: 1.6 }}>
+                테스트용 더미 경기(999901~999910)와 정산으로 인해 변경된 모든 데이터를
+                <strong> 테스트 이전 상태로 깨끗하게 원상복구(6단계 롤백)</strong>합니다.
+              </p>
+
+              <div className="admin-dummy-callout admin-dummy-callout--danger">
+                <div style={{ fontWeight: 800, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span>🚨</span> 6단계 원자적 롤백 실행 항목
+                </div>
+                <ol style={{ margin: 0, paddingLeft: 18, fontSize: 13, lineHeight: 1.7 }}>
+                  <li>더미 경기 적중으로 지급된 회원 포인트 전액 회수</li>
+                  <li>회원 승부예측 전적(적중수 / 전체 경기수) 원복</li>
+                  <li>POINT_HISTORY 더미 적중 거래 내역 완전 삭제</li>
+                  <li>PREDICTIONS 더미 경기 투표 레코드 삭제</li>
+                  <li>MATCH_EVENTS 더미 경기 이벤트 삭제</li>
+                  <li>MATCHES 더미 경기 10건 삭제</li>
+                </ol>
+              </div>
+
+              <div className="admin-dummy-callout admin-dummy-callout--info">
+                💡 <strong>안내:</strong> 삭제 완료 후 공식 프리미어리그 경기 데이터만 남게 되며, DB 정합성이 완벽히 유지됩니다.
+              </div>
+            </div>
+            <div className="admin-modal__footer">
+              <button
+                type="button"
+                className="btn-action btn-action--outline"
+                onClick={() => setDummyModal(null)}
+                disabled={dummyActionLoading}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                className="btn-action btn-action--danger"
+                onClick={handleCleanupDummyMatches}
+                disabled={dummyActionLoading}
+              >
+                {dummyActionLoading ? '원상복구 처리 중...' : '🗑️ 일괄 삭제 및 롤백 실행'}
               </button>
             </div>
           </div>
