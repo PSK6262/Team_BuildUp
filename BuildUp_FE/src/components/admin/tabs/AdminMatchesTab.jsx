@@ -139,7 +139,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
               </h3>
             </div>
             <p className="admin-dummy-panel__desc">
-              승부예측 시연 및 검증을 위해 가상 경기 10건(ID: 999901~999910)을 즉시 생성, 자동 정산, 또는 일괄 원상복구할 수 있습니다.
+              가상 경기 10건(999901~999910)을 즉시 생성·정산·초기화하여 승부예측을 검증합니다.
             </p>
           </div>
 

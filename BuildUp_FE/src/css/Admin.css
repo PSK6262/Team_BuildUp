@@ -1162,6 +1162,13 @@
   margin: 0;
   font-size: 12.5px;
   line-height: 1.5;
+  word-break: keep-all;
+}
+
+@media (min-width: 1024px) {
+  .admin-dummy-panel__desc {
+    white-space: nowrap;
+  }
 }
 
 .admin-dark-mode .admin-dummy-panel__desc {
@@ -1839,6 +1846,35 @@
   color: #475569;
 }
 
+/* --------------------------------------------------------
+   블라인드 제재 이력 (AI 소행 vs 관리자 누구 소행 뱃지)
+   -------------------------------------------------------- */
+.admin-badge-actor-ai {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  font-weight: 700;
+}
+
+.admin-dark-mode .admin-badge-actor-ai {
+  background: rgba(239, 68, 68, 0.22);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.45);
+}
+
+.admin-badge-actor-admin {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  font-weight: 700;
+}
+
+.admin-dark-mode .admin-badge-actor-admin {
+  background: rgba(245, 158, 11, 0.22);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+}
+
 /* ========================================================
    반응형 미디어 쿼리 (태블릿 <= 1024px / <= 768px / 모바일 <= 425px)
    ======================================================== */
@@ -2387,6 +2423,35 @@
     width: 100%;
     justify-content: center;
     padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  /* 더미 경기 제어 패널 모바일 스타일 (가로 100% 꽉 채움 & 중앙 정렬) */
+  .admin-dummy-panel {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .admin-dummy-panel__header {
+    min-width: 0;
+    width: 100%;
+    text-align: left;
+  }
+
+  .admin-dummy-panel__actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .admin-dummy-panel__actions .btn-action {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    padding: 10px 14px;
     font-size: 13px;
   }
 }
