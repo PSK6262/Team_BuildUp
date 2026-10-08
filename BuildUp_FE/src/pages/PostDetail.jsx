@@ -186,9 +186,11 @@ export default function PostDetail({ postId }) {
       : '',
   )
   const requestedReturn = postDetailSearchParams.get('from')
+  const cleanReturn = requestedReturn?.startsWith('#') ? requestedReturn.slice(1) : requestedReturn
   // 외부 주소나 임의의 경로로 이동하지 않도록 실제 목록 경로만 허용합니다.
   const allowedPaths = ['/plug/community', '/plug/community/free', ...communityTeams.map((team) => `/plug/community/teams/${team.slug}`)]
-  const backTo = allowedPaths.includes(requestedReturn) ? requestedReturn : '/plug/community'
+  const backToPath = allowedPaths.includes(cleanReturn) ? cleanReturn : '/plug/community'
+  const backTo = `#${backToPath}`
   // 이전 서버가 반환한 pcommentId도 함께 읽어 대댓글 관계를 유지합니다.
   const getParentCommentId = (comment) => comment.pCommentId ?? comment.pcommentId
 
