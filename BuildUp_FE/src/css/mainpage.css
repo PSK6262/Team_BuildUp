@@ -1089,12 +1089,44 @@ html[data-theme='light'] body:has(.mainpage-container) {
   z-index: 5;
   width: 100%;
   background: linear-gradient(180deg, #240428 0%, #17031a 50%, #121217 100%);
-  padding: 40px 16px 24px;
+  padding: 36px 16px 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
   box-sizing: border-box;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 2px solid rgba(216, 134, 237, 0.28);
+  box-shadow: inset 0 12px 24px rgba(0, 0, 0, 0.4);
+  transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+/* 상단 메인 화면과의 구분 디바이더 바 */
+.mainpage-video-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto 22px;
+  gap: 16px;
+}
+
+.mainpage-video-divider__line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(216, 134, 237, 0.45), transparent);
+}
+
+.mainpage-video-divider__badge {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  padding: 5px 16px;
+  border-radius: 999px;
+  background: rgba(38, 14, 54, 0.88);
+  border: 1px solid rgba(216, 134, 237, 0.35);
+  color: #d886ed;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  user-select: none;
 }
 
 /* 비디오 프레임 컨테이너 (최대 90% 유지 및 모니터/시네마틱 디스플레이 프레임) */
@@ -1293,9 +1325,123 @@ html[data-theme='light'] body:has(.mainpage-container) {
   letter-spacing: -0.2px;
 }
 
+/* ========================================================
+   라이트 모드 (일반모드) 비디오 섹션 & 프레임 테마
+   - 위쪽 진짜 메인화면(#E3DCED)과 조화를 이루되,
+     상단 2px 구분선 + 은은한 음영 뎁스 + 중앙 디바이더로 명확히 분리
+   ======================================================== */
+.mainpage--light .mainpage-video-section,
+[data-theme='light'] .mainpage-video-section {
+  background: linear-gradient(180deg, #d8cee6 0%, #ebe4f3 45%, #e1d6ec 100%);
+  border-top: 2px solid #b8a6cf;
+  box-shadow: inset 0 10px 22px rgba(56, 18, 77, 0.09);
+}
+
+.mainpage--light .mainpage-video-divider__line,
+[data-theme='light'] .mainpage-video-divider__line {
+  background: linear-gradient(90deg, transparent, #b8a6cf, transparent);
+}
+
+.mainpage--light .mainpage-video-divider__badge,
+[data-theme='light'] .mainpage-video-divider__badge {
+  background: #f3eef9;
+  border: 1.5px solid #b8a6cf;
+  color: #4a2869;
+  box-shadow: 0 2px 10px rgba(74, 40, 105, 0.12);
+}
+
+.mainpage--light .mainpage-video-container,
+[data-theme='light'] .mainpage-video-container {
+  background: #1e1028;
+  border: 2.5px solid #c4b4d9;
+  box-shadow:
+    0 20px 48px rgba(45, 14, 66, 0.16),
+    0 0 0 1px rgba(255, 255, 255, 0.8),
+    0 0 32px rgba(139, 92, 246, 0.12);
+}
+
+.mainpage--light .mainpage-video-container.is-shrunk,
+[data-theme='light'] .mainpage-video-container.is-shrunk {
+  border: 2.5px solid #00c868;
+  box-shadow:
+    0 14px 36px rgba(45, 14, 66, 0.2),
+    0 0 28px rgba(0, 200, 104, 0.35);
+}
+
+.mainpage--light .mainpage-video-container.is-shrunk:hover,
+[data-theme='light'] .mainpage-video-container.is-shrunk:hover {
+  border-color: #00aa58;
+  box-shadow:
+    0 18px 44px rgba(45, 14, 66, 0.26),
+    0 0 36px rgba(0, 200, 104, 0.5);
+}
+
+/* 25% 축소 상태 재생 뱃지 (라이트 모드) */
+.mainpage--light .replay-badge,
+[data-theme='light'] .replay-badge {
+  background: rgba(255, 255, 255, 0.94);
+  border: 2px solid #00c868;
+  box-shadow: 0 6px 20px rgba(38, 14, 54, 0.25), 0 0 20px rgba(0, 200, 104, 0.35);
+}
+
+.mainpage--light .replay-text,
+[data-theme='light'] .replay-text {
+  color: #240428;
+}
+
+.mainpage--light .replay-sub,
+[data-theme='light'] .replay-sub {
+  color: #059669;
+}
+
+.mainpage--light .replay-icon,
+[data-theme='light'] .replay-icon {
+  color: #059669;
+}
+
+/* AI 배지 & 사운드 버튼 (라이트 모드) */
+.mainpage--light .mainpage-video-ai-badge,
+[data-theme='light'] .mainpage-video-ai-badge {
+  background: rgba(243, 238, 249, 0.9);
+  border: 1px solid #c4b4d9;
+  color: #553c69;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.mainpage--light .ai-badge-sparkle,
+[data-theme='light'] .ai-badge-sparkle {
+  color: #7c3aed;
+}
+
+.mainpage--light .video-sound-btn,
+[data-theme='light'] .video-sound-btn {
+  background: rgba(243, 238, 249, 0.92);
+  border: 1px solid #c4b4d9;
+  color: #240428;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
+}
+
+.mainpage--light .video-sound-btn:hover,
+[data-theme='light'] .video-sound-btn:hover {
+  background: #ffffff;
+  border-color: #7c3aed;
+}
+
 @media (max-width: 768px) {
   .mainpage-video-section {
-    padding: 24px 12px 16px;
+    padding: 22px 12px 18px;
+  }
+
+  .mainpage-video-divider {
+    width: 94%;
+    margin-bottom: 16px;
+    gap: 10px;
+  }
+
+  .mainpage-video-divider__badge {
+    font-size: 10px;
+    padding: 3px 12px;
+    letter-spacing: 1.2px;
   }
 
   .mainpage-video-container {
