@@ -694,6 +694,13 @@ export default function MainPage() {
           className={`mainpage-video-section ${isShrunk ? 'has-shrunk' : ''}`}
           aria-label="PL:UG 커뮤니티 영상"
         >
+          {/* 상단 메인 영역과의 경계를 명확히 해주는 섹션 구분 디바이더 프레임 */}
+          <div className="mainpage-video-divider" aria-hidden="true">
+            <span className="mainpage-video-divider__line" />
+            <span className="mainpage-video-divider__badge">PL:UG HIGHLIGHT</span>
+            <span className="mainpage-video-divider__line" />
+          </div>
+
           <div
             className={`mainpage-video-container ${isShrunk ? 'is-shrunk' : ''}`}
             onClick={handleClickVideo}
