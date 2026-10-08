@@ -1,0 +1,27 @@
+{
+  "name": "BuildUp | PL:UG",
+  "short_name": "BuildUp",
+  "description": "프리미어리그 팬덤 커뮤니티 & 실시간 데이터 플랫폼 PL:UG",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#240428",
+  "theme_color": "#38003c",
+  "lang": "ko-KR",
+  "categories": ["sports", "entertainment"],
+  "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

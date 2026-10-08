@@ -17,6 +17,14 @@
       crossorigin
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
     />
+    <!-- PWA & Mobile App Settings (PWABuilder & Standalone App) -->
+    <link rel="manifest" href="./manifest.json" />
+    <meta name="theme-color" content="#38003c" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="BuildUp" />
+    <link rel="apple-touch-icon" href="./favicon.png" />
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6961977480009285" crossorigin="anonymous"></script>
     <script type="module" crossorigin src="/Team_BuildUp/assets/index-CXw8AjCB.js"></script>
     <link rel="modulepreload" crossorigin href="/Team_BuildUp/assets/rolldown-runtime-CbXtAM7H.js">
@@ -25,5 +33,14 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch((err) => {
+            console.warn('PWA ServiceWorker 등록 생략/오류:', err);
+          });
+        });
+      }
+    </script>
   </body>
 </html>
