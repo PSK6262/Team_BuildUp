@@ -189,10 +189,21 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
       ]);
       const [homeJson, awayJson] = await Promise.all([homeRes.json(), awayRes.json()]);
       const allPlayers = [
-        ...(homeJson.code === 'SUC_001' && homeJson.data ? homeJson.data.map(p => ({ ...p, teamType: 'HOME', teamName: match.homeTeamNameKor || match.homeTeamName })) : []),
-        ...(awayJson.code === 'SUC_001' && awayJson.data ? awayJson.data.map(p => ({ ...p, teamType: 'AWAY', teamName: match.awayTeamNameKor || match.awayTeamName })) : []),
+        ...(homeJson.code === 'SUC_001' && homeJson.data ? homeJson.data.map(p => ({
+          ...p,
+          teamId: p.teamId || match.homeTeamId,
+          teamType: 'HOME',
+          teamName: match.homeTeamNameKor || match.homeTeamName
+        })) : []),
+        ...(awayJson.code === 'SUC_001' && awayJson.data ? awayJson.data.map(p => ({
+          ...p,
+          teamId: p.teamId || match.awayTeamId,
+          teamType: 'AWAY',
+          teamName: match.awayTeamNameKor || match.awayTeamName
+        })) : []),
       ];
 
+      const initialTeamPlayers = allPlayers.filter(p => Number(p.teamId) === Number(match.homeTeamId));
       setEventModalPlayers(allPlayers);
       setEventModal(prev => prev ? {
         ...prev,
@@ -200,7 +211,7 @@ export function useAdminMatches({ showAlert, initialFilter, onClearInitialFilter
         loading: false,
         newEvent: {
           ...prev.newEvent,
-          playerId: allPlayers.length > 0 ? allPlayers[0].playerId : '',
+          playerId: initialTeamPlayers.length > 0 ? initialTeamPlayers[0].playerId : (allPlayers[0]?.playerId || ''),
         },
       } : null);
 

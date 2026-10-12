@@ -556,13 +556,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                   (m.homeScore !== homeGoals || m.awayScore !== awayGoals);
 
                 return (
-                  <div style={{
-                    background: isGoalMismatch ? '#fff1f2' : '#f8fafc',
-                    border: `1px solid ${isGoalMismatch ? '#fecdd3' : '#e2e8f0'}`,
-                    borderRadius: 10,
-                    padding: '16px 20px',
-                    marginBottom: 16,
-                  }}>
+                  <div className={`admin-timeline-match-card ${isGoalMismatch ? 'is-mismatch' : ''}`}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -618,26 +612,17 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                     </div>
 
                     {/* 스코어 vs 이벤트 카운트 대조 바 */}
-                    <div style={{
-                      marginTop: 14,
-                      paddingTop: 12,
-                      borderTop: `1px solid ${isGoalMismatch ? '#fecdd3' : '#e2e8f0'}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      flexWrap: 'wrap',
-                      gap: 12,
-                    }}>
+                    <div className="admin-timeline-match-divider">
                       <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
                         <div>
-                          <span style={{ fontSize: 12, color: '#64748b' }}>공식 최종 스코어: </span>
-                          <strong style={{ fontSize: 16, color: '#0f172a' }}>
+                          <span className="admin-timeline-subtext">공식 최종 스코어: </span>
+                          <strong className="admin-timeline-score-val">
                             {m.homeScore !== null ? m.homeScore : '-'} : {m.awayScore !== null ? m.awayScore : '-'}
                           </strong>
                         </div>
                         <div>
-                          <span style={{ fontSize: 12, color: '#64748b' }}>타임라인 골 이벤트: </span>
-                          <strong style={{ fontSize: 16, color: isGoalMismatch ? '#e11d48' : '#059669' }}>
+                          <span className="admin-timeline-subtext">타임라인 골 이벤트: </span>
+                          <strong style={{ fontSize: 16, color: isGoalMismatch ? '#f43f5e' : '#10b981' }}>
                             {homeGoals} : {awayGoals}
                           </strong>
                         </div>
@@ -661,40 +646,21 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
 
               {/* AI 분석 로딩 카드 */}
               {eventModal.aiLoading && (
-                <div style={{
-                  background: '#f8fafc',
-                  border: '1px dashed #cbd5e1',
-                  borderRadius: 8,
-                  padding: '12px 16px',
-                  marginBottom: 16,
-                  fontSize: 13,
-                  color: '#475569',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                }}>
+                <div className="admin-timeline-ai-loading">
                   <span style={{ fontSize: 18 }}>🤖</span>
                   <div>
-                    <strong style={{ color: '#1e293b' }}>Gemini AI 분석 참고의견 조회 중...</strong>
-                    <span style={{ marginLeft: 6, fontSize: 12, color: '#64748b' }}>공식 스코어와 타임라인 이벤트의 일치 여부 및 취소골 가능성을 분석하고 있습니다.</span>
+                    <strong>Gemini AI 분석 참고의견 조회 중...</strong>
+                    <span className="admin-timeline-subtext" style={{ marginLeft: 6 }}>공식 스코어와 타임라인 이벤트의 일치 여부 및 취소골 가능성을 분석하고 있습니다.</span>
                   </div>
                 </div>
               )}
 
               {/* AI 분석 조언 결과 알림창 */}
               {eventModal.aiAdvice && (
-                <div style={{
-                  background: '#f0fdf4',
-                  border: '1px solid #bbf7d0',
-                  borderRadius: 8,
-                  padding: '12px 16px',
-                  marginBottom: 16,
-                  fontSize: 13,
-                  color: '#166534',
-                }}>
+                <div className="admin-timeline-ai-advice">
                   <div style={{ fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span>🤖 Gemini AI 분석 참고의견</span>
-                    <span style={{ fontSize: 11, color: '#15803d', fontWeight: 400 }}>(DB에 자동 반영되지 않으며, 관리자 검토 후 직접 삭제 버튼을 눌러야 합니다)</span>
+                    <span className="admin-timeline-subtext" style={{ fontWeight: 400 }}>(DB에 자동 반영되지 않으며, 관리자 검토 후 직접 삭제 버튼을 눌러야 합니다)</span>
                   </div>
                   <div>
                     {eventModal.aiAdvice.isMismatch ? (
@@ -724,9 +690,9 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
 
               {/* 이벤트 목록 테이블 */}
               <div style={{ marginBottom: 20 }}>
-                <h4 style={{ margin: '0 0 10px 0', fontSize: 14, color: '#334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h4 className="admin-timeline-section-header">
                   <span>📋 등록된 경기 타임라인 이벤트 ({eventModal.events.length}건)</span>
-                  <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 400 }}>잘못 기재된 취소골/중복골은 [삭제] 버튼을 눌러주세요</span>
+                  <span className="admin-timeline-subtext" style={{ fontWeight: 400 }}>잘못 기재된 취소골/중복골은 [삭제] 버튼을 눌러주세요</span>
                 </h4>
 
                 <div className="admin-table-wrapper" style={{ maxHeight: 280, overflowY: 'auto' }}>
@@ -743,7 +709,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                     </thead>
                     <tbody>
                       {eventModal.loading ? (
-                        <tr><td colSpan="6" style={{ textAlign: 'center', padding: 20, color: '#0369a1' }}>이벤트를 불러오는 중입니다...</td></tr>
+                        <tr><td colSpan="6" style={{ textAlign: 'center', padding: 20, color: '#38bdf8' }}>이벤트를 불러오는 중입니다...</td></tr>
                       ) : eventModal.events.length === 0 ? (
                         <tr><td colSpan="6" style={{ textAlign: 'center', padding: 20, color: '#94a3b8' }}>등록된 타임라인 이벤트가 없습니다. [외부 원본 다시 불러오기]를 실행해보세요.</td></tr>
                       ) : (
@@ -768,12 +734,12 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                             <span className="badge badge--gray">{ev.eventTypeName || `기타(${evType})`}</span>;
 
                           return (
-                            <tr key={evId || `${evTime}-${ev.playerId}`} style={isGoal ? { background: '#f8fafc' } : {}}>
+                            <tr key={evId || `${evTime}-${ev.playerId}`} className={isGoal ? 'admin-timeline-goal-row' : ''}>
                               <td style={{ fontWeight: 700 }}>{evTime}&apos;</td>
                               <td>{tName}</td>
                               <td>{typeBadge}</td>
                               <td><strong>{pName}</strong></td>
-                              <td style={{ color: '#64748b' }}>{aName}</td>
+                              <td className="admin-timeline-subtext">{aName}</td>
                               <td>
                                 <button
                                   type="button"
@@ -794,15 +760,10 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
               </div>
 
               {/* 이벤트 수동 추가 섹션 */}
-              <div style={{
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: 8,
-                padding: '14px 16px',
-              }}>
+              <div className="admin-timeline-add-card">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <h4 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#334155', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span>➕</span> 이벤트 수동 직접 추가 <span style={{ fontSize: 11, fontWeight: 400, color: '#64748b' }}>(누락된 골/카드 등록)</span>
+                  <h4 className="admin-timeline-section-header" style={{ margin: 0, fontSize: 13, fontWeight: 700 }}>
+                    <span>➕ 이벤트 수동 직접 추가 <span className="admin-timeline-subtext" style={{ fontWeight: 400 }}>(누락된 골/카드 등록)</span></span>
                   </h4>
                 </div>
                 <div
@@ -815,9 +776,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                   }}
                 >
                   <div>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
-                      시간(분)
-                    </label>
+                    <label className="admin-timeline-field-label">시간(분)</label>
                     <input
                       type="number"
                       min="0"
@@ -833,17 +792,19 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                     />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
-                      소속 구단
-                    </label>
+                    <label className="admin-timeline-field-label">소속 구단</label>
                     <AdminSelect
                       className="admin-select"
                       style={{ width: '100%', height: 38, boxSizing: 'border-box' }}
                       value={eventModal.newEvent.teamId}
-                      onChange={(e) => setEventModal({
-                        ...eventModal,
-                        newEvent: { ...eventModal.newEvent, teamId: Number(e.target.value), playerId: '' }
-                      })}
+                      onChange={(e) => {
+                        const newTid = Number(e.target.value);
+                        const firstP = eventModalPlayers.find(p => Number(p.teamId) === newTid);
+                        setEventModal({
+                          ...eventModal,
+                          newEvent: { ...eventModal.newEvent, teamId: newTid, playerId: firstP ? firstP.playerId : '' }
+                        });
+                      }}
                     >
                       <option value={eventModal.match?.homeTeamId}>
                         [홈] {getTeamFullNameKor(eventModal.match?.homeTeamId, eventModal.match?.homeTeamNameKor || eventModal.match?.homeTeamName)}
@@ -854,9 +815,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                     </AdminSelect>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
-                      이벤트 유형
-                    </label>
+                    <label className="admin-timeline-field-label">이벤트 유형</label>
                     <AdminSelect
                       className="admin-select"
                       style={{ width: '100%', height: 38, boxSizing: 'border-box' }}
@@ -876,9 +835,7 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                     </AdminSelect>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
-                      선수 선택
-                    </label>
+                    <label className="admin-timeline-field-label">선수 선택</label>
                     <AdminSelect
                       className="admin-select"
                       style={{ width: '100%', height: 38, boxSizing: 'border-box' }}
@@ -890,12 +847,16 @@ export default function AdminMatchesTab({ showAlert, initialFilter, onClearIniti
                     >
                       <option value="">-- 선수 선택 --</option>
                       {eventModalPlayers
-                        .filter(p => Number(p.teamId) === Number(eventModal.newEvent.teamId))
-                        .map(p => (
-                          <option key={p.playerId} value={p.playerId}>
-                            {p.nameKor || p.name} ({p.position || '선수'})
-                          </option>
-                        ))
+                        .filter(p => !eventModal.newEvent.teamId || Number(p.teamId) === Number(eventModal.newEvent.teamId))
+                        .map(p => {
+                          const pName = p.playerNameKor || p.playersKor || p.playerName || p.nameKor || p.name || '선수';
+                          const pPos = p.detailPosition || p.mainPosition || p.position;
+                          return (
+                            <option key={p.playerId} value={p.playerId}>
+                              {pName}{pPos ? ` (${pPos})` : ''}
+                            </option>
+                          );
+                        })
                       }
                     </AdminSelect>
                   </div>
