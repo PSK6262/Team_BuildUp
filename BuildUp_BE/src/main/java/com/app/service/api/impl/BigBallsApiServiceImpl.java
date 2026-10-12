@@ -70,6 +70,8 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
             .build();
 
     private volatile boolean circuitBreakerActive = false;
+    private volatile long circuitBreakerTripTime = 0L;
+    private static final long CIRCUIT_BREAKER_COOLDOWN_MS = 30 * 60 * 1000L; // 30분 쿨다운
 
     // [질문 11 - 외부 API 재시도 및 장애 내성 설정]
     private static final int MAX_RETRY_COUNT = 2; // 최대 재시도 횟수
@@ -81,7 +83,7 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
      * [질문 11 개선 사항]:
      * 1. 단순 null 반환 대신 ExternalApiException을 명확히 발생시켜 호출부에서 장애 원인을 파악할 수 있도록 합니다.
      * 2. 일시적인 네트워크 타임아웃이나 외부 서버 장애(5xx) 시 최대 2회 지수 백오프 재시도(Retry)를 수행합니다.
-     * 3. 429(Rate Limit 초과) 발생 시 서킷 브레이커를 활성화하고 즉각적인 예외를 던집니다.
+     * 3. 429(Rate Limit 초과) 발생 시 서킷 브레이커를 활성화(30분 쿨다운)하고 즉각적인 예외를 던집니다.
      * 
      * @param url 호출할 외부 API 전체 URL
      * @return 성공 시 JSON 본문 문자열 (절대 null을 반환하지 않음)
@@ -89,9 +91,16 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
      */
     private String sendGetRequest(String url) {
         if (circuitBreakerActive) {
-            log.warn("[BigBallsData] 서킷 브레이커 작동 중 - 외부 API 호출 즉시 차단 (URL: {})", url);
-            throw new ExternalApiException(ResultCode.EXTERNAL_API_RATE_LIMIT, 429, url,
-                    "외부 축구 API 호출 한도 초과로 인해 서킷 브레이커가 동작 중입니다. 잠시 후 다시 시도해주세요.");
+            long elapsed = System.currentTimeMillis() - circuitBreakerTripTime;
+            if (elapsed > CIRCUIT_BREAKER_COOLDOWN_MS) {
+                log.info("[BigBallsData] 서킷 브레이커 쿨다운(30분) 경과 -> Half-Open 상태로 복귀 및 시험 호출 재개");
+                circuitBreakerActive = false;
+            } else {
+                long remainingMinutes = (CIRCUIT_BREAKER_COOLDOWN_MS - elapsed) / 60000 + 1;
+                log.warn("[BigBallsData] 서킷 브레이커 작동 중 - 외부 API 호출 즉시 차단 (남은 쿨다운: 약 {}분, URL: {})", remainingMinutes, url);
+                throw new ExternalApiException(ResultCode.EXTERNAL_API_RATE_LIMIT, 429, url,
+                        "외부 축구 API 호출 한도 초과로 인해 서킷 브레이커가 동작 중입니다. (약 " + remainingMinutes + "분 후 재시도 가능)");
+            }
         }
 
         int attempt = 0;
@@ -113,15 +122,17 @@ public class BigBallsApiServiceImpl implements BigBallsApiService {
 
                 // 1. 정상 응답 (2xx)
                 if (statusCode >= 200 && statusCode < 300) {
+                    circuitBreakerActive = false;
                     return response.body();
                 }
 
                 // 2. 429 Too Many Requests (호출 한도 초과 -> 서킷 브레이커 작동)
                 if (statusCode == 429) {
                     circuitBreakerActive = true;
-                    log.warn("[BigBallsData] API 호출 한도 초과 (HTTP 429, 서킷브레이커 작동, URL: {})", url);
+                    circuitBreakerTripTime = System.currentTimeMillis();
+                    log.warn("[BigBallsData] API 호출 한도 초과 (HTTP 429, 서킷브레이커 30분간 작동, URL: {})", url);
                     throw new ExternalApiException(ResultCode.EXTERNAL_API_RATE_LIMIT, 429, url,
-                            "외부 축구 API 일일/초당 호출 한도(429 Too Many Requests)를 초과했습니다.");
+                            "외부 축구 API 일일/초당 호출 한도(429 Too Many Requests)를 초과했습니다. (30분간 호출 차단)");
                 }
 
                 // 3. 401 / 403 인증 실패
