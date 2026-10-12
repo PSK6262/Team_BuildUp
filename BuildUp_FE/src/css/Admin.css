@@ -1846,6 +1846,196 @@
   color: #475569;
 }
 
+/* --------------------------------------------------------
+   경기 타임라인 이벤트 검증 & 관리 모달 전용 테마 스타일
+   -------------------------------------------------------- */
+.admin-timeline-match-card {
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  transition: all 0.2s ease;
+}
+
+.admin-light-mode .admin-timeline-match-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+}
+
+.admin-light-mode .admin-timeline-match-card.is-mismatch {
+  background: #fff1f2;
+  border-color: #fecdd3;
+}
+
+.admin-dark-mode .admin-timeline-match-card {
+  background: rgba(30, 8, 40, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+}
+
+.admin-dark-mode .admin-timeline-match-card.is-mismatch {
+  background: rgba(76, 5, 25, 0.6);
+  border-color: rgba(244, 63, 94, 0.45);
+}
+
+.admin-timeline-match-card strong {
+  color: inherit;
+}
+
+.admin-timeline-match-divider {
+  margin-top: 14px;
+  padding-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.admin-light-mode .admin-timeline-match-divider {
+  border-top: 1px solid #e2e8f0;
+}
+
+.admin-light-mode .admin-timeline-match-card.is-mismatch .admin-timeline-match-divider {
+  border-top-color: #fecdd3;
+}
+
+.admin-dark-mode .admin-timeline-match-divider {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-dark-mode .admin-timeline-match-card.is-mismatch .admin-timeline-match-divider {
+  border-top-color: rgba(244, 63, 94, 0.3);
+}
+
+.admin-timeline-subtext {
+  font-size: 12px;
+}
+
+.admin-light-mode .admin-timeline-subtext {
+  color: #64748b;
+}
+
+.admin-dark-mode .admin-timeline-subtext {
+  color: #c4b5fd;
+}
+
+.admin-timeline-score-val {
+  font-size: 16px;
+}
+
+.admin-light-mode .admin-timeline-score-val {
+  color: #0f172a;
+}
+
+.admin-dark-mode .admin-timeline-score-val {
+  color: #ffffff;
+}
+
+/* AI 분석 로딩 카드 */
+.admin-timeline-ai-loading {
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-light-mode .admin-timeline-ai-loading {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  color: #475569;
+}
+
+.admin-dark-mode .admin-timeline-ai-loading {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  color: #cbd5e1;
+}
+
+/* AI 분석 참고의견 결과 알림창 */
+.admin-timeline-ai-advice {
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.admin-light-mode .admin-timeline-ai-advice {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.admin-dark-mode .admin-timeline-ai-advice {
+  background: rgba(10, 40, 20, 0.7);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #bbf7d0;
+}
+
+.admin-dark-mode .admin-timeline-ai-advice strong {
+  color: #4ade80;
+}
+
+/* 이벤트 목록 섹션 헤더 & 행 */
+.admin-timeline-section-header {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-light-mode .admin-timeline-section-header {
+  color: #334155;
+}
+
+.admin-dark-mode .admin-timeline-section-header {
+  color: #e2e8f0;
+}
+
+.admin-light-mode .admin-timeline-goal-row {
+  background: #f8fafc;
+}
+
+.admin-dark-mode .admin-timeline-goal-row {
+  background: rgba(0, 255, 135, 0.07);
+}
+
+/* 이벤트 수동 직접 추가 섹션 */
+.admin-timeline-add-card {
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 10px;
+}
+
+.admin-light-mode .admin-timeline-add-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.admin-dark-mode .admin-timeline-add-card {
+  background: rgba(22, 6, 30, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.admin-timeline-field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.admin-light-mode .admin-timeline-field-label {
+  color: #64748b;
+}
+
+.admin-dark-mode .admin-timeline-field-label {
+  color: #d886ed;
+}
+
 /* ========================================================
    반응형 미디어 쿼리 (태블릿 <= 1024px / <= 768px / 모바일 <= 425px)
    ======================================================== */
