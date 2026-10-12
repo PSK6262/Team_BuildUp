@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -11,6 +13,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.app.dto.match.MatchEvents;
 import com.app.dto.match.Matches;
 import com.app.service.admin.AdminService;
 import com.app.service.api.BigBallsApiService;
@@ -38,6 +41,9 @@ public class MatchScheduler {
 
 	@Autowired
 	private AdminService adminService;
+
+	// 경기별 타임라인 이벤트 수집 시도 이력 (Big Balls Data 일일 250회 Free 쿼터 방어용)
+	private final Map<Long, LocalDateTime> lastEventSyncAttempts = new ConcurrentHashMap<>();
 
 	// [작업 0] 테스트용 더미 경기(999901~999910) 시작 시간 도래 시 자동 종료 및 포인트 정산 (20초 주기)
 	@Scheduled(fixedDelay = 20000)
@@ -95,14 +101,44 @@ public class MatchScheduler {
             System.err.println("  - 스코어 갱신 중 오류: " + e.getMessage());
         }
 
-        // 4단계: 방금 종료된 경기의 타임라인 이벤트(골, 자책골 등) 1회 수집 (Big Balls Data)
+        // 4단계: 방금 종료된 실제 경기 중, 아직 타임라인 이벤트가 없는 경기만 선별하여 1회 수집 (Big Balls Data 일일 250회 Free 쿼터 방어)
         try {
-            int updatedEvents = bigBallsApiService.syncMatchEventsByDate(today.toString());
-            // 새벽 0시~6시 시간대라면 어제 늦은 밤 시작해 방금 끝난 경기 이벤트도 함께 안전 수집
-            if (LocalTime.now().getHour() < 6) {
-                updatedEvents += bigBallsApiService.syncMatchEventsByDate(today.minusDays(1).toString());
+            int updatedEvents = 0;
+            for (Matches m : todayMatches) {
+                // 더미 경기 제외
+                if (m.getMatchId() != null && m.getMatchId() >= 999901L && m.getMatchId() <= 999910L) {
+                    continue;
+                }
+                // 종료(FINISHED)된 실제 경기만 대상
+                if (!"FINISHED".equalsIgnoreCase(m.getStatus())) {
+                    continue;
+                }
+                Long matchId = m.getMatchId();
+                if (matchId == null) {
+                    continue;
+                }
+
+                // [쿼터 보호 가드 1] 이미 DB에 타임라인 이벤트가 저장된 경기는 완전 스킵 (API 호출 0회)
+                List<MatchEvents> existing = bigBallsApiService.getMatchEvents(matchId);
+                if (existing != null && !existing.isEmpty()) {
+                    continue;
+                }
+
+                // [쿼터 보호 가드 2] 최근 30분 이내에 수집을 시도했던 경기는 재호출 방지 (429/미제공 결측치 무한 루프 방어)
+                LocalDateTime lastAttempt = lastEventSyncAttempts.get(matchId);
+                if (lastAttempt != null && lastAttempt.isAfter(LocalDateTime.now().minusMinutes(30))) {
+                    continue;
+                }
+
+                lastEventSyncAttempts.put(matchId, LocalDateTime.now());
+                System.out.println("  [BigBallsData] 종료 경기(MATCH_ID=" + matchId + ") 타임라인 이벤트 신규 수집 시도");
+                int count = bigBallsApiService.syncMatchEventsAuto(matchId);
+                updatedEvents += count;
             }
-            System.out.println("  - 이벤트 갱신: 총 " + updatedEvents + "건의 타임라인 이벤트 동기화 완료");
+
+            if (updatedEvents > 0) {
+                System.out.println("  - 이벤트 갱신: 총 " + updatedEvents + "건의 타임라인 이벤트 신규 동기화 완료");
+            }
         } catch (Exception e) {
             System.err.println("  - 이벤트 갱신 중 오류: " + e.getMessage());
         }
