@@ -209,19 +209,31 @@
 			)
 	</insert>
 
-	<!-- 승부예측 Top 10 랭킹 조회 (승수 및 승률순) -->
+	<!-- 승부예측 Top 10 랭킹 조회 (누적 획득 포인트, 적중률, 적중 수 순) -->
 	<select id="selectTopPredictors" resultType="UserPredicts">
 		SELECT
 			up.USER_ID,
 			up.PREDICT_WIN,
 			up.PREDICT_TOTAL,
+			NVL(ph.TOTAL_POINTS, 0) AS PREDICT_POINTS,
 			up.UPDATED_AT,
 			u.NICKNAME
 		FROM USER_PREDICTS up
 		JOIN USERS u ON up.USER_ID = u.USER_ID
+		LEFT JOIN (
+			SELECT USER_ID, SUM(AMOUNT) AS TOTAL_POINTS
+			FROM POINT_HISTORY
+			WHERE PREDICTION_ID IS NOT NULL
+			GROUP BY USER_ID
+		) ph ON ph.USER_ID = up.USER_ID
 		WHERE up.PREDICT_TOTAL >= 1
 		AND u.ROLE_CODE != 7
-		ORDER BY up.PREDICT_WIN DESC, (up.PREDICT_WIN / NULLIF(up.PREDICT_TOTAL, 0)) DESC, up.UPDATED_AT ASC, up.USER_ID ASC
+		ORDER BY 
+			NVL(ph.TOTAL_POINTS, 0) DESC,
+			(up.PREDICT_WIN / NULLIF(up.PREDICT_TOTAL, 0)) DESC,
+			up.PREDICT_WIN DESC,
+			up.UPDATED_AT ASC,
+			up.USER_ID ASC
 		FETCH FIRST 10 ROWS ONLY
 	</select>
 

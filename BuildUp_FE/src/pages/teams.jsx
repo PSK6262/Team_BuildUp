@@ -836,9 +836,9 @@ export function MemberRankings({ type, refreshKey = 0, mobileCards = false }) {
       .finally(() => clearTimeout(timer));
     return () => { active = false; clearTimeout(timer); controller.abort(); };
   }, [prediction, requestKey]);
-  return <section className="member-rankings" aria-label={prediction ? '승부예측 적중 랭킹' : '가상 대결 승률 랭킹'}>
-    <h2>{prediction ? '승부예측 적중' : '나만의 팀 가상 대결 승률'} TOP 10</h2>
-    <p>{prediction ? '정산된 예측의 적중 수 → 적중률 순입니다.' : '로그인 후 진행한 가상 대결의 승률 → 승리 수 순입니다. 승률은 전체 대결 중 승리 비율이며, 무승부도 전체 대결에 포함됩니다.'}</p>
+  return <section className="member-rankings" aria-label={prediction ? '승부예측 랭킹' : '가상 대결 승률 랭킹'}>
+    <h2>{prediction ? '승부예측' : '나만의 팀 가상 대결 승률'} TOP 10</h2>
+    <p>{prediction ? '누적 획득 포인트 → 적중률 → 적중 수 순입니다. (이변 및 역배 적중 시 더 높은 포인트를 획득합니다)' : '로그인 후 진행한 가상 대결의 승률 → 승리 수 순입니다. 승률은 전체 대결 중 승리 비율이며, 무승부도 전체 대결에 포함됩니다.'}</p>
     <div className="member-ranking-actions">
       {prediction && <a href="#/plug/prediction">승부예측 참여하기</a>}
       <button
@@ -881,14 +881,17 @@ export function MemberRankings({ type, refreshKey = 0, mobileCards = false }) {
         </div>
       )}
       <div className={`member-ranking-scroll${mobileCards && !prediction ? ' member-ranking-desktop' : ''}`}><table className="standings-table">
-        <thead><tr><th scope="col">순위</th><th scope="col">회원</th>{!prediction && <th scope="col">팀</th>}<th scope="col">{prediction ? '적중' : '승리'}</th><th scope="col">{prediction ? '정산 예측' : '대결'}</th><th scope="col">{prediction ? '적중률' : '승률'}</th>{!prediction && <><th scope="col">무승부</th><th scope="col">패배</th></>}</tr></thead>
+        <thead><tr><th scope="col">순위</th><th scope="col">회원</th>{!prediction && <th scope="col">팀</th>}{prediction && <th scope="col">획득 포인트</th>}<th scope="col">{prediction ? '적중' : '승리'}</th><th scope="col">{prediction ? '정산 예측' : '대결'}</th><th scope="col">{prediction ? '적중률' : '승률'}</th>{!prediction && <><th scope="col">무승부</th><th scope="col">패배</th></>}</tr></thead>
         <tbody>{result.rows.map((row, index) => {
           const wins = prediction ? row.predictWin : row.wins;
           const total = prediction ? row.predictTotal : row.totalMatches;
+          const points = prediction ? (row.predictPoints || 0) : null;
           const mine = userId != null && String(userId) === String(row.userId);
           return <tr key={row.userId} className={mine ? 'member-ranking-mine' : undefined}>
             <td>{index + 1}</td><th scope="row">{row.nickname || '회원'}{mine && ' (나)'}</th>
-            {!prediction && <td>{row.teamName}</td>}<td><strong>{wins}</strong></td><td>{total}</td><td>{(total ? wins / total * 100 : 0).toFixed(1)}%</td>
+            {!prediction && <td>{row.teamName}</td>}
+            {prediction && <td><strong style={{ color: '#10b981' }}>{points.toLocaleString()} P</strong></td>}
+            <td><strong>{wins}</strong></td><td>{total}</td><td>{(total ? wins / total * 100 : 0).toFixed(1)}%</td>
             {!prediction && <><td>{row.draws}</td><td>{row.losses}</td></>}
           </tr>;
         })}</tbody>
