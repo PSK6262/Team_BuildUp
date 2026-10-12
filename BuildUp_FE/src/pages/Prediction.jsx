@@ -1648,7 +1648,7 @@ export default function Prediction() {
               )}
             </main>
 
-            {/* 우측 사이드바: 명예의 전당 Top 3 (다승 및 승률 순) & 광고 영역 */}
+            {/* 우측 사이드바: 명예의 전당 Top 3 (누적 포인트 및 적중률 순) & 광고 영역 */}
             <aside className="prediction-sidebar">
               <div className="prediction-ranking-card">
                 <h2 className="prediction-ranking-card__title">
@@ -1677,7 +1677,10 @@ export default function Prediction() {
                         </div>
                         <div className="prediction-ranking-item__right">
                           <div className="prediction-ranking-item__point">
-                            {user.winRate}%
+                            {(user.predictPoints || 0).toLocaleString()} P
+                          </div>
+                          <div className="prediction-ranking-item__meta">
+                            적중률 {user.winRate}%
                           </div>
                         </div>
                       </div>

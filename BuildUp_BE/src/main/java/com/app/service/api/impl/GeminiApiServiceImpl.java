@@ -1870,7 +1870,9 @@ public class GeminiApiServiceImpl implements GeminiApiService {
 		}
 		for (int index = 0; index < Math.min(predictions.size(), 10); index++) {
 			UserPredicts user = predictions.get(index);
+			long points = user.getPredictPoints() != null ? user.getPredictPoints() : 0L;
 			context.append("- ").append(index + 1).append("위 ").append(displayName(user.getNickname(), "회원"))
+					.append(" · 획득 ").append(points).append("P")
 					.append(" · 적중 ").append(value(user.getPredictWin()))
 					.append(" · 정산 예측 ").append(value(user.getPredictTotal()))
 					.append(" · 적중률 ").append(user.getWinRate()).append("%\n");
